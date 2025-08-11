@@ -1,0 +1,54 @@
+module PostgresqlTypes.Types.Macaddr where
+
+import qualified PeekyBlinders
+import PostgresqlTypes.Algebra
+import PostgresqlTypes.Prelude
+import qualified PtrPoker.Write as Write
+import qualified TextBuilder
+
+-- | A MAC address type.
+-- Represents a 6-byte MAC address, typically used in networking.
+-- The format is six groups of two hexadecimal digits, separated by colons.
+-- Example: "01:23:45:67:89:ab"
+data Macaddr
+  = Macaddr
+      Word8
+      Word8
+      Word8
+      Word8
+      Word8
+      Word8
+  deriving stock (Eq, Ord)
+
+instance PostgresqlType Macaddr where
+  name = Tagged "macaddr"
+  baseOid = Tagged 829
+  arrayOid = Tagged 1040
+  binaryEncoder (Macaddr a b c d e f) =
+    mconcat
+      [ Write.word8 a,
+        Write.word8 b,
+        Write.word8 c,
+        Write.word8 d,
+        Write.word8 e,
+        Write.word8 f
+      ]
+  binaryDecoder =
+    PeekyBlinders.statically
+      ( Macaddr
+          <$> PeekyBlinders.unsignedInt1
+          <*> PeekyBlinders.unsignedInt1
+          <*> PeekyBlinders.unsignedInt1
+          <*> PeekyBlinders.unsignedInt1
+          <*> PeekyBlinders.unsignedInt1
+          <*> PeekyBlinders.unsignedInt1
+      )
+  textualEncoder (Macaddr a b c d e f) =
+    (TextBuilder.intercalate ":")
+      [ TextBuilder.hexadecimal a,
+        TextBuilder.hexadecimal b,
+        TextBuilder.hexadecimal c,
+        TextBuilder.hexadecimal d,
+        TextBuilder.hexadecimal e,
+        TextBuilder.hexadecimal f
+      ]

@@ -1,0 +1,6 @@
+packages: .
+
+source-repository-package
+  type: git
+  location: https://github.com/nikita-volkov/peeky-blinders
+  tag: ccd0d5b3555d89c9c58604a2fff0c21ebf33bed2

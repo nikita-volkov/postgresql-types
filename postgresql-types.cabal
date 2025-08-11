@@ -1,0 +1,109 @@
+cabal-version: 3.0
+name: postgresql-types
+version: 0
+category: PostgreSQL, Codecs
+synopsis: Mappings for PostgreSQL types
+description:
+  Basic library that provides mappings and other integrations for PostgreSQL types.
+  The Codecs are provided in both the Binary and Text formats as per the Postgres terminology.
+
+  The library can be used as the basis for various PostgreSQL libraries.
+  E.g., it is used in the "hasql" library for its codec layer.
+
+homepage: https://github.com/nikita-volkov/postgresql-types
+bug-reports: https://github.com/nikita-volkov/postgresql-types/issues
+author: Nikita Volkov <nikita.y.volkov@mail.ru>
+maintainer: Nikita Volkov <nikita.y.volkov@mail.ru>
+copyright: (c) 2025, Nikita Volkov
+license: MIT
+license-file: LICENSE
+extra-doc-files:
+  LICENSE
+  README.md
+
+source-repository head
+  type: git
+  location: https://github.com/nikita-volkov/postgresql-types
+
+common base
+  default-language: Haskell2010
+  default-extensions:
+    BangPatterns
+    BlockArguments
+    ConstraintKinds
+    DataKinds
+    DefaultSignatures
+    DeriveDataTypeable
+    DeriveFoldable
+    DeriveFunctor
+    DeriveGeneric
+    DeriveTraversable
+    DerivingStrategies
+    EmptyDataDecls
+    FlexibleContexts
+    FlexibleInstances
+    FunctionalDependencies
+    GADTs
+    GeneralizedNewtypeDeriving
+    LambdaCase
+    LiberalTypeSynonyms
+    MagicHash
+    MultiParamTypeClasses
+    MultiWayIf
+    NoImplicitPrelude
+    NoMonomorphismRestriction
+    NumericUnderscores
+    OverloadedStrings
+    ParallelListComp
+    PatternGuards
+    QuasiQuotes
+    RankNTypes
+    RecordWildCards
+    ScopedTypeVariables
+    StandaloneDeriving
+    StrictData
+    TemplateHaskell
+    TupleSections
+    TypeApplications
+    TypeFamilies
+    TypeOperators
+    UnboxedTuples
+    ViewPatterns
+
+common executable
+  import: base
+  ghc-options:
+    -O2
+    -threaded
+    -with-rtsopts=-N
+    -rtsopts
+    -funbox-strict-fields
+
+common test
+  import: base
+  ghc-options:
+    -threaded
+    -with-rtsopts=-N
+
+library
+  import: base
+  hs-source-dirs: src/library
+  exposed-modules: PostgresqlTypes
+  other-modules:
+    PostgresqlTypes.Algebra
+    PostgresqlTypes.Prelude
+    PostgresqlTypes.Types
+    PostgresqlTypes.Types.Macaddr
+    PostgresqlTypes.Types.Uuid
+
+  build-depends:
+    QuickCheck >=2.14 && <3,
+    base >=4.11 && <5,
+    bytestring >=0.10 && <0.13,
+    peeky-blinders >=0.1 && <0.2,
+    ptr-poker ^>=0.1.2.16,
+    tagged ^>=0.8.9,
+    text >=1.0 && <3,
+    text-builder ^>=1.0.0.4,
+    time >=1.12 && <2,
+    uuid >=1.3 && <2,
