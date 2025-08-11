@@ -13,6 +13,7 @@ import Control.Monad.Fix as Exports hiding (fix)
 import Control.Monad.IO.Class as Exports
 import Control.Monad.ST as Exports
 import Control.Monad.ST.Unsafe as Exports
+import Control.Monad.Trans.Except as Exports
 import Data.Bits as Exports
 import Data.Bool as Exports
 import Data.ByteString as Exports (ByteString)
@@ -68,7 +69,7 @@ import System.IO.Unsafe as Exports
 import System.Mem as Exports
 import System.Mem.StableName as Exports
 import System.Timeout as Exports
-import Test.QuickCheck.Arbitrary as Exports
+import Test.QuickCheck as Exports (Arbitrary (..), Property, Testable (..))
 import Text.Printf as Exports (hPrintf, printf)
 import Text.Read as Exports (Read (..), readEither, readMaybe)
 import TextBuilder as Exports (TextBuilder)
