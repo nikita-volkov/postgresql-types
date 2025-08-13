@@ -12,6 +12,7 @@ import qualified TextBuilder
 
 newtype Jsonb = Jsonb Aeson.Value
   deriving newtype (Eq, Ord, Arbitrary)
+  deriving (Show) via (ViaPostgresqlType Jsonb)
 
 instance PostgresqlType Jsonb where
   mapping =

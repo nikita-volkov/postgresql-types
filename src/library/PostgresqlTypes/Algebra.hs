@@ -5,8 +5,18 @@ import PostgresqlTypes.Prelude
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
+-- * Class layer
+
 class PostgresqlType a where
   mapping :: Mapping a
+
+newtype ViaPostgresqlType a = ViaPostgresqlType a
+  deriving newtype (Eq, Ord, Arbitrary, PostgresqlType)
+
+instance (PostgresqlType a) => Show (ViaPostgresqlType a) where
+  showsPrec d (ViaPostgresqlType a) = showsPrec d (mapping.textualEncoder a)
+
+-- * Definition layer
 
 data DecodingError = DecodingError
   { location :: [Text],

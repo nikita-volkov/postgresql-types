@@ -39,6 +39,7 @@ common base
     DeriveGeneric
     DeriveTraversable
     DerivingStrategies
+    DerivingVia
     DuplicateRecordFields
     EmptyDataDecls
     FlexibleContexts
