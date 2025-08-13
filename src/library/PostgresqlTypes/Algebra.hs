@@ -8,6 +8,23 @@ import qualified TextBuilder
 class PostgresqlType a where
   mapping :: Mapping a
 
+data DecodingError = DecodingError
+  { location :: [Text],
+    reason :: DecodingErrorReason
+  }
+
+data DecodingErrorReason
+  = ParsingDecodingErrorReason
+      -- | Details.
+      Text
+      -- | Input.
+      ByteString
+  | UnexpectedValueDecodingErrorReason
+      -- | Expected.
+      Text
+      -- | Actual.
+      Text
+
 data Mapping a = Mapping
   { schemaName :: Maybe Text,
     typeName :: Text,
@@ -18,7 +35,7 @@ data Mapping a = Mapping
     -- When unspecified, the OID will be determined at runtime by looking up by name.
     arrayOid :: Maybe Int32,
     binaryEncoder :: a -> Write.Write,
-    binaryDecoder :: PeekyBlinders.Dynamic (Either Text a),
+    binaryDecoder :: PeekyBlinders.Dynamic (Either DecodingError a),
     -- | Represent in Postgres textual format.
     textualEncoder :: a -> TextBuilder.TextBuilder
   }
@@ -57,12 +74,14 @@ composite schemaName typeName fields =
                     if count == fields.count
                       then Right ()
                       else
-                        (Left . TextBuilder.toText . mconcat)
-                          [ "Unexpected field count: ",
-                            TextBuilder.decimal count,
-                            ", expected: ",
-                            TextBuilder.decimal fields.count
-                          ]
+                        Left
+                          DecodingError
+                            { location = ["field-count"],
+                              reason =
+                                UnexpectedValueDecodingErrorReason
+                                  (TextBuilder.toText (TextBuilder.decimal fields.count))
+                                  (TextBuilder.toText (TextBuilder.decimal count))
+                            }
           ExceptT fields.binaryDecoder,
       textualEncoder = \_value -> error "TODO"
     }
@@ -70,7 +89,7 @@ composite schemaName typeName fields =
 data Fields a b = Fields
   { count :: Word32,
     binaryEncoder :: a -> Write.Write,
-    binaryDecoder :: PeekyBlinders.Dynamic (Either Text b),
+    binaryDecoder :: PeekyBlinders.Dynamic (Either DecodingError b),
     -- | Represent in Postgres textual format.
     textualEncoder :: a -> TextBuilder.TextBuilder
   }

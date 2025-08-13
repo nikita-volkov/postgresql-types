@@ -4,7 +4,6 @@ module PostgresqlTypes.Prelude
 where
 
 import Control.Applicative as Exports
-import Control.Arrow as Exports
 import Control.Category as Exports
 import Control.Concurrent as Exports
 import Control.Exception as Exports
@@ -14,6 +13,7 @@ import Control.Monad.IO.Class as Exports
 import Control.Monad.ST as Exports
 import Control.Monad.ST.Unsafe as Exports
 import Control.Monad.Trans.Except as Exports
+import Data.Bifunctor as Exports
 import Data.Bits as Exports
 import Data.Bool as Exports
 import Data.ByteString as Exports (ByteString)
