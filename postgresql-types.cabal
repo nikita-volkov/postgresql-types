@@ -99,7 +99,6 @@ library
     PostgresqlTypes.Prelude
     PostgresqlTypes.Types
     PostgresqlTypes.Types.Jsonb
-    PostgresqlTypes.Types.Jsonb.QuickCheckGens
     PostgresqlTypes.Types.Macaddr
     PostgresqlTypes.Types.Uuid
 

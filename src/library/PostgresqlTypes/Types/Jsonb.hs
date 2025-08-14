@@ -1,15 +1,16 @@
 module PostgresqlTypes.Types.Jsonb (Jsonb (..)) where
 
 import qualified Data.Aeson as Aeson
+import qualified Data.Aeson.Key as Aeson.Key
+import qualified Data.Aeson.KeyMap as Aeson.KeyMap
 import qualified Data.Aeson.Text as Aeson.Text
+import qualified Data.Text as Text
 import qualified Jsonifier
 import qualified JsonifierAeson
 import qualified PeekyBlinders
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
-import qualified PostgresqlTypes.Types.Jsonb.QuickCheckGens as QuickCheckGens
 import qualified PtrPoker.Write as Write
-import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
 newtype Jsonb = Jsonb Aeson.Value
@@ -17,8 +18,8 @@ newtype Jsonb = Jsonb Aeson.Value
   deriving (Show) via (ViaPostgresqlType Jsonb)
 
 instance Arbitrary Jsonb where
-  arbitrary = Jsonb <$> QuickCheckGens.value
-  shrink (Jsonb aesonValue) = Jsonb <$> QuickCheck.shrink aesonValue
+  arbitrary = fromAesonValue <$> arbitrary
+  shrink = fmap Jsonb . shrink . toAesonValue
 
 instance PostgresqlType Jsonb where
   mapping =
@@ -66,3 +67,17 @@ instance PostgresqlType Jsonb where
 
 toAesonValue :: Jsonb -> Aeson.Value
 toAesonValue (Jsonb value) = value
+
+-- | Construct from Aeson Value by filtering out null characters from every string and object key.
+fromAesonValue :: Aeson.Value -> Jsonb
+fromAesonValue = Jsonb . updateValue
+  where
+    updateValue = \case
+      Aeson.String string -> Aeson.String (updateText string)
+      Aeson.Object object -> Aeson.Object (updateObject object)
+      Aeson.Array array -> Aeson.Array (updateArray array)
+      other -> other
+    updateText = Text.replace "\NUL" ""
+    updateObject = Aeson.KeyMap.mapKeyVal updateKey updateValue
+    updateArray = fmap updateValue
+    updateKey = Aeson.Key.fromText . updateText . Aeson.Key.toText
