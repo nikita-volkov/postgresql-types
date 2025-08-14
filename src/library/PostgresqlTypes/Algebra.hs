@@ -50,6 +50,15 @@ data Mapping a = Mapping
     textualEncoder :: a -> TextBuilder.TextBuilder
   }
 
+instance Invariant Mapping where
+  invmap f g Mapping {..} =
+    Mapping
+      { binaryEncoder = binaryEncoder . g,
+        binaryDecoder = fmap (fmap f) binaryDecoder,
+        textualEncoder = textualEncoder . g,
+        ..
+      }
+
 mappingProperties ::
   (Arbitrary a) =>
   Mapping a ->
