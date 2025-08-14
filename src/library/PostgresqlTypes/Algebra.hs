@@ -22,6 +22,7 @@ data DecodingError = DecodingError
   { location :: [Text],
     reason :: DecodingErrorReason
   }
+  deriving stock (Show, Eq)
 
 data DecodingErrorReason
   = ParsingDecodingErrorReason
@@ -34,15 +35,17 @@ data DecodingErrorReason
       Text
       -- | Actual.
       Text
+  deriving stock (Show, Eq)
 
 data Mapping a = Mapping
   { schemaName :: Maybe Text,
     typeName :: Text,
     -- | Statically known OID for the type.
-    -- When unspecified, the OID will be determined at runtime by looking up by name.
+    -- When unspecified, the OID may be determined at runtime by looking up by name.
     baseOid :: Maybe Int32,
-    -- | Statically known OID for the array-type.
-    -- When unspecified, the OID will be determined at runtime by looking up by name.
+    -- | Statically known OID for the array-type with this type as the element.
+    -- When unspecified, the OID may be determined at runtime by looking up by name.
+    -- It may also mean that there may be no array type containing this type, which is the case in attempts to double-nest arrays.
     arrayOid :: Maybe Int32,
     binaryEncoder :: a -> Write.Write,
     binaryDecoder :: PeekyBlinders.Dynamic (Either DecodingError a),
