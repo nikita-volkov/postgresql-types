@@ -7,12 +7,18 @@ import qualified JsonifierAeson
 import qualified PeekyBlinders
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
+import qualified PostgresqlTypes.Types.Jsonb.QuickCheckGens as QuickCheckGens
 import qualified PtrPoker.Write as Write
+import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
 newtype Jsonb = Jsonb Aeson.Value
-  deriving newtype (Eq, Ord, Arbitrary)
+  deriving newtype (Eq, Ord)
   deriving (Show) via (ViaPostgresqlType Jsonb)
+
+instance Arbitrary Jsonb where
+  arbitrary = Jsonb <$> QuickCheckGens.value
+  shrink (Jsonb aesonValue) = Jsonb <$> QuickCheck.shrink aesonValue
 
 instance PostgresqlType Jsonb where
   mapping =

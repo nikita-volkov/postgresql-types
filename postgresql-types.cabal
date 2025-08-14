@@ -99,6 +99,7 @@ library
     PostgresqlTypes.Prelude
     PostgresqlTypes.Types
     PostgresqlTypes.Types.Jsonb
+    PostgresqlTypes.Types.Jsonb.QuickCheckGens
     PostgresqlTypes.Types.Macaddr
     PostgresqlTypes.Types.Uuid
 
@@ -113,7 +114,7 @@ library
     postgresql-types:jsonifier-aeson,
     ptr-poker ^>=0.1.2.16,
     tagged ^>=0.8.9,
-    text >=1.0 && <3,
+    text >=1.2 && <3,
     text-builder ^>=1.0.0.4,
     time >=1.12 && <2,
     transformers >=0.5 && <0.7,
@@ -130,3 +131,36 @@ library jsonifier-aeson
     aeson >=2.2 && <3,
     base >=4.11 && <5,
     jsonifier ^>=0.2.1.3,
+
+library testcontainers-postgresql
+  import: base
+  hs-source-dirs: src/testcontainers-postgresql
+  exposed-modules:
+    TestcontainersPostgresql
+
+  build-depends:
+    base >=4.11 && <5,
+    testcontainers ^>=0.5.1,
+    text >=1.2 && <3,
+
+test-suite integration-tests
+  import: test
+  type: exitcode-stdio-1.0
+  hs-source-dirs: src/integration-tests
+  main-is: Main.hs
+  other-modules:
+    Main.Helpers
+
+  build-depends:
+    QuickCheck >=2.14 && <3,
+    base >=4.11 && <5,
+    bytestring >=0.10 && <0.13,
+    hspec >=2.11 && <3,
+    peeky-blinders >=0.1 && <0.2,
+    postgresql-libpq >=0.10 && <0.12,
+    postgresql-types,
+    postgresql-types:testcontainers-postgresql,
+    ptr-poker ^>=0.1.2.16,
+    quickcheck-instances ^>=0.3.33,
+    text >=1.2 && <3,
+    text-builder ^>=1.0.0.4,

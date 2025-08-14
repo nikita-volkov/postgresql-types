@@ -19,6 +19,7 @@ data Macaddr
       Word8
       Word8
   deriving stock (Eq, Ord)
+  deriving (Show) via (ViaPostgresqlType Macaddr)
 
 instance Arbitrary Macaddr where
   arbitrary = do
