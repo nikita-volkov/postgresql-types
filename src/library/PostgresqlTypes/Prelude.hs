@@ -60,6 +60,7 @@ import GHC.Conc as Exports hiding (threadWaitRead, threadWaitReadSTM, threadWait
 import GHC.Exts as Exports (groupWith, inline, lazy, sortWith)
 import GHC.Generics as Exports (Generic)
 import GHC.IO.Exception as Exports
+import LawfulConversions as Exports
 import Numeric as Exports
 import Numeric.Natural as Exports (Natural)
 import System.Environment as Exports

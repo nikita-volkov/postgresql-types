@@ -1,4 +1,4 @@
-module PostgresqlTypes.Types.Jsonb (Jsonb (..)) where
+module PostgresqlTypes.Types.Jsonb (Jsonb) where
 
 import qualified Data.Aeson as Aeson
 import qualified Data.Aeson.Key as Aeson.Key
@@ -65,6 +65,20 @@ instance PostgresqlType Jsonb where
           TextBuilder.lazyText . Aeson.Text.encodeToLazyText . toAesonValue
       }
 
+instance IsSome Aeson.Value Jsonb where
+  to = toAesonValue
+  maybeFrom = maybeFromAesonValue
+
+instance IsMany Aeson.Value Jsonb where
+  from = fromAesonValue
+
+instance IsSome Jsonb Aeson.Value where
+  to = fromAesonValue
+  maybeFrom = Just . toAesonValue
+
+instance IsMany Jsonb Aeson.Value where
+  from = toAesonValue
+
 toAesonValue :: Jsonb -> Aeson.Value
 toAesonValue (Jsonb value) = value
 
@@ -81,3 +95,20 @@ fromAesonValue = Jsonb . updateValue
     updateObject = Aeson.KeyMap.mapKeyVal updateKey updateValue
     updateArray = fmap updateValue
     updateKey = Aeson.Key.fromText . updateText . Aeson.Key.toText
+
+-- | Construct from Aeson Value while failing if any of its strings or object keys contain null characters.
+maybeFromAesonValue :: Aeson.Value -> Maybe Jsonb
+maybeFromAesonValue = fmap Jsonb . validateValue
+  where
+    validateValue = \case
+      Aeson.String string -> Aeson.String <$> validateText string
+      Aeson.Object object -> Aeson.Object <$> validateObject object
+      Aeson.Array array -> Aeson.Array <$> validateArray array
+      other -> pure other
+    validateText text =
+      if Text.elem '\NUL' text
+        then Nothing
+        else Just text
+    validateObject = Aeson.KeyMap.traverseWithKey (\key value -> validateKey key *> validateValue value)
+    validateArray = traverse validateValue
+    validateKey = fmap Aeson.Key.fromText . validateText . Aeson.Key.toText
