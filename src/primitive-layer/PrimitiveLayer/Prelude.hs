@@ -1,4 +1,4 @@
-module PostgresqlTypes.Prelude
+module PrimitiveLayer.Prelude
   ( module Exports,
   )
 where

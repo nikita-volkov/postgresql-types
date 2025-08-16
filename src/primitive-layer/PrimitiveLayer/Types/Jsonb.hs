@@ -1,4 +1,4 @@
-module PostgresqlTypes.Types.Jsonb (Jsonb) where
+module PrimitiveLayer.Types.Jsonb (Jsonb) where
 
 import qualified Data.Aeson as Aeson
 import qualified Data.Aeson.Key as Aeson.Key
@@ -8,8 +8,8 @@ import qualified Data.Text as Text
 import qualified Jsonifier
 import qualified JsonifierAeson
 import qualified PeekyBlinders
-import PostgresqlTypes.Algebra
-import PostgresqlTypes.Prelude
+import PrimitiveLayer.Algebra
+import PrimitiveLayer.Prelude
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 

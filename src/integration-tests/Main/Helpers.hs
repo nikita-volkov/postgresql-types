@@ -9,7 +9,7 @@ import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text.Encoding
 import qualified Database.PostgreSQL.LibPQ as Pq
 import qualified PeekyBlinders
-import qualified PostgresqlTypes
+import qualified PrimitiveLayer
 import qualified PtrPoker.Write
 import Test.Hspec
 import Test.QuickCheck ((===))
@@ -57,7 +57,7 @@ withPqConnection action = do
 mappingSpec ::
   forall a.
   (QuickCheck.Arbitrary a, Show a, Eq a) =>
-  PostgresqlTypes.Mapping a ->
+  PrimitiveLayer.Mapping a ->
   SpecWith Pq.Connection
 mappingSpec mapping = do
   describe ("With mapping of base type " <> Text.unpack mapping.typeName) do

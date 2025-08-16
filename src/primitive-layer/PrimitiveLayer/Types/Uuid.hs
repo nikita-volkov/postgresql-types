@@ -1,11 +1,11 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module PostgresqlTypes.Types.Uuid (UUID) where
+module PrimitiveLayer.Types.Uuid (UUID) where
 
 import qualified Data.UUID as Uuid
 import qualified PeekyBlinders
-import PostgresqlTypes.Algebra
-import PostgresqlTypes.Prelude
+import PrimitiveLayer.Algebra
+import PrimitiveLayer.Prelude
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 

@@ -91,17 +91,17 @@ common test
     -threaded
     -with-rtsopts=-N
 
-library
+library primitive-layer
   import: base
-  hs-source-dirs: src/library
-  exposed-modules: PostgresqlTypes
+  hs-source-dirs: src/primitive-layer
+  exposed-modules: PrimitiveLayer
   other-modules:
-    PostgresqlTypes.Algebra
-    PostgresqlTypes.Prelude
-    PostgresqlTypes.Types
-    PostgresqlTypes.Types.Jsonb
-    PostgresqlTypes.Types.Macaddr
-    PostgresqlTypes.Types.Uuid
+    PrimitiveLayer.Algebra
+    PrimitiveLayer.Prelude
+    PrimitiveLayer.Types
+    PrimitiveLayer.Types.Jsonb
+    PrimitiveLayer.Types.Macaddr
+    PrimitiveLayer.Types.Uuid
 
   build-depends:
     QuickCheck >=2.14 && <3,
@@ -193,7 +193,7 @@ test-suite integration-tests
     hspec >=2.11 && <3,
     peeky-blinders >=0.1 && <0.2,
     postgresql-libpq >=0.10 && <0.12,
-    postgresql-types,
+    postgresql-types:primitive-layer,
     postgresql-types:testcontainers-postgresql,
     ptr-poker ^>=0.1.2.16,
     quickcheck-instances ^>=0.3.33,

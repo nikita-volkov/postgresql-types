@@ -1,8 +1,8 @@
-module PostgresqlTypes.Types.Macaddr where
+module PrimitiveLayer.Types.Macaddr where
 
 import qualified PeekyBlinders
-import PostgresqlTypes.Algebra
-import PostgresqlTypes.Prelude
+import PrimitiveLayer.Algebra
+import PrimitiveLayer.Prelude
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 

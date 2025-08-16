@@ -1,7 +1,7 @@
-module PostgresqlTypes.Algebra where
+module PrimitiveLayer.Algebra where
 
 import qualified PeekyBlinders
-import PostgresqlTypes.Prelude
+import PrimitiveLayer.Prelude
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
