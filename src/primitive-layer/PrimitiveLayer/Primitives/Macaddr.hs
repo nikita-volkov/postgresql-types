@@ -1,4 +1,4 @@
-module PrimitiveLayer.Types.Macaddr where
+module PrimitiveLayer.Primitives.Macaddr where
 
 import qualified PeekyBlinders
 import PrimitiveLayer.Algebra

@@ -1,4 +1,4 @@
-module PrimitiveLayer.Types.Jsonb (Jsonb) where
+module PrimitiveLayer.Primitives.Jsonb (Jsonb) where
 
 import qualified Data.Aeson as Aeson
 import qualified Data.Aeson.Key as Aeson.Key

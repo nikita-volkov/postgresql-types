@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module PrimitiveLayer.Types.Uuid (UUID) where
+module PrimitiveLayer.Primitives.Uuid (UUID) where
 
 import qualified Data.UUID as Uuid
 import qualified PeekyBlinders

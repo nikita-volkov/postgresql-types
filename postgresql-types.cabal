@@ -94,14 +94,16 @@ common test
 library primitive-layer
   import: base
   hs-source-dirs: src/primitive-layer
-  exposed-modules: PrimitiveLayer
+  exposed-modules:
+    PrimitiveLayer
+
   other-modules:
     PrimitiveLayer.Algebra
     PrimitiveLayer.Prelude
-    PrimitiveLayer.Types
-    PrimitiveLayer.Types.Jsonb
-    PrimitiveLayer.Types.Macaddr
-    PrimitiveLayer.Types.Uuid
+    PrimitiveLayer.Primitives
+    PrimitiveLayer.Primitives.Jsonb
+    PrimitiveLayer.Primitives.Macaddr
+    PrimitiveLayer.Primitives.Uuid
 
   build-depends:
     QuickCheck >=2.14 && <3,

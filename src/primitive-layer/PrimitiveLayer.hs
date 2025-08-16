@@ -1,8 +1,8 @@
 module PrimitiveLayer
   ( module PrimitiveLayer.Algebra,
-    module PrimitiveLayer.Types,
+    module PrimitiveLayer.Primitives,
   )
 where
 
 import PrimitiveLayer.Algebra
-import PrimitiveLayer.Types
+import PrimitiveLayer.Primitives
