@@ -1,4 +1,4 @@
-module DeclarationDsl.Prelude
+module DeclarationLayer.Prelude
   ( module Exports,
   )
 where

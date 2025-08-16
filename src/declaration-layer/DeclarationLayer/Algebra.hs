@@ -1,10 +1,10 @@
 {-# OPTIONS_GHC -Wno-unused-binds -Wno-unused-imports -Wno-name-shadowing -Wno-incomplete-patterns -Wno-unused-matches -Wno-missing-methods -Wno-unused-record-wildcards -Wno-redundant-constraints #-}
 
-module DeclarationDsl.Algebra where
+module DeclarationLayer.Algebra where
 
 import qualified Data.Vector as Vector
-import qualified DeclarationDsl.Algebra.Writes as Writes
-import DeclarationDsl.Prelude
+import qualified DeclarationLayer.Algebra.Writes as Writes
+import DeclarationLayer.Prelude
 import qualified PeekyBlinders
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder

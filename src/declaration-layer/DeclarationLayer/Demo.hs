@@ -1,7 +1,7 @@
-module DeclarationDsl.Demo where
+module DeclarationLayer.Demo where
 
-import DeclarationDsl.Algebra
-import DeclarationDsl.Prelude
+import DeclarationLayer.Algebra
+import DeclarationLayer.Prelude
 
 data Genre = Rock | Pop | Jazz
 

@@ -1,8 +1,8 @@
-module DeclarationDsl.Scalars.Uuid (UUID, uuid) where
+module DeclarationLayer.Scalars.Uuid (UUID, uuid) where
 
 import qualified Data.UUID as Uuid
-import DeclarationDsl.Algebra
-import DeclarationDsl.Prelude
+import DeclarationLayer.Algebra
+import DeclarationLayer.Prelude
 import qualified PeekyBlinders
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder

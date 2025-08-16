@@ -1,6 +1,6 @@
-module DeclarationDsl.Algebra.Writes where
+module DeclarationLayer.Algebra.Writes where
 
-import DeclarationDsl.Prelude
+import DeclarationLayer.Prelude
 import PtrPoker.Write
 
 arrayHeader :: Int32 -> Bool -> Int32 -> [Int32] -> Write
