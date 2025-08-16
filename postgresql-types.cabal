@@ -117,6 +117,7 @@ library primitive-layer
     postgresql-types:jsonifier-aeson,
     profunctors ^>=5.6 && <6,
     ptr-poker ^>=0.1.2.16,
+    quickcheck-instances ^>=0.3.33,
     tagged ^>=0.8.9,
     text >=1.2 && <3,
     text-builder ^>=1.0.0.4,

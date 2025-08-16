@@ -74,6 +74,7 @@ import System.Mem as Exports
 import System.Mem.StableName as Exports
 import System.Timeout as Exports
 import Test.QuickCheck as Exports (Arbitrary (..), Property, Testable (..))
+import Test.QuickCheck.Instances ()
 import Text.Printf as Exports (hPrintf, printf)
 import Text.Read as Exports (Read (..), readEither, readMaybe)
 import TextBuilder as Exports (TextBuilder)

@@ -11,6 +11,6 @@ main :: IO ()
 main =
   hspec do
     aroundAll Main.Helpers.withPqConnection do
-      Main.Helpers.mappingSpec @PrimitiveLayer.UUID Proxy
+      Main.Helpers.mappingSpec @PrimitiveLayer.Uuid Proxy
       Main.Helpers.mappingSpec @PrimitiveLayer.Jsonb Proxy
       Main.Helpers.mappingSpec @PrimitiveLayer.Macaddr Proxy
