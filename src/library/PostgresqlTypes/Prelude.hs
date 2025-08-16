@@ -3,7 +3,7 @@ module PostgresqlTypes.Prelude
   )
 where
 
-import Control.Applicative as Exports
+import Control.Applicative as Exports hiding (WrappedArrow (..))
 import Control.Category as Exports
 import Control.Concurrent as Exports
 import Control.Exception as Exports
@@ -36,6 +36,7 @@ import Data.List as Exports hiding (all, and, any, concat, concatMap, elem, find
 import Data.Maybe as Exports
 import Data.Monoid as Exports hiding (First (..), Last (..), (<>))
 import Data.Ord as Exports
+import Data.Profunctor as Exports (Profunctor (..))
 import Data.Proxy as Exports
 import Data.Ratio as Exports
 import Data.STRef as Exports
