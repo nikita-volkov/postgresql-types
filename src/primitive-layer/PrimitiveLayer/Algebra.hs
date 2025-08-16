@@ -5,8 +5,6 @@ import PrimitiveLayer.Prelude
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
--- * Class layer
-
 class Primitive a where
   -- | Optional schema name for the PostgreSQL type.
   schemaName :: Tagged a (Maybe Text)
@@ -34,8 +32,6 @@ newtype ViaPrimitive a = ViaPrimitive a
 
 instance (Primitive a) => Show (ViaPrimitive a) where
   showsPrec d (ViaPrimitive a) = showsPrec d (textualEncoder a)
-
--- * Definition layer
 
 data DecodingError = DecodingError
   { location :: [Text],
