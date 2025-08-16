@@ -128,13 +128,13 @@ library primitive-layer
 library declaration-layer
   import: base
   hs-source-dirs: src/declaration-layer
-  other-modules:
+  exposed-modules:
     DeclarationLayer.Algebra
+
+  other-modules:
     DeclarationLayer.Algebra.Writes
     DeclarationLayer.Demo
     DeclarationLayer.Prelude
-    DeclarationLayer.Scalars
-    DeclarationLayer.Scalars.Uuid
 
   build-depends:
     QuickCheck >=2.14 && <3,
@@ -147,6 +147,7 @@ library declaration-layer
     mtl >=2.2 && <3,
     peeky-blinders >=0.1 && <0.2,
     postgresql-types:jsonifier-aeson,
+    postgresql-types:primitive-layer,
     profunctors ^>=5.6 && <6,
     ptr-poker ^>=0.1.2.16,
     tagged ^>=0.8.9,
