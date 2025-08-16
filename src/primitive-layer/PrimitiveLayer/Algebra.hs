@@ -6,17 +6,14 @@ import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
 class Primitive a where
-  -- | Optional schema name for the PostgreSQL type.
-  schemaName :: Tagged a (Maybe Text)
-
   -- | PostgreSQL type name.
   typeName :: Tagged a Text
 
-  -- | Statically known OID for the base type (if known).
-  baseOid :: Tagged a (Maybe Int32)
+  -- | Statically known OID for the base type.
+  baseOid :: Tagged a Int32
 
-  -- | Statically known OID for the array type (if known).
-  arrayOid :: Tagged a (Maybe Int32)
+  -- | Statically known OID for the array type.
+  arrayOid :: Tagged a Int32
 
   -- | Encode the value in PostgreSQL binary format.
   binaryEncoder :: a -> Write.Write

@@ -246,15 +246,14 @@ primitive =
               Primitive.UnexpectedValueDecodingErrorReason expected actual ->
                 UnexpectedValueDecodingErrorReason expected actual
           }
-      mSchema = untag (Primitive.schemaName @a)
       tName = untag (Primitive.typeName @a)
       bOid = untag (Primitive.baseOid @a)
       aOid = untag (Primitive.arrayOid @a)
    in Scalar
-        { schemaName = fromMaybe "" mSchema,
+        { schemaName = "",
           typeName = tName,
-          baseOid = bOid,
-          arrayOid = aOid,
+          baseOid = Just bOid,
+          arrayOid = Just aOid,
           binaryEncoder = Primitive.binaryEncoder,
           binaryDecoder = fmap (first convertError) (Primitive.binaryDecoder @a),
           textualEncoder = Primitive.textualEncoder

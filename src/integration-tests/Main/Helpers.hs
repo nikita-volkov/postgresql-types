@@ -100,7 +100,7 @@ mappingSpec _ = do
 
 runRoundtripQuery ::
   Pq.Connection ->
-  Maybe Int32 ->
+  Int32 ->
   ByteString.ByteString ->
   Pq.Format ->
   Pq.Format ->
@@ -111,7 +111,7 @@ runRoundtripQuery connection paramOid paramEncoding paramFormat resultFormat = d
       connection
       "select $1"
       [ Just
-          ( Pq.Oid (fromIntegral (fromMaybe 705 paramOid)),
+          ( Pq.Oid (fromIntegral paramOid),
             paramEncoding,
             paramFormat
           )

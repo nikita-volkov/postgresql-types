@@ -10,10 +10,9 @@ import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
 instance Primitive UUID where
-  schemaName = Tagged Nothing
   typeName = Tagged "uuid"
-  baseOid = Tagged (Just 2950)
-  arrayOid = Tagged (Just 2951)
+  baseOid = Tagged 2950
+  arrayOid = Tagged 2951
   binaryEncoder uuid =
     case Uuid.toWords uuid of
       (w1, w2, w3, w4) ->

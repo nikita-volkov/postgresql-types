@@ -41,10 +41,9 @@ instance Arbitrary Macaddr where
     ]
 
 instance Primitive Macaddr where
-  schemaName = Tagged Nothing
   typeName = Tagged "macaddr"
-  baseOid = Tagged (Just 829)
-  arrayOid = Tagged (Just 1040)
+  baseOid = Tagged 829
+  arrayOid = Tagged 1040
   binaryEncoder (Macaddr a b c d e f) =
     mconcat
       [ Write.word8 a,

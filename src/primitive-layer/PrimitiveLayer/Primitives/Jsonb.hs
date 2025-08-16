@@ -22,10 +22,9 @@ instance Arbitrary Jsonb where
   shrink = fmap Jsonb . shrink . toAesonValue
 
 instance Primitive Jsonb where
-  schemaName = Tagged Nothing
   typeName = Tagged "jsonb"
-  baseOid = Tagged (Just 3802)
-  arrayOid = Tagged (Just 3807)
+  baseOid = Tagged 3802
+  arrayOid = Tagged 3807
   binaryEncoder =
     mappend (Write.word8 1) . Jsonifier.toWrite . JsonifierAeson.aesonValue . toAesonValue
   binaryDecoder = do
