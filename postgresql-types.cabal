@@ -101,23 +101,43 @@ library primitive-layer
     PrimitiveLayer.Algebra
     PrimitiveLayer.Prelude
     PrimitiveLayer.Primitives
+    PrimitiveLayer.Primitives.Bool
+    PrimitiveLayer.Primitives.Bytea
+    PrimitiveLayer.Primitives.Char
+    PrimitiveLayer.Primitives.Date
+    PrimitiveLayer.Primitives.Float4
+    PrimitiveLayer.Primitives.Float8
+    PrimitiveLayer.Primitives.Int2
+    PrimitiveLayer.Primitives.Int4
+    PrimitiveLayer.Primitives.Int8
+    PrimitiveLayer.Primitives.Interval
+    PrimitiveLayer.Primitives.Interval.Micros
     PrimitiveLayer.Primitives.Jsonb
     PrimitiveLayer.Primitives.Macaddr
+    PrimitiveLayer.Primitives.Numeric
+    PrimitiveLayer.Primitives.Oid
+    PrimitiveLayer.Primitives.Text
+    PrimitiveLayer.Primitives.Time
+    PrimitiveLayer.Primitives.Timestamp
+    PrimitiveLayer.Primitives.Timestamptz
     PrimitiveLayer.Primitives.Uuid
+    PrimitiveLayer.Primitives.Varchar
 
   build-depends:
     QuickCheck >=2.14 && <3,
     aeson >=2.2 && <3,
     base >=4.11 && <5,
+    base16-bytestring >=1.0 && <2,
     bytestring >=0.10 && <0.13,
     invariant ^>=0.6.4,
     jsonifier ^>=0.2.1.3,
-    lawful-conversions >=0.1.7 && <0.2,
+    lawful-conversions ^>=0.2,
     peeky-blinders >=0.1 && <0.2,
     postgresql-types:jsonifier-aeson,
     profunctors ^>=5.6 && <6,
     ptr-poker ^>=0.1.2.16,
     quickcheck-instances ^>=0.3.33,
+    scientific >=0.3 && <1,
     tagged ^>=0.8.9,
     text >=1.2 && <3,
     text-builder ^>=1.0.0.4,
@@ -144,7 +164,7 @@ library declaration-layer
     bytestring >=0.10 && <0.13,
     invariant ^>=0.6.4,
     jsonifier ^>=0.2.1.3,
-    lawful-conversions >=0.1.7 && <0.2,
+    lawful-conversions ^>=0.2,
     mtl >=2.2 && <3,
     peeky-blinders >=0.1 && <0.2,
     postgresql-types:jsonifier-aeson,
@@ -181,6 +201,28 @@ library testcontainers-postgresql
     base >=4.11 && <5,
     testcontainers ^>=0.5.1,
     text >=1.2 && <3,
+
+test-suite unit-tests
+  import: test
+  type: exitcode-stdio-1.0
+  hs-source-dirs: src/unit-tests
+  main-is: Main.hs
+  build-depends:
+    QuickCheck >=2.14 && <3,
+    base >=4.11 && <5,
+    bytestring >=0.10 && <0.13,
+    hspec >=2.11 && <3,
+    lawful-conversions ^>=0.2,
+    peeky-blinders >=0.1 && <0.2,
+    postgresql-libpq >=0.10 && <0.12,
+    postgresql-types:primitive-layer,
+    postgresql-types:testcontainers-postgresql,
+    ptr-poker ^>=0.1.2.16,
+    quickcheck-instances ^>=0.3.33,
+    tagged ^>=0.8.9,
+    text >=1.2 && <3,
+    text-builder ^>=1.0.0.4,
+    time >=1.12 && <2,
 
 test-suite integration-tests
   import: test

@@ -11,6 +11,23 @@ main :: IO ()
 main =
   hspec do
     aroundAll Main.Helpers.withPqConnection do
-      Main.Helpers.mappingSpec @PrimitiveLayer.Uuid Proxy
-      Main.Helpers.mappingSpec @PrimitiveLayer.Jsonb Proxy
-      Main.Helpers.mappingSpec @PrimitiveLayer.Macaddr Proxy
+      Main.Helpers.primitiveSpec @PrimitiveLayer.Bool Proxy
+      Main.Helpers.primitiveSpec @PrimitiveLayer.Bytea Proxy
+      Main.Helpers.primitiveSpec @PrimitiveLayer.Char Proxy
+      Main.Helpers.primitiveSpec @PrimitiveLayer.Date Proxy
+      Main.Helpers.primitiveSpec @PrimitiveLayer.Float4 Proxy
+      Main.Helpers.primitiveSpec @PrimitiveLayer.Float8 Proxy
+      Main.Helpers.primitiveSpec @PrimitiveLayer.Int2 Proxy
+      Main.Helpers.primitiveSpec @PrimitiveLayer.Int4 Proxy
+      Main.Helpers.primitiveSpec @PrimitiveLayer.Int8 Proxy
+      Main.Helpers.primitiveSpec @PrimitiveLayer.Interval Proxy
+      Main.Helpers.primitiveSpec @PrimitiveLayer.Jsonb Proxy
+      Main.Helpers.primitiveSpec @PrimitiveLayer.Macaddr Proxy
+      Main.Helpers.primitiveSpec @PrimitiveLayer.Numeric Proxy
+      Main.Helpers.primitiveSpec @PrimitiveLayer.Oid Proxy
+      Main.Helpers.primitiveSpec @PrimitiveLayer.Text Proxy
+      Main.Helpers.primitiveSpec @PrimitiveLayer.Time Proxy
+      Main.Helpers.primitiveSpec @PrimitiveLayer.Timestamp Proxy
+      Main.Helpers.primitiveSpec @PrimitiveLayer.Timestamptz Proxy
+      Main.Helpers.primitiveSpec @PrimitiveLayer.Uuid Proxy
+      Main.Helpers.primitiveSpec @PrimitiveLayer.Varchar Proxy

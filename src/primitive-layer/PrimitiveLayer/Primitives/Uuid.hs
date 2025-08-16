@@ -24,15 +24,13 @@ instance Primitive Uuid where
             Write.bWord32 w3,
             Write.bWord32 w4
           ]
-  binaryDecoder =
-    PeekyBlinders.statically
-      ( Right
-          . Uuid
-          <$> ( Data.UUID.fromWords
-                  <$> PeekyBlinders.beUnsignedInt4
-                  <*> PeekyBlinders.beUnsignedInt4
-                  <*> PeekyBlinders.beUnsignedInt4
-                  <*> PeekyBlinders.beUnsignedInt4
-              )
-      )
+  binaryDecoder = PeekyBlinders.statically do
+    Right
+      . Uuid
+      <$> ( Data.UUID.fromWords
+              <$> PeekyBlinders.beUnsignedInt4
+              <*> PeekyBlinders.beUnsignedInt4
+              <*> PeekyBlinders.beUnsignedInt4
+              <*> PeekyBlinders.beUnsignedInt4
+          )
   textualEncoder = TextBuilder.text . Data.UUID.toText . coerce

@@ -1,10 +1,44 @@
 module PrimitiveLayer.Primitives
-  ( module PrimitiveLayer.Primitives.Macaddr,
+  ( module PrimitiveLayer.Primitives.Bool,
+    module PrimitiveLayer.Primitives.Text,
+    module PrimitiveLayer.Primitives.Char,
+    module PrimitiveLayer.Primitives.Varchar,
+    module PrimitiveLayer.Primitives.Int2,
+    module PrimitiveLayer.Primitives.Int4,
+    module PrimitiveLayer.Primitives.Int8,
+    module PrimitiveLayer.Primitives.Float4,
+    module PrimitiveLayer.Primitives.Float8,
+    module PrimitiveLayer.Primitives.Numeric,
+    module PrimitiveLayer.Primitives.Bytea,
+    module PrimitiveLayer.Primitives.Date,
+    module PrimitiveLayer.Primitives.Time,
+    module PrimitiveLayer.Primitives.Timestamp,
+    module PrimitiveLayer.Primitives.Timestamptz,
+    module PrimitiveLayer.Primitives.Interval,
+    module PrimitiveLayer.Primitives.Oid,
+    module PrimitiveLayer.Primitives.Macaddr,
     module PrimitiveLayer.Primitives.Uuid,
     module PrimitiveLayer.Primitives.Jsonb,
   )
 where
 
+import PrimitiveLayer.Primitives.Bool
+import PrimitiveLayer.Primitives.Bytea
+import PrimitiveLayer.Primitives.Char
+import PrimitiveLayer.Primitives.Date
+import PrimitiveLayer.Primitives.Float4
+import PrimitiveLayer.Primitives.Float8
+import PrimitiveLayer.Primitives.Int2
+import PrimitiveLayer.Primitives.Int4
+import PrimitiveLayer.Primitives.Int8
+import PrimitiveLayer.Primitives.Interval
 import PrimitiveLayer.Primitives.Jsonb
 import PrimitiveLayer.Primitives.Macaddr
+import PrimitiveLayer.Primitives.Numeric
+import PrimitiveLayer.Primitives.Oid
+import PrimitiveLayer.Primitives.Text
+import PrimitiveLayer.Primitives.Time
+import PrimitiveLayer.Primitives.Timestamp
+import PrimitiveLayer.Primitives.Timestamptz
 import PrimitiveLayer.Primitives.Uuid
+import PrimitiveLayer.Primitives.Varchar

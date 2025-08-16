@@ -311,7 +311,7 @@ timestamptz :: Scalar UTCTime
 timestamptz = error "TODO"
 
 uuid :: Scalar UUID
-uuid = primitive
+uuid = coerce (primitive @Primitive.Uuid)
 
 jsonb :: Scalar Primitive.Jsonb
 jsonb = primitive

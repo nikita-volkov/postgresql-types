@@ -68,13 +68,6 @@ instance IsSome Aeson.Value Jsonb where
 instance IsMany Aeson.Value Jsonb where
   from = fromAesonValue
 
-instance IsSome Jsonb Aeson.Value where
-  to = fromAesonValue
-  maybeFrom = Just . toAesonValue
-
-instance IsMany Jsonb Aeson.Value where
-  from = toAesonValue
-
 toAesonValue :: Jsonb -> Aeson.Value
 toAesonValue (Jsonb value) = value
 
