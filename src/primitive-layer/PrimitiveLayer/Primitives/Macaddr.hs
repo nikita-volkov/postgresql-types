@@ -19,7 +19,7 @@ data Macaddr
       Word8
       Word8
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaPostgresqlType Macaddr)
+  deriving (Show) via (ViaPrimitive Macaddr)
 
 instance Arbitrary Macaddr where
   arbitrary = do
@@ -40,7 +40,7 @@ instance Arbitrary Macaddr where
       f' <- shrink f
     ]
 
-instance PostgresqlType Macaddr where
+instance Primitive Macaddr where
   mapping =
     Mapping
       { schemaName = Nothing,

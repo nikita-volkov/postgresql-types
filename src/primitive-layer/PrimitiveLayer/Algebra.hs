@@ -7,14 +7,14 @@ import qualified TextBuilder
 
 -- * Class layer
 
-class PostgresqlType a where
+class Primitive a where
   mapping :: Mapping a
 
-newtype ViaPostgresqlType a = ViaPostgresqlType a
-  deriving newtype (Eq, Ord, Arbitrary, PostgresqlType)
+newtype ViaPrimitive a = ViaPrimitive a
+  deriving newtype (Eq, Ord, Arbitrary, Primitive)
 
-instance (PostgresqlType a) => Show (ViaPostgresqlType a) where
-  showsPrec d (ViaPostgresqlType a) = showsPrec d (mapping.textualEncoder a)
+instance (Primitive a) => Show (ViaPrimitive a) where
+  showsPrec d (ViaPrimitive a) = showsPrec d (mapping.textualEncoder a)
 
 -- * Definition layer
 

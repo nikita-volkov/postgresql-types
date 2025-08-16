@@ -15,13 +15,13 @@ import qualified TextBuilder
 
 newtype Jsonb = Jsonb Aeson.Value
   deriving newtype (Eq, Ord)
-  deriving (Show) via (ViaPostgresqlType Jsonb)
+  deriving (Show) via (ViaPrimitive Jsonb)
 
 instance Arbitrary Jsonb where
   arbitrary = fromAesonValue <$> arbitrary
   shrink = fmap Jsonb . shrink . toAesonValue
 
-instance PostgresqlType Jsonb where
+instance Primitive Jsonb where
   mapping =
     Mapping
       { schemaName = Nothing,

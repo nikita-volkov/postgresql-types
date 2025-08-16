@@ -9,7 +9,7 @@ import PrimitiveLayer.Prelude
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
-instance PostgresqlType UUID where
+instance Primitive UUID where
   mapping =
     Mapping
       { schemaName = Nothing,
