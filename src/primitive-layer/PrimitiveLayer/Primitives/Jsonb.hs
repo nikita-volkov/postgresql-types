@@ -22,48 +22,45 @@ instance Arbitrary Jsonb where
   shrink = fmap Jsonb . shrink . toAesonValue
 
 instance Primitive Jsonb where
-  mapping =
-    Mapping
-      { schemaName = Nothing,
-        typeName = "jsonb",
-        baseOid = Just 3802,
-        arrayOid = Just 3807,
-        binaryEncoder =
-          mappend (Write.word8 1) . Jsonifier.toWrite . JsonifierAeson.aesonValue . toAesonValue,
-        binaryDecoder = do
-          firstByte <- PeekyBlinders.statically PeekyBlinders.unsignedInt1
-          case firstByte of
-            1 -> do
-              remainingBytes <- PeekyBlinders.remainderAsByteString
-              pure
-                ( bimap
-                    ( \string ->
-                        DecodingError
-                          { location = ["json"],
-                            reason =
-                              ParsingDecodingErrorReason
-                                (fromString string)
-                                remainingBytes
-                          }
-                    )
-                    Jsonb
-                    (Aeson.eitherDecodeStrict remainingBytes)
-                )
-            _ ->
-              pure
-                ( Left
-                    ( DecodingError
-                        { location = ["json-encoding-format"],
-                          reason =
-                            UnexpectedValueDecodingErrorReason
-                              "1"
-                              (TextBuilder.toText (TextBuilder.decimal firstByte))
-                        }
-                    )
-                ),
-        textualEncoder =
-          TextBuilder.lazyText . Aeson.Text.encodeToLazyText . toAesonValue
-      }
+  schemaName = Tagged Nothing
+  typeName = Tagged "jsonb"
+  baseOid = Tagged (Just 3802)
+  arrayOid = Tagged (Just 3807)
+  binaryEncoder =
+    mappend (Write.word8 1) . Jsonifier.toWrite . JsonifierAeson.aesonValue . toAesonValue
+  binaryDecoder = do
+    firstByte <- PeekyBlinders.statically PeekyBlinders.unsignedInt1
+    case firstByte of
+      1 -> do
+        remainingBytes <- PeekyBlinders.remainderAsByteString
+        pure
+          ( bimap
+              ( \string ->
+                  DecodingError
+                    { location = ["json"],
+                      reason =
+                        ParsingDecodingErrorReason
+                          (fromString string)
+                          remainingBytes
+                    }
+              )
+              Jsonb
+              (Aeson.eitherDecodeStrict remainingBytes)
+          )
+      _ ->
+        pure
+          ( Left
+              ( DecodingError
+                  { location = ["json-encoding-format"],
+                    reason =
+                      UnexpectedValueDecodingErrorReason
+                        "1"
+                        (TextBuilder.toText (TextBuilder.decimal firstByte))
+                  }
+              )
+          )
+  textualEncoder =
+    TextBuilder.lazyText . Aeson.Text.encodeToLazyText . toAesonValue
 
 instance IsSome Aeson.Value Jsonb where
   to = toAesonValue

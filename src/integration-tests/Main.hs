@@ -1,5 +1,6 @@
 module Main (main) where
 
+import Data.Proxy
 import qualified Main.Helpers
 import qualified PrimitiveLayer
 import Test.Hspec
@@ -10,6 +11,6 @@ main :: IO ()
 main =
   hspec do
     aroundAll Main.Helpers.withPqConnection do
-      Main.Helpers.mappingSpec @PrimitiveLayer.UUID PrimitiveLayer.mapping
-      Main.Helpers.mappingSpec @PrimitiveLayer.Jsonb PrimitiveLayer.mapping
-      Main.Helpers.mappingSpec @PrimitiveLayer.Macaddr PrimitiveLayer.mapping
+      Main.Helpers.mappingSpec @PrimitiveLayer.UUID Proxy
+      Main.Helpers.mappingSpec @PrimitiveLayer.Jsonb Proxy
+      Main.Helpers.mappingSpec @PrimitiveLayer.Macaddr Proxy

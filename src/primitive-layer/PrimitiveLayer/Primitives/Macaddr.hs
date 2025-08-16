@@ -41,40 +41,37 @@ instance Arbitrary Macaddr where
     ]
 
 instance Primitive Macaddr where
-  mapping =
-    Mapping
-      { schemaName = Nothing,
-        typeName = "macaddr",
-        baseOid = Just 829,
-        arrayOid = Just 1040,
-        binaryEncoder = \(Macaddr a b c d e f) ->
-          mconcat
-            [ Write.word8 a,
-              Write.word8 b,
-              Write.word8 c,
-              Write.word8 d,
-              Write.word8 e,
-              Write.word8 f
-            ],
-        binaryDecoder =
-          PeekyBlinders.statically
-            ( Right
-                <$> ( Macaddr
-                        <$> PeekyBlinders.unsignedInt1
-                        <*> PeekyBlinders.unsignedInt1
-                        <*> PeekyBlinders.unsignedInt1
-                        <*> PeekyBlinders.unsignedInt1
-                        <*> PeekyBlinders.unsignedInt1
-                        <*> PeekyBlinders.unsignedInt1
-                    )
-            ),
-        textualEncoder = \(Macaddr a b c d e f) ->
-          (TextBuilder.intercalate ":")
-            [ TextBuilder.hexadecimal a,
-              TextBuilder.hexadecimal b,
-              TextBuilder.hexadecimal c,
-              TextBuilder.hexadecimal d,
-              TextBuilder.hexadecimal e,
-              TextBuilder.hexadecimal f
-            ]
-      }
+  schemaName = Tagged Nothing
+  typeName = Tagged "macaddr"
+  baseOid = Tagged (Just 829)
+  arrayOid = Tagged (Just 1040)
+  binaryEncoder (Macaddr a b c d e f) =
+    mconcat
+      [ Write.word8 a,
+        Write.word8 b,
+        Write.word8 c,
+        Write.word8 d,
+        Write.word8 e,
+        Write.word8 f
+      ]
+  binaryDecoder =
+    PeekyBlinders.statically
+      ( Right
+          <$> ( Macaddr
+                  <$> PeekyBlinders.unsignedInt1
+                  <*> PeekyBlinders.unsignedInt1
+                  <*> PeekyBlinders.unsignedInt1
+                  <*> PeekyBlinders.unsignedInt1
+                  <*> PeekyBlinders.unsignedInt1
+                  <*> PeekyBlinders.unsignedInt1
+              )
+      )
+  textualEncoder (Macaddr a b c d e f) =
+    (TextBuilder.intercalate ":")
+      [ TextBuilder.hexadecimal a,
+        TextBuilder.hexadecimal b,
+        TextBuilder.hexadecimal c,
+        TextBuilder.hexadecimal d,
+        TextBuilder.hexadecimal e,
+        TextBuilder.hexadecimal f
+      ]

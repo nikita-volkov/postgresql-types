@@ -8,13 +8,32 @@ import qualified TextBuilder
 -- * Class layer
 
 class Primitive a where
-  mapping :: Mapping a
+  -- | Optional schema name for the PostgreSQL type.
+  schemaName :: Tagged a (Maybe Text)
+
+  -- | PostgreSQL type name.
+  typeName :: Tagged a Text
+
+  -- | Statically known OID for the base type (if known).
+  baseOid :: Tagged a (Maybe Int32)
+
+  -- | Statically known OID for the array type (if known).
+  arrayOid :: Tagged a (Maybe Int32)
+
+  -- | Encode the value in PostgreSQL binary format.
+  binaryEncoder :: a -> Write.Write
+
+  -- | Decode the value from PostgreSQL binary format.
+  binaryDecoder :: PeekyBlinders.Dynamic (Either DecodingError a)
+
+  -- | Represent the value in PostgreSQL textual format.
+  textualEncoder :: a -> TextBuilder.TextBuilder
 
 newtype ViaPrimitive a = ViaPrimitive a
   deriving newtype (Eq, Ord, Arbitrary, Primitive)
 
 instance (Primitive a) => Show (ViaPrimitive a) where
-  showsPrec d (ViaPrimitive a) = showsPrec d (mapping.textualEncoder a)
+  showsPrec d (ViaPrimitive a) = showsPrec d (textualEncoder a)
 
 -- * Definition layer
 
@@ -36,19 +55,3 @@ data DecodingErrorReason
       -- | Actual.
       Text
   deriving stock (Show, Eq)
-
-data Mapping a = Mapping
-  { schemaName :: Maybe Text,
-    typeName :: Text,
-    -- | Statically known OID for the type.
-    -- When unspecified, the OID may be determined at runtime by looking up by name.
-    baseOid :: Maybe Int32,
-    -- | Statically known OID for the array-type with this type as the element.
-    -- When unspecified, the OID may be determined at runtime by looking up by name.
-    -- It may also mean that there may be no array type containing this type, which is the case in attempts to double-nest arrays.
-    arrayOid :: Maybe Int32,
-    binaryEncoder :: a -> Write.Write,
-    binaryDecoder :: PeekyBlinders.Dynamic (Either DecodingError a),
-    -- | Represent in Postgres textual format.
-    textualEncoder :: a -> TextBuilder.TextBuilder
-  }

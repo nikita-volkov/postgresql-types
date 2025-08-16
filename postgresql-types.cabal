@@ -199,5 +199,6 @@ test-suite integration-tests
     postgresql-types:testcontainers-postgresql,
     ptr-poker ^>=0.1.2.16,
     quickcheck-instances ^>=0.3.33,
+    tagged ^>=0.8.9,
     text >=1.2 && <3,
     text-builder ^>=1.0.0.4,
