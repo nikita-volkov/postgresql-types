@@ -15,7 +15,7 @@ containerRequest forwardLogs =
   TestContainers.containerRequest (TestContainers.fromTag "postgres:17")
     & TestContainers.setExpose [5432]
     & TestContainers.setWaitingFor waitUntilReady
-    & TestContainers.setEnv [("POSTGRES_PASSWORD", "postgres")]
+    & TestContainers.setEnv [("POSTGRES_HOST_AUTH_METHOD", "trust")]
     & (if forwardLogs then TestContainers.withFollowLogs TestContainers.consoleLogConsumer else id)
 
 waitUntilReady :: TestContainers.WaitUntilReady
