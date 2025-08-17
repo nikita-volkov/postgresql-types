@@ -6,6 +6,7 @@ import qualified Data.Vector as Vector
 import qualified DeclarationLayer.Algebra.Writes as Writes
 import DeclarationLayer.Prelude
 import qualified PeekyBlinders
+import qualified PrimitiveLayer as Primitive
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
@@ -230,6 +231,34 @@ data Scalar a = Scalar
     textualEncoder :: a -> TextBuilder.TextBuilder
   }
 
+-- | Lift a Primitive (from primitive-layer) into a declaration-layer Scalar.
+-- This allows reusing primitive implementations as declaration-layer scalars.
+primitive :: forall a. (Primitive.Primitive a) => Scalar a
+primitive =
+  let -- Convert decoding errors between layers (they have identical shapes)
+      convertError :: Primitive.DecodingError -> DecodingError
+      convertError Primitive.DecodingError {location, reason} =
+        DecodingError
+          { location,
+            reason = case reason of
+              Primitive.ParsingDecodingErrorReason details input ->
+                ParsingDecodingErrorReason details input
+              Primitive.UnexpectedValueDecodingErrorReason expected actual ->
+                UnexpectedValueDecodingErrorReason expected actual
+          }
+      tName = untag (Primitive.typeName @a)
+      bOid = untag (Primitive.baseOid @a)
+      aOid = untag (Primitive.arrayOid @a)
+   in Scalar
+        { schemaName = "",
+          typeName = tName,
+          baseOid = Just bOid,
+          arrayOid = Just aOid,
+          binaryEncoder = Primitive.binaryEncoder,
+          binaryDecoder = fmap (first convertError) (Primitive.binaryDecoder @a),
+          textualEncoder = Primitive.textualEncoder
+        }
+
 composite ::
   -- | Schema name. If empty, the default schema will be used.
   Text ->
@@ -280,6 +309,15 @@ text = error "TODO"
 
 timestamptz :: Scalar UTCTime
 timestamptz = error "TODO"
+
+uuid :: Scalar UUID
+uuid = primitive
+
+jsonb :: Scalar Primitive.Jsonb
+jsonb = primitive
+
+macaddr :: Scalar Primitive.Macaddr
+macaddr = primitive
 
 data Fields a b = Fields
   { count :: Int32,

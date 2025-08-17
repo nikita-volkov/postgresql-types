@@ -1,4 +1,4 @@
-module PostgresqlTypes.Types.Jsonb (Jsonb) where
+module PrimitiveLayer.Primitives.Jsonb (Jsonb) where
 
 import qualified Data.Aeson as Aeson
 import qualified Data.Aeson.Key as Aeson.Key
@@ -8,62 +8,58 @@ import qualified Data.Text as Text
 import qualified Jsonifier
 import qualified JsonifierAeson
 import qualified PeekyBlinders
-import PostgresqlTypes.Algebra
-import PostgresqlTypes.Prelude
+import PrimitiveLayer.Algebra
+import PrimitiveLayer.Prelude
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
 newtype Jsonb = Jsonb Aeson.Value
   deriving newtype (Eq, Ord)
-  deriving (Show) via (ViaPostgresqlType Jsonb)
+  deriving (Show) via (ViaPrimitive Jsonb)
 
 instance Arbitrary Jsonb where
   arbitrary = fromAesonValue <$> arbitrary
   shrink = fmap Jsonb . shrink . toAesonValue
 
-instance PostgresqlType Jsonb where
-  mapping =
-    Mapping
-      { schemaName = Nothing,
-        typeName = "jsonb",
-        baseOid = Just 3802,
-        arrayOid = Just 3807,
-        binaryEncoder =
-          mappend (Write.word8 1) . Jsonifier.toWrite . JsonifierAeson.aesonValue . toAesonValue,
-        binaryDecoder = do
-          firstByte <- PeekyBlinders.statically PeekyBlinders.unsignedInt1
-          case firstByte of
-            1 -> do
-              remainingBytes <- PeekyBlinders.remainderAsByteString
-              pure
-                ( bimap
-                    ( \string ->
-                        DecodingError
-                          { location = ["json"],
-                            reason =
-                              ParsingDecodingErrorReason
-                                (fromString string)
-                                remainingBytes
-                          }
-                    )
-                    Jsonb
-                    (Aeson.eitherDecodeStrict remainingBytes)
-                )
-            _ ->
-              pure
-                ( Left
-                    ( DecodingError
-                        { location = ["json-encoding-format"],
-                          reason =
-                            UnexpectedValueDecodingErrorReason
-                              "1"
-                              (TextBuilder.toText (TextBuilder.decimal firstByte))
-                        }
-                    )
-                ),
-        textualEncoder =
-          TextBuilder.lazyText . Aeson.Text.encodeToLazyText . toAesonValue
-      }
+instance Primitive Jsonb where
+  typeName = Tagged "jsonb"
+  baseOid = Tagged 3802
+  arrayOid = Tagged 3807
+  binaryEncoder =
+    mappend (Write.word8 1) . Jsonifier.toWrite . JsonifierAeson.aesonValue . toAesonValue
+  binaryDecoder = do
+    firstByte <- PeekyBlinders.statically PeekyBlinders.unsignedInt1
+    case firstByte of
+      1 -> do
+        remainingBytes <- PeekyBlinders.remainderAsByteString
+        pure
+          ( bimap
+              ( \string ->
+                  DecodingError
+                    { location = ["json"],
+                      reason =
+                        ParsingDecodingErrorReason
+                          (fromString string)
+                          remainingBytes
+                    }
+              )
+              Jsonb
+              (Aeson.eitherDecodeStrict remainingBytes)
+          )
+      _ ->
+        pure
+          ( Left
+              ( DecodingError
+                  { location = ["json-encoding-format"],
+                    reason =
+                      UnexpectedValueDecodingErrorReason
+                        "1"
+                        (TextBuilder.toText (TextBuilder.decimal firstByte))
+                  }
+              )
+          )
+  textualEncoder =
+    TextBuilder.lazyText . Aeson.Text.encodeToLazyText . toAesonValue
 
 instance IsSome Aeson.Value Jsonb where
   to = toAesonValue

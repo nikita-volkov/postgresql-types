@@ -91,17 +91,19 @@ common test
     -threaded
     -with-rtsopts=-N
 
-library
+library primitive-layer
   import: base
-  hs-source-dirs: src/library
-  exposed-modules: PostgresqlTypes
+  hs-source-dirs: src/primitive-layer
+  exposed-modules:
+    PrimitiveLayer
+
   other-modules:
-    PostgresqlTypes.Algebra
-    PostgresqlTypes.Prelude
-    PostgresqlTypes.Types
-    PostgresqlTypes.Types.Jsonb
-    PostgresqlTypes.Types.Macaddr
-    PostgresqlTypes.Types.Uuid
+    PrimitiveLayer.Algebra
+    PrimitiveLayer.Prelude
+    PrimitiveLayer.Primitives
+    PrimitiveLayer.Primitives.Jsonb
+    PrimitiveLayer.Primitives.Macaddr
+    PrimitiveLayer.Primitives.Uuid
 
   build-depends:
     QuickCheck >=2.14 && <3,
@@ -115,6 +117,7 @@ library
     postgresql-types:jsonifier-aeson,
     profunctors ^>=5.6 && <6,
     ptr-poker ^>=0.1.2.16,
+    quickcheck-instances ^>=0.3.33,
     tagged ^>=0.8.9,
     text >=1.2 && <3,
     text-builder ^>=1.0.0.4,
@@ -126,13 +129,13 @@ library
 library declaration-layer
   import: base
   hs-source-dirs: src/declaration-layer
-  other-modules:
+  exposed-modules:
     DeclarationLayer.Algebra
+
+  other-modules:
     DeclarationLayer.Algebra.Writes
     DeclarationLayer.Demo
     DeclarationLayer.Prelude
-    DeclarationLayer.Scalars
-    DeclarationLayer.Scalars.Uuid
 
   build-depends:
     QuickCheck >=2.14 && <3,
@@ -145,6 +148,7 @@ library declaration-layer
     mtl >=2.2 && <3,
     peeky-blinders >=0.1 && <0.2,
     postgresql-types:jsonifier-aeson,
+    postgresql-types:primitive-layer,
     profunctors ^>=5.6 && <6,
     ptr-poker ^>=0.1.2.16,
     tagged ^>=0.8.9,
@@ -193,9 +197,10 @@ test-suite integration-tests
     hspec >=2.11 && <3,
     peeky-blinders >=0.1 && <0.2,
     postgresql-libpq >=0.10 && <0.12,
-    postgresql-types,
+    postgresql-types:primitive-layer,
     postgresql-types:testcontainers-postgresql,
     ptr-poker ^>=0.1.2.16,
     quickcheck-instances ^>=0.3.33,
+    tagged ^>=0.8.9,
     text >=1.2 && <3,
     text-builder ^>=1.0.0.4,

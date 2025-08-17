@@ -4,12 +4,14 @@ import qualified Data.ByteString as ByteString
 import Data.Function
 import Data.Int
 import Data.Maybe
+import Data.Proxy
 import Data.String
+import Data.Tagged (untag)
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text.Encoding
 import qualified Database.PostgreSQL.LibPQ as Pq
 import qualified PeekyBlinders
-import qualified PostgresqlTypes
+import qualified PrimitiveLayer
 import qualified PtrPoker.Write
 import Test.Hspec
 import Test.QuickCheck ((===))
@@ -56,11 +58,16 @@ withPqConnection action = do
 
 mappingSpec ::
   forall a.
-  (QuickCheck.Arbitrary a, Show a, Eq a) =>
-  PostgresqlTypes.Mapping a ->
+  (QuickCheck.Arbitrary a, Show a, Eq a, PrimitiveLayer.Primitive a) =>
+  Proxy a ->
   SpecWith Pq.Connection
-mappingSpec mapping = do
-  describe ("With mapping of base type " <> Text.unpack mapping.typeName) do
+mappingSpec _ = do
+  let typeName = untag (PrimitiveLayer.typeName @a)
+      baseOid = untag (PrimitiveLayer.baseOid @a)
+      binEnc = PrimitiveLayer.binaryEncoder @a
+      binDec = PrimitiveLayer.binaryDecoder @a
+      txtEnc = PrimitiveLayer.textualEncoder @a
+  describe ("With mapping of base type " <> Text.unpack typeName) do
     describe "Encoding via textualEncoder" do
       describe "And decoding via binaryDecoder" do
         it "Should produce the original value" \(connection :: Pq.Connection) ->
@@ -69,11 +76,11 @@ mappingSpec mapping = do
               bytes <-
                 runRoundtripQuery
                   connection
-                  mapping.baseOid
-                  (Text.Encoding.encodeUtf8 (TextBuilder.toText (mapping.textualEncoder value)))
+                  baseOid
+                  (Text.Encoding.encodeUtf8 (TextBuilder.toText (txtEnc value)))
                   Pq.Text
                   Pq.Binary
-              let decoding = PeekyBlinders.decodeByteStringDynamically mapping.binaryDecoder bytes
+              let decoding = PeekyBlinders.decodeByteStringDynamically binDec bytes
               pure (decoding === Right (Right value))
 
     describe "Encoding via binaryEncoder" do
@@ -84,16 +91,16 @@ mappingSpec mapping = do
               bytes <-
                 runRoundtripQuery
                   connection
-                  mapping.baseOid
-                  (PtrPoker.Write.writeToByteString (mapping.binaryEncoder value))
+                  baseOid
+                  (PtrPoker.Write.writeToByteString (binEnc value))
                   Pq.Binary
                   Pq.Binary
-              let decoding = PeekyBlinders.decodeByteStringDynamically mapping.binaryDecoder bytes
+              let decoding = PeekyBlinders.decodeByteStringDynamically binDec bytes
               pure (decoding === Right (Right value))
 
 runRoundtripQuery ::
   Pq.Connection ->
-  Maybe Int32 ->
+  Int32 ->
   ByteString.ByteString ->
   Pq.Format ->
   Pq.Format ->
@@ -104,7 +111,7 @@ runRoundtripQuery connection paramOid paramEncoding paramFormat resultFormat = d
       connection
       "select $1"
       [ Just
-          ( Pq.Oid (fromIntegral (fromMaybe 705 paramOid)),
+          ( Pq.Oid (fromIntegral paramOid),
             paramEncoding,
             paramFormat
           )
