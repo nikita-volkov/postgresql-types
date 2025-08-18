@@ -26,6 +26,7 @@ module PrimitiveLayer.Primitives
     module PrimitiveLayer.Primitives.Timestamp,
     module PrimitiveLayer.Primitives.Timestamptz,
     module PrimitiveLayer.Primitives.Uuid,
+    module PrimitiveLayer.Primitives.Varbit,
     module PrimitiveLayer.Primitives.Varchar,
   )
 where
@@ -57,4 +58,5 @@ import PrimitiveLayer.Primitives.Time
 import PrimitiveLayer.Primitives.Timestamp
 import PrimitiveLayer.Primitives.Timestamptz
 import PrimitiveLayer.Primitives.Uuid
+import PrimitiveLayer.Primitives.Varbit
 import PrimitiveLayer.Primitives.Varchar
