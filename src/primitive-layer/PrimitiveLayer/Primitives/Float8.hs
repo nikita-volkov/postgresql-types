@@ -29,7 +29,22 @@ instance IsSome Double Float8 where
   to (Float8 d) = d
   maybeFrom = Just . Float8
 
+-- | Direct conversion from PostgreSQL Float8 to 'Double'.
+-- This is always safe since both types represent 64-bit floating point numbers identically.
+instance IsSome Float8 Double where
+  to d = Float8 d
+  maybeFrom (Float8 d) = Just d
+
 -- | Direct conversion from 'Double'.
 -- This is a total conversion as it always succeeds.
 instance IsMany Double Float8 where
   from = Float8
+
+-- | Direct conversion from PostgreSQL Float8 to 'Double'.
+-- This is a total conversion as it always succeeds.
+instance IsMany Float8 Double where
+  from (Float8 d) = d
+
+-- | Bidirectional conversion between 'Double' and PostgreSQL Float8.
+instance Is Double Float8
+instance Is Float8 Double

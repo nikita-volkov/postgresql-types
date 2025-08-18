@@ -150,6 +150,21 @@ instance IsMany (Int32, Int32, Int64) Interval where
           }
      in max minBound (min maxBound result)
 
+-- | Reverse conversion from Interval to tuple representation.
+-- This is always safe since the tuple can represent any Interval value.
+instance IsSome Interval (Int32, Int32, Int64) where
+  to (months, days, micros) = Interval {..}
+  maybeFrom (Interval {..}) = Just (months, days, micros)
+
+-- | Reverse conversion from Interval to tuple representation.
+-- This is a total conversion as it always succeeds.
+instance IsMany Interval (Int32, Int32, Int64) where
+  from (Interval {..}) = (months, days, micros)
+
+-- | Bidirectional conversion between tuple (Int32, Int32, Int64) and PostgreSQL Interval.
+instance Is (Int32, Int32, Int64) Interval
+instance Is Interval (Int32, Int32, Int64)
+
 fromMicros :: Integer -> Interval
 fromMicros =
   evalState do

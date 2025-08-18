@@ -27,7 +27,22 @@ instance IsSome Int64 Int8 where
   to (Int8 i) = i
   maybeFrom = Just . Int8
 
+-- | Direct conversion from PostgreSQL Int8 to 'Int64'.
+-- This is always safe since both types represent 64-bit signed integers identically.
+instance IsSome Int8 Int64 where
+  to i = Int8 i
+  maybeFrom (Int8 i) = Just i
+
 -- | Direct conversion from 'Int64'.
 -- This is a total conversion as it always succeeds.
 instance IsMany Int64 Int8 where
   from = Int8
+
+-- | Direct conversion from PostgreSQL Int8 to 'Int64'.
+-- This is a total conversion as it always succeeds.
+instance IsMany Int8 Int64 where
+  from (Int8 i) = i
+
+-- | Bidirectional conversion between 'Int64' and PostgreSQL Int8.
+instance Is Int64 Int8
+instance Is Int8 Int64

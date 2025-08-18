@@ -31,7 +31,22 @@ instance IsSome Data.Bool.Bool Bool where
   to (Bool b) = b
   maybeFrom = Just . Bool
 
+-- | Direct conversion from PostgreSQL Bool to Haskell 'Data.Bool.Bool'.
+-- This is always safe since both types represent the same values.
+instance IsSome Bool Data.Bool.Bool where
+  to b = Bool b
+  maybeFrom (Bool b) = Just b
+
 -- | Direct conversion from Haskell 'Data.Bool.Bool'.
 -- This is a total conversion as it always succeeds.
 instance IsMany Data.Bool.Bool Bool where
   from = Bool
+
+-- | Direct conversion from PostgreSQL Bool to Haskell 'Data.Bool.Bool'.
+-- This is a total conversion as it always succeeds.
+instance IsMany Bool Data.Bool.Bool where
+  from (Bool b) = b
+
+-- | Bidirectional conversion between Haskell 'Data.Bool.Bool' and PostgreSQL Bool.
+instance Is Data.Bool.Bool Bool
+instance Is Bool Data.Bool.Bool
