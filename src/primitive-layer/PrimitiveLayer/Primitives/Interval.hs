@@ -109,9 +109,48 @@ instance Primitive Interval where
           then "PT0S"
           else "P" <> datePart <> tPrefix <> timePart
 
--- Note: Interval ↔ DiffTime conversion is not included because it would not be lawful.
--- Interval has separate month/day/microsecond components while DiffTime is a single duration.
--- Converting Interval → DiffTime → Interval would lose the month/day structure.
+-- | Safe conversion from DiffTime to Interval.
+-- Only accepts DiffTime values that can round-trip through the fromMicros/toMicros conversion.
+instance IsSome DiffTime Interval where
+  to interval = toDiffTime interval
+  maybeFrom diffTime =
+    let picoseconds = Time.diffTimeToPicoseconds diffTime
+        microseconds = picoseconds `div` (10^6)
+        interval = fromMicros microseconds
+        backToMicros = toMicros interval
+    in if microseconds == backToMicros && interval >= minBound && interval <= maxBound
+       then Just interval
+       else Nothing
+
+-- | Total conversion from DiffTime to Interval.
+-- Uses the fromMicros normalization logic.
+instance IsMany DiffTime Interval where
+  from diffTime =
+    let picoseconds = Time.diffTimeToPicoseconds diffTime
+        microseconds = picoseconds `div` (10^6)
+        interval = fromMicros microseconds
+     in max minBound (min maxBound interval)
+
+-- | Safe conversion from Interval to DiffTime.  
+-- Only succeeds for intervals that can round-trip through toMicros/fromMicros.
+instance IsSome Interval DiffTime where
+  to diffTime = from diffTime
+  maybeFrom interval =
+    let micros = toMicros interval
+        backToInterval = fromMicros micros
+    in if interval == backToInterval
+       then Just (toDiffTime interval)
+       else Nothing
+
+-- | Total conversion from Interval to DiffTime.
+-- Uses the existing toDiffTime conversion.
+instance IsMany Interval DiffTime where
+  from = toDiffTime
+
+-- | Bidirectional conversion between DiffTime and PostgreSQL Interval.
+instance Is DiffTime Interval
+
+instance Is Interval DiffTime
 
 -- | Safe conversion from tuple representation (months, days, microseconds) to Interval.
 -- Validates that the input values are within PostgreSQL's valid range for intervals.

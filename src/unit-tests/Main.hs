@@ -172,8 +172,25 @@ main = hspec do
           (uncurry prop)
           (LawfulConversions.isManyProperties @UTCTime @PrimitiveLayer.Timestamptz Proxy Proxy)
 
-  -- Note: Interval ↔ DiffTime conversion is intentionally omitted as it would not be lawful
-  -- due to the structural differences between these types.
+  describe "Interval" do
+    describe "Data.Time.DiffTime" do
+      describe "IsSome" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isSomeProperties @DiffTime @PrimitiveLayer.Interval Proxy Proxy)
+      describe "IsMany" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isManyProperties @DiffTime @PrimitiveLayer.Interval Proxy Proxy)
+    describe "Reverse DiffTime" do
+      describe "IsSome" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isSomeProperties @PrimitiveLayer.Interval @DiffTime Proxy Proxy)
+      describe "IsMany" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isManyProperties @PrimitiveLayer.Interval @DiffTime Proxy Proxy)
 
   -- Keep existing tests from previous implementation
   describe "Char" do
