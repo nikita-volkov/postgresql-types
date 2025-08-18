@@ -1,4 +1,6 @@
-module PrimitiveLayer.Primitives.Numeric (Numeric (..)) where
+-- | PostgreSQL @numeric@ type.
+-- Represents arbitrary precision decimal numbers in PostgreSQL.
+module PrimitiveLayer.Primitives.Numeric (Numeric) where
 
 import qualified Data.ByteString as ByteString
 import qualified Data.Scientific as Scientific
@@ -11,6 +13,7 @@ import PrimitiveLayer.Prelude
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
+-- | PostgreSQL @numeric@ type wrapper around 'Data.Scientific.Scientific'.
 newtype Numeric = Numeric Scientific.Scientific
   deriving newtype (Eq, Ord, Arbitrary)
   deriving (Show) via (ViaPrimitive Numeric)
@@ -92,6 +95,17 @@ instance Primitive Numeric where
 
   textualEncoder (Numeric scientific) =
     TextBuilder.text (fromString (Scientific.formatScientific Scientific.Fixed Nothing scientific))
+
+-- | Direct conversion from 'Data.Scientific.Scientific'.
+-- This is always safe since both types represent arbitrary precision decimals identically.
+instance IsSome Scientific.Scientific Numeric where
+  to (Numeric s) = s
+  maybeFrom = Just . Numeric
+
+-- | Direct conversion from 'Data.Scientific.Scientific'.
+-- This is a total conversion as it always succeeds.
+instance IsMany Scientific.Scientific Numeric where
+  from = Numeric
 
 {-# INLINE extractComponents #-}
 extractComponents :: (Integral a) => a -> [Word16]

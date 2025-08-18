@@ -1,4 +1,6 @@
-module PrimitiveLayer.Primitives.Text (Text (..)) where
+-- | PostgreSQL @text@ type.
+-- Represents variable-length character string in PostgreSQL.
+module PrimitiveLayer.Primitives.Text (Text) where
 
 import qualified Data.ByteString as ByteString
 import Data.String
@@ -11,6 +13,8 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
+-- | PostgreSQL @text@ type wrapper around Haskell 'Data.Text.Text'.
+-- Note: PostgreSQL doesn't support null characters in text fields.
 newtype Text = Text Text.Text
   deriving newtype (Eq, Ord)
   deriving (Show) via (ViaPrimitive Text)
@@ -46,3 +50,17 @@ instance Primitive Text where
           )
       Right base -> pure (Right (Text base))
   textualEncoder (Text base) = TextBuilder.text base
+
+-- | Conversion from Haskell 'Data.Text.Text'.
+-- Fails if the text contains null characters (not supported by PostgreSQL).
+instance IsSome Text.Text Text where
+  to (Text t) = t
+  maybeFrom text =
+    if Text.elem '\NUL' text
+      then Nothing
+      else Just (Text text)
+
+-- | Total conversion from Haskell 'Data.Text.Text'.
+-- Strips null characters to ensure PostgreSQL compatibility.
+instance IsMany Text.Text Text where
+  from = Text . Text.replace "\NUL" ""

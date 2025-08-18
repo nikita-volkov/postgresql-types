@@ -1,3 +1,5 @@
+-- | PostgreSQL @timestamp@ type (without timezone).
+-- Represents a timestamp without timezone information in PostgreSQL.
 module PrimitiveLayer.Primitives.Timestamp (Timestamp) where
 
 import qualified Data.Time as Time
@@ -8,6 +10,7 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
+-- | PostgreSQL @timestamp@ type wrapper around microseconds since PostgreSQL epoch.
 newtype Timestamp = Timestamp Int64
   deriving newtype (Eq, Ord)
   deriving (Show) via (ViaPrimitive Timestamp)
@@ -34,3 +37,20 @@ toLocalTime :: Timestamp -> Time.LocalTime
 toLocalTime (Timestamp micros) =
   let diffTime = fromIntegral micros / 1_000_000
    in Time.addLocalTime diffTime postgresTimestampEpoch
+
+fromLocalTime :: Time.LocalTime -> Timestamp
+fromLocalTime localTime =
+  let diffTime = Time.diffLocalTime localTime postgresTimestampEpoch
+      micros = round (diffTime * 1_000_000)
+   in Timestamp micros
+
+-- | Direct conversion from 'Data.Time.LocalTime'.
+-- This is always safe since both represent local timestamps.
+instance IsSome Time.LocalTime Timestamp where
+  to = toLocalTime
+  maybeFrom = Just . fromLocalTime
+
+-- | Direct conversion from 'Data.Time.LocalTime'.
+-- This is a total conversion as it always succeeds.
+instance IsMany Time.LocalTime Timestamp where
+  from = fromLocalTime

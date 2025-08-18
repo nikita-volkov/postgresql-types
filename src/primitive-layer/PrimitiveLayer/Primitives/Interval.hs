@@ -1,14 +1,16 @@
-module PrimitiveLayer.Primitives.Interval (Interval (..)) where
+-- | PostgreSQL @interval@ type.
+-- Represents a time span in PostgreSQL with separate month, day, and microsecond components.
+module PrimitiveLayer.Primitives.Interval (Interval) where
 
 import qualified Data.Time as Time
 import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
-import qualified PrimitiveLayer.Primitives.Interval.Micros as Micros
 import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
+-- | PostgreSQL @interval@ type with separate components for months, days, and microseconds.
 data Interval = Interval
   { months :: Int32,
     days :: Int32,
@@ -34,7 +36,7 @@ instance Bounded Interval where
 instance Arbitrary Interval where
   arbitrary = do
     micros <- QuickCheck.choose (-999_999, 999_999)
-    days <- QuickCheck.choose (-30, 30)
+    days <- QuickCheck.choose (-daysPerMonth, daysPerMonth)
     months <- QuickCheck.choose ((minBound @Interval).months, (maxBound @Interval).months)
     pure (max minBound (min maxBound (Interval {..})))
 
@@ -106,20 +108,46 @@ instance Primitive Interval where
           then "PT0S"
           else "P" <> datePart <> tPrefix <> timePart
 
+-- | Safe conversion from tuple representation (months, days, microseconds) to Interval.
+-- Validates that the input values are within PostgreSQL's valid range for intervals.
+instance IsSome (Int32, Int32, Int64) Interval where
+  to (Interval {..}) = (months, days, micros)
+  maybeFrom (months, days, micros) =
+    let interval = Interval {..}
+     in if interval >= minBound && interval <= maxBound
+          then Just interval
+          else Nothing
+
+-- | Total conversion from tuple representation (months, days, microseconds) to Interval.
+-- Preserves the structured representation while clamping to valid ranges.
+instance IsMany (Int32, Int32, Int64) Interval where
+  from (months, days, micros) =
+    let interval = Interval {..}
+     in -- First try the direct interval, then clamp to bounds if needed
+        if interval >= minBound && interval <= maxBound
+          then interval
+          else max minBound (min maxBound interval)
+
 fromMicros :: Integer -> Interval
 fromMicros =
   evalState do
-    micros <- fromIntegral <$> state (swap . flip divMod Micros.day)
-    days <- fromIntegral <$> state (swap . flip divMod 30)
+    micros <- fromIntegral <$> state (swap . flip divMod microsPerDay)
+    days <- fromIntegral <$> state (swap . flip divMod daysPerMonth)
     months <- fromIntegral <$> get
     pure Interval {..}
 
 toMicros :: Interval -> Integer
 toMicros Interval {..} =
-  fromIntegral micros + 10 ^ 6 * 60 * 60 * 24 * (fromIntegral (days + 30 * months))
+  fromIntegral micros + microsPerDay * (fromIntegral days + daysPerMonth * fromIntegral months)
 
 toPicos :: Interval -> Integer
 toPicos = ((10 ^ 6) *) . toMicros
 
 toDiffTime :: Interval -> DiffTime
 toDiffTime = picosecondsToDiffTime . toPicos
+
+microsPerDay :: (Num a) => a
+microsPerDay = 10 ^ 6 * 60 * 60 * 24
+
+daysPerMonth :: (Num a) => a
+daysPerMonth = 30

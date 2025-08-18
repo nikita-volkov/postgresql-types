@@ -1,3 +1,5 @@
+-- | PostgreSQL @int4@ type.
+-- Represents a 32-bit signed integer in PostgreSQL.
 module PrimitiveLayer.Primitives.Int4 (Int4 (..)) where
 
 import qualified PeekyBlinders
@@ -6,6 +8,7 @@ import PrimitiveLayer.Prelude
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
+-- | PostgreSQL @int4@ type wrapper around 'Int32'.
 newtype Int4 = Int4 Int32
   deriving newtype (Eq, Ord, Arbitrary)
   deriving (Show) via (ViaPrimitive Int4)
@@ -17,3 +20,30 @@ instance Primitive Int4 where
   binaryEncoder (Int4 x) = Write.bInt32 x
   binaryDecoder = PeekyBlinders.statically (Right . Int4 <$> PeekyBlinders.beSignedInt4)
   textualEncoder (Int4 x) = TextBuilder.decimal x
+
+-- | Direct conversion from 'Int32'.
+-- This is always safe since both types represent 32-bit signed integers identically.
+instance IsSome Int32 Int4 where
+  to (Int4 i) = i
+  maybeFrom = Just . Int4
+
+-- | Direct conversion from PostgreSQL Int4 to 'Int32'.
+-- This is always safe since both types represent 32-bit signed integers identically.
+instance IsSome Int4 Int32 where
+  to i = Int4 i
+  maybeFrom (Int4 i) = Just i
+
+-- | Direct conversion from 'Int32'.
+-- This is a total conversion as it always succeeds.
+instance IsMany Int32 Int4 where
+  from = Int4
+
+-- | Direct conversion from PostgreSQL Int4 to 'Int32'.
+-- This is a total conversion as it always succeeds.
+instance IsMany Int4 Int32 where
+  from (Int4 i) = i
+
+-- | Bidirectional conversion between 'Int32' and PostgreSQL Int4.
+instance Is Int32 Int4
+
+instance Is Int4 Int32
