@@ -56,6 +56,14 @@ The library follows a layered architecture:
 
 ## Key Dependencies and Documentation
 
+### References
+- [PostgreSQL docs](https://www.postgresql.org/docs/17/index.html)
+- [PostgreSQL source](https://github.com/postgres/postgres)
+   - Pay attention to
+   - [backend](https://github.com/postgres/postgres/tree/master/src/backend). It contains the code dealing with encoding of types and their structure.
+- ["peeky-blinders" source code](https://github.com/nikita-volkov/peeky-blinders)
+- ["ptr-poker" Hackage docs](https://hackage.haskell.org/package/ptr-poker)
+
 ### Core Dependencies
 - **[text-builder](https://hackage.haskell.org/package/text-builder)**: Efficient text construction for encoders
 - **[peeky-blinders](https://hackage.haskell.org/package/peeky-blinders)**: Safe binary parsing for decoders  
