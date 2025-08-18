@@ -22,6 +22,7 @@ module PrimitiveLayer.Primitives
     module PrimitiveLayer.Primitives.Uuid,
     module PrimitiveLayer.Primitives.Json,
     module PrimitiveLayer.Primitives.Jsonb,
+    module PrimitiveLayer.Primitives.Point,
   )
 where
 
@@ -42,6 +43,7 @@ import PrimitiveLayer.Primitives.Macaddr
 import PrimitiveLayer.Primitives.Money
 import PrimitiveLayer.Primitives.Numeric
 import PrimitiveLayer.Primitives.Oid
+import PrimitiveLayer.Primitives.Point
 import PrimitiveLayer.Primitives.Text
 import PrimitiveLayer.Primitives.Time
 import PrimitiveLayer.Primitives.Timestamp

@@ -28,6 +28,7 @@ main =
       Main.Helpers.primitiveSpec @PrimitiveLayer.Numeric Proxy
       Main.Helpers.primitiveSpec @PrimitiveLayer.Money Proxy
       Main.Helpers.primitiveSpec @PrimitiveLayer.Oid Proxy
+      Main.Helpers.primitiveSpec @PrimitiveLayer.Point Proxy
       Main.Helpers.primitiveSpec @PrimitiveLayer.Text Proxy
       Main.Helpers.primitiveSpec @PrimitiveLayer.Time Proxy
       Main.Helpers.primitiveSpec @PrimitiveLayer.Timestamp Proxy
