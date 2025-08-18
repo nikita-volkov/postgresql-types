@@ -140,10 +140,10 @@ instance Primitive Cidr where
               <> TextBuilder.string (show netmask)
       IPv6 w1 w2 w3 w4 ->
         -- Convert 32-bit words to proper IPv6 hex representation
-        let toHex w = 
+        let toHex w =
               let h1 = (w `shiftR` 16) .&. 0xFFFF
                   h2 = w .&. 0xFFFF
-              in showHex h1 "" ++ ":" ++ showHex h2 ""
+               in showHex h1 "" ++ ":" ++ showHex h2 ""
          in TextBuilder.string (toHex w1)
               <> ":"
               <> TextBuilder.string (toHex w2)
@@ -157,7 +157,7 @@ instance Primitive Cidr where
 -- | Convert from (IpAddress, Word8) to Cidr.
 instance IsSome (IpAddress, Word8) Cidr where
   to (Cidr addr netmask) = (addr, netmask)
-  maybeFrom (addr, netmask) = 
+  maybeFrom (addr, netmask) =
     case addr of
       IPv4 _ -> if netmask <= 32 then Just (Cidr addr netmask) else Nothing
       IPv6 _ _ _ _ -> if netmask <= 128 then Just (Cidr addr netmask) else Nothing
