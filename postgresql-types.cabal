@@ -111,6 +111,7 @@ library primitive-layer
     PrimitiveLayer.Primitives.Int4
     PrimitiveLayer.Primitives.Int8
     PrimitiveLayer.Primitives.Interval
+    PrimitiveLayer.Primitives.Json
     PrimitiveLayer.Primitives.Jsonb
     PrimitiveLayer.Primitives.Macaddr
     PrimitiveLayer.Primitives.Money
@@ -209,6 +210,7 @@ test-suite unit-tests
   main-is: Main.hs
   build-depends:
     QuickCheck >=2.14 && <3,
+    aeson >=2.2 && <3,
     base >=4.11 && <5,
     bytestring >=0.10 && <0.13,
     hspec >=2.11 && <3,

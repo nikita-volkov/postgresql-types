@@ -19,6 +19,7 @@ module PrimitiveLayer.Primitives
     module PrimitiveLayer.Primitives.Oid,
     module PrimitiveLayer.Primitives.Macaddr,
     module PrimitiveLayer.Primitives.Uuid,
+    module PrimitiveLayer.Primitives.Json,
     module PrimitiveLayer.Primitives.Jsonb,
   )
 where
@@ -33,6 +34,7 @@ import PrimitiveLayer.Primitives.Int2
 import PrimitiveLayer.Primitives.Int4
 import PrimitiveLayer.Primitives.Int8
 import PrimitiveLayer.Primitives.Interval
+import PrimitiveLayer.Primitives.Json
 import PrimitiveLayer.Primitives.Jsonb
 import PrimitiveLayer.Primitives.Macaddr
 import PrimitiveLayer.Primitives.Money

@@ -4,6 +4,7 @@ import Data.ByteString (ByteString)
 import Data.Foldable
 import Data.Int
 import Data.Proxy
+import qualified Data.Aeson as Aeson
 import qualified Data.Scientific as Scientific
 import qualified Data.Text as Text
 import Data.Time
@@ -121,6 +122,13 @@ main = hspec do
         traverse_
           (uncurry prop)
           (LawfulConversions.isManyProperties @Int64 @PrimitiveLayer.Money Proxy Proxy)
+
+  describe "Json" do
+    describe "Data.Aeson.Value" do
+      describe "IsMany" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isManyProperties @Aeson.Value @PrimitiveLayer.Json Proxy Proxy)
 
   describe "Oid" do
     describe "Word32" do

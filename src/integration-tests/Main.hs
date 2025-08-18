@@ -21,6 +21,7 @@ main =
       Main.Helpers.primitiveSpec @PrimitiveLayer.Int4 Proxy
       Main.Helpers.primitiveSpec @PrimitiveLayer.Int8 Proxy
       Main.Helpers.primitiveSpec @PrimitiveLayer.Interval Proxy
+      Main.Helpers.primitiveSpec @PrimitiveLayer.Json Proxy
       Main.Helpers.primitiveSpec @PrimitiveLayer.Jsonb Proxy
       Main.Helpers.primitiveSpec @PrimitiveLayer.Macaddr Proxy
       Main.Helpers.primitiveSpec @PrimitiveLayer.Numeric Proxy
