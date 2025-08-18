@@ -115,6 +115,13 @@ main = hspec do
           (uncurry prop)
           (LawfulConversions.isManyProperties @Scientific.Scientific @PrimitiveLayer.Numeric Proxy Proxy)
 
+  describe "Money" do
+    describe "Int64" do
+      describe "IsMany" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isManyProperties @Int64 @PrimitiveLayer.Money Proxy Proxy)
+
   describe "Oid" do
     describe "Word32" do
       describe "IsMany" do

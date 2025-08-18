@@ -9,6 +9,7 @@ module PrimitiveLayer.Primitives
     module PrimitiveLayer.Primitives.Float4,
     module PrimitiveLayer.Primitives.Float8,
     module PrimitiveLayer.Primitives.Numeric,
+    module PrimitiveLayer.Primitives.Money,
     module PrimitiveLayer.Primitives.Bytea,
     module PrimitiveLayer.Primitives.Date,
     module PrimitiveLayer.Primitives.Time,
@@ -34,6 +35,7 @@ import PrimitiveLayer.Primitives.Int8
 import PrimitiveLayer.Primitives.Interval
 import PrimitiveLayer.Primitives.Jsonb
 import PrimitiveLayer.Primitives.Macaddr
+import PrimitiveLayer.Primitives.Money
 import PrimitiveLayer.Primitives.Numeric
 import PrimitiveLayer.Primitives.Oid
 import PrimitiveLayer.Primitives.Text

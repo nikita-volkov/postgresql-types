@@ -113,6 +113,7 @@ library primitive-layer
     PrimitiveLayer.Primitives.Interval
     PrimitiveLayer.Primitives.Jsonb
     PrimitiveLayer.Primitives.Macaddr
+    PrimitiveLayer.Primitives.Money
     PrimitiveLayer.Primitives.Numeric
     PrimitiveLayer.Primitives.Oid
     PrimitiveLayer.Primitives.Text
