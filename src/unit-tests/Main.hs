@@ -20,10 +20,6 @@ main :: IO ()
 main = hspec do
   describe "Bool" do
     describe "Data.Bool.Bool" do
-      describe "IsSome" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isSomeProperties @Bool @PrimitiveLayer.Bool Proxy Proxy)
       describe "IsMany" do
         traverse_
           (uncurry prop)
@@ -31,10 +27,6 @@ main = hspec do
 
   describe "Text" do
     describe "Data.Text.Text" do
-      describe "IsSome" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isSomeProperties @Text.Text @PrimitiveLayer.Text Proxy Proxy)
       describe "IsMany" do
         traverse_
           (uncurry prop)
@@ -42,21 +34,26 @@ main = hspec do
 
   describe "Bytea" do
     describe "ByteString" do
-      describe "IsSome" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isSomeProperties @ByteString @PrimitiveLayer.Bytea Proxy Proxy)
       describe "IsMany" do
         traverse_
           (uncurry prop)
           (LawfulConversions.isManyProperties @ByteString @PrimitiveLayer.Bytea Proxy Proxy)
 
-  describe "Date" do
-    describe "Data.Time.Day" do
-      describe "IsSome" do
+  describe "Char" do
+    describe "Word8" do
+      describe "IsMany" do
         traverse_
           (uncurry prop)
-          (LawfulConversions.isSomeProperties @Day @PrimitiveLayer.Date Proxy Proxy)
+          (LawfulConversions.isManyProperties @Word8 @PrimitiveLayer.Char Proxy Proxy)
+
+    describe "Data.Char.Char" do
+      describe "IsMany" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isManyProperties @Char @PrimitiveLayer.Char Proxy Proxy)
+
+  describe "Date" do
+    describe "Data.Time.Day" do
       describe "IsMany" do
         traverse_
           (uncurry prop)
@@ -64,10 +61,6 @@ main = hspec do
 
   describe "Uuid" do
     describe "Data.UUID.UUID" do
-      describe "IsSome" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isSomeProperties @UUID.UUID @PrimitiveLayer.Uuid Proxy Proxy)
       describe "IsMany" do
         traverse_
           (uncurry prop)
@@ -75,10 +68,6 @@ main = hspec do
 
   describe "Int2" do
     describe "Int16" do
-      describe "IsSome" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isSomeProperties @Int16 @PrimitiveLayer.Int2 Proxy Proxy)
       describe "IsMany" do
         traverse_
           (uncurry prop)
@@ -86,10 +75,6 @@ main = hspec do
 
   describe "Int4" do
     describe "Int32" do
-      describe "IsSome" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isSomeProperties @Int32 @PrimitiveLayer.Int4 Proxy Proxy)
       describe "IsMany" do
         traverse_
           (uncurry prop)
@@ -97,21 +82,26 @@ main = hspec do
 
   describe "Int8" do
     describe "Int64" do
-      describe "IsSome" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isSomeProperties @Int64 @PrimitiveLayer.Int8 Proxy Proxy)
       describe "IsMany" do
         traverse_
           (uncurry prop)
           (LawfulConversions.isManyProperties @Int64 @PrimitiveLayer.Int8 Proxy Proxy)
 
-  describe "Float4" do
-    describe "Float" do
-      describe "IsSome" do
+  describe "Interval" do
+    describe "(Int32, Int32, Int64)" do
+      describe "IsMany" do
         traverse_
           (uncurry prop)
-          (LawfulConversions.isSomeProperties @Float @PrimitiveLayer.Float4 Proxy Proxy)
+          (LawfulConversions.isManyProperties @(Int32, Int32, Int64) @PrimitiveLayer.Interval Proxy Proxy)
+
+    describe "Data.Time.DiffTime" do
+      describe "IsMany" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isManyProperties @DiffTime @PrimitiveLayer.Interval Proxy Proxy)
+
+  describe "Float4" do
+    describe "Float" do
       describe "IsMany" do
         traverse_
           (uncurry prop)
@@ -119,10 +109,6 @@ main = hspec do
 
   describe "Float8" do
     describe "Double" do
-      describe "IsSome" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isSomeProperties @Double @PrimitiveLayer.Float8 Proxy Proxy)
       describe "IsMany" do
         traverse_
           (uncurry prop)
@@ -130,10 +116,6 @@ main = hspec do
 
   describe "Numeric" do
     describe "Data.Scientific.Scientific" do
-      describe "IsSome" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isSomeProperties @Scientific.Scientific @PrimitiveLayer.Numeric Proxy Proxy)
       describe "IsMany" do
         traverse_
           (uncurry prop)
@@ -141,10 +123,6 @@ main = hspec do
 
   describe "Oid" do
     describe "Word32" do
-      describe "IsSome" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isSomeProperties @Word32 @PrimitiveLayer.Oid Proxy Proxy)
       describe "IsMany" do
         traverse_
           (uncurry prop)
@@ -152,10 +130,6 @@ main = hspec do
 
   describe "Timestamp" do
     describe "Data.Time.LocalTime" do
-      describe "IsSome" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isSomeProperties @LocalTime @PrimitiveLayer.Timestamp Proxy Proxy)
       describe "IsMany" do
         traverse_
           (uncurry prop)
@@ -163,47 +137,10 @@ main = hspec do
 
   describe "Timestamptz" do
     describe "Data.Time.UTCTime" do
-      describe "IsSome" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isSomeProperties @UTCTime @PrimitiveLayer.Timestamptz Proxy Proxy)
       describe "IsMany" do
         traverse_
           (uncurry prop)
           (LawfulConversions.isManyProperties @UTCTime @PrimitiveLayer.Timestamptz Proxy Proxy)
-
-  describe "Interval" do
-    describe "Data.Time.DiffTime" do
-      describe "IsSome" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isSomeProperties @DiffTime @PrimitiveLayer.Interval Proxy Proxy)
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @DiffTime @PrimitiveLayer.Interval Proxy Proxy)
-    describe "Reverse DiffTime" do
-      describe "IsSome" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isSomeProperties @PrimitiveLayer.Interval @DiffTime Proxy Proxy)
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @PrimitiveLayer.Interval @DiffTime Proxy Proxy)
-
-  -- Keep existing tests from previous implementation
-  describe "Char" do
-    describe "Word8" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @Word8 @PrimitiveLayer.Char Proxy Proxy)
-    describe "Data.Char.Char" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @Char @PrimitiveLayer.Char Proxy Proxy)
 
   describe "Time" do
     describe "Data.Time.TimeOfDay" do

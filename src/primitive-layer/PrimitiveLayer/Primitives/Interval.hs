@@ -131,27 +131,6 @@ instance IsMany DiffTime Interval where
         interval = fromMicros microseconds
      in max minBound (min maxBound interval)
 
--- | Safe conversion from Interval to DiffTime.
--- Only succeeds for intervals that can round-trip through toMicros/fromMicros.
-instance IsSome Interval DiffTime where
-  to diffTime = from diffTime
-  maybeFrom interval =
-    let micros = toMicros interval
-        backToInterval = fromMicros micros
-     in if interval == backToInterval
-          then Just (toDiffTime interval)
-          else Nothing
-
--- | Total conversion from Interval to DiffTime.
--- Uses the existing toDiffTime conversion.
-instance IsMany Interval DiffTime where
-  from = toDiffTime
-
--- | Bidirectional conversion between DiffTime and PostgreSQL Interval.
-instance Is DiffTime Interval
-
-instance Is Interval DiffTime
-
 -- | Safe conversion from tuple representation (months, days, microseconds) to Interval.
 -- Validates that the input values are within PostgreSQL's valid range for intervals.
 instance IsSome (Int32, Int32, Int64) Interval where
@@ -189,22 +168,6 @@ instance IsMany (Int32, Int32, Int64) Interval where
               micros = clampedMicros
             }
      in max minBound (min maxBound result)
-
--- | Reverse conversion from Interval to tuple representation.
--- This is always safe since the tuple can represent any Interval value.
-instance IsSome Interval (Int32, Int32, Int64) where
-  to (months, days, micros) = Interval {..}
-  maybeFrom (Interval {..}) = Just (months, days, micros)
-
--- | Reverse conversion from Interval to tuple representation.
--- This is a total conversion as it always succeeds.
-instance IsMany Interval (Int32, Int32, Int64) where
-  from (Interval {..}) = (months, days, micros)
-
--- | Bidirectional conversion between tuple (Int32, Int32, Int64) and PostgreSQL Interval.
-instance Is (Int32, Int32, Int64) Interval
-
-instance Is Interval (Int32, Int32, Int64)
 
 fromMicros :: Integer -> Interval
 fromMicros =
