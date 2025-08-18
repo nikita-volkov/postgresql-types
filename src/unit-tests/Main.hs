@@ -1,14 +1,14 @@
 module Main (main) where
 
-import Data.Foldable
-import Data.Proxy
-import Data.Time
-import Data.Word
-import Data.Int
 import Data.ByteString (ByteString)
+import Data.Foldable
+import Data.Int
+import Data.Proxy
 import qualified Data.Scientific as Scientific
-import qualified Data.UUID as UUID
 import qualified Data.Text as Text
+import Data.Time
+import qualified Data.UUID as UUID
+import Data.Word
 import qualified LawfulConversions
 import qualified PrimitiveLayer
 import Test.Hspec
