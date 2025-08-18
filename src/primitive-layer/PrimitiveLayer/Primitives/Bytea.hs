@@ -16,9 +16,9 @@ instance Primitive Bytea where
   typeName = Tagged "bytea"
   baseOid = Tagged 17
   arrayOid = Tagged 1001
-  binaryEncoder (Bytea bs) = 
+  binaryEncoder (Bytea bs) =
     Write.byteString bs
-  binaryDecoder = 
+  binaryDecoder =
     Right . Bytea <$> PeekyBlinders.remainderAsByteString
   textualEncoder (Bytea bs) =
     "\\x" <> foldMap TextBuilder.hexadecimal (ByteString.unpack bs)
