@@ -110,24 +110,23 @@ instance Primitive Interval where
           else "P" <> datePart <> tPrefix <> timePart
 
 -- | Safe conversion from DiffTime to Interval.
--- Only accepts DiffTime values that can round-trip through the fromMicros/toMicros conversion.
+-- Only accepts DiffTime values that round-trip through the DiffTime conversion.
 instance IsSome DiffTime Interval where
   to interval = toDiffTime interval
   maybeFrom diffTime =
-    let picoseconds = Time.diffTimeToPicoseconds diffTime
-        microseconds = picoseconds `div` (10 ^ 6)
-        interval = fromMicros microseconds
-        backToMicros = toMicros interval
-     in if microseconds == backToMicros && interval >= minBound && interval <= maxBound
+    let interval = from diffTime
+        backToDiffTime = to interval
+     in if diffTime == backToDiffTime && interval >= minBound && interval <= maxBound
           then Just interval
           else Nothing
 
 -- | Total conversion from DiffTime to Interval.
--- Uses the fromMicros normalization logic.
+-- Uses direct microsecond conversion with sign-aware normalization.
 instance IsMany DiffTime Interval where
   from diffTime =
     let picoseconds = Time.diffTimeToPicoseconds diffTime
         microseconds = picoseconds `div` (10 ^ 6)
+        -- Use the existing fromMicros function for consistent normalization
         interval = fromMicros microseconds
      in max minBound (min maxBound interval)
 
@@ -142,32 +141,14 @@ instance IsSome (Int32, Int32, Int64) Interval where
           else Nothing
 
 -- | Total conversion from tuple representation (months, days, microseconds) to Interval.
--- Automatically normalizes and clamps values to valid PostgreSQL interval ranges.
--- Overflow microseconds are converted to days, overflow days to months.
+-- Preserves the structured representation while clamping to valid ranges.
 instance IsMany (Int32, Int32, Int64) Interval where
   from (months, days, micros) =
-    let -- Normalize microseconds to days
-        extraDays = micros `div` (24 * 60 * 60 * 1000000)
-        normalizedMicros = micros `mod` (24 * 60 * 60 * 1000000)
-        totalDays = days + fromIntegral extraDays
-
-        -- Normalize days to months (using `daysPerMonth` days per month approximation)
-        extraMonths = totalDays `div` daysPerMonth
-        normalizedDays = totalDays `mod` daysPerMonth
-        totalMonths = months + extraMonths
-
-        -- Clamp to valid ranges
-        clampedMonths = max (minBound @Interval).months (min (maxBound @Interval).months totalMonths)
-        clampedDays = max 0 (min (daysPerMonth * 365) normalizedDays) -- Reasonable day range
-        clampedMicros = max (-24 * 60 * 60 * 1000000) (min (24 * 60 * 60 * 1000000) normalizedMicros)
-
-        result =
-          Interval
-            { months = clampedMonths,
-              days = clampedDays,
-              micros = clampedMicros
-            }
-     in max minBound (min maxBound result)
+    let interval = Interval {..}
+        -- First try the direct interval, then clamp to bounds if needed
+     in if interval >= minBound && interval <= maxBound
+          then interval
+          else max minBound (min maxBound interval)
 
 fromMicros :: Integer -> Interval
 fromMicros =
