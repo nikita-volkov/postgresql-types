@@ -42,10 +42,10 @@ instance Primitive Circle where
         Write.bWord64 (castDoubleToWord64 y),
         Write.bWord64 (castDoubleToWord64 r)
       ]
-  binaryDecoder = do
-    x <- PeekyBlinders.statically (castWord64ToDouble <$> PeekyBlinders.beUnsignedInt8)
-    y <- PeekyBlinders.statically (castWord64ToDouble <$> PeekyBlinders.beUnsignedInt8)
-    r <- PeekyBlinders.statically (castWord64ToDouble <$> PeekyBlinders.beUnsignedInt8)
+  binaryDecoder = PeekyBlinders.statically do
+    x <- castWord64ToDouble <$> PeekyBlinders.beUnsignedInt8
+    y <- castWord64ToDouble <$> PeekyBlinders.beUnsignedInt8
+    r <- castWord64ToDouble <$> PeekyBlinders.beUnsignedInt8
     pure (Right (Circle x y r))
   textualEncoder (Circle x y r) =
     "<("
@@ -60,25 +60,11 @@ instance Primitive Circle where
 -- The radius is made non-negative by taking the absolute value.
 instance IsSome (Double, Double, Double) Circle where
   to (Circle x y r) = (x, y, r)
-  maybeFrom (x, y, r) = Just (Circle x y (abs r))
-
--- | Convert from a Circle to a tuple of three doubles.
--- Always returns non-negative radius.
-instance IsSome Circle (Double, Double, Double) where
-  to (x, y, r) = Circle x y (abs r)
-  maybeFrom (Circle x y r) = Just (x, y, r)
+  maybeFrom (x, y, r) =
+    if r < 0
+      then Nothing
+      else Just (Circle x y r)
 
 -- | Direct conversion from tuple to Circle.
--- The radius is made non-negative by taking the absolute value.
 instance IsMany (Double, Double, Double) Circle where
   from (x, y, r) = Circle x y (abs r)
-
--- | Direct conversion from Circle to tuple.
--- Always returns non-negative radius.
-instance IsMany Circle (Double, Double, Double) where
-  from (Circle x y r) = (x, y, r)
-
--- | Bidirectional conversion between tuple and Circle.
-instance Is (Double, Double, Double) Circle
-
-instance Is Circle (Double, Double, Double)

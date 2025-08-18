@@ -70,27 +70,11 @@ instance Primitive Box where
 
 -- | Convert from two Points (lower-left and upper-right) to a Box.
 -- Input is normalized to ensure x1 <= x2 and y1 <= y2.
-instance IsSome ((Double, Double), (Double, Double)) Box where
-  to (Box x1 y1 x2 y2) = ((x1, y1), (x2, y2))
-  maybeFrom ((x1, y1), (x2, y2)) = Just (Box (min x1 x2) (min y1 y2) (max x1 x2) (max y1 y2))
-
--- | Convert from a Box to two Points (lower-left and upper-right).
--- Always returns the normalized form.
-instance IsSome Box ((Double, Double), (Double, Double)) where
-  to ((x1, y1), (x2, y2)) = Box (min x1 x2) (min y1 y2) (max x1 x2) (max y1 y2)
-  maybeFrom (Box x1 y1 x2 y2) = Just ((x1, y1), (x2, y2))
+instance IsSome (Double, Double, Double, Double) Box where
+  to (Box x1 y1 x2 y2) = (x1, y1, x2, y2)
+  maybeFrom = Just . from
 
 -- | Direct conversion from two points to Box.
 -- Input is normalized to ensure valid box representation.
-instance IsMany ((Double, Double), (Double, Double)) Box where
-  from ((x1, y1), (x2, y2)) = Box (min x1 x2) (min y1 y2) (max x1 x2) (max y1 y2)
-
--- | Direct conversion from Box to two points.
--- Always returns the normalized form.
-instance IsMany Box ((Double, Double), (Double, Double)) where
-  from (Box x1 y1 x2 y2) = ((x1, y1), (x2, y2))
-
--- | Bidirectional conversion between two points and Box.
-instance Is ((Double, Double), (Double, Double)) Box
-
-instance Is Box ((Double, Double), (Double, Double))
+instance IsMany (Double, Double, Double, Double) Box where
+  from (x1, y1, x2, y2) = Box (min x1 x2) (min y1 y2) (max x1 x2) (max y1 y2)

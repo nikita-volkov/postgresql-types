@@ -34,11 +34,11 @@ main = hspec do
           (LawfulConversions.isManyProperties @Bool @PrimitiveLayer.Bool Proxy Proxy)
 
   describe "Box" do
-    describe "((Double, Double), (Double, Double))" do
-      describe "IsMany" do
+    describe "(Double, Double, Double, Double)" do
+      describe "Is" do
         traverse_
           (uncurry prop)
-          (LawfulConversions.isManyProperties @((Double, Double), (Double, Double)) @PrimitiveLayer.Box Proxy Proxy)
+          (LawfulConversions.isManyProperties @(Double, Double, Double, Double) @PrimitiveLayer.Box Proxy Proxy)
 
   describe "Bytea" do
     describe "ByteString" do
