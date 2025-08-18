@@ -28,13 +28,16 @@ instance Primitive Money where
   textualEncoder (Money x) =
     -- Format as currency with 2 decimal places and $ symbol
     -- PostgreSQL's money type typically displays with currency symbol
-    let dollars = quot x 100
-        cents = abs (rem x 100)
+    let isNegative = x < 0
+        absValue = abs x
+        dollars = quot absValue 100
+        cents = rem absValue 100
         centsText =
           if cents < 10
             then "0" <> TextBuilder.decimal cents
             else TextBuilder.decimal cents
-     in "$" <> TextBuilder.decimal dollars <> "." <> centsText
+        signPrefix = if isNegative then "-" else ""
+     in signPrefix <> "$" <> TextBuilder.decimal dollars <> "." <> centsText
 
 -- | Direct conversion from 'Int64'.
 -- This represents the raw monetary value in the smallest currency unit
