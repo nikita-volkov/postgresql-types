@@ -11,9 +11,13 @@ main :: IO ()
 main =
   hspec do
     aroundAll Main.Helpers.withPqConnection do
+      Main.Helpers.primitiveSpec @PrimitiveLayer.Bit Proxy
       Main.Helpers.primitiveSpec @PrimitiveLayer.Bool Proxy
+      Main.Helpers.primitiveSpec @PrimitiveLayer.Box Proxy
       Main.Helpers.primitiveSpec @PrimitiveLayer.Bytea Proxy
       Main.Helpers.primitiveSpec @PrimitiveLayer.Char Proxy
+      Main.Helpers.primitiveSpec @PrimitiveLayer.Cidr Proxy
+      Main.Helpers.primitiveSpec @PrimitiveLayer.Circle Proxy
       Main.Helpers.primitiveSpec @PrimitiveLayer.Date Proxy
       Main.Helpers.primitiveSpec @PrimitiveLayer.Float4 Proxy
       Main.Helpers.primitiveSpec @PrimitiveLayer.Float8 Proxy

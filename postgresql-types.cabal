@@ -101,9 +101,13 @@ library primitive-layer
     PrimitiveLayer.Algebra
     PrimitiveLayer.Prelude
     PrimitiveLayer.Primitives
+    PrimitiveLayer.Primitives.Bit
     PrimitiveLayer.Primitives.Bool
+    PrimitiveLayer.Primitives.Box
     PrimitiveLayer.Primitives.Bytea
     PrimitiveLayer.Primitives.Char
+    PrimitiveLayer.Primitives.Cidr
+    PrimitiveLayer.Primitives.Circle
     PrimitiveLayer.Primitives.Date
     PrimitiveLayer.Primitives.Float4
     PrimitiveLayer.Primitives.Float8

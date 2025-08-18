@@ -1,34 +1,42 @@
 module PrimitiveLayer.Primitives
-  ( module PrimitiveLayer.Primitives.Bool,
-    module PrimitiveLayer.Primitives.Text,
+  ( module PrimitiveLayer.Primitives.Bit,
+    module PrimitiveLayer.Primitives.Bool,
+    module PrimitiveLayer.Primitives.Box,
+    module PrimitiveLayer.Primitives.Bytea,
     module PrimitiveLayer.Primitives.Char,
-    module PrimitiveLayer.Primitives.Varchar,
+    module PrimitiveLayer.Primitives.Cidr,
+    module PrimitiveLayer.Primitives.Circle,
+    module PrimitiveLayer.Primitives.Date,
+    module PrimitiveLayer.Primitives.Float4,
+    module PrimitiveLayer.Primitives.Float8,
+    module PrimitiveLayer.Primitives.Inet,
     module PrimitiveLayer.Primitives.Int2,
     module PrimitiveLayer.Primitives.Int4,
     module PrimitiveLayer.Primitives.Int8,
-    module PrimitiveLayer.Primitives.Float4,
-    module PrimitiveLayer.Primitives.Float8,
-    module PrimitiveLayer.Primitives.Numeric,
+    module PrimitiveLayer.Primitives.Interval,
+    module PrimitiveLayer.Primitives.Json,
+    module PrimitiveLayer.Primitives.Jsonb,
+    module PrimitiveLayer.Primitives.Macaddr,
     module PrimitiveLayer.Primitives.Money,
-    module PrimitiveLayer.Primitives.Bytea,
-    module PrimitiveLayer.Primitives.Date,
+    module PrimitiveLayer.Primitives.Numeric,
+    module PrimitiveLayer.Primitives.Oid,
+    module PrimitiveLayer.Primitives.Point,
+    module PrimitiveLayer.Primitives.Text,
     module PrimitiveLayer.Primitives.Time,
     module PrimitiveLayer.Primitives.Timestamp,
     module PrimitiveLayer.Primitives.Timestamptz,
-    module PrimitiveLayer.Primitives.Inet,
-    module PrimitiveLayer.Primitives.Interval,
-    module PrimitiveLayer.Primitives.Oid,
-    module PrimitiveLayer.Primitives.Macaddr,
     module PrimitiveLayer.Primitives.Uuid,
-    module PrimitiveLayer.Primitives.Json,
-    module PrimitiveLayer.Primitives.Jsonb,
-    module PrimitiveLayer.Primitives.Point,
+    module PrimitiveLayer.Primitives.Varchar,
   )
 where
 
+import PrimitiveLayer.Primitives.Bit
 import PrimitiveLayer.Primitives.Bool
+import PrimitiveLayer.Primitives.Box
 import PrimitiveLayer.Primitives.Bytea
 import PrimitiveLayer.Primitives.Char
+import PrimitiveLayer.Primitives.Cidr
+import PrimitiveLayer.Primitives.Circle
 import PrimitiveLayer.Primitives.Date
 import PrimitiveLayer.Primitives.Float4
 import PrimitiveLayer.Primitives.Float8
