@@ -198,4 +198,4 @@ main = hspec do
       describe "IsMany" do
         traverse_
           (uncurry prop)
-          (LawfulConversions.isManyProperties @(PrimitiveLayer.IpAddress, Word8) @PrimitiveLayer.Cidr Proxy Proxy)
+          (LawfulConversions.isManyProperties @(PrimitiveLayer.CidrIpAddress, Word8) @PrimitiveLayer.Cidr Proxy Proxy)
