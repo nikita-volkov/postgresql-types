@@ -14,7 +14,7 @@ import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
 -- | PostgreSQL @json@ type wrapper around Aeson 'Value'.
--- 
+--
 -- The json type stores JSON data as text, unlike jsonb which stores
 -- it in a binary format. This means json preserves the exact textual
 -- representation including whitespace and key ordering.

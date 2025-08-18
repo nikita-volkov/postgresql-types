@@ -107,10 +107,10 @@ library primitive-layer
     PrimitiveLayer.Primitives.Date
     PrimitiveLayer.Primitives.Float4
     PrimitiveLayer.Primitives.Float8
+    PrimitiveLayer.Primitives.Inet
     PrimitiveLayer.Primitives.Int2
     PrimitiveLayer.Primitives.Int4
     PrimitiveLayer.Primitives.Int8
-    PrimitiveLayer.Primitives.Inet
     PrimitiveLayer.Primitives.Interval
     PrimitiveLayer.Primitives.Json
     PrimitiveLayer.Primitives.Jsonb

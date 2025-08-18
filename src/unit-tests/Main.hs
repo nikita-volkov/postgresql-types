@@ -1,10 +1,10 @@
 module Main (main) where
 
+import qualified Data.Aeson as Aeson
 import Data.ByteString (ByteString)
 import Data.Foldable
 import Data.Int
 import Data.Proxy
-import qualified Data.Aeson as Aeson
 import qualified Data.Scientific as Scientific
 import qualified Data.Text as Text
 import Data.Time

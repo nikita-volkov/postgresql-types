@@ -31,10 +31,10 @@ import PrimitiveLayer.Primitives.Char
 import PrimitiveLayer.Primitives.Date
 import PrimitiveLayer.Primitives.Float4
 import PrimitiveLayer.Primitives.Float8
+import PrimitiveLayer.Primitives.Inet
 import PrimitiveLayer.Primitives.Int2
 import PrimitiveLayer.Primitives.Int4
 import PrimitiveLayer.Primitives.Int8
-import PrimitiveLayer.Primitives.Inet
 import PrimitiveLayer.Primitives.Interval
 import PrimitiveLayer.Primitives.Json
 import PrimitiveLayer.Primitives.Jsonb
