@@ -47,4 +47,5 @@ instance IsMany Float4 Float where
 
 -- | Bidirectional conversion between 'Float' and PostgreSQL Float4.
 instance Is Float Float4
+
 instance Is Float4 Float

@@ -45,4 +45,5 @@ instance IsMany Int4 Int32 where
 
 -- | Bidirectional conversion between 'Int32' and PostgreSQL Int4.
 instance Is Int32 Int4
+
 instance Is Int4 Int32

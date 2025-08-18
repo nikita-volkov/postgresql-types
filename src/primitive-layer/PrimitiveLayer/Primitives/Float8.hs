@@ -47,4 +47,5 @@ instance IsMany Float8 Double where
 
 -- | Bidirectional conversion between 'Double' and PostgreSQL Float8.
 instance Is Double Float8
+
 instance Is Float8 Double

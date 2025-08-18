@@ -49,4 +49,5 @@ instance IsMany Bool Data.Bool.Bool where
 
 -- | Bidirectional conversion between Haskell 'Data.Bool.Bool' and PostgreSQL Bool.
 instance Is Data.Bool.Bool Bool
+
 instance Is Bool Data.Bool.Bool

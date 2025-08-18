@@ -45,4 +45,5 @@ instance IsMany Int8 Int64 where
 
 -- | Bidirectional conversion between 'Int64' and PostgreSQL Int8.
 instance Is Int64 Int8
+
 instance Is Int8 Int64

@@ -62,4 +62,5 @@ instance IsMany Uuid Data.UUID.UUID where
 
 -- | Bidirectional conversion between 'Data.UUID.UUID' and PostgreSQL Uuid.
 instance Is Data.UUID.UUID Uuid
+
 instance Is Uuid Data.UUID.UUID

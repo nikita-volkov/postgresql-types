@@ -45,4 +45,5 @@ instance IsMany Oid Word32 where
 
 -- | Bidirectional conversion between 'Word32' and PostgreSQL Oid.
 instance Is Word32 Oid
+
 instance Is Oid Word32

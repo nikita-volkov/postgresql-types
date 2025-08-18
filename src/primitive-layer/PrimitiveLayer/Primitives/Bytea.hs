@@ -50,4 +50,5 @@ instance IsMany Bytea ByteString where
 
 -- | Bidirectional conversion between 'ByteString' and PostgreSQL Bytea.
 instance Is ByteString Bytea
+
 instance Is Bytea ByteString

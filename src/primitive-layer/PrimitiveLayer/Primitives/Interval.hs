@@ -117,7 +117,7 @@ instance Primitive Interval where
 -- Validates that the input values are within PostgreSQL's valid range for intervals.
 instance IsSome (Int32, Int32, Int64) Interval where
   to (Interval {..}) = (months, days, micros)
-  maybeFrom (months, days, micros) = 
+  maybeFrom (months, days, micros) =
     let interval = Interval {..}
      in if interval >= minBound && interval <= maxBound
           then Just interval
@@ -127,27 +127,28 @@ instance IsSome (Int32, Int32, Int64) Interval where
 -- Automatically normalizes and clamps values to valid PostgreSQL interval ranges.
 -- Overflow microseconds are converted to days, overflow days to months.
 instance IsMany (Int32, Int32, Int64) Interval where
-  from (months, days, micros) = 
+  from (months, days, micros) =
     let -- Normalize microseconds to days
         extraDays = micros `div` (24 * 60 * 60 * 1000000)
         normalizedMicros = micros `mod` (24 * 60 * 60 * 1000000)
         totalDays = days + fromIntegral extraDays
-        
+
         -- Normalize days to months (using 30 days per month approximation)
         extraMonths = totalDays `div` 30
         normalizedDays = totalDays `mod` 30
         totalMonths = months + extraMonths
-        
+
         -- Clamp to valid ranges
         clampedMonths = max (minBound @Interval).months (min (maxBound @Interval).months totalMonths)
         clampedDays = max 0 (min (30 * 365) normalizedDays) -- Reasonable day range
         clampedMicros = max (-24 * 60 * 60 * 1000000) (min (24 * 60 * 60 * 1000000) normalizedMicros)
-        
-        result = Interval 
-          { months = clampedMonths
-          , days = clampedDays  
-          , micros = clampedMicros
-          }
+
+        result =
+          Interval
+            { months = clampedMonths,
+              days = clampedDays,
+              micros = clampedMicros
+            }
      in max minBound (min maxBound result)
 
 -- | Reverse conversion from Interval to tuple representation.
@@ -163,6 +164,7 @@ instance IsMany Interval (Int32, Int32, Int64) where
 
 -- | Bidirectional conversion between tuple (Int32, Int32, Int64) and PostgreSQL Interval.
 instance Is (Int32, Int32, Int64) Interval
+
 instance Is Interval (Int32, Int32, Int64)
 
 fromMicros :: Integer -> Interval

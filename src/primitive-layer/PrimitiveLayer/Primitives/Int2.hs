@@ -45,4 +45,5 @@ instance IsMany Int2 Int16 where
 
 -- | Bidirectional conversion between 'Int16' and PostgreSQL Int2.
 instance Is Int16 Int2
+
 instance Is Int2 Int16
