@@ -115,32 +115,32 @@ instance IsSome DiffTime Interval where
   to interval = toDiffTime interval
   maybeFrom diffTime =
     let picoseconds = Time.diffTimeToPicoseconds diffTime
-        microseconds = picoseconds `div` (10^6)
+        microseconds = picoseconds `div` (10 ^ 6)
         interval = fromMicros microseconds
         backToMicros = toMicros interval
-    in if microseconds == backToMicros && interval >= minBound && interval <= maxBound
-       then Just interval
-       else Nothing
+     in if microseconds == backToMicros && interval >= minBound && interval <= maxBound
+          then Just interval
+          else Nothing
 
 -- | Total conversion from DiffTime to Interval.
 -- Uses the fromMicros normalization logic.
 instance IsMany DiffTime Interval where
   from diffTime =
     let picoseconds = Time.diffTimeToPicoseconds diffTime
-        microseconds = picoseconds `div` (10^6)
+        microseconds = picoseconds `div` (10 ^ 6)
         interval = fromMicros microseconds
      in max minBound (min maxBound interval)
 
--- | Safe conversion from Interval to DiffTime.  
+-- | Safe conversion from Interval to DiffTime.
 -- Only succeeds for intervals that can round-trip through toMicros/fromMicros.
 instance IsSome Interval DiffTime where
   to diffTime = from diffTime
   maybeFrom interval =
     let micros = toMicros interval
         backToInterval = fromMicros micros
-    in if interval == backToInterval
-       then Just (toDiffTime interval)
-       else Nothing
+     in if interval == backToInterval
+          then Just (toDiffTime interval)
+          else Nothing
 
 -- | Total conversion from Interval to DiffTime.
 -- Uses the existing toDiffTime conversion.
