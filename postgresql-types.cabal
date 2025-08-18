@@ -110,6 +110,7 @@ library primitive-layer
     PrimitiveLayer.Primitives.Int2
     PrimitiveLayer.Primitives.Int4
     PrimitiveLayer.Primitives.Int8
+    PrimitiveLayer.Primitives.Inet
     PrimitiveLayer.Primitives.Interval
     PrimitiveLayer.Primitives.Json
     PrimitiveLayer.Primitives.Jsonb
@@ -133,6 +134,7 @@ library primitive-layer
     invariant ^>=0.6.4,
     jsonifier ^>=0.2.1.3,
     lawful-conversions ^>=0.2,
+    network >=3.0 && <4,
     peeky-blinders >=0.1 && <0.2,
     postgresql-types:jsonifier-aeson,
     profunctors ^>=5.6 && <6,
@@ -215,6 +217,7 @@ test-suite unit-tests
     bytestring >=0.10 && <0.13,
     hspec >=2.11 && <3,
     lawful-conversions ^>=0.2,
+    network >=3.0 && <4,
     peeky-blinders >=0.1 && <0.2,
     postgresql-libpq >=0.10 && <0.12,
     postgresql-types:primitive-layer,

@@ -15,6 +15,7 @@ module PrimitiveLayer.Primitives
     module PrimitiveLayer.Primitives.Time,
     module PrimitiveLayer.Primitives.Timestamp,
     module PrimitiveLayer.Primitives.Timestamptz,
+    module PrimitiveLayer.Primitives.Inet,
     module PrimitiveLayer.Primitives.Interval,
     module PrimitiveLayer.Primitives.Oid,
     module PrimitiveLayer.Primitives.Macaddr,
@@ -33,6 +34,7 @@ import PrimitiveLayer.Primitives.Float8
 import PrimitiveLayer.Primitives.Int2
 import PrimitiveLayer.Primitives.Int4
 import PrimitiveLayer.Primitives.Int8
+import PrimitiveLayer.Primitives.Inet
 import PrimitiveLayer.Primitives.Interval
 import PrimitiveLayer.Primitives.Json
 import PrimitiveLayer.Primitives.Jsonb
