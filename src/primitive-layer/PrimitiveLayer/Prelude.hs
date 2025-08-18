@@ -8,10 +8,12 @@ import Control.Category as Exports
 import Control.Concurrent as Exports
 import Control.Exception as Exports
 import Control.Monad as Exports hiding (forM, forM_, mapM, mapM_, msum, sequence, sequence_)
+import Control.Monad.Error.Class as Exports
 import Control.Monad.Fix as Exports hiding (fix)
 import Control.Monad.IO.Class as Exports
 import Control.Monad.ST as Exports
 import Control.Monad.ST.Unsafe as Exports
+import Control.Monad.Trans.Class as Exports
 import Control.Monad.Trans.Except as Exports hiding (liftCallCC, liftListen, liftPass)
 import Control.Monad.Trans.State.Strict as Exports hiding (liftCallCC, liftListen, liftPass)
 import Data.Bifunctor as Exports

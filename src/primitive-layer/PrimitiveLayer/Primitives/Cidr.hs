@@ -92,35 +92,41 @@ instance Primitive Cidr where
           ]
 
   binaryDecoder = do
-    family <- PeekyBlinders.statically PeekyBlinders.unsignedInt1
-    netmask <- PeekyBlinders.statically PeekyBlinders.unsignedInt1
-    _isCidr <- PeekyBlinders.statically PeekyBlinders.unsignedInt1
-    addrLen <- PeekyBlinders.statically PeekyBlinders.unsignedInt1
+    (family, netmask, isCidrFlag, addrLen) <-
+      PeekyBlinders.statically do
+        (,,,)
+          <$> PeekyBlinders.unsignedInt1
+          <*> PeekyBlinders.unsignedInt1
+          <*> PeekyBlinders.unsignedInt1
+          <*> PeekyBlinders.unsignedInt1
 
-    case (family, addrLen) of
-      (2, 4) -> do
-        -- IPv4
-        addr <- PeekyBlinders.statically PeekyBlinders.beUnsignedInt4
-        pure (Right (Cidr (IPv4 addr) (fromIntegral netmask)))
-      (10, 16) -> do
-        -- IPv6
-        w1 <- PeekyBlinders.statically PeekyBlinders.beUnsignedInt4
-        w2 <- PeekyBlinders.statically PeekyBlinders.beUnsignedInt4
-        w3 <- PeekyBlinders.statically PeekyBlinders.beUnsignedInt4
-        w4 <- PeekyBlinders.statically PeekyBlinders.beUnsignedInt4
-        pure (Right (Cidr (IPv6 w1 w2 w3 w4) (fromIntegral netmask)))
-      _ ->
-        pure
-          ( Left
-              ( DecodingError
-                  { location = ["cidr", "address-family"],
-                    reason =
-                      UnexpectedValueDecodingErrorReason
-                        "IPv4 (family=2, len=4) or IPv6 (family=10, len=16)"
-                        (Text.pack $ "family=" <> show family <> ", len=" <> show addrLen)
-                  }
-              )
-          )
+    runExceptT do
+      when (isCidrFlag /= 1) do
+        throwError (DecodingError ["is-cidr"] (UnexpectedValueDecodingErrorReason "1" (TextBuilder.toText (TextBuilder.decimal isCidrFlag))))
+
+      ip <- case family of
+        2 -> do
+          -- IPv4
+          when (addrLen /= 4) do
+            throwError (DecodingError ["address-length"] (UnexpectedValueDecodingErrorReason "4" (TextBuilder.toText (TextBuilder.decimal addrLen))))
+          addr <- lift do
+            PeekyBlinders.statically PeekyBlinders.beUnsignedInt4
+          pure (IPv4 addr)
+        3 -> do
+          -- IPv6
+          when (addrLen /= 16) do
+            throwError (DecodingError ["address-length"] (UnexpectedValueDecodingErrorReason "16" (TextBuilder.toText (TextBuilder.decimal addrLen))))
+          lift do
+            PeekyBlinders.statically do
+              IPv6
+                <$> PeekyBlinders.beUnsignedInt4
+                <*> PeekyBlinders.beUnsignedInt4
+                <*> PeekyBlinders.beUnsignedInt4
+                <*> PeekyBlinders.beUnsignedInt4
+        _ -> do
+          throwError (DecodingError ["address-family"] (UnexpectedValueDecodingErrorReason "2 or 3" (TextBuilder.toText (TextBuilder.decimal family))))
+
+      pure (Cidr ip (fromIntegral netmask))
 
   textualEncoder (Cidr ipAddr netmask) =
     case ipAddr of
