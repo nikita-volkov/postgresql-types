@@ -19,6 +19,13 @@ import Prelude
 
 main :: IO ()
 main = hspec do
+  describe "Bit" do
+    describe "[Bool]" do
+      describe "IsMany" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isManyProperties @[Bool] @PrimitiveLayer.Bit Proxy Proxy)
+
   describe "Bool" do
     describe "Data.Bool.Bool" do
       describe "IsMany" do
@@ -26,12 +33,12 @@ main = hspec do
           (uncurry prop)
           (LawfulConversions.isManyProperties @Bool @PrimitiveLayer.Bool Proxy Proxy)
 
-  describe "Text" do
-    describe "Data.Text.Text" do
+  describe "Box" do
+    describe "((Double, Double), (Double, Double))" do
       describe "IsMany" do
         traverse_
           (uncurry prop)
-          (LawfulConversions.isManyProperties @Text.Text @PrimitiveLayer.Text Proxy Proxy)
+          (LawfulConversions.isManyProperties @((Double, Double), (Double, Double)) @PrimitiveLayer.Box Proxy Proxy)
 
   describe "Bytea" do
     describe "ByteString" do
@@ -53,6 +60,20 @@ main = hspec do
           (uncurry prop)
           (LawfulConversions.isManyProperties @Char @PrimitiveLayer.Char Proxy Proxy)
 
+  describe "Cidr" do
+    describe "(IpAddress, Word8)" do
+      describe "IsMany" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isManyProperties @(PrimitiveLayer.CidrIpAddress, Word8) @PrimitiveLayer.Cidr Proxy Proxy)
+
+  describe "Circle" do
+    describe "(Double, Double, Double)" do
+      describe "IsMany" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isManyProperties @(Double, Double, Double) @PrimitiveLayer.Circle Proxy Proxy)
+
   describe "Date" do
     describe "Data.Time.Day" do
       describe "IsMany" do
@@ -60,12 +81,19 @@ main = hspec do
           (uncurry prop)
           (LawfulConversions.isManyProperties @Day @PrimitiveLayer.Date Proxy Proxy)
 
-  describe "Uuid" do
-    describe "Data.UUID.UUID" do
+  describe "Float4" do
+    describe "Float" do
       describe "IsMany" do
         traverse_
           (uncurry prop)
-          (LawfulConversions.isManyProperties @UUID.UUID @PrimitiveLayer.Uuid Proxy Proxy)
+          (LawfulConversions.isManyProperties @Float @PrimitiveLayer.Float4 Proxy Proxy)
+
+  describe "Float8" do
+    describe "Double" do
+      describe "IsMany" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isManyProperties @Double @PrimitiveLayer.Float8 Proxy Proxy)
 
   describe "Int2" do
     describe "Int16" do
@@ -95,26 +123,12 @@ main = hspec do
           (uncurry prop)
           (LawfulConversions.isManyProperties @(Int32, Int32, Int64) @PrimitiveLayer.Interval Proxy Proxy)
 
-  describe "Float4" do
-    describe "Float" do
+  describe "Json" do
+    describe "Data.Aeson.Value" do
       describe "IsMany" do
         traverse_
           (uncurry prop)
-          (LawfulConversions.isManyProperties @Float @PrimitiveLayer.Float4 Proxy Proxy)
-
-  describe "Float8" do
-    describe "Double" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @Double @PrimitiveLayer.Float8 Proxy Proxy)
-
-  describe "Numeric" do
-    describe "Data.Scientific.Scientific" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @Scientific.Scientific @PrimitiveLayer.Numeric Proxy Proxy)
+          (LawfulConversions.isManyProperties @Aeson.Value @PrimitiveLayer.Json Proxy Proxy)
 
   describe "Money" do
     describe "Int64" do
@@ -123,12 +137,12 @@ main = hspec do
           (uncurry prop)
           (LawfulConversions.isManyProperties @Int64 @PrimitiveLayer.Money Proxy Proxy)
 
-  describe "Json" do
-    describe "Data.Aeson.Value" do
+  describe "Numeric" do
+    describe "Data.Scientific.Scientific" do
       describe "IsMany" do
         traverse_
           (uncurry prop)
-          (LawfulConversions.isManyProperties @Aeson.Value @PrimitiveLayer.Json Proxy Proxy)
+          (LawfulConversions.isManyProperties @Scientific.Scientific @PrimitiveLayer.Numeric Proxy Proxy)
 
   describe "Oid" do
     describe "Word32" do
@@ -136,6 +150,27 @@ main = hspec do
         traverse_
           (uncurry prop)
           (LawfulConversions.isManyProperties @Word32 @PrimitiveLayer.Oid Proxy Proxy)
+
+  describe "Point" do
+    describe "(Double, Double)" do
+      describe "IsMany" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isManyProperties @(Double, Double) @PrimitiveLayer.Point Proxy Proxy)
+
+  describe "Text" do
+    describe "Data.Text.Text" do
+      describe "IsMany" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isManyProperties @Text.Text @PrimitiveLayer.Text Proxy Proxy)
+
+  describe "Time" do
+    describe "Data.Time.TimeOfDay" do
+      describe "IsMany" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isManyProperties @TimeOfDay @PrimitiveLayer.Time Proxy Proxy)
 
   describe "Timestamp" do
     describe "Data.Time.LocalTime" do
@@ -151,40 +186,12 @@ main = hspec do
           (uncurry prop)
           (LawfulConversions.isManyProperties @UTCTime @PrimitiveLayer.Timestamptz Proxy Proxy)
 
-  describe "Time" do
-    describe "Data.Time.TimeOfDay" do
+  describe "Uuid" do
+    describe "Data.UUID.UUID" do
       describe "IsMany" do
         traverse_
           (uncurry prop)
-          (LawfulConversions.isManyProperties @TimeOfDay @PrimitiveLayer.Time Proxy Proxy)
-
-  describe "Point" do
-    describe "(Double, Double)" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @(Double, Double) @PrimitiveLayer.Point Proxy Proxy)
-
-  describe "Box" do
-    describe "((Double, Double), (Double, Double))" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @((Double, Double), (Double, Double)) @PrimitiveLayer.Box Proxy Proxy)
-
-  describe "Circle" do
-    describe "(Double, Double, Double)" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @(Double, Double, Double) @PrimitiveLayer.Circle Proxy Proxy)
-
-  describe "Bit" do
-    describe "[Bool]" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @[Bool] @PrimitiveLayer.Bit Proxy Proxy)
+          (LawfulConversions.isManyProperties @UUID.UUID @PrimitiveLayer.Uuid Proxy Proxy)
 
   describe "Varbit" do
     describe "[Bool]" do
@@ -192,10 +199,3 @@ main = hspec do
         traverse_
           (uncurry prop)
           (LawfulConversions.isManyProperties @[Bool] @PrimitiveLayer.Varbit Proxy Proxy)
-
-  describe "Cidr" do
-    describe "(IpAddress, Word8)" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @(PrimitiveLayer.CidrIpAddress, Word8) @PrimitiveLayer.Cidr Proxy Proxy)
