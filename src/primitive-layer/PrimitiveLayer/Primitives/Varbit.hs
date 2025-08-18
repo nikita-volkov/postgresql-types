@@ -6,6 +6,7 @@ import qualified Data.Bits as Bits
 import qualified Data.ByteString as ByteString
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text.Encoding
+import qualified LawfulConversions
 import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
@@ -28,14 +29,13 @@ data Varbit = Varbit
 instance Arbitrary Varbit where
   arbitrary = do
     len <- QuickCheck.chooseInt (0, 128) -- Reasonable bit length for tests
-    numBytes <- pure $ (len + 7) `div` 8 -- Calculate required bytes
-    bytes <- QuickCheck.vectorOf numBytes arbitrary
-    pure $ Varbit (fromIntegral len) (ByteString.pack bytes)
+    bits <- QuickCheck.vectorOf len (arbitrary :: QuickCheck.Gen Bool) -- Generate the actual bits
+    -- Convert through IsMany to ensure proper padding
+    pure $ LawfulConversions.from bits
   shrink (Varbit len bytes) =
-    [ Varbit len' (ByteString.take (fromIntegral ((len' + 7) `div` 8)) bytes)
-    | len' <- shrink len,
-      len' >= 0
-    ]
+    let bits = LawfulConversions.from (Varbit len bytes) :: [Bool]
+        shrunkBitsList = shrink bits
+    in map LawfulConversions.from shrunkBitsList
 
 instance Primitive Varbit where
   typeName = Tagged "varbit"

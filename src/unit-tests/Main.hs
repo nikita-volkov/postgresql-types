@@ -157,3 +157,45 @@ main = hspec do
         traverse_
           (uncurry prop)
           (LawfulConversions.isManyProperties @TimeOfDay @PrimitiveLayer.Time Proxy Proxy)
+
+  describe "Point" do
+    describe "(Double, Double)" do
+      describe "IsMany" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isManyProperties @(Double, Double) @PrimitiveLayer.Point Proxy Proxy)
+
+  describe "Box" do
+    describe "((Double, Double), (Double, Double))" do
+      describe "IsMany" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isManyProperties @((Double, Double), (Double, Double)) @PrimitiveLayer.Box Proxy Proxy)
+
+  describe "Circle" do
+    describe "(Double, Double, Double)" do
+      describe "IsMany" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isManyProperties @(Double, Double, Double) @PrimitiveLayer.Circle Proxy Proxy)
+
+  describe "Bit" do
+    describe "[Bool]" do
+      describe "IsMany" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isManyProperties @[Bool] @PrimitiveLayer.Bit Proxy Proxy)
+
+  describe "Varbit" do
+    describe "[Bool]" do
+      describe "IsMany" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isManyProperties @[Bool] @PrimitiveLayer.Varbit Proxy Proxy)
+
+  describe "Cidr" do
+    describe "(IpAddress, Word8)" do
+      describe "IsMany" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isManyProperties @(PrimitiveLayer.IpAddress, Word8) @PrimitiveLayer.Cidr Proxy Proxy)
