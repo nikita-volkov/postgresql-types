@@ -11,9 +11,13 @@ main :: IO ()
 main =
   hspec do
     aroundAll Main.Helpers.withPqConnection do
+      Main.Helpers.primitiveSpec @PrimitiveLayer.Bit Proxy
       Main.Helpers.primitiveSpec @PrimitiveLayer.Bool Proxy
+      Main.Helpers.primitiveSpec @PrimitiveLayer.Box Proxy
       Main.Helpers.primitiveSpec @PrimitiveLayer.Bytea Proxy
       Main.Helpers.primitiveSpec @PrimitiveLayer.Char Proxy
+      Main.Helpers.primitiveSpec @PrimitiveLayer.Cidr Proxy
+      Main.Helpers.primitiveSpec @PrimitiveLayer.Circle Proxy
       Main.Helpers.primitiveSpec @PrimitiveLayer.Date Proxy
       Main.Helpers.primitiveSpec @PrimitiveLayer.Float4 Proxy
       Main.Helpers.primitiveSpec @PrimitiveLayer.Float8 Proxy
@@ -28,9 +32,11 @@ main =
       Main.Helpers.primitiveSpec @PrimitiveLayer.Numeric Proxy
       Main.Helpers.primitiveSpec @PrimitiveLayer.Money Proxy
       Main.Helpers.primitiveSpec @PrimitiveLayer.Oid Proxy
+      Main.Helpers.primitiveSpec @PrimitiveLayer.Point Proxy
       Main.Helpers.primitiveSpec @PrimitiveLayer.Text Proxy
       Main.Helpers.primitiveSpec @PrimitiveLayer.Time Proxy
       Main.Helpers.primitiveSpec @PrimitiveLayer.Timestamp Proxy
       Main.Helpers.primitiveSpec @PrimitiveLayer.Timestamptz Proxy
       Main.Helpers.primitiveSpec @PrimitiveLayer.Uuid Proxy
+      Main.Helpers.primitiveSpec @PrimitiveLayer.Varbit Proxy
       Main.Helpers.primitiveSpec @PrimitiveLayer.Varchar Proxy
