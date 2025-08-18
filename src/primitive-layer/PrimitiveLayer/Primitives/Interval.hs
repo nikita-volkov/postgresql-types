@@ -6,7 +6,6 @@ import qualified Data.Time as Time
 import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
-import qualified PrimitiveLayer.Primitives.Interval.Micros as Micros
 import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
@@ -109,27 +108,6 @@ instance Primitive Interval where
           then "PT0S"
           else "P" <> datePart <> tPrefix <> timePart
 
--- | Safe conversion from DiffTime to Interval.
--- Only accepts DiffTime values that round-trip through the DiffTime conversion.
-instance IsSome DiffTime Interval where
-  to interval = toDiffTime interval
-  maybeFrom diffTime =
-    let interval = from diffTime
-        backToDiffTime = to interval
-     in if diffTime == backToDiffTime && interval >= minBound && interval <= maxBound
-          then Just interval
-          else Nothing
-
--- | Total conversion from DiffTime to Interval.
--- Uses direct microsecond conversion with sign-aware normalization.
-instance IsMany DiffTime Interval where
-  from diffTime =
-    let picoseconds = Time.diffTimeToPicoseconds diffTime
-        microseconds = picoseconds `div` (10 ^ 6)
-        -- Use the existing fromMicros function for consistent normalization
-        interval = fromMicros microseconds
-     in max minBound (min maxBound interval)
-
 -- | Safe conversion from tuple representation (months, days, microseconds) to Interval.
 -- Validates that the input values are within PostgreSQL's valid range for intervals.
 instance IsSome (Int32, Int32, Int64) Interval where
@@ -145,15 +123,15 @@ instance IsSome (Int32, Int32, Int64) Interval where
 instance IsMany (Int32, Int32, Int64) Interval where
   from (months, days, micros) =
     let interval = Interval {..}
-        -- First try the direct interval, then clamp to bounds if needed
-     in if interval >= minBound && interval <= maxBound
+     in -- First try the direct interval, then clamp to bounds if needed
+        if interval >= minBound && interval <= maxBound
           then interval
           else max minBound (min maxBound interval)
 
 fromMicros :: Integer -> Interval
 fromMicros =
   evalState do
-    micros <- fromIntegral <$> state (swap . flip divMod Micros.day)
+    micros <- fromIntegral <$> state (swap . flip divMod microsPerDay)
     days <- fromIntegral <$> state (swap . flip divMod daysPerMonth)
     months <- fromIntegral <$> get
     pure Interval {..}

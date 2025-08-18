@@ -111,7 +111,6 @@ library primitive-layer
     PrimitiveLayer.Primitives.Int4
     PrimitiveLayer.Primitives.Int8
     PrimitiveLayer.Primitives.Interval
-    PrimitiveLayer.Primitives.Interval.Micros
     PrimitiveLayer.Primitives.Jsonb
     PrimitiveLayer.Primitives.Macaddr
     PrimitiveLayer.Primitives.Numeric

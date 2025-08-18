@@ -94,12 +94,6 @@ main = hspec do
           (uncurry prop)
           (LawfulConversions.isManyProperties @(Int32, Int32, Int64) @PrimitiveLayer.Interval Proxy Proxy)
 
-    describe "Data.Time.DiffTime" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @DiffTime @PrimitiveLayer.Interval Proxy Proxy)
-
   describe "Float4" do
     describe "Float" do
       describe "IsMany" do
