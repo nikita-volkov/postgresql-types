@@ -1,6 +1,6 @@
 -- | PostgreSQL @oid@ type.
 -- Represents object identifiers in PostgreSQL.
-module PrimitiveLayer.Primitives.Oid (Oid) where
+module PrimitiveLayer.Primitives.Oid (Oid (..)) where
 
 import qualified PeekyBlinders
 import PrimitiveLayer.Algebra

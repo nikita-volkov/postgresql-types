@@ -1,6 +1,6 @@
 -- | PostgreSQL @bool@ type.
 -- Represents a boolean value as stored in PostgreSQL.
-module PrimitiveLayer.Primitives.Bool (Bool) where
+module PrimitiveLayer.Primitives.Bool (Bool (..)) where
 
 import qualified Data.Bool
 import qualified PeekyBlinders

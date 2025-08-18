@@ -1,6 +1,6 @@
 -- | PostgreSQL @int2@ type.
 -- Represents a 16-bit signed integer in PostgreSQL.
-module PrimitiveLayer.Primitives.Int2 (Int2) where
+module PrimitiveLayer.Primitives.Int2 (Int2 (..)) where
 
 import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
