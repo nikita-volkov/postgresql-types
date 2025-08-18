@@ -1,5 +1,6 @@
 module Main (main) where
 
+import qualified Data.Aeson as Aeson
 import Data.ByteString (ByteString)
 import Data.Foldable
 import Data.Int
@@ -114,6 +115,20 @@ main = hspec do
         traverse_
           (uncurry prop)
           (LawfulConversions.isManyProperties @Scientific.Scientific @PrimitiveLayer.Numeric Proxy Proxy)
+
+  describe "Money" do
+    describe "Int64" do
+      describe "IsMany" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isManyProperties @Int64 @PrimitiveLayer.Money Proxy Proxy)
+
+  describe "Json" do
+    describe "Data.Aeson.Value" do
+      describe "IsMany" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isManyProperties @Aeson.Value @PrimitiveLayer.Json Proxy Proxy)
 
   describe "Oid" do
     describe "Word32" do

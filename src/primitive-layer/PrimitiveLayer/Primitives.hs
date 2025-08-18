@@ -9,15 +9,18 @@ module PrimitiveLayer.Primitives
     module PrimitiveLayer.Primitives.Float4,
     module PrimitiveLayer.Primitives.Float8,
     module PrimitiveLayer.Primitives.Numeric,
+    module PrimitiveLayer.Primitives.Money,
     module PrimitiveLayer.Primitives.Bytea,
     module PrimitiveLayer.Primitives.Date,
     module PrimitiveLayer.Primitives.Time,
     module PrimitiveLayer.Primitives.Timestamp,
     module PrimitiveLayer.Primitives.Timestamptz,
+    module PrimitiveLayer.Primitives.Inet,
     module PrimitiveLayer.Primitives.Interval,
     module PrimitiveLayer.Primitives.Oid,
     module PrimitiveLayer.Primitives.Macaddr,
     module PrimitiveLayer.Primitives.Uuid,
+    module PrimitiveLayer.Primitives.Json,
     module PrimitiveLayer.Primitives.Jsonb,
   )
 where
@@ -28,12 +31,15 @@ import PrimitiveLayer.Primitives.Char
 import PrimitiveLayer.Primitives.Date
 import PrimitiveLayer.Primitives.Float4
 import PrimitiveLayer.Primitives.Float8
+import PrimitiveLayer.Primitives.Inet
 import PrimitiveLayer.Primitives.Int2
 import PrimitiveLayer.Primitives.Int4
 import PrimitiveLayer.Primitives.Int8
 import PrimitiveLayer.Primitives.Interval
+import PrimitiveLayer.Primitives.Json
 import PrimitiveLayer.Primitives.Jsonb
 import PrimitiveLayer.Primitives.Macaddr
+import PrimitiveLayer.Primitives.Money
 import PrimitiveLayer.Primitives.Numeric
 import PrimitiveLayer.Primitives.Oid
 import PrimitiveLayer.Primitives.Text
