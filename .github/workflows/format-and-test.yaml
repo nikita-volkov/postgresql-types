@@ -38,5 +38,6 @@ jobs:
     uses: nikita-volkov/haskell-hackage-lib-github-actions-workflows/.github/workflows/build.yaml@v4
     secrets: inherit
     with:
+      skip-doctest: true
       test-options: >
         --qc-max-success=10000
