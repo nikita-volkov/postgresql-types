@@ -122,6 +122,10 @@ runRoundtripQuery connection paramOid paramEncoding paramFormat resultFormat = d
       m <- Pq.errorMessage connection
       fail ("execParams produced no result due to: " <> show m)
     Just result -> pure result
+  resultErrorField <- Pq.resultErrorField result Pq.DiagMessagePrimary
+  case resultErrorField of
+    Nothing -> pure ()
+    Just err -> fail ("Query failed: " <> show err)
   bytes <- Pq.getvalue result 0 0
   bytes <- case bytes of
     Nothing -> fail "getvalue produced no bytes"
