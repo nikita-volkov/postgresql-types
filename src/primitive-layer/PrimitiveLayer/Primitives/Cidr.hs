@@ -23,8 +23,10 @@ import qualified TextBuilder
 -- - 1 byte: address length in bytes
 -- - N bytes: address (4 for IPv4, 16 for IPv6)
 data Cidr = Cidr
-  { cidrAddress :: !Network.SockAddr, -- ^ Network address
-    cidrNetmask :: !Word8             -- ^ Network mask length (0-32 for IPv4, 0-128 for IPv6)
+  { -- | Network address
+    cidrAddress :: !Network.SockAddr,
+    -- | Network mask length (0-32 for IPv4, 0-128 for IPv6)
+    cidrNetmask :: !Word8
   }
   deriving stock (Eq, Ord, Generic)
   deriving (Show) via (ViaPrimitive Cidr)
@@ -40,9 +42,12 @@ instance Arbitrary Cidr where
     let addr = fromIntegral a * 16777216 + fromIntegral b * 65536 + fromIntegral c * 256 + fromIntegral d
     pure (Cidr (Network.SockAddrInet 0 addr) netmask)
   shrink (Cidr (Network.SockAddrInet _ addr) netmask) =
-    [Cidr (Network.SockAddrInet 0 addr') netmask' | 
-     addr' <- shrink addr, netmask' <- shrink netmask, netmask' <= 32]
-  shrink (Cidr addr netmask) = 
+    [ Cidr (Network.SockAddrInet 0 addr') netmask'
+    | addr' <- shrink addr,
+      netmask' <- shrink netmask,
+      netmask' <= 32
+    ]
+  shrink (Cidr addr netmask) =
     [Cidr addr netmask' | netmask' <- shrink netmask]
 
 instance Primitive Cidr where
@@ -53,48 +58,55 @@ instance Primitive Cidr where
     case sockAddr of
       Network.SockAddrInet _ addr ->
         mconcat
-          [ Write.word8 2,     -- IPv4 address family
+          [ Write.word8 2, -- IPv4 address family
             Write.word8 netmask,
-            Write.word8 1,     -- is_cidr flag (1 for cidr)
-            Write.word8 4,     -- address length (4 bytes for IPv4)
+            Write.word8 1, -- is_cidr flag (1 for cidr)
+            Write.word8 4, -- address length (4 bytes for IPv4)
             Write.bWord32 addr -- IPv4 address
           ]
       Network.SockAddrInet6 _ _ (w1, w2, w3, w4) _ ->
         mconcat
-          [ Write.word8 10,    -- IPv6 address family
+          [ Write.word8 10, -- IPv6 address family
             Write.word8 netmask,
-            Write.word8 1,     -- is_cidr flag (1 for cidr)
-            Write.word8 16,    -- address length (16 bytes for IPv6)
+            Write.word8 1, -- is_cidr flag (1 for cidr)
+            Write.word8 16, -- address length (16 bytes for IPv6)
             Write.bWord32 w1,
             Write.bWord32 w2,
             Write.bWord32 w3,
             Write.bWord32 w4
           ]
       _ -> mempty -- Other address types not supported
-          
+
   binaryDecoder = do
     family <- PeekyBlinders.statically PeekyBlinders.unsignedInt1
     netmask <- PeekyBlinders.statically PeekyBlinders.unsignedInt1
     _isCidr <- PeekyBlinders.statically PeekyBlinders.unsignedInt1
     addrLen <- PeekyBlinders.statically PeekyBlinders.unsignedInt1
-    
+
     case (family, addrLen) of
-      (2, 4) -> do -- IPv4
+      (2, 4) -> do
+        -- IPv4
         addr <- PeekyBlinders.statically PeekyBlinders.beUnsignedInt4
         pure (Right (Cidr (Network.SockAddrInet 0 addr) (fromIntegral netmask)))
-      (10, 16) -> do -- IPv6
+      (10, 16) -> do
+        -- IPv6
         w1 <- PeekyBlinders.statically PeekyBlinders.beUnsignedInt4
         w2 <- PeekyBlinders.statically PeekyBlinders.beUnsignedInt4
         w3 <- PeekyBlinders.statically PeekyBlinders.beUnsignedInt4
         w4 <- PeekyBlinders.statically PeekyBlinders.beUnsignedInt4
         pure (Right (Cidr (Network.SockAddrInet6 0 0 (w1, w2, w3, w4) 0) (fromIntegral netmask)))
-      _ -> 
-        pure (Left (DecodingError 
-                    { location = ["cidr", "address-family"], 
-                      reason = UnexpectedValueDecodingErrorReason 
-                               "IPv4 (family=2, len=4) or IPv6 (family=10, len=16)" 
-                               (Text.pack $ "family=" <> show family <> ", len=" <> show addrLen)
-                    }))
+      _ ->
+        pure
+          ( Left
+              ( DecodingError
+                  { location = ["cidr", "address-family"],
+                    reason =
+                      UnexpectedValueDecodingErrorReason
+                        "IPv4 (family=2, len=4) or IPv6 (family=10, len=16)"
+                        (Text.pack $ "family=" <> show family <> ", len=" <> show addrLen)
+                  }
+              )
+          )
 
   textualEncoder (Cidr sockAddr netmask) =
     case sockAddr of
@@ -103,16 +115,26 @@ instance Primitive Cidr where
             b = fromIntegral ((addr `shiftR` 16) .&. 0xFF)
             c = fromIntegral ((addr `shiftR` 8) .&. 0xFF)
             d = fromIntegral (addr .&. 0xFF)
-        in TextBuilder.string (show a) <> "." <> 
-           TextBuilder.string (show b) <> "." <> 
-           TextBuilder.string (show c) <> "." <> 
-           TextBuilder.string (show d) <> "/" <>
-           TextBuilder.string (show netmask)
+         in TextBuilder.string (show a)
+              <> "."
+              <> TextBuilder.string (show b)
+              <> "."
+              <> TextBuilder.string (show c)
+              <> "."
+              <> TextBuilder.string (show d)
+              <> "/"
+              <> TextBuilder.string (show netmask)
       Network.SockAddrInet6 _ _ (w1, w2, w3, w4) _ ->
-        -- Simplified IPv6 representation  
-        TextBuilder.string (show w1) <> ":" <> TextBuilder.string (show w2) <> ":" <>
-        TextBuilder.string (show w3) <> ":" <> TextBuilder.string (show w4) <> "::/" <>
-        TextBuilder.string (show netmask)
+        -- Simplified IPv6 representation
+        TextBuilder.string (show w1)
+          <> ":"
+          <> TextBuilder.string (show w2)
+          <> ":"
+          <> TextBuilder.string (show w3)
+          <> ":"
+          <> TextBuilder.string (show w4)
+          <> "::/"
+          <> TextBuilder.string (show netmask)
       _ -> "unknown/" <> TextBuilder.string (show netmask)
 
 -- | Convert from (Network.SockAddr, Word8) to Cidr.

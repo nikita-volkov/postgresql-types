@@ -36,7 +36,7 @@ instance Primitive Point where
     x <- PeekyBlinders.statically (castWord64ToDouble <$> PeekyBlinders.beUnsignedInt8)
     y <- PeekyBlinders.statically (castWord64ToDouble <$> PeekyBlinders.beUnsignedInt8)
     pure (Right (Point x y))
-  textualEncoder (Point x y) = 
+  textualEncoder (Point x y) =
     "(" <> TextBuilder.string (show x) <> "," <> TextBuilder.string (show y) <> ")"
 
 -- | Convert from a tuple of doubles to a Point.

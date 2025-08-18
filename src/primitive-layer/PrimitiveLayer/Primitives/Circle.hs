@@ -13,9 +13,12 @@ import qualified TextBuilder
 -- | PostgreSQL @circle@ type representing a circle with center coordinates and radius.
 -- Stored as three 64-bit floating point numbers (x,y,radius) in PostgreSQL.
 data Circle = Circle
-  { circleCenterX :: !Double, -- ^ Center x coordinate
-    circleCenterY :: !Double, -- ^ Center y coordinate
-    circleRadius :: !Double   -- ^ Circle radius (must be non-negative)
+  { -- | Center x coordinate
+    circleCenterX :: !Double,
+    -- | Center y coordinate
+    circleCenterY :: !Double,
+    -- | Circle radius (must be non-negative)
+    circleRadius :: !Double
   }
   deriving stock (Eq, Ord, Generic)
   deriving (Show) via (ViaPrimitive Circle)
@@ -24,9 +27,9 @@ instance Arbitrary Circle where
   arbitrary = do
     x <- arbitrary
     y <- arbitrary
-    r <- abs <$> arbitrary  -- Ensure radius is non-negative
+    r <- abs <$> arbitrary -- Ensure radius is non-negative
     pure (Circle x y r)
-  shrink (Circle x y r) = 
+  shrink (Circle x y r) =
     [Circle x' y' (abs r') | (x', y', r') <- shrink (x, y, r)]
 
 instance Primitive Circle where
@@ -44,9 +47,14 @@ instance Primitive Circle where
     y <- PeekyBlinders.statically (castWord64ToDouble <$> PeekyBlinders.beUnsignedInt8)
     r <- PeekyBlinders.statically (castWord64ToDouble <$> PeekyBlinders.beUnsignedInt8)
     pure (Right (Circle x y r))
-  textualEncoder (Circle x y r) = 
-    "<(" <> TextBuilder.string (show x) <> "," <> TextBuilder.string (show y) <> ")," <>
-    TextBuilder.string (show r) <> ">"
+  textualEncoder (Circle x y r) =
+    "<("
+      <> TextBuilder.string (show x)
+      <> ","
+      <> TextBuilder.string (show y)
+      <> "),"
+      <> TextBuilder.string (show r)
+      <> ">"
 
 -- | Convert from a tuple of three doubles to a Circle.
 -- The radius is made non-negative by taking the absolute value.

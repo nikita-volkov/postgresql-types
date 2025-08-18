@@ -16,21 +16,25 @@ import qualified TextBuilder
 -- | PostgreSQL @bit@ type representing a fixed-length bit string.
 -- Stored as a length (Int32) followed by the bit data in bytes.
 data Bit = Bit
-  { bitLength :: !Int32,      -- ^ Number of bits
-    bitData :: !ByteString    -- ^ Bit data (packed into bytes)
+  { -- | Number of bits
+    bitLength :: !Int32,
+    -- | Bit data (packed into bytes)
+    bitData :: !ByteString
   }
   deriving stock (Eq, Ord, Generic)
   deriving (Show) via (ViaPrimitive Bit)
 
 instance Arbitrary Bit where
   arbitrary = do
-    len <- QuickCheck.chooseInt (0, 64)  -- Reasonable bit length for tests
-    numBytes <- pure $ (len + 7) `div` 8  -- Calculate required bytes
+    len <- QuickCheck.chooseInt (0, 64) -- Reasonable bit length for tests
+    numBytes <- pure $ (len + 7) `div` 8 -- Calculate required bytes
     bytes <- QuickCheck.vectorOf numBytes arbitrary
     pure $ Bit (fromIntegral len) (ByteString.pack bytes)
-  shrink (Bit len bytes) = 
-    [Bit len' (ByteString.take (fromIntegral ((len' + 7) `div` 8)) bytes) | 
-     len' <- shrink len, len' >= 0]
+  shrink (Bit len bytes) =
+    [ Bit len' (ByteString.take (fromIntegral ((len' + 7) `div` 8)) bytes)
+    | len' <- shrink len,
+      len' >= 0
+    ]
 
 instance Primitive Bit where
   typeName = Tagged "bit"
@@ -45,11 +49,11 @@ instance Primitive Bit where
     len <- PeekyBlinders.statically PeekyBlinders.beSignedInt4
     bytes <- PeekyBlinders.remainderAsByteString
     pure (Right (Bit len bytes))
-  textualEncoder (Bit len bytes) = 
+  textualEncoder (Bit len bytes) =
     let bits = concatMap byteToBits (ByteString.unpack bytes)
         trimmedBits = take (fromIntegral len) bits
         bitString = map (\b -> if b then '1' else '0') trimmedBits
-    in TextBuilder.text (Text.pack bitString)
+     in TextBuilder.text (Text.pack bitString)
     where
       byteToBits :: Word8 -> [Bool]
       byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
@@ -57,19 +61,19 @@ instance Primitive Bit where
 -- | Convert from a bit string (as a list of Bool) to a Bit.
 -- The bit string is packed into bytes.
 instance IsSome [Bool] Bit where
-  to (Bit len bytes) = 
+  to (Bit len bytes) =
     let bits = concatMap byteToBits (ByteString.unpack bytes)
         trimmedBits = take (fromIntegral len) bits
-    in trimmedBits
+     in trimmedBits
     where
       byteToBits :: Word8 -> [Bool]
       byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
-  maybeFrom bits = 
+  maybeFrom bits =
     let len = fromIntegral (length bits)
         numBytes = (len + 7) `div` 8
         paddedBits = bits ++ replicate (numBytes * 8 - len) False
         bytes = map boolsToByte (chunksOf 8 paddedBits)
-    in Just (Bit (fromIntegral len) (ByteString.pack bytes))
+     in Just (Bit (fromIntegral len) (ByteString.pack bytes))
     where
       boolsToByte :: [Bool] -> Word8
       boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
@@ -80,34 +84,34 @@ instance IsSome [Bool] Bit where
 -- | Convert from a Bit to a list of Bool.
 -- Only returns the actual bits (not padding).
 instance IsSome Bit [Bool] where
-  to bits = 
+  to bits =
     let len = fromIntegral (length bits)
         numBytes = (len + 7) `div` 8
         paddedBits = bits ++ replicate (numBytes * 8 - len) False
         bytes = map boolsToByte (chunksOf 8 paddedBits)
-    in Bit (fromIntegral len) (ByteString.pack bytes)
+     in Bit (fromIntegral len) (ByteString.pack bytes)
     where
       boolsToByte :: [Bool] -> Word8
       boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
       chunksOf :: Int -> [a] -> [[a]]
       chunksOf n [] = []
       chunksOf n xs = take n xs : chunksOf n (drop n xs)
-  maybeFrom (Bit len bytes) = 
+  maybeFrom (Bit len bytes) =
     let bits = concatMap byteToBits (ByteString.unpack bytes)
         trimmedBits = take (fromIntegral len) bits
-    in Just trimmedBits
+     in Just trimmedBits
     where
       byteToBits :: Word8 -> [Bool]
       byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
 
 -- | Direct conversion from bit list to Bit.
 instance IsMany [Bool] Bit where
-  from bits = 
+  from bits =
     let len = fromIntegral (length bits)
         numBytes = (len + 7) `div` 8
         paddedBits = bits ++ replicate (numBytes * 8 - len) False
         bytes = map boolsToByte (chunksOf 8 paddedBits)
-    in Bit (fromIntegral len) (ByteString.pack bytes)
+     in Bit (fromIntegral len) (ByteString.pack bytes)
     where
       boolsToByte :: [Bool] -> Word8
       boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
@@ -117,10 +121,10 @@ instance IsMany [Bool] Bit where
 
 -- | Direct conversion from Bit to bit list.
 instance IsMany Bit [Bool] where
-  from (Bit len bytes) = 
+  from (Bit len bytes) =
     let bits = concatMap byteToBits (ByteString.unpack bytes)
         trimmedBits = take (fromIntegral len) bits
-    in trimmedBits
+     in trimmedBits
     where
       byteToBits :: Word8 -> [Bool]
       byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
