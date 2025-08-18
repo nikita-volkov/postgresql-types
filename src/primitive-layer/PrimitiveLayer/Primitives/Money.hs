@@ -9,7 +9,7 @@ import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
 -- | PostgreSQL @money@ type wrapper around 'Int64'.
--- 
+--
 -- The money type stores currency amounts as a 64-bit signed integer.
 -- The scale (number of decimal places) is determined by the database's
 -- currency locale settings, typically 2 decimal places for most currencies.
@@ -25,15 +25,16 @@ instance Primitive Money where
   arrayOid = Tagged 791
   binaryEncoder (Money x) = Write.bInt64 x
   binaryDecoder = PeekyBlinders.statically (Right . Money <$> PeekyBlinders.beSignedInt8)
-  textualEncoder (Money x) = 
+  textualEncoder (Money x) =
     -- Format as currency with 2 decimal places and $ symbol
     -- PostgreSQL's money type typically displays with currency symbol
     let dollars = quot x 100
         cents = abs (rem x 100)
-        centsText = if cents < 10 
-                   then "0" <> TextBuilder.decimal cents
-                   else TextBuilder.decimal cents
-    in "$" <> TextBuilder.decimal dollars <> "." <> centsText
+        centsText =
+          if cents < 10
+            then "0" <> TextBuilder.decimal cents
+            else TextBuilder.decimal cents
+     in "$" <> TextBuilder.decimal dollars <> "." <> centsText
 
 -- | Direct conversion from 'Int64'.
 -- This represents the raw monetary value in the smallest currency unit
