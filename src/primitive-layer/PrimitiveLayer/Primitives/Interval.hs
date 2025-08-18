@@ -37,7 +37,7 @@ instance Bounded Interval where
 instance Arbitrary Interval where
   arbitrary = do
     micros <- QuickCheck.choose (-999_999, 999_999)
-    days <- QuickCheck.choose (-30, 30)
+    days <- QuickCheck.choose (-daysPerMonth, daysPerMonth)
     months <- QuickCheck.choose ((minBound @Interval).months, (maxBound @Interval).months)
     pure (max minBound (min maxBound (Interval {..})))
 
@@ -151,14 +151,14 @@ instance IsMany (Int32, Int32, Int64) Interval where
         normalizedMicros = micros `mod` (24 * 60 * 60 * 1000000)
         totalDays = days + fromIntegral extraDays
 
-        -- Normalize days to months (using 30 days per month approximation)
-        extraMonths = totalDays `div` 30
-        normalizedDays = totalDays `mod` 30
+        -- Normalize days to months (using `daysPerMonth` days per month approximation)
+        extraMonths = totalDays `div` daysPerMonth
+        normalizedDays = totalDays `mod` daysPerMonth
         totalMonths = months + extraMonths
 
         -- Clamp to valid ranges
         clampedMonths = max (minBound @Interval).months (min (maxBound @Interval).months totalMonths)
-        clampedDays = max 0 (min (30 * 365) normalizedDays) -- Reasonable day range
+        clampedDays = max 0 (min (daysPerMonth * 365) normalizedDays) -- Reasonable day range
         clampedMicros = max (-24 * 60 * 60 * 1000000) (min (24 * 60 * 60 * 1000000) normalizedMicros)
 
         result =
@@ -173,16 +173,22 @@ fromMicros :: Integer -> Interval
 fromMicros =
   evalState do
     micros <- fromIntegral <$> state (swap . flip divMod Micros.day)
-    days <- fromIntegral <$> state (swap . flip divMod 30)
+    days <- fromIntegral <$> state (swap . flip divMod daysPerMonth)
     months <- fromIntegral <$> get
     pure Interval {..}
 
 toMicros :: Interval -> Integer
 toMicros Interval {..} =
-  fromIntegral micros + 10 ^ 6 * 60 * 60 * 24 * (fromIntegral (days + 30 * months))
+  fromIntegral micros + microsPerDay * (fromIntegral days + daysPerMonth * fromIntegral months)
 
 toPicos :: Interval -> Integer
 toPicos = ((10 ^ 6) *) . toMicros
 
 toDiffTime :: Interval -> DiffTime
 toDiffTime = picosecondsToDiffTime . toPicos
+
+microsPerDay :: (Num a) => a
+microsPerDay = 10 ^ 6 * 60 * 60 * 24
+
+daysPerMonth :: (Num a) => a
+daysPerMonth = 30
