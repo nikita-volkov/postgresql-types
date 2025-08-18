@@ -35,7 +35,7 @@ instance Arbitrary Varbit where
   shrink (Varbit len bytes) =
     let bits = LawfulConversions.from (Varbit len bytes) :: [Bool]
         shrunkBitsList = shrink bits
-    in map LawfulConversions.from shrunkBitsList
+     in map LawfulConversions.from shrunkBitsList
 
 instance Primitive Varbit where
   typeName = Tagged "varbit"

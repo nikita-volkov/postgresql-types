@@ -34,7 +34,7 @@ instance Arbitrary Bit where
   shrink (Bit len bytes) =
     let bits = LawfulConversions.from (Bit len bytes) :: [Bool]
         shrunkBitsList = shrink bits
-    in map LawfulConversions.from shrunkBitsList
+     in map LawfulConversions.from shrunkBitsList
 
 instance Primitive Bit where
   typeName = Tagged "bit"
