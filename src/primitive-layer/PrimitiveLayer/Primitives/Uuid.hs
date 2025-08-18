@@ -1,4 +1,6 @@
-module PrimitiveLayer.Primitives.Uuid (Uuid (..)) where
+-- | PostgreSQL @uuid@ type.
+-- Represents a Universally Unique Identifier in PostgreSQL.
+module PrimitiveLayer.Primitives.Uuid (Uuid) where
 
 import qualified Data.UUID
 import qualified PeekyBlinders
@@ -7,6 +9,7 @@ import PrimitiveLayer.Prelude
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
+-- | PostgreSQL @uuid@ type wrapper around 'Data.UUID.UUID'.
 newtype Uuid = Uuid Data.UUID.UUID
   deriving newtype (Eq, Ord, Arbitrary)
   deriving (Show) via (ViaPrimitive Uuid)
@@ -34,3 +37,14 @@ instance Primitive Uuid where
               <*> PeekyBlinders.beUnsignedInt4
           )
   textualEncoder = TextBuilder.text . Data.UUID.toText . coerce
+
+-- | Direct conversion from 'Data.UUID.UUID'.
+-- This is always safe since both types represent UUIDs identically.
+instance IsSome Data.UUID.UUID Uuid where
+  to (Uuid uuid) = uuid
+  maybeFrom = Just . Uuid
+
+-- | Direct conversion from 'Data.UUID.UUID'.
+-- This is a total conversion as it always succeeds.
+instance IsMany Data.UUID.UUID Uuid where
+  from = Uuid

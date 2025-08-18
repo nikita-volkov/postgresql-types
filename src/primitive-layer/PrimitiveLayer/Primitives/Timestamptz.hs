@@ -1,3 +1,5 @@
+-- | PostgreSQL @timestamptz@ type (with timezone).
+-- Represents a timestamp with timezone information in PostgreSQL.
 module PrimitiveLayer.Primitives.Timestamptz (Timestamptz) where
 
 import qualified Data.Time as Time
@@ -8,6 +10,7 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
+-- | PostgreSQL @timestamptz@ type wrapper around microseconds since PostgreSQL epoch.
 newtype Timestamptz = Timestamptz Int64
   deriving newtype (Eq, Ord)
   deriving (Show) via (ViaPrimitive Timestamptz)
@@ -34,3 +37,20 @@ toUtcTime :: Timestamptz -> Time.UTCTime
 toUtcTime (Timestamptz micros) =
   let diffTime = fromIntegral micros / 1_000_000
    in Time.addUTCTime diffTime postgresUtcEpoch
+
+fromUtcTime :: Time.UTCTime -> Timestamptz
+fromUtcTime utcTime =
+  let diffTime = Time.diffUTCTime utcTime postgresUtcEpoch
+      micros = round (diffTime * 1_000_000)
+   in Timestamptz micros
+
+-- | Direct conversion from 'Data.Time.UTCTime'.
+-- This is always safe since both represent UTC timestamps.
+instance IsSome Time.UTCTime Timestamptz where
+  to = toUtcTime
+  maybeFrom = Just . fromUtcTime
+
+-- | Direct conversion from 'Data.Time.UTCTime'.
+-- This is a total conversion as it always succeeds.
+instance IsMany Time.UTCTime Timestamptz where
+  from = fromUtcTime

@@ -1,4 +1,6 @@
-module PrimitiveLayer.Primitives.Interval (Interval (..)) where
+-- | PostgreSQL @interval@ type.
+-- Represents a time span in PostgreSQL with separate month, day, and microsecond components.
+module PrimitiveLayer.Primitives.Interval (Interval) where
 
 import qualified Data.Time as Time
 import qualified PeekyBlinders
@@ -9,6 +11,7 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
+-- | PostgreSQL @interval@ type with separate components for months, days, and microseconds.
 data Interval = Interval
   { months :: Int32,
     days :: Int32,
@@ -105,6 +108,10 @@ instance Primitive Interval where
      in if datePart == mempty && timePart == mempty
           then "PT0S"
           else "P" <> datePart <> tPrefix <> timePart
+
+-- Note: Interval ↔ DiffTime conversion is not included because it would not be lawful.
+-- Interval has separate month/day/microsecond components while DiffTime is a single duration.
+-- Converting Interval → DiffTime → Interval would lose the month/day structure.
 
 fromMicros :: Integer -> Interval
 fromMicros =
