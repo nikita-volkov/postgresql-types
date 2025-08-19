@@ -106,7 +106,6 @@ library primitive-layer
     PrimitiveLayer.Primitives.Bytea
     PrimitiveLayer.Primitives.Char
     PrimitiveLayer.Primitives.Cidr
-    PrimitiveLayer.Primitives.Cidr.Ip
     PrimitiveLayer.Primitives.Circle
     PrimitiveLayer.Primitives.Date
     PrimitiveLayer.Primitives.Float4
@@ -117,6 +116,7 @@ library primitive-layer
     PrimitiveLayer.Primitives.Int8
     PrimitiveLayer.Primitives.Interval
     PrimitiveLayer.Primitives.IntervalInMicroseconds
+    PrimitiveLayer.Primitives.Ip
     PrimitiveLayer.Primitives.Json
     PrimitiveLayer.Primitives.Jsonb
     PrimitiveLayer.Primitives.Line
