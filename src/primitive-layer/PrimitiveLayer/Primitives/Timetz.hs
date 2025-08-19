@@ -1,11 +1,13 @@
 -- | PostgreSQL @timetz@ type.
 -- Represents time with time zone.
-module PrimitiveLayer.Primitives.Timetz (Timetz (..)) where
+module PrimitiveLayer.Primitives.Timetz (Timetz) where
 
 import qualified Data.Time as Time
 import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
+import qualified PrimitiveLayer.Primitives.Timetz.Offset as Offset
+import qualified PrimitiveLayer.Primitives.Timetz.Time as Time
 import PrimitiveLayer.Vias
 import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
@@ -14,94 +16,66 @@ import qualified TextBuilder
 
 -- | PostgreSQL @timetz@ type representing time with time zone.
 -- Stored as microseconds since midnight and timezone offset in seconds.
+--
+-- Low value: @00:00:00+1559@
+--
+-- High value: @24:00:00-1559@
+--
+-- https://www.postgresql.org/docs/17/datatype-datetime.html
 data Timetz = Timetz
   { -- | Time as microseconds since midnight (00:00:00)
-    timetzTime :: Int64,
-    -- | Timezone offset in seconds (negative is west of UTC)
-    timetzOffset :: Int32
+    time :: Time.TimetzTime,
+    -- | Timezone offset in seconds (positive is east of UTC, negative is west of UTC)
+    offset :: Offset.TimetzOffset
   }
   deriving stock (Eq, Ord, Generic)
+  -- deriving stock (Show)
   deriving (Show) via (ViaPrimitive Timetz)
 
 instance Arbitrary Timetz where
   arbitrary = do
-    -- Generate simpler test cases to avoid edge cases
-    hours <- QuickCheck.choose (0, 23)
-    minutes <- QuickCheck.choose (0, 59)
-    seconds <- QuickCheck.choose (0, 59)
-    -- Use only whole seconds to avoid microsecond precision issues
-    timezoneHours <- QuickCheck.choose (-12, 14)
-    let totalMicroseconds =
-          fromIntegral hours
-            * 3600
-            * 1_000_000
-            + fromIntegral minutes
-            * 60
-            * 1_000_000
-            + fromIntegral seconds
-            * 1_000_000
-        -- PostgreSQL stores as seconds west of UTC, so negate the display offset
-        timezoneOffset = -(timezoneHours * 3600)
-    pure (Timetz totalMicroseconds timezoneOffset)
-  shrink (Timetz time offset) =
-    [ Timetz time' offset'
-    | (time', offset') <- shrink (time, offset),
-      time' >= 0 && time' < 86_400_000_000, -- Within 24-hour period
-      offset' >= (-14 * 3600) && offset' <= (12 * 3600) && offset' `mod` 3600 == 0 -- Valid timezone hourly offsets
-    ]
+    time <- arbitrary
+    offset <- arbitrary
+    pure (Timetz time offset)
 
 instance Primitive Timetz where
   typeName = Tagged "timetz"
+
   baseOid = Tagged 1266
+
   arrayOid = Tagged 1270
+
   binaryEncoder (Timetz time offset) =
     mconcat
-      [ Write.bInt64 time,
-        Write.bInt32 offset
+      [ Time.binaryEncoder time,
+        Offset.binaryEncoder offset
       ]
-  binaryDecoder = do
-    time <- PeekyBlinders.statically PeekyBlinders.beSignedInt8
-    offset <- PeekyBlinders.statically PeekyBlinders.beSignedInt4
-    pure (Right (Timetz time offset))
+
+  binaryDecoder =
+    PeekyBlinders.statically do
+      time <- Time.binaryDecoder
+      offset <- Offset.binaryDecoder
+      pure (Timetz <$> time <*> offset)
+
+  -- Format:
+  -- 23:59:59+15:59:59
+  -- 24:00:00+15:59:59
+  -- 00:00:00-15:59:59
   textualEncoder (Timetz time offset) =
-    let diffTime = fromIntegral time / 1_000_000
-        timeOfDay = Time.timeToTimeOfDay diffTime
-        -- PostgreSQL stores offset as seconds west of UTC, so we need to negate it for display
-        displayOffset = -offset
-        offsetHours = displayOffset `div` 3600
-        offsetMinutes = abs (displayOffset `mod` 3600) `div` 60
-        offsetSign = if displayOffset >= 0 then "+" else "-"
-        -- Format time without fractional seconds if they are zero to match PostgreSQL output
-        timeStr =
-          if time `mod` 1_000_000 == 0
-            then Time.formatTime Time.defaultTimeLocale "%H:%M:%S" timeOfDay
-            else Time.formatTime Time.defaultTimeLocale "%H:%M:%S%Q" timeOfDay
-        offsetStr = offsetSign <> printf "%02d" (abs offsetHours) <> ":" <> printf "%02d" offsetMinutes
-     in TextBuilder.string (timeStr <> offsetStr)
+    Time.renderInTextFormat time <> Offset.renderInTextFormat offset
 
 -- | Convert from a tuple of TimeOfDay and timezone offset to Timetz.
 instance IsSome (Time.TimeOfDay, Int32) Timetz where
   to (Timetz time offset) =
-    let diffTime = fromIntegral time / 1_000_000
+    let diffTime = fromIntegral (Time.toMicroseconds time) / 1_000_000
         timeOfDay = Time.timeToTimeOfDay diffTime
-     in (timeOfDay, offset)
+     in (timeOfDay, Offset.toSeconds offset)
   maybeFrom (timeOfDay, offset) =
     let diffTime = Time.timeOfDayToTime timeOfDay
         microseconds = round (diffTime * 1_000_000)
      in if microseconds >= 0 && microseconds < 86_400_000_000 -- 24 hours in microseconds
-          then Just (Timetz microseconds offset)
+          then Just (Timetz (Time.TimetzTime microseconds) (Offset.TimetzOffset offset))
           else Nothing
-
--- | Convert from Timetz to a tuple of TimeOfDay and timezone offset.
-instance IsSome Timetz (Time.TimeOfDay, Int32) where
-  to (timeOfDay, offset) =
-    let diffTime = Time.timeOfDayToTime timeOfDay
-        microseconds = round (diffTime * 1_000_000)
-     in Timetz microseconds offset
-  maybeFrom (Timetz time offset) =
-    let diffTime = fromIntegral time / 1_000_000
-        timeOfDay = Time.timeToTimeOfDay diffTime
-     in Just (timeOfDay, offset)
 
 -- | Convert from TimeOfDay and timezone offset, ensuring valid time range.
 instance IsMany (Time.TimeOfDay, Int32) Timetz where
@@ -110,16 +84,4 @@ instance IsMany (Time.TimeOfDay, Int32) Timetz where
         microseconds = round (diffTime * 1_000_000)
         -- Wrap around 24-hour period for negative values
         wrappedMicroseconds = microseconds `mod` 86_400_000_000
-     in Timetz wrappedMicroseconds offset
-
--- | Convert from Timetz to a tuple of TimeOfDay and timezone offset.
-instance IsMany Timetz (Time.TimeOfDay, Int32) where
-  from (Timetz time offset) =
-    let diffTime = fromIntegral time / 1_000_000
-        timeOfDay = Time.timeToTimeOfDay diffTime
-     in (timeOfDay, offset)
-
--- | Bidirectional conversion between tuple and Timetz.
-instance Is (Time.TimeOfDay, Int32) Timetz
-
-instance Is Timetz (Time.TimeOfDay, Int32)
+     in Timetz (Time.TimetzTime wrappedMicroseconds) (Offset.TimetzOffset offset)

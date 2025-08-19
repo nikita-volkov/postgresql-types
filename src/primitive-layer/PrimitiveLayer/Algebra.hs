@@ -41,4 +41,9 @@ data DecodingErrorReason
       Text
       -- | Actual.
       Text
+  | InvalidValueDecodingErrorReason
+      -- | Details.
+      Text
+      -- | Value.
+      Text
   deriving stock (Show, Eq)

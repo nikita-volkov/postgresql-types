@@ -134,6 +134,8 @@ library primitive-layer
     PrimitiveLayer.Primitives.Timestamp
     PrimitiveLayer.Primitives.Timestamptz
     PrimitiveLayer.Primitives.Timetz
+    PrimitiveLayer.Primitives.Timetz.Offset
+    PrimitiveLayer.Primitives.Timetz.Time
     PrimitiveLayer.Primitives.Uuid
     PrimitiveLayer.Primitives.Varbit
     PrimitiveLayer.Primitives.Varchar
