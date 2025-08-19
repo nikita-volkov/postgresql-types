@@ -8,8 +8,8 @@ import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import qualified PtrPoker.Write as Write
-import qualified TextBuilder
 import Text.Printf (printf)
+import qualified TextBuilder
 
 -- | PostgreSQL @macaddr8@ type representing an 8-byte MAC address.
 -- This is used for EUI-64 format MAC addresses.
@@ -35,7 +35,7 @@ instance Arbitrary Macaddr8 where
     if all (== 0) bytes
       then pure (Macaddr8 0 0 0 0 0 0 0 1) -- Use a valid non-zero MAC
       else case bytes of
-        [a,b,c,d,e,f,g,h] -> pure (Macaddr8 a b c d e f g h)
+        [a, b, c, d, e, f, g, h] -> pure (Macaddr8 a b c d e f g h)
         _ -> error "impossible case"
   shrink (Macaddr8 a b c d e f g h) =
     [ Macaddr8 a' b' c' d' e' f' g' h'

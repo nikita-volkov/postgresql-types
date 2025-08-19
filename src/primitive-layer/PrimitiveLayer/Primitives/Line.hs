@@ -30,8 +30,9 @@ instance Arbitrary Line where
     if a == 0 && b == 0
       then pure (Line 1 0 c) -- Default to vertical line x = -c
       else pure (Line a b c)
-  shrink (Line a b c) = 
-    [ Line a' b' c' | (a', b', c') <- shrink (a, b, c),
+  shrink (Line a b c) =
+    [ Line a' b' c'
+    | (a', b', c') <- shrink (a, b, c),
       not (a' == 0 && b' == 0) -- Ensure shrunk values are also valid
     ]
 
