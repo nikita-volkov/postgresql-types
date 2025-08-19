@@ -51,7 +51,7 @@ The library follows a layered architecture:
 - Uses extensive language extensions (see `postgresql-types.cabal`)
 - Custom Prelude modules for consistent imports
 - NoImplicitPrelude with explicit re-exports
-- Strict data fields and unboxed tuples for performance
+- Strict data fields and unboxed tuples for performance. No bangs in data-types
 - QuickCheck properties for testing roundtrip conversions
 
 ## Key Dependencies and Documentation
@@ -60,8 +60,7 @@ The library follows a layered architecture:
 - [PostgreSQL docs](https://www.postgresql.org/docs/17/index.html)
    - [PostgreSQL types](https://www.postgresql.org/docs/17/datatype.html)
 - [PostgreSQL source](https://github.com/postgres/postgres)
-   - Pay attention to
-   - [backend](https://github.com/postgres/postgres/tree/master/src/backend). It contains the code dealing with encoding of types and their structure.
+   - Pay attention to [backend](https://github.com/postgres/postgres/tree/master/src/backend). It contains the code dealing with encoding of types and their structure.
 - ["peeky-blinders" source code](https://github.com/nikita-volkov/peeky-blinders)
 - ["ptr-poker" Hackage docs](https://hackage.haskell.org/package/ptr-poker)
 
@@ -108,10 +107,33 @@ cabal test --test-show-details=direct  # Show detailed test output
 
 ### Codec Implementation Patterns
 - Use `PtrPoker.Write` combinators for binary encoding
-- Use `PeekyBlinders` parsers for binary decoding  
+- Use `PeekyBlinders` parsers for binary decoding
+   - Group the `statically` blocks in PeekyBlinders. E.g.,
+
+      Instead of
+
+      ```haskell
+      do
+         micros <- PeekyBlinders.statically PeekyBlinders.beSignedInt8
+         days <- PeekyBlinders.statically PeekyBlinders.beSignedInt4
+         months <- PeekyBlinders.statically PeekyBlinders.beSignedInt4
+      ```
+
+      do
+
+      ```haskell
+      PeekyBlinders.statically do
+         micros <- PeekyBlinders.beSignedInt8
+         days <- PeekyBlinders.beSignedInt4
+         months <- PeekyBlinders.beSignedInt4
+      ```
+
 - Use `TextBuilder` for text encoding
 - Handle null bytes appropriately (PostgreSQL limitation)
 - Include proper error handling with `DecodingError`
+- Make sure to implement the "lawful-conversions" instances lawfully
+   - IsSome must be injective
+   - Is must be isomorphic
 
 ## Testing Patterns
 
