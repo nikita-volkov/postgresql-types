@@ -58,11 +58,6 @@ main = hspec do
   testIsMany @PrimitiveLayer.Varbit @[Bool] Proxy Proxy
   testIsMany @PrimitiveLayer.Xml @Text.Text Proxy Proxy
   testIsMany @Scientific.Scientific @PrimitiveLayer.Numeric Proxy Proxy
-  it "Cidr" do
-    let cidr = minBound :: PrimitiveLayer.Cidr
-    print cidr.ip
-    print cidr.netmask
-    print cidr
 
 -- | Test lawful conversions for a PostgreSQL type
 testIsMany ::
