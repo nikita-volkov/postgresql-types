@@ -58,6 +58,7 @@ The library follows a layered architecture:
 
 ### References
 - [PostgreSQL docs](https://www.postgresql.org/docs/17/index.html)
+   - [PostgreSQL types](https://www.postgresql.org/docs/17/datatype.html)
 - [PostgreSQL source](https://github.com/postgres/postgres)
    - Pay attention to
    - [backend](https://github.com/postgres/postgres/tree/master/src/backend). It contains the code dealing with encoding of types and their structure.
