@@ -106,6 +106,7 @@ library primitive-layer
     PrimitiveLayer.Primitives.Bytea
     PrimitiveLayer.Primitives.Char
     PrimitiveLayer.Primitives.Cidr
+    PrimitiveLayer.Primitives.Cidr.Ip
     PrimitiveLayer.Primitives.Circle
     PrimitiveLayer.Primitives.Date
     PrimitiveLayer.Primitives.Float4
