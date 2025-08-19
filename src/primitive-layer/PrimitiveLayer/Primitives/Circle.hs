@@ -15,11 +15,11 @@ import qualified TextBuilder
 -- Stored as three 64-bit floating point numbers (x,y,radius) in PostgreSQL.
 data Circle = Circle
   { -- | Center x coordinate
-    circleCenterX :: !Double,
+    circleCenterX :: Double,
     -- | Center y coordinate
-    circleCenterY :: !Double,
+    circleCenterY :: Double,
     -- | Circle radius (must be non-negative)
-    circleRadius :: !Double
+    circleRadius :: Double
   }
   deriving stock (Eq, Ord, Generic)
   deriving (Show) via (ViaPrimitive Circle)

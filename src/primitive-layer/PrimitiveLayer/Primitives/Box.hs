@@ -16,13 +16,13 @@ import qualified TextBuilder
 -- The box is normalized so that x1 <= x2 and y1 <= y2.
 data Box = Box
   { -- | Lower-left x coordinate
-    boxX1 :: !Double,
+    boxX1 :: Double,
     -- | Lower-left y coordinate
-    boxY1 :: !Double,
+    boxY1 :: Double,
     -- | Upper-right x coordinate
-    boxX2 :: !Double,
+    boxX2 :: Double,
     -- | Upper-right y coordinate
-    boxY2 :: !Double
+    boxY2 :: Double
   }
   deriving stock (Eq, Ord, Generic)
   deriving (Show) via (ViaPrimitive Box)

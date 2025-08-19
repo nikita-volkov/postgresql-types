@@ -118,19 +118,28 @@ library primitive-layer
     PrimitiveLayer.Primitives.Interval
     PrimitiveLayer.Primitives.Json
     PrimitiveLayer.Primitives.Jsonb
+    PrimitiveLayer.Primitives.Line
+    PrimitiveLayer.Primitives.Lseg
     PrimitiveLayer.Primitives.Macaddr
+    PrimitiveLayer.Primitives.Macaddr8
     PrimitiveLayer.Primitives.MicrosecondsInterval
     PrimitiveLayer.Primitives.Money
     PrimitiveLayer.Primitives.Numeric
     PrimitiveLayer.Primitives.Oid
+    PrimitiveLayer.Primitives.Path
     PrimitiveLayer.Primitives.Point
+    PrimitiveLayer.Primitives.Polygon
     PrimitiveLayer.Primitives.Text
     PrimitiveLayer.Primitives.Time
     PrimitiveLayer.Primitives.Timestamp
     PrimitiveLayer.Primitives.Timestamptz
+    PrimitiveLayer.Primitives.Timetz
+    PrimitiveLayer.Primitives.Timetz.Offset
+    PrimitiveLayer.Primitives.Timetz.Time
     PrimitiveLayer.Primitives.Uuid
     PrimitiveLayer.Primitives.Varbit
     PrimitiveLayer.Primitives.Varchar
+    PrimitiveLayer.Primitives.Xml
     PrimitiveLayer.Vias
     PrimitiveLayer.Vias.IsMany
     PrimitiveLayer.Vias.Primitive
@@ -159,6 +168,7 @@ library primitive-layer
     transformers >=0.5 && <0.7,
     uuid >=1.3 && <2,
     vector ^>=0.13,
+    xml-types ^>=0.3.8,
 
 library declaration-layer
   import: base

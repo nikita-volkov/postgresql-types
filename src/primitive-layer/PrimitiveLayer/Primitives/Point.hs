@@ -14,8 +14,8 @@ import qualified TextBuilder
 -- | PostgreSQL @point@ type representing a 2D point with (x,y) coordinates.
 -- Stored as two 64-bit floating point numbers (float8) in PostgreSQL.
 data Point = Point
-  { pointX :: !Double,
-    pointY :: !Double
+  { pointX :: Double,
+    pointY :: Double
   }
   deriving stock (Eq, Ord, Generic)
   deriving (Show) via (ViaPrimitive Point)

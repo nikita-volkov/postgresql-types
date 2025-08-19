@@ -17,18 +17,25 @@ module PrimitiveLayer.Primitives
     module PrimitiveLayer.Primitives.Interval,
     module PrimitiveLayer.Primitives.Json,
     module PrimitiveLayer.Primitives.Jsonb,
+    module PrimitiveLayer.Primitives.Line,
+    module PrimitiveLayer.Primitives.Lseg,
     module PrimitiveLayer.Primitives.Macaddr,
+    module PrimitiveLayer.Primitives.Macaddr8,
     module PrimitiveLayer.Primitives.Money,
     module PrimitiveLayer.Primitives.Numeric,
     module PrimitiveLayer.Primitives.Oid,
+    module PrimitiveLayer.Primitives.Path,
     module PrimitiveLayer.Primitives.Point,
+    module PrimitiveLayer.Primitives.Polygon,
     module PrimitiveLayer.Primitives.Text,
     module PrimitiveLayer.Primitives.Time,
+    module PrimitiveLayer.Primitives.Timetz,
     module PrimitiveLayer.Primitives.Timestamp,
     module PrimitiveLayer.Primitives.Timestamptz,
     module PrimitiveLayer.Primitives.Uuid,
     module PrimitiveLayer.Primitives.Varbit,
     module PrimitiveLayer.Primitives.Varchar,
+    module PrimitiveLayer.Primitives.Xml,
   )
 where
 
@@ -49,16 +56,23 @@ import PrimitiveLayer.Primitives.Int8
 import PrimitiveLayer.Primitives.Interval
 import PrimitiveLayer.Primitives.Json
 import PrimitiveLayer.Primitives.Jsonb
+import PrimitiveLayer.Primitives.Line
+import PrimitiveLayer.Primitives.Lseg
 import PrimitiveLayer.Primitives.Macaddr
+import PrimitiveLayer.Primitives.Macaddr8
 import PrimitiveLayer.Primitives.MicrosecondsInterval
 import PrimitiveLayer.Primitives.Money
 import PrimitiveLayer.Primitives.Numeric
 import PrimitiveLayer.Primitives.Oid
+import PrimitiveLayer.Primitives.Path
 import PrimitiveLayer.Primitives.Point
+import PrimitiveLayer.Primitives.Polygon
 import PrimitiveLayer.Primitives.Text
 import PrimitiveLayer.Primitives.Time
 import PrimitiveLayer.Primitives.Timestamp
 import PrimitiveLayer.Primitives.Timestamptz
+import PrimitiveLayer.Primitives.Timetz
 import PrimitiveLayer.Primitives.Uuid
 import PrimitiveLayer.Primitives.Varbit
 import PrimitiveLayer.Primitives.Varchar
+import PrimitiveLayer.Primitives.Xml

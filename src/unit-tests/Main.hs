@@ -130,6 +130,27 @@ main = hspec do
           (uncurry prop)
           (LawfulConversions.isManyProperties @Aeson.Value @PrimitiveLayer.Json Proxy Proxy)
 
+  describe "Line" do
+    describe "(Double, Double, Double)" do
+      describe "IsMany" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isManyProperties @(Double, Double, Double) @PrimitiveLayer.Line Proxy Proxy)
+
+  describe "Lseg" do
+    describe "((Double, Double), (Double, Double))" do
+      describe "IsMany" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isManyProperties @((Double, Double), (Double, Double)) @PrimitiveLayer.Lseg Proxy Proxy)
+
+  describe "Macaddr8" do
+    describe "(Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8)" do
+      describe "IsMany" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isManyProperties @(Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) @PrimitiveLayer.Macaddr8 Proxy Proxy)
+
   describe "MicrosecondsInterval" do
     describe "Interval" do
       describe "IsMany" do
@@ -164,12 +185,26 @@ main = hspec do
           (uncurry prop)
           (LawfulConversions.isManyProperties @Word32 @PrimitiveLayer.Oid Proxy Proxy)
 
+  describe "Path" do
+    describe "(Bool, [(Double, Double)])" do
+      describe "IsMany" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isManyProperties @(Bool, [(Double, Double)]) @PrimitiveLayer.Path Proxy Proxy)
+
   describe "Point" do
     describe "(Double, Double)" do
       describe "IsMany" do
         traverse_
           (uncurry prop)
           (LawfulConversions.isManyProperties @(Double, Double) @PrimitiveLayer.Point Proxy Proxy)
+
+  describe "Polygon" do
+    describe "[(Double, Double)]" do
+      describe "IsMany" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isManyProperties @[(Double, Double)] @PrimitiveLayer.Polygon Proxy Proxy)
 
   describe "Text" do
     describe "Data.Text.Text" do
@@ -212,3 +247,10 @@ main = hspec do
         traverse_
           (uncurry prop)
           (LawfulConversions.isManyProperties @[Bool] @PrimitiveLayer.Varbit Proxy Proxy)
+
+  describe "Xml" do
+    describe "Data.Text.Text" do
+      describe "IsMany" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isManyProperties @Text.Text @PrimitiveLayer.Xml Proxy Proxy)

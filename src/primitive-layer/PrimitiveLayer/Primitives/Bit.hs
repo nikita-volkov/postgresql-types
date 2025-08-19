@@ -19,9 +19,9 @@ import qualified TextBuilder
 -- Stored as a length (Int32) followed by the bit data in bytes.
 data Bit = Bit
   { -- | Number of bits
-    bitLength :: !Int32,
+    bitLength :: Int32,
     -- | Bit data (packed into bytes)
-    bitData :: !ByteString
+    bitData :: ByteString
   }
   deriving stock (Eq, Ord, Generic)
   deriving (Show) via (ViaPrimitive Bit)
