@@ -19,9 +19,9 @@ import qualified TextBuilder
 -- Stored as a length (Int32) followed by the bit data in bytes.
 data Varbit = Varbit
   { -- | Number of bits
-    varbitLength :: !Int32,
+    varbitLength :: Int32,
     -- | Bit data (packed into bytes)
-    varbitData :: !ByteString
+    varbitData :: ByteString
   }
   deriving stock (Eq, Ord, Generic)
   deriving (Show) via (ViaPrimitive Varbit)

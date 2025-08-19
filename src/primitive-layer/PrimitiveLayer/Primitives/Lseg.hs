@@ -14,10 +14,10 @@ import qualified TextBuilder
 -- The line segment is defined by two endpoints, each with (x,y) coordinates.
 -- Stored as four 64-bit floating point numbers: (x1, y1, x2, y2).
 data Lseg = Lseg
-  { lsegX1 :: !Double,
-    lsegY1 :: !Double,
-    lsegX2 :: !Double,
-    lsegY2 :: !Double
+  { lsegX1 :: Double,
+    lsegY1 :: Double,
+    lsegX2 :: Double,
+    lsegY2 :: Double
   }
   deriving stock (Eq, Ord, Generic)
   deriving (Show) via (ViaPrimitive Lseg)

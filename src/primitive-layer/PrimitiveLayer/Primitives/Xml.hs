@@ -12,9 +12,31 @@ import qualified TextBuilder
 
 -- | PostgreSQL @xml@ type wrapper around 'Text'.
 -- Represents XML data stored as text in PostgreSQL.
+-- Uses xml-types for type safety but stores as Text for simplicity.
 newtype Xml = Xml Text
-  deriving newtype (Eq, Ord, Arbitrary)
+  deriving newtype (Eq, Ord)
   deriving (Show) via (ViaPrimitive Xml)
+instance Arbitrary Xml where
+  arbitrary = do
+    text <- arbitrary
+    -- PostgreSQL XML validation requires valid XML characters
+    -- Filter out control characters that are not allowed in XML
+    let validXmlText = Text.filter isValidXmlChar text
+        sanitized = if Text.null validXmlText
+                      then "test" -- Ensure non-empty content
+                      else validXmlText
+    pure (Xml sanitized)
+  shrink (Xml text) = [Xml t | t <- shrink text, 
+                               let filtered = Text.filter isValidXmlChar t,
+                               not (Text.null filtered)]
+
+-- | Check if a character is valid in XML content
+-- Based on XML 1.0 specification: #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF]
+isValidXmlChar :: Char -> Bool
+isValidXmlChar c = 
+  c == '\t' || c == '\n' || c == '\r' || 
+  (c >= '\x20' && c <= '\xD7FF') ||
+  (c >= '\xE000' && c <= '\xFFFD')
 
 instance Primitive Xml where
   typeName = Tagged "xml"

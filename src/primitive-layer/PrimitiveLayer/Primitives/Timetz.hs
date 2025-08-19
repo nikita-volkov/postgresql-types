@@ -15,22 +15,29 @@ import qualified TextBuilder
 -- Stored as microseconds since midnight and timezone offset in seconds.
 data Timetz = Timetz
   { -- | Time as microseconds since midnight (00:00:00)
-    timetzTime :: !Int64,
+    timetzTime :: Int64,
     -- | Timezone offset in seconds (negative is west of UTC)
-    timetzOffset :: !Int32
+    timetzOffset :: Int32
   }
   deriving stock (Eq, Ord, Generic)
   deriving (Show) via (ViaPrimitive Timetz)
 
 instance Arbitrary Timetz where
   arbitrary = do
-    timeOfDay <- arbitrary
+    -- Generate hours, minutes, seconds directly to avoid floating point precision issues
+    hours <- QuickCheck.choose (0, 23)
+    minutes <- QuickCheck.choose (0, 59)
+    seconds <- QuickCheck.choose (0, 59)
+    microseconds <- QuickCheck.choose (0, 999999)
     timezone <- QuickCheck.choose (-12 * 3600, 14 * 3600) -- UTC-12 to UTC+14
-    let diffTime = Time.timeOfDayToTime timeOfDay
-        microseconds = round (diffTime * 1_000_000)
-    pure (Timetz microseconds timezone)
+    let totalMicroseconds = fromIntegral hours * 3600 * 1_000_000 +
+                           fromIntegral minutes * 60 * 1_000_000 +
+                           fromIntegral seconds * 1_000_000 +
+                           fromIntegral microseconds
+    pure (Timetz totalMicroseconds timezone)
   shrink (Timetz time offset) =
-    [Timetz time' offset' | (time', offset') <- shrink (time, offset)]
+    [Timetz time' offset' | (time', offset') <- shrink (time, offset), 
+     time' >= 0 && time' < 86_400_000_000] -- Ensure time is within 24-hour period
 
 instance Primitive Timetz where
   typeName = Tagged "timetz"
@@ -51,7 +58,10 @@ instance Primitive Timetz where
         offsetHours = offset `div` 3600
         offsetMinutes = abs (offset `mod` 3600) `div` 60
         offsetSign = if offset >= 0 then "+" else "-"
-        timeStr = Time.formatTime Time.defaultTimeLocale "%H:%M:%S%Q" timeOfDay
+        -- Format time without fractional seconds if they are zero to match PostgreSQL output
+        timeStr = if time `mod` 1_000_000 == 0
+                    then Time.formatTime Time.defaultTimeLocale "%H:%M:%S" timeOfDay
+                    else Time.formatTime Time.defaultTimeLocale "%H:%M:%S%Q" timeOfDay
         offsetStr = offsetSign <> printf "%02d" (abs offsetHours) <> ":" <> printf "%02d" offsetMinutes
      in TextBuilder.string (timeStr <> offsetStr)
 

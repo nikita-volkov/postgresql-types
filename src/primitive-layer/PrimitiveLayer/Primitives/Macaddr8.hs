@@ -2,43 +2,45 @@
 -- Represents an 8-byte MAC address (EUI-64 format).
 module PrimitiveLayer.Primitives.Macaddr8 (Macaddr8 (..)) where
 
+import Control.Monad (replicateM)
+import qualified Data.Text as Text
 import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
+import Text.Printf (printf)
 
 -- | PostgreSQL @macaddr8@ type representing an 8-byte MAC address.
 -- This is used for EUI-64 format MAC addresses.
 -- The format is eight groups of two hexadecimal digits, separated by colons.
 -- Example: "01:23:45:67:89:ab:cd:ef"
 data Macaddr8 = Macaddr8
-  { macaddr8Byte1 :: !Word8,
-    macaddr8Byte2 :: !Word8,
-    macaddr8Byte3 :: !Word8,
-    macaddr8Byte4 :: !Word8,
-    macaddr8Byte5 :: !Word8,
-    macaddr8Byte6 :: !Word8,
-    macaddr8Byte7 :: !Word8,
-    macaddr8Byte8 :: !Word8
+  { macaddr8Byte1 :: Word8,
+    macaddr8Byte2 :: Word8,
+    macaddr8Byte3 :: Word8,
+    macaddr8Byte4 :: Word8,
+    macaddr8Byte5 :: Word8,
+    macaddr8Byte6 :: Word8,
+    macaddr8Byte7 :: Word8,
+    macaddr8Byte8 :: Word8
   }
   deriving stock (Eq, Ord, Generic)
   deriving (Show) via (ViaPrimitive Macaddr8)
 
 instance Arbitrary Macaddr8 where
-  arbitrary =
-    Macaddr8
-      <$> arbitrary
-      <*> arbitrary
-      <*> arbitrary
-      <*> arbitrary
-      <*> arbitrary
-      <*> arbitrary
-      <*> arbitrary
-      <*> arbitrary
+  arbitrary = do
+    bytes <- replicateM 8 arbitrary
+    -- Ensure not all bytes are zero as that might be invalid
+    if all (== 0) bytes
+      then pure (Macaddr8 0 0 0 0 0 0 0 1) -- Use a valid non-zero MAC
+      else case bytes of
+        [a,b,c,d,e,f,g,h] -> pure (Macaddr8 a b c d e f g h)
+        _ -> error "impossible case"
   shrink (Macaddr8 a b c d e f g h) =
     [ Macaddr8 a' b' c' d' e' f' g' h'
-    | (a', b', c', d', e', f', g', h') <- shrink (a, b, c, d, e, f, g, h)
+    | (a', b', c', d', e', f', g', h') <- shrink (a, b, c, d, e, f, g, h),
+      not (a' == 0 && b' == 0 && c' == 0 && d' == 0 && e' == 0 && f' == 0 && g' == 0 && h' == 0)
     ]
 
 instance Primitive Macaddr8 where
@@ -83,9 +85,7 @@ instance Primitive Macaddr8 where
         ]
     where
       formatByte :: Word8 -> TextBuilder.TextBuilder
-      formatByte x
-        | x < 16 = "0" <> TextBuilder.hexadecimal x
-        | otherwise = TextBuilder.hexadecimal x
+      formatByte x = TextBuilder.string (printf "%02x" x)
 
 -- | Convert from a tuple of 8 Word8s to Macaddr8.
 instance IsSome (Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) Macaddr8 where

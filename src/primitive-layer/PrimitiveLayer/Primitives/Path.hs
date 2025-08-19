@@ -16,8 +16,8 @@ import qualified TextBuilder
 -- The first byte indicates if the path is closed (1) or open (0).
 -- This is followed by the number of points and then the point coordinates.
 data Path = Path
-  { pathClosed :: !Bool,
-    pathPoints :: ![(Double, Double)]
+  { pathClosed :: Bool,
+    pathPoints :: [(Double, Double)]
   }
   deriving stock (Eq, Ord, Generic)
   deriving (Show) via (ViaPrimitive Path)

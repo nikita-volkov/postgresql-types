@@ -14,16 +14,26 @@ import qualified TextBuilder
 -- The line is represented by the linear equation Ax + By + C = 0.
 -- Stored as three 64-bit floating point numbers (A, B, C).
 data Line = Line
-  { lineA :: !Double,
-    lineB :: !Double,
-    lineC :: !Double
+  { lineA :: Double,
+    lineB :: Double,
+    lineC :: Double
   }
   deriving stock (Eq, Ord, Generic)
   deriving (Show) via (ViaPrimitive Line)
 
 instance Arbitrary Line where
-  arbitrary = Line <$> arbitrary <*> arbitrary <*> arbitrary
-  shrink (Line a b c) = [Line a' b' c' | (a', b', c') <- shrink (a, b, c)]
+  arbitrary = do
+    a <- arbitrary
+    b <- arbitrary
+    c <- arbitrary
+    -- Ensure that at least one of A or B is non-zero for a valid line
+    if a == 0 && b == 0
+      then pure (Line 1 0 c) -- Default to vertical line x = -c
+      else pure (Line a b c)
+  shrink (Line a b c) = 
+    [ Line a' b' c' | (a', b', c') <- shrink (a, b, c),
+      not (a' == 0 && b' == 0) -- Ensure shrunk values are also valid
+    ]
 
 instance Primitive Line where
   typeName = Tagged "line"
