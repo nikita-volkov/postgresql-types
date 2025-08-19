@@ -25,13 +25,7 @@ data CidrIp
   deriving stock (Eq, Ord, Generic, Show)
 
 -- | PostgreSQL @cidr@ type representing IPv4 or IPv6 network addresses.
--- Similar to inet but specifically for network addresses in CIDR notation.
--- In binary format, PostgreSQL stores:
--- - 1 byte: address family (IPv4=2, IPv6=3)
--- - 1 byte: netmask bits
--- - 1 byte: is_cidr flag (1 for cidr, 0 for inet)
--- - 1 byte: address length in bytes
--- - N bytes: address (4 for IPv4, 16 for IPv6)
+-- Similar to @inet@ but specifically for network addresses in CIDR notation.
 data Cidr = Cidr
   { -- | Network address (host bits must be zero)
     cidrAddress :: CidrIp,
@@ -173,6 +167,12 @@ instance IsSome (CidrIp, Word8) Cidr where
 -- | Direct conversion from tuple to Cidr.
 instance IsMany (CidrIp, Word8) Cidr where
   from (addr, netmask) = constructCidr addr netmask
+
+instance HasField "ip" Cidr CidrIp where
+  getField (Cidr ip _) = ip
+
+instance HasField "netmask" Cidr Word8 where
+  getField (Cidr _ netmask) = netmask
 
 -- | Normalize a CIDR address by zeroing out host bits.
 -- This ensures the address represents a valid network address.
