@@ -52,7 +52,7 @@ instance Primitive Timetz where
         offsetMinutes = abs (offset `mod` 3600) `div` 60
         offsetSign = if offset >= 0 then "+" else "-"
         timeStr = Time.formatTime Time.defaultTimeLocale "%H:%M:%S%Q" timeOfDay
-        offsetStr = offsetSign <> show (abs offsetHours) <> ":" <> printf "%02d" offsetMinutes
+        offsetStr = offsetSign <> printf "%02d" (abs offsetHours) <> ":" <> printf "%02d" offsetMinutes
      in TextBuilder.string (timeStr <> offsetStr)
 
 -- | Convert from a tuple of TimeOfDay and timezone offset to Timetz.

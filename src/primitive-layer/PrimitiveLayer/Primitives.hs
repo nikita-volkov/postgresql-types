@@ -23,7 +23,9 @@ module PrimitiveLayer.Primitives
     module PrimitiveLayer.Primitives.Money,
     module PrimitiveLayer.Primitives.Numeric,
     module PrimitiveLayer.Primitives.Oid,
+    module PrimitiveLayer.Primitives.Path,
     module PrimitiveLayer.Primitives.Point,
+    module PrimitiveLayer.Primitives.Polygon,
     module PrimitiveLayer.Primitives.Text,
     module PrimitiveLayer.Primitives.Time,
     module PrimitiveLayer.Primitives.Timetz,
@@ -59,7 +61,9 @@ import PrimitiveLayer.Primitives.Macaddr8
 import PrimitiveLayer.Primitives.Money
 import PrimitiveLayer.Primitives.Numeric
 import PrimitiveLayer.Primitives.Oid
+import PrimitiveLayer.Primitives.Path
 import PrimitiveLayer.Primitives.Point
+import PrimitiveLayer.Primitives.Polygon
 import PrimitiveLayer.Primitives.Text
 import PrimitiveLayer.Primitives.Time
 import PrimitiveLayer.Primitives.Timetz

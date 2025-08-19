@@ -125,7 +125,9 @@ library primitive-layer
     PrimitiveLayer.Primitives.Money
     PrimitiveLayer.Primitives.Numeric
     PrimitiveLayer.Primitives.Oid
+    PrimitiveLayer.Primitives.Path
     PrimitiveLayer.Primitives.Point
+    PrimitiveLayer.Primitives.Polygon
     PrimitiveLayer.Primitives.Text
     PrimitiveLayer.Primitives.Time
     PrimitiveLayer.Primitives.Timetz

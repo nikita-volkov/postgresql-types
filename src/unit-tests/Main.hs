@@ -158,6 +158,20 @@ main = hspec do
           (uncurry prop)
           (LawfulConversions.isManyProperties @(Double, Double) @PrimitiveLayer.Point Proxy Proxy)
 
+  describe "Path" do
+    describe "(Bool, [(Double, Double)])" do
+      describe "IsMany" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isManyProperties @(Bool, [(Double, Double)]) @PrimitiveLayer.Path Proxy Proxy)
+
+  describe "Polygon" do
+    describe "[(Double, Double)]" do
+      describe "IsMany" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isManyProperties @[(Double, Double)] @PrimitiveLayer.Polygon Proxy Proxy)
+
   describe "Text" do
     describe "Data.Text.Text" do
       describe "IsMany" do

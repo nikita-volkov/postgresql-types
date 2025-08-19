@@ -65,10 +65,11 @@ instance Primitive Macaddr8 where
       )
   textualEncoder (Macaddr8 a b c d e f g h) =
     TextBuilder.intercalate ":" $
-      map (formatHex . fromIntegral) [a, b, c, d, e, f, g, h]
+      [ formatByte a, formatByte b, formatByte c, formatByte d,
+        formatByte e, formatByte f, formatByte g, formatByte h ]
     where
-      formatHex :: Int -> TextBuilder.TextBuilder
-      formatHex x 
+      formatByte :: Word8 -> TextBuilder.TextBuilder
+      formatByte x 
         | x < 16 = "0" <> TextBuilder.hexadecimal x
         | otherwise = TextBuilder.hexadecimal x
 
