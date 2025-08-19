@@ -241,3 +241,10 @@ main = hspec do
         traverse_
           (uncurry prop)
           (LawfulConversions.isManyProperties @[Bool] @PrimitiveLayer.Varbit Proxy Proxy)
+
+  describe "Xml" do
+    describe "Data.Text.Text" do
+      describe "IsMany" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isManyProperties @Text.Text @PrimitiveLayer.Xml Proxy Proxy)

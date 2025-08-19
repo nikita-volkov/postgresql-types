@@ -34,6 +34,7 @@ module PrimitiveLayer.Primitives
     module PrimitiveLayer.Primitives.Uuid,
     module PrimitiveLayer.Primitives.Varbit,
     module PrimitiveLayer.Primitives.Varchar,
+    module PrimitiveLayer.Primitives.Xml,
   )
 where
 
@@ -72,3 +73,4 @@ import PrimitiveLayer.Primitives.Timestamptz
 import PrimitiveLayer.Primitives.Uuid
 import PrimitiveLayer.Primitives.Varbit
 import PrimitiveLayer.Primitives.Varchar
+import PrimitiveLayer.Primitives.Xml

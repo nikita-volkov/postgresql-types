@@ -136,6 +136,7 @@ library primitive-layer
     PrimitiveLayer.Primitives.Uuid
     PrimitiveLayer.Primitives.Varbit
     PrimitiveLayer.Primitives.Varchar
+    PrimitiveLayer.Primitives.Xml
 
   build-depends:
     QuickCheck >=2.14 && <3,
