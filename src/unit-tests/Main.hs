@@ -12,7 +12,7 @@ import Data.Typeable
 import qualified Data.UUID as UUID
 import Data.Word
 import qualified LawfulConversions
-import qualified PrimitiveLayer
+import qualified PrimitiveLayer.Primitives as PrimitiveLayer
 import Test.Hspec
 import Test.Hspec.QuickCheck
 import Test.QuickCheck (Arbitrary)

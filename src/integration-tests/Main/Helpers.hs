@@ -12,7 +12,7 @@ import qualified Data.Text.Encoding as Text.Encoding
 import Data.Typeable
 import qualified Database.PostgreSQL.LibPQ as Pq
 import qualified PeekyBlinders
-import qualified PrimitiveLayer
+import qualified PrimitiveLayer.Algebra as PrimitiveLayer
 import qualified PtrPoker.Write
 import Test.Hspec
 import Test.QuickCheck ((===))

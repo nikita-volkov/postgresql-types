@@ -2,7 +2,7 @@ module Main (main) where
 
 import Data.Proxy
 import qualified Main.Helpers
-import qualified PrimitiveLayer
+import qualified PrimitiveLayer.Primitives as PrimitiveLayer
 import Test.Hspec
 import Test.QuickCheck.Instances ()
 import Prelude

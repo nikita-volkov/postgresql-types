@@ -95,12 +95,11 @@ library primitive-layer
   import: base
   hs-source-dirs: src/primitive-layer
   exposed-modules:
-    PrimitiveLayer
+    PrimitiveLayer.Algebra
+    PrimitiveLayer.Primitives
 
   other-modules:
-    PrimitiveLayer.Algebra
     PrimitiveLayer.Prelude
-    PrimitiveLayer.Primitives
     PrimitiveLayer.Primitives.Bit
     PrimitiveLayer.Primitives.Bool
     PrimitiveLayer.Primitives.Box
