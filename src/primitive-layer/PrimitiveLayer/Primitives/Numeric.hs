@@ -1,6 +1,6 @@
 -- | PostgreSQL @numeric@ type.
 -- Represents arbitrary precision decimal numbers in PostgreSQL.
-module PrimitiveLayer.Primitives.Numeric (Numeric) where
+module PrimitiveLayer.Primitives.Numeric (Numeric (..)) where
 
 import qualified Data.ByteString as ByteString
 import qualified Data.Scientific as Scientific
