@@ -1,6 +1,6 @@
 -- | PostgreSQL @cidr@ type.
 -- Represents IPv4 or IPv6 network addresses (CIDR notation) in PostgreSQL.
-module PrimitiveLayer.Primitives.Cidr (Cidr, CidrIp (..)) where
+module PrimitiveLayer.Primitives.Cidr (Cidr (ip, netmask), CidrIp (..)) where
 
 import Data.Bits
 import qualified Data.ByteString as ByteString
@@ -22,18 +22,26 @@ data CidrIp
     V4CidrIp Word32
   | -- | IPv6 address stored as four 32-bit big-endian words
     V6CidrIp Word32 Word32 Word32 Word32
-  deriving stock (Eq, Ord, Generic, Show)
+  deriving stock (Eq, Ord, Show)
+
+instance Bounded CidrIp where
+  minBound = V4CidrIp 0
+  maxBound = V6CidrIp maxBound maxBound maxBound maxBound
 
 -- | PostgreSQL @cidr@ type representing IPv4 or IPv6 network addresses.
 -- Similar to @inet@ but specifically for network addresses in CIDR notation.
 data Cidr = Cidr
   { -- | Network address (host bits must be zero)
-    cidrAddress :: CidrIp,
+    ip :: CidrIp,
     -- | Network mask length (0-32 for IPv4, 0-128 for IPv6)
-    cidrNetmask :: Word8
+    netmask :: Word8
   }
-  deriving stock (Eq, Ord, Generic)
+  deriving stock (Eq, Ord)
   deriving (Show) via (ViaPrimitive Cidr)
+
+instance Bounded Cidr where
+  minBound = Cidr minBound 0
+  maxBound = Cidr maxBound 128
 
 instance Arbitrary CidrIp where
   arbitrary = do
@@ -167,12 +175,6 @@ instance IsSome (CidrIp, Word8) Cidr where
 -- | Direct conversion from tuple to Cidr.
 instance IsMany (CidrIp, Word8) Cidr where
   from (addr, netmask) = constructCidr addr netmask
-
-instance HasField "ip" Cidr CidrIp where
-  getField (Cidr ip _) = ip
-
-instance HasField "netmask" Cidr Word8 where
-  getField (Cidr _ netmask) = netmask
 
 -- | Normalize a CIDR address by zeroing out host bits.
 -- This ensures the address represents a valid network address.
