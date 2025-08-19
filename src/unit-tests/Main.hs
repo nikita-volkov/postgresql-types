@@ -52,6 +52,7 @@ main = hspec do
   testIsMany @PrimitiveLayer.Time @TimeOfDay Proxy Proxy
   testIsMany @PrimitiveLayer.Timestamp @LocalTime Proxy Proxy
   testIsMany @PrimitiveLayer.Timestamptz @UTCTime Proxy Proxy
+  testIsMany @PrimitiveLayer.TimetzInTimeOfDayAndTimeZone @PrimitiveLayer.Timetz Proxy Proxy
   testIsMany @PrimitiveLayer.Uuid @UUID.UUID Proxy Proxy
   testIsMany @PrimitiveLayer.Varbit @[Bool] Proxy Proxy
   testIsMany @PrimitiveLayer.Xml @Text.Text Proxy Proxy
