@@ -122,6 +122,7 @@ library primitive-layer
     PrimitiveLayer.Primitives.Lseg
     PrimitiveLayer.Primitives.Macaddr
     PrimitiveLayer.Primitives.Macaddr8
+    PrimitiveLayer.Primitives.MicrosecondsInterval
     PrimitiveLayer.Primitives.Money
     PrimitiveLayer.Primitives.Numeric
     PrimitiveLayer.Primitives.Oid
@@ -137,6 +138,9 @@ library primitive-layer
     PrimitiveLayer.Primitives.Varbit
     PrimitiveLayer.Primitives.Varchar
     PrimitiveLayer.Primitives.Xml
+    PrimitiveLayer.Vias
+    PrimitiveLayer.Vias.IsMany
+    PrimitiveLayer.Vias.Primitive
 
   build-depends:
     QuickCheck >=2.14 && <3,

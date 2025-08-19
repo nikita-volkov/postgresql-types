@@ -5,6 +5,7 @@ module PrimitiveLayer.Primitives.Money (Money (..)) where
 import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
+import PrimitiveLayer.Vias
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 

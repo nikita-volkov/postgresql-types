@@ -151,6 +151,19 @@ main = hspec do
           (uncurry prop)
           (LawfulConversions.isManyProperties @(Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) @PrimitiveLayer.Macaddr8 Proxy Proxy)
 
+  describe "MicrosecondsInterval" do
+    describe "Interval" do
+      describe "IsMany" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isManyProperties @PrimitiveLayer.Interval @PrimitiveLayer.MicrosecondsInterval Proxy Proxy)
+
+    describe "DiffTime" do
+      describe "IsMany" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isManyProperties @DiffTime @PrimitiveLayer.MicrosecondsInterval Proxy Proxy)
+
   describe "Money" do
     describe "Int64" do
       describe "IsMany" do

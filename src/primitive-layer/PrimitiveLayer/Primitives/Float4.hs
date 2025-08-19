@@ -7,6 +7,7 @@ import GHC.Float (castFloatToWord32, castWord32ToFloat)
 import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
+import PrimitiveLayer.Vias
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 

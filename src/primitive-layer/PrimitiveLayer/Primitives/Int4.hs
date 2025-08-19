@@ -5,6 +5,7 @@ module PrimitiveLayer.Primitives.Int4 (Int4 (..)) where
 import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
+import PrimitiveLayer.Vias
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 

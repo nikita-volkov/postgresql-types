@@ -24,12 +24,6 @@ class Primitive a where
   -- | Represent the value in PostgreSQL textual format.
   textualEncoder :: a -> TextBuilder.TextBuilder
 
-newtype ViaPrimitive a = ViaPrimitive a
-  deriving newtype (Eq, Ord, Arbitrary, Primitive)
-
-instance (Primitive a) => Show (ViaPrimitive a) where
-  showsPrec d (ViaPrimitive a) = showsPrec d (textualEncoder a)
-
 data DecodingError = DecodingError
   { location :: [Text],
     reason :: DecodingErrorReason

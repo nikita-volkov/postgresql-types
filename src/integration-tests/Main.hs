@@ -32,6 +32,7 @@ main =
       Main.Helpers.primitiveSpec @PrimitiveLayer.Lseg Proxy
       Main.Helpers.primitiveSpec @PrimitiveLayer.Macaddr Proxy
       Main.Helpers.primitiveSpec @PrimitiveLayer.Macaddr8 Proxy
+      Main.Helpers.primitiveSpec @PrimitiveLayer.MicrosecondsInterval Proxy
       Main.Helpers.primitiveSpec @PrimitiveLayer.Numeric Proxy
       Main.Helpers.primitiveSpec @PrimitiveLayer.Money Proxy
       Main.Helpers.primitiveSpec @PrimitiveLayer.Oid Proxy

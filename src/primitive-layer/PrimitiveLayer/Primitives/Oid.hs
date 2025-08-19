@@ -5,6 +5,7 @@ module PrimitiveLayer.Primitives.Oid (Oid (..)) where
 import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
+import PrimitiveLayer.Vias
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
