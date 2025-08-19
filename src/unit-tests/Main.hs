@@ -79,3 +79,25 @@ testIsMany projection primitive =
         traverse_
           (uncurry prop)
           (LawfulConversions.isManyProperties projection primitive)
+
+-- | Test lawful conversions for a PostgreSQL type
+testIs ::
+  forall primitive projection.
+  ( LawfulConversions.Is projection primitive,
+    Typeable projection,
+    Typeable primitive,
+    Eq projection,
+    Eq primitive,
+    Show projection,
+    Show primitive,
+    Arbitrary projection,
+    Arbitrary primitive
+  ) =>
+  Proxy projection -> Proxy primitive -> Spec
+testIs projection primitive =
+  describe (show (typeOf (undefined :: primitive))) do
+    describe (show (typeOf (undefined :: projection))) do
+      describe "Is" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isProperties projection primitive)
