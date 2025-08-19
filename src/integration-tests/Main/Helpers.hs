@@ -9,6 +9,7 @@ import Data.String
 import Data.Tagged (untag)
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text.Encoding
+import Data.Typeable
 import qualified Database.PostgreSQL.LibPQ as Pq
 import qualified PeekyBlinders
 import qualified PrimitiveLayer
@@ -58,7 +59,7 @@ withPqConnection action = do
 
 primitiveSpec ::
   forall a.
-  (QuickCheck.Arbitrary a, Show a, Eq a, PrimitiveLayer.Primitive a) =>
+  (QuickCheck.Arbitrary a, Show a, Eq a, PrimitiveLayer.Primitive a, Typeable a) =>
   Proxy a ->
   SpecWith Pq.Connection
 primitiveSpec _ = do
@@ -67,7 +68,7 @@ primitiveSpec _ = do
       binEnc = PrimitiveLayer.binaryEncoder @a
       binDec = PrimitiveLayer.binaryDecoder @a
       txtEnc = PrimitiveLayer.textualEncoder @a
-  describe (Text.unpack typeName) do
+  describe (show (typeOf (undefined :: a))) do
     describe "Encoding via textualEncoder" do
       describe "And decoding via binaryDecoder" do
         it "Should produce the original value" \(connection :: Pq.Connection) ->
