@@ -1,182 +1,170 @@
 -- | PostgreSQL @inet@ type.
 -- Represents an IPv4 or IPv6 host address, optionally with subnet mask.
-module PrimitiveLayer.Primitives.Inet (Inet (..)) where
+module PrimitiveLayer.Primitives.Inet (Inet (ip, netmask)) where
 
 import Data.Bits
 import qualified Data.ByteString as ByteString
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text.Encoding
-import qualified Network.Socket as Network
 import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
+import PrimitiveLayer.Primitives.Ip (Ip (..))
+import qualified PrimitiveLayer.Primitives.Ip as Ip
 import PrimitiveLayer.Vias
 import qualified PtrPoker.Write as Write
-import Test.QuickCheck (Gen)
+import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
--- | PostgreSQL @inet@ type wrapper around 'Network.SockAddr'.
---
--- The inet type can store IPv4 or IPv6 addresses, with optional subnet mask.
--- In binary format, PostgreSQL stores:
--- - 1 byte: address family (IPv4=2, IPv6=10)
--- - 1 byte: netmask bits
--- - 1 byte: is_cidr flag (0 for inet)
--- - 1 byte: address length in bytes
--- - N bytes: address (4 for IPv4, 16 for IPv6)
-newtype Inet = Inet Network.SockAddr
-  deriving newtype (Eq, Ord)
+-- | PostgreSQL @inet@ type representing IPv4 or IPv6 host addresses.
+-- Similar to @cidr@ but specifically for host addresses with optional subnet masks.
+data Inet = Inet
+  { -- | Host address
+    ip :: Ip,
+    -- | Network mask length (0-32 for IPv4, 0-128 for IPv6)
+    netmask :: Word8
+  }
+  deriving stock (Eq, Ord)
   deriving (Show) via (ViaPrimitive Inet)
+
+instance Bounded Inet where
+  minBound = Inet minBound 0
+  maxBound = Inet maxBound 128
 
 instance Arbitrary Inet where
   arbitrary = do
-    -- Generate IPv4 addresses for simplicity in tests
-    a <- arbitrary :: Gen Word8
-    b <- arbitrary :: Gen Word8
-    c <- arbitrary :: Gen Word8
-    d <- arbitrary :: Gen Word8
-    let addr = fromIntegral a * 16777216 + fromIntegral b * 65536 + fromIntegral c * 256 + fromIntegral d
-    pure (Inet (Network.SockAddrInet 0 addr))
-  shrink (Inet (Network.SockAddrInet _ addr)) =
-    [Inet (Network.SockAddrInet 0 addr') | addr' <- shrink addr]
-  shrink _ = []
+    address <- arbitrary
+    netmask <- case address of
+      V4Ip _ -> QuickCheck.choose (0, 32)
+      V6Ip _ _ _ _ -> QuickCheck.choose (0, 128)
+    pure (Inet address netmask)
+  shrink (Inet address netmask) =
+    [ Inet address' netmask'
+    | address' <- shrink address,
+      netmask' <- shrink netmask,
+      case address' of
+        V4Ip _ -> netmask' <= 32
+        V6Ip _ _ _ _ -> netmask' <= 128
+    ]
 
 instance Primitive Inet where
   typeName = Tagged "inet"
   baseOid = Tagged 869
   arrayOid = Tagged 1041
 
-  binaryEncoder (Inet sockAddr) = case sockAddr of
-    Network.SockAddrInet _ hostAddr ->
-      -- IPv4: family(2) + netmask(32) + is_cidr(0) + len(4) + 4 bytes
-      mconcat
-        [ Write.word8 2, -- AF_INET
-          Write.word8 32, -- netmask bits (32 for host address)
-          Write.word8 0, -- is_cidr flag (0 for inet)
-          Write.word8 4, -- address length
-          Write.bWord32 hostAddr
-        ]
-    Network.SockAddrInet6 _ _ hostAddr6 _ ->
-      -- IPv6: family(10) + netmask(128) + is_cidr(0) + len(16) + 16 bytes
-      let (w1, w2, w3, w4) = hostAddr6
-       in mconcat
-            [ Write.word8 10, -- AF_INET6
-              Write.word8 128, -- netmask bits (128 for host address)
-              Write.word8 0, -- is_cidr flag (0 for inet)
-              Write.word8 16, -- address length
-              Write.bWord32 w1,
-              Write.bWord32 w2,
-              Write.bWord32 w3,
-              Write.bWord32 w4
-            ]
-    _ ->
-      -- Fallback for other address types - treat as IPv4 0.0.0.0
-      mconcat
-        [ Write.word8 2, -- AF_INET
-          Write.word8 32, -- netmask bits
-          Write.word8 0, -- is_cidr flag
-          Write.word8 4, -- address length
-          Write.bWord32 0 -- 0.0.0.0
-        ]
+  binaryEncoder (Inet ipAddr netmask) =
+    case ipAddr of
+      V4Ip addr ->
+        mconcat
+          [ Write.word8 2, -- IPv4 address family
+            Write.word8 netmask,
+            Write.word8 0, -- is_cidr flag (0 for inet)
+            Write.word8 4, -- address length (4 bytes for IPv4)
+            Write.bWord32 addr -- IPv4 address
+          ]
+      V6Ip w1 w2 w3 w4 ->
+        mconcat
+          [ Write.word8 3, -- IPv6 address family for INET (different from CIDR)
+            Write.word8 netmask,
+            Write.word8 0, -- is_cidr flag (0 for inet)
+            Write.word8 16, -- address length (16 bytes for IPv6)
+            Write.bWord32 w1,
+            Write.bWord32 w2,
+            Write.bWord32 w3,
+            Write.bWord32 w4
+          ]
 
   binaryDecoder = do
-    family <- PeekyBlinders.statically PeekyBlinders.unsignedInt1
-    netmask <- PeekyBlinders.statically PeekyBlinders.unsignedInt1
-    isCidr <- PeekyBlinders.statically PeekyBlinders.unsignedInt1
-    addrLen <- PeekyBlinders.statically PeekyBlinders.unsignedInt1
+    (family, netmask, isCidrFlag, addrLen) <-
+      PeekyBlinders.statically do
+        (,,,)
+          <$> PeekyBlinders.unsignedInt1
+          <*> PeekyBlinders.unsignedInt1
+          <*> PeekyBlinders.unsignedInt1
+          <*> PeekyBlinders.unsignedInt1
 
-    case family of
-      2 -> do
-        -- IPv4
-        if addrLen /= 4
-          then
-            pure
-              $ Left
-              $ DecodingError
-                { location = ["inet", "ipv4-address-length"],
-                  reason = UnexpectedValueDecodingErrorReason "4" (TextBuilder.toText (TextBuilder.decimal addrLen))
-                }
-          else do
-            hostAddr <- PeekyBlinders.statically PeekyBlinders.beUnsignedInt4
-            pure $ Right $ Inet $ Network.SockAddrInet 0 hostAddr
-      10 -> do
-        -- IPv6
-        if addrLen /= 16
-          then
-            pure
-              $ Left
-              $ DecodingError
-                { location = ["inet", "ipv6-address-length"],
-                  reason = UnexpectedValueDecodingErrorReason "16" (TextBuilder.toText (TextBuilder.decimal addrLen))
-                }
-          else do
-            w1 <- PeekyBlinders.statically PeekyBlinders.beUnsignedInt4
-            w2 <- PeekyBlinders.statically PeekyBlinders.beUnsignedInt4
-            w3 <- PeekyBlinders.statically PeekyBlinders.beUnsignedInt4
-            w4 <- PeekyBlinders.statically PeekyBlinders.beUnsignedInt4
-            pure $ Right $ Inet $ Network.SockAddrInet6 0 0 (w1, w2, w3, w4) 0
-      _ ->
-        pure
-          $ Left
-          $ DecodingError
-            { location = ["inet", "address-family"],
-              reason = UnexpectedValueDecodingErrorReason "2 or 10" (TextBuilder.toText (TextBuilder.decimal family))
-            }
+    runExceptT do
+      when (isCidrFlag /= 0) do
+        throwError (DecodingError ["is-cidr"] (UnexpectedValueDecodingErrorReason "0" (TextBuilder.toText (TextBuilder.decimal isCidrFlag))))
 
-  textualEncoder (Inet sockAddr) = case sockAddr of
-    Network.SockAddrInet _ hostAddr ->
-      -- Format IPv4 as dotted decimal
-      let a = fromIntegral $ (hostAddr `shiftR` 24) .&. 0xFF
-          b = fromIntegral $ (hostAddr `shiftR` 16) .&. 0xFF
-          c = fromIntegral $ (hostAddr `shiftR` 8) .&. 0xFF
-          d = fromIntegral $ hostAddr .&. 0xFF
-       in TextBuilder.decimal a
-            <> "."
-            <> TextBuilder.decimal b
-            <> "."
-            <> TextBuilder.decimal c
-            <> "."
-            <> TextBuilder.decimal d
-    Network.SockAddrInet6 _ _ hostAddr6 _ ->
-      -- Format IPv6 in standard notation (simplified)
-      let (w1, w2, w3, w4) = hostAddr6
-       in TextBuilder.text (fromString (show w1))
-            <> ":"
-            <> TextBuilder.text (fromString (show w2))
-            <> ":"
-            <> TextBuilder.text (fromString (show w3))
-            <> ":"
-            <> TextBuilder.text (fromString (show w4))
-    _ ->
-      -- Fallback for unknown address types
-      "0.0.0.0"
+      ip <- case family of
+        2 -> do
+          -- IPv4
+          when (addrLen /= 4) do
+            throwError (DecodingError ["address-length"] (UnexpectedValueDecodingErrorReason "4" (TextBuilder.toText (TextBuilder.decimal addrLen))))
+          addr <- lift do
+            PeekyBlinders.statically PeekyBlinders.beUnsignedInt4
+          pure (V4Ip addr)
+        3 -> do
+          -- IPv6
+          when (addrLen /= 16) do
+            throwError (DecodingError ["address-length"] (UnexpectedValueDecodingErrorReason "16" (TextBuilder.toText (TextBuilder.decimal addrLen))))
+          lift do
+            PeekyBlinders.statically do
+              V6Ip
+                <$> PeekyBlinders.beUnsignedInt4
+                <*> PeekyBlinders.beUnsignedInt4
+                <*> PeekyBlinders.beUnsignedInt4
+                <*> PeekyBlinders.beUnsignedInt4
+        _ -> do
+          throwError (DecodingError ["address-family"] (UnexpectedValueDecodingErrorReason "2 or 10" (TextBuilder.toText (TextBuilder.decimal family))))
 
--- | Direct conversion from 'Network.SockAddr'.
--- Note: Only SockAddrInet and SockAddrInet6 are supported.
-instance IsSome Network.SockAddr Inet where
-  to (Inet addr) = addr
-  maybeFrom addr = case addr of
-    Network.SockAddrInet {} -> Just (Inet addr)
-    Network.SockAddrInet6 {} -> Just (Inet addr)
-    _ -> Nothing -- Other address types not supported
+      pure (Inet ip (fromIntegral netmask))
 
--- | Direct conversion from PostgreSQL Inet to 'Network.SockAddr'.
-instance IsSome Inet Network.SockAddr where
-  to addr = Inet addr
-  maybeFrom (Inet addr) = Just addr
+  textualEncoder (Inet ipAddr netmask) =
+    case ipAddr of
+      V4Ip addr ->
+        let a = fromIntegral ((addr `shiftR` 24) .&. 0xFF)
+            b = fromIntegral ((addr `shiftR` 16) .&. 0xFF)
+            c = fromIntegral ((addr `shiftR` 8) .&. 0xFF)
+            d = fromIntegral (addr .&. 0xFF)
+         in if netmask == 32
+              then -- Host address without explicit netmask
+                TextBuilder.string (show a)
+                  <> "."
+                  <> TextBuilder.string (show b)
+                  <> "."
+                  <> TextBuilder.string (show c)
+                  <> "."
+                  <> TextBuilder.string (show d)
+              else -- Host address with netmask
+                TextBuilder.string (show a)
+                  <> "."
+                  <> TextBuilder.string (show b)
+                  <> "."
+                  <> TextBuilder.string (show c)
+                  <> "."
+                  <> TextBuilder.string (show d)
+                  <> "/"
+                  <> TextBuilder.string (show netmask)
+      V6Ip w1 w2 w3 w4 ->
+        -- Convert 32-bit words to proper IPv6 hex representation
+        let toHex w =
+              let h1 = fromIntegral ((w `shiftR` 16) .&. 0xFFFF) :: Word16
+                  h2 = fromIntegral (w .&. 0xFFFF) :: Word16
+               in TextBuilder.hexadecimal h1 <> ":" <> TextBuilder.hexadecimal h2
+            ipStr =
+              toHex w1
+                <> ":"
+                <> toHex w2
+                <> ":"
+                <> toHex w3
+                <> ":"
+                <> toHex w4
+         in if netmask == 128
+              then ipStr -- Host address without explicit netmask
+              else ipStr <> "/" <> TextBuilder.decimal netmask -- Host address with netmask
 
--- | Partial conversion from 'Network.SockAddr' that filters unsupported types.
-instance IsMany Network.SockAddr Inet where
-  from addr = case addr of
-    Network.SockAddrInet {} -> Inet addr
-    Network.SockAddrInet6 {} -> Inet addr
-    _ -> Inet (Network.SockAddrInet 0 0) -- Fallback to 0.0.0.0
+instance IsSome (Ip, Word8) Inet where
+  to (Inet addr netmask) = (addr, netmask)
 
--- | Direct conversion from PostgreSQL Inet to 'Network.SockAddr'.
-instance IsMany Inet Network.SockAddr where
-  from (Inet addr) = addr
+instance IsSome Inet (Ip, Word8) where
+  to (addr, netmask) = Inet addr netmask
 
--- | Bidirectional conversion between supported 'Network.SockAddr' types and Inet.
-instance Is Network.SockAddr Inet
+instance IsMany (Ip, Word8) Inet
 
-instance Is Inet Network.SockAddr
+instance IsMany Inet (Ip, Word8)
+
+instance Is (Ip, Word8) Inet
+
+instance Is Inet (Ip, Word8)
