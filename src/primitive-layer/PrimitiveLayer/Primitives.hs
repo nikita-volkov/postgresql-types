@@ -13,7 +13,7 @@ module PrimitiveLayer.Primitives
     module PrimitiveLayer.Primitives.Int2,
     module PrimitiveLayer.Primitives.Int4,
     module PrimitiveLayer.Primitives.Int8,
-    module PrimitiveLayer.Primitives.MicrosecondsInterval,
+    module PrimitiveLayer.Primitives.IntervalInMicroseconds,
     module PrimitiveLayer.Primitives.Interval,
     module PrimitiveLayer.Primitives.Json,
     module PrimitiveLayer.Primitives.Jsonb,
@@ -54,13 +54,13 @@ import PrimitiveLayer.Primitives.Int2
 import PrimitiveLayer.Primitives.Int4
 import PrimitiveLayer.Primitives.Int8
 import PrimitiveLayer.Primitives.Interval
+import PrimitiveLayer.Primitives.IntervalInMicroseconds
 import PrimitiveLayer.Primitives.Json
 import PrimitiveLayer.Primitives.Jsonb
 import PrimitiveLayer.Primitives.Line
 import PrimitiveLayer.Primitives.Lseg
 import PrimitiveLayer.Primitives.Macaddr
 import PrimitiveLayer.Primitives.Macaddr8
-import PrimitiveLayer.Primitives.MicrosecondsInterval
 import PrimitiveLayer.Primitives.Money
 import PrimitiveLayer.Primitives.Numeric
 import PrimitiveLayer.Primitives.Oid
