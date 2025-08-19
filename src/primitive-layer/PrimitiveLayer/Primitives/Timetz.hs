@@ -2,7 +2,7 @@
 -- Represents time with time zone.
 module PrimitiveLayer.Primitives.Timetz (Timetz) where
 
-import qualified Data.Time as Time
+import qualified Data.Time
 import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
@@ -64,24 +64,16 @@ instance Primitive Timetz where
   textualEncoder (Timetz time offset) =
     Time.renderInTextFormat time <> Offset.renderInTextFormat offset
 
--- | Convert from a tuple of TimeOfDay and timezone offset to Timetz.
-instance IsSome (Time.TimeOfDay, Int32) Timetz where
+-- | Convert from a tuple of time in microseconds and timezone offset in seconds to Timetz.
+instance IsSome (Int64, Int32) Timetz where
   to (Timetz time offset) =
-    let diffTime = fromIntegral (Time.toMicroseconds time) / 1_000_000
-        timeOfDay = Time.timeToTimeOfDay diffTime
-     in (timeOfDay, Offset.toSeconds offset)
-  maybeFrom (timeOfDay, offset) =
-    let diffTime = Time.timeOfDayToTime timeOfDay
-        microseconds = round (diffTime * 1_000_000)
-     in if microseconds >= 0 && microseconds < 86_400_000_000 -- 24 hours in microseconds
-          then Just (Timetz (Time.TimetzTime microseconds) (Offset.TimetzOffset offset))
-          else Nothing
+    (Time.toMicroseconds time, Offset.toSeconds offset)
+  maybeFrom (microseconds, offset) = do
+    time <- Time.compileFromMicroseconds microseconds
+    offset <- Offset.compileFromSeconds offset
+    pure (Timetz time offset)
 
--- | Convert from TimeOfDay and timezone offset, ensuring valid time range.
-instance IsMany (Time.TimeOfDay, Int32) Timetz where
-  from (timeOfDay, offset) =
-    let diffTime = Time.timeOfDayToTime timeOfDay
-        microseconds = round (diffTime * 1_000_000)
-        -- Wrap around 24-hour period for negative values
-        wrappedMicroseconds = microseconds `mod` 86_400_000_000
-     in Timetz (Time.TimetzTime wrappedMicroseconds) (Offset.TimetzOffset offset)
+-- | Normalize from time in microseconds and timezone offset in seconds, ensuring valid time range.
+instance IsMany (Int64, Int32) Timetz where
+  from (time, offset) =
+    Timetz (Time.normalizeFromMicroseconds time) (Offset.normalizeFromSeconds offset)

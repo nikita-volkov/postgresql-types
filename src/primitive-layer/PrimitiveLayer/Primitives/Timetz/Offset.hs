@@ -27,10 +27,36 @@ extemeInSeconds =
 toSeconds :: TimetzOffset -> Int32
 toSeconds (TimetzOffset seconds) = seconds
 
+toTimeZone :: TimetzOffset -> Time.TimeZone
+toTimeZone (TimetzOffset seconds) =
+  let -- Round to the nearest minute instead of truncating
+      minutes = fromIntegral (seconds + 30) `div` 60
+   in Time.minutesToTimeZone minutes
+
 compileFromSeconds :: Int32 -> Maybe TimetzOffset
 compileFromSeconds seconds
   | seconds >= toSeconds minBound && seconds <= toSeconds maxBound = Just (TimetzOffset seconds)
   | otherwise = Nothing
+
+compileFromTimeZone :: Time.TimeZone -> Maybe TimetzOffset
+compileFromTimeZone (Time.TimeZone minutes _ _) =
+  let seconds = fromIntegral (minutes * 60)
+   in compileFromSeconds seconds
+
+-- | Clamp seconds to the valid range.
+normalizeFromSeconds :: Int32 -> TimetzOffset
+normalizeFromSeconds seconds =
+  if seconds < toSeconds minBound
+    then minBound
+    else
+      if seconds > toSeconds maxBound
+        then maxBound
+        else TimetzOffset seconds
+
+normalizeFromTimeZone :: Time.TimeZone -> TimetzOffset
+normalizeFromTimeZone (Time.TimeZone minutes _ _) =
+  let seconds = fromIntegral (minutes * 60)
+   in normalizeFromSeconds seconds
 
 renderInTextFormat :: TimetzOffset -> TextBuilder.TextBuilder
 renderInTextFormat (TimetzOffset seconds) =

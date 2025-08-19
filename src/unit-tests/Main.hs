@@ -234,13 +234,6 @@ main = hspec do
           (uncurry prop)
           (LawfulConversions.isManyProperties @UTCTime @PrimitiveLayer.Timestamptz Proxy Proxy)
 
-  describe "Timetz" do
-    describe "(Data.Time.TimeOfDay, Int32)" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @(TimeOfDay, Int32) @PrimitiveLayer.Timetz Proxy Proxy)
-
   describe "Uuid" do
     describe "Data.UUID.UUID" do
       describe "IsMany" do

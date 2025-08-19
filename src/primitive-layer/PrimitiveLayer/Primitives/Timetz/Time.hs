@@ -22,6 +22,50 @@ instance Bounded TimetzTime where
 toMicroseconds :: TimetzTime -> Int64
 toMicroseconds (TimetzTime microseconds) = microseconds
 
+toTimeOfDay :: TimetzTime -> Time.TimeOfDay
+toTimeOfDay (TimetzTime microseconds) =
+  let (minutes, microseconds') = divMod microseconds 60_000_000
+      (hours, minutes') = divMod minutes 60
+      picoseconds = MkFixed (fromIntegral microseconds' * 1_000_000)
+      minutes'' = fromIntegral minutes'
+      hours' = fromIntegral hours
+   in Time.TimeOfDay hours' minutes'' picoseconds
+
+compileFromMicroseconds :: Int64 -> Maybe TimetzTime
+compileFromMicroseconds microseconds
+  | microseconds >= toMicroseconds minBound && microseconds <= toMicroseconds maxBound = Just (TimetzTime microseconds)
+  | otherwise = Nothing
+
+compileFromPicoseconds :: Integer -> Maybe TimetzTime
+compileFromPicoseconds picoseconds =
+  let (microseconds, picoseconds') = divMod picoseconds 1_000_000
+   in if picoseconds' == 0
+        then compileFromMicroseconds (fromIntegral microseconds)
+        else Nothing
+
+compileFromTimeOfDay :: Time.TimeOfDay -> Maybe TimetzTime
+compileFromTimeOfDay (Time.TimeOfDay hours minutes picoseconds) =
+  let MkFixed picoseconds' = picoseconds
+      picoseconds'' = fromIntegral ((hours * 60 + minutes) * 60) * 1_000_000_000_000 + picoseconds'
+   in compileFromPicoseconds picoseconds''
+
+-- | Wrap the overflow values around the clock.
+normalizeFromMicroseconds :: Int64 -> TimetzTime
+normalizeFromMicroseconds microseconds =
+  let wrappedMicroseconds = microseconds `mod` 86_400_000_000
+   in TimetzTime wrappedMicroseconds
+
+normalizeFromPicoseconds :: Integer -> TimetzTime
+normalizeFromPicoseconds picoseconds =
+  let microseconds = fromIntegral (mod (div picoseconds 1_000_000) 86_400_000_000)
+   in TimetzTime microseconds
+
+normalizeFromTimeOfDay :: Time.TimeOfDay -> TimetzTime
+normalizeFromTimeOfDay (Time.TimeOfDay hours minutes picoseconds) =
+  let MkFixed picoseconds' = picoseconds
+      picoseconds'' = fromIntegral ((hours * 60 + minutes) * 60) * 1_000_000_000_000 + picoseconds'
+   in normalizeFromPicoseconds picoseconds''
+
 renderInTextFormat :: TimetzTime -> TextBuilder.TextBuilder
 renderInTextFormat (TimetzTime microseconds) =
   let (seconds, microseconds') = divMod microseconds 1_000_000
