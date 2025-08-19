@@ -12,12 +12,22 @@ import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import PrimitiveLayer.Vias
 import qualified PtrPoker.Write as Write
+import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
 -- | PostgreSQL @numeric@ type wrapper around 'Data.Scientific.Scientific'.
-newtype Numeric = Numeric Scientific.Scientific
-  deriving newtype (Eq, Ord, Arbitrary)
+data Numeric
+  = ScientificNumeric Scientific.Scientific
+  | NanNumeric
+  deriving stock (Eq, Ord)
   deriving (Show) via (ViaPrimitive Numeric)
+
+instance Arbitrary Numeric where
+  arbitrary =
+    QuickCheck.oneof
+      [ ScientificNumeric <$> arbitrary,
+        pure NanNumeric
+      ]
 
 instance Primitive Numeric where
   typeName = Tagged "numeric"
@@ -26,37 +36,45 @@ instance Primitive Numeric where
 
   arrayOid = Tagged 1231
 
-  binaryEncoder (Numeric x) =
-    mconcat
-      [ Write.bWord16 (fromIntegral componentsAmount),
-        Write.bWord16 (fromIntegral pointIndex),
-        signCode,
-        Write.bWord16 (fromIntegral trimmedExponent),
-        foldMap Write.bWord16 components
-      ]
-    where
-      componentsAmount =
-        length components
-      coefficient =
-        Scientific.coefficient x
-      exponent =
-        Scientific.base10Exponent x
-      components =
-        extractComponents tunedCoefficient
-      pointIndex =
-        componentsAmount + (tunedExponent `div` 4) - 1
-      (tunedCoefficient, tunedExponent) =
-        case mod exponent 4 of
-          0 -> (coefficient, exponent)
-          x -> (coefficient * 10 ^ x, exponent - x)
-      trimmedExponent =
-        if tunedExponent >= 0
-          then 0
-          else negate tunedExponent
-      signCode =
-        if coefficient < 0
-          then Write.bWord16 0x4000
-          else Write.bWord16 0x0000
+  binaryEncoder = \case
+    ScientificNumeric x ->
+      mconcat
+        [ Write.bWord16 (fromIntegral componentsAmount),
+          Write.bWord16 (fromIntegral pointIndex),
+          signCode,
+          Write.bWord16 (fromIntegral trimmedExponent),
+          foldMap Write.bWord16 components
+        ]
+      where
+        componentsAmount =
+          length components
+        coefficient =
+          Scientific.coefficient x
+        exponent =
+          Scientific.base10Exponent x
+        components =
+          extractComponents tunedCoefficient
+        pointIndex =
+          componentsAmount + (tunedExponent `div` 4) - 1
+        (tunedCoefficient, tunedExponent) =
+          case mod exponent 4 of
+            0 -> (coefficient, exponent)
+            x -> (coefficient * 10 ^ x, exponent - x)
+        trimmedExponent =
+          if tunedExponent >= 0
+            then 0
+            else negate tunedExponent
+        signCode =
+          if coefficient < 0
+            then Write.bWord16 0x4000
+            else Write.bWord16 0x0000
+    NanNumeric ->
+      mconcat
+        [ Write.bWord16 0x0000, -- componentsAmount
+          Write.bWord16 0x0000, -- pointIndex
+          Write.bWord16 0xC000, -- signCode for NaN
+          Write.bWord16 0x0000 -- trimmedExponent
+        ]
 
   binaryDecoder = do
     (componentsAmount, pointIndex, signCode, _trimmedExponent) <- PeekyBlinders.statically do
@@ -70,43 +88,40 @@ instance Primitive Numeric where
       foldl' (\l r -> l * 10000 + fromIntegral r) 0
         <$> replicateM componentsAmount PeekyBlinders.beSignedInt2
 
-    pure do
-      signedCoefficient <- case signCode of
-        0x0000 ->
-          Right coefficient
-        0x4000 ->
-          Right (negate coefficient)
-        0xC000 ->
-          Left
-            DecodingError
-              { location = ["sign-code"],
-                reason = UnexpectedValueDecodingErrorReason "Plus or Minus" "NaN"
-              }
-        _ ->
-          Left
-            DecodingError
-              { location = ["sign-code"],
-                reason =
-                  UnexpectedValueDecodingErrorReason
-                    "0x0000 or 0x4000"
-                    (TextBuilder.toText (TextBuilder.decimal signCode))
-              }
-      let exponent = (fromIntegral pointIndex + 1 - componentsAmount) * 4
-      pure (Numeric (Scientific.scientific signedCoefficient exponent))
+    pure
+      let byCoefficient coefficient =
+            let exponent = (fromIntegral pointIndex + 1 - componentsAmount) * 4
+             in Right (ScientificNumeric (Scientific.scientific coefficient exponent))
+       in case signCode of
+            0x0000 -> byCoefficient coefficient
+            0x4000 -> byCoefficient (negate coefficient)
+            0xC000 -> Right NanNumeric
+            _ ->
+              Left
+                DecodingError
+                  { location = ["sign-code"],
+                    reason =
+                      UnexpectedValueDecodingErrorReason
+                        "0x0000 or 0x4000"
+                        (TextBuilder.toText (TextBuilder.decimal signCode))
+                  }
 
-  textualEncoder (Numeric scientific) =
-    TextBuilder.text (fromString (Scientific.formatScientific Scientific.Fixed Nothing scientific))
+  textualEncoder = \case
+    ScientificNumeric scientific ->
+      TextBuilder.text (fromString (Scientific.formatScientific Scientific.Fixed Nothing scientific))
+    NanNumeric ->
+      TextBuilder.text "NaN"
 
--- | Direct conversion from 'Data.Scientific.Scientific'.
--- This is always safe since both types represent arbitrary precision decimals identically.
-instance IsSome Scientific.Scientific Numeric where
-  to (Numeric s) = s
-  maybeFrom = Just . Numeric
+instance IsSome Numeric Scientific.Scientific where
+  to = ScientificNumeric
+  maybeFrom = \case
+    ScientificNumeric s -> Just s
+    NanNumeric -> Nothing
 
--- | Direct conversion from 'Data.Scientific.Scientific'.
--- This is a total conversion as it always succeeds.
-instance IsMany Scientific.Scientific Numeric where
-  from = Numeric
+instance IsMany Numeric Scientific.Scientific where
+  from = \case
+    ScientificNumeric s -> s
+    NanNumeric -> 0
 
 {-# INLINE extractComponents #-}
 extractComponents :: (Integral a) => a -> [Word16]

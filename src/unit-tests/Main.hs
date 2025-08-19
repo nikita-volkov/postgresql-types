@@ -43,7 +43,6 @@ main = hspec do
   testIsMany @PrimitiveLayer.Lseg @((Double, Double), (Double, Double)) Proxy Proxy
   testIsMany @PrimitiveLayer.Macaddr8 @(Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) Proxy Proxy
   testIsMany @PrimitiveLayer.Money @Int64 Proxy Proxy
-  testIsMany @PrimitiveLayer.Numeric @Scientific.Scientific Proxy Proxy
   testIsMany @PrimitiveLayer.Oid @Word32 Proxy Proxy
   testIsMany @PrimitiveLayer.Path @(Bool, [(Double, Double)]) Proxy Proxy
   testIsMany @PrimitiveLayer.Point @(Double, Double) Proxy Proxy
@@ -57,6 +56,7 @@ main = hspec do
   testIsMany @PrimitiveLayer.Uuid @UUID.UUID Proxy Proxy
   testIsMany @PrimitiveLayer.Varbit @[Bool] Proxy Proxy
   testIsMany @PrimitiveLayer.Xml @Text.Text Proxy Proxy
+  testIsMany @Scientific.Scientific @PrimitiveLayer.Numeric Proxy Proxy
 
 -- | Test lawful conversions for a PostgreSQL type
 testIsMany ::
