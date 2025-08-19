@@ -40,3 +40,15 @@ instance IsMany Timetz TimetzInTimeOfDayAndTimeZone where
      in TimetzInTimeOfDayAndTimeZone
           (TimeOfDay.fromMicroseconds (fromIntegral time))
           (TimeZone.fromSeconds (fromIntegral offset))
+
+instance IsSome (Time.TimeOfDay, Time.TimeZone) TimetzInTimeOfDayAndTimeZone where
+  to (TimetzInTimeOfDayAndTimeZone timeOfDay timeZone) =
+    (timeOfDay, timeZone)
+  maybeFrom = Just . from
+
+instance IsMany (Time.TimeOfDay, Time.TimeZone) TimetzInTimeOfDayAndTimeZone where
+  from (timeOfDay, timeZone) =
+    let time = fromIntegral (TimeOfDay.toMicroseconds timeOfDay) :: Int64
+        offset = fromIntegral (TimeZone.toSeconds timeZone) :: Int32
+        timetz = from (time, offset) :: Timetz
+     in from timetz
