@@ -1,11 +1,12 @@
 -- | PostgreSQL @cidr@ type.
 -- Represents IPv4 or IPv6 network addresses (CIDR notation) in PostgreSQL.
-module PrimitiveLayer.Primitives.Cidr (Cidr, CidrIpAddress (..)) where
+module PrimitiveLayer.Primitives.Cidr (Cidr, CidrIp (..)) where
 
 import Data.Bits
 import qualified Data.ByteString as ByteString
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text.Encoding
+import GHC.Records
 import Numeric (showHex)
 import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
@@ -16,11 +17,11 @@ import Test.QuickCheck (Gen, suchThat)
 import qualified TextBuilder
 
 -- | IP address type for representing IPv4 and IPv6 addresses.
-data CidrIpAddress
+data CidrIp
   = -- | IPv4 address stored as 32-bit big-endian word
-    V4CidrIpAddress Word32
+    V4CidrIp Word32
   | -- | IPv6 address stored as four 32-bit big-endian words
-    V6CidrIpAddress Word32 Word32 Word32 Word32
+    V6CidrIp Word32 Word32 Word32 Word32
   deriving stock (Eq, Ord, Generic, Show)
 
 -- | PostgreSQL @cidr@ type representing IPv4 or IPv6 network addresses.
@@ -33,37 +34,37 @@ data CidrIpAddress
 -- - N bytes: address (4 for IPv4, 16 for IPv6)
 data Cidr = Cidr
   { -- | Network address (host bits must be zero)
-    cidrAddress :: CidrIpAddress,
+    cidrAddress :: CidrIp,
     -- | Network mask length (0-32 for IPv4, 0-128 for IPv6)
     cidrNetmask :: Word8
   }
   deriving stock (Eq, Ord, Generic)
   deriving (Show) via (ViaPrimitive Cidr)
 
-instance Arbitrary CidrIpAddress where
+instance Arbitrary CidrIp where
   arbitrary = do
     isIPv4 <- arbitrary :: Gen Bool
     if isIPv4
-      then V4CidrIpAddress <$> arbitrary
-      else V6CidrIpAddress <$> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary
-  shrink (V4CidrIpAddress addr) = V4CidrIpAddress <$> shrink addr
-  shrink (V6CidrIpAddress w1 w2 w3 w4) =
-    [V6CidrIpAddress w1' w2' w3' w4' | (w1', w2', w3', w4') <- shrink (w1, w2, w3, w4)]
+      then V4CidrIp <$> arbitrary
+      else V6CidrIp <$> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary
+  shrink (V4CidrIp addr) = V4CidrIp <$> shrink addr
+  shrink (V6CidrIp w1 w2 w3 w4) =
+    [V6CidrIp w1' w2' w3' w4' | (w1', w2', w3', w4') <- shrink (w1, w2, w3, w4)]
 
 instance Arbitrary Cidr where
   arbitrary = do
-    address <- arbitrary :: Gen CidrIpAddress
+    address <- arbitrary :: Gen CidrIp
     netmask <- case address of
-      V4CidrIpAddress _ -> arbitrary `suchThat` (<= 32) :: Gen Word8
-      V6CidrIpAddress _ _ _ _ -> arbitrary `suchThat` (<= 128) :: Gen Word8
+      V4CidrIp _ -> arbitrary `suchThat` (<= 32) :: Gen Word8
+      V6CidrIp _ _ _ _ -> arbitrary `suchThat` (<= 128) :: Gen Word8
     pure (constructCidr address netmask)
   shrink (Cidr address netmask) =
     [ constructCidr address' netmask'
     | address' <- shrink address,
       netmask' <- shrink netmask,
       case address' of
-        V4CidrIpAddress _ -> netmask' <= 32
-        V6CidrIpAddress _ _ _ _ -> netmask' <= 128
+        V4CidrIp _ -> netmask' <= 32
+        V6CidrIp _ _ _ _ -> netmask' <= 128
     ]
 
 instance Primitive Cidr where
@@ -72,7 +73,7 @@ instance Primitive Cidr where
   arrayOid = Tagged 651
   binaryEncoder (Cidr ipAddr netmask) =
     case ipAddr of
-      V4CidrIpAddress addr ->
+      V4CidrIp addr ->
         mconcat
           [ Write.word8 2, -- IPv4 address family
             Write.word8 netmask,
@@ -80,7 +81,7 @@ instance Primitive Cidr where
             Write.word8 4, -- address length (4 bytes for IPv4)
             Write.bWord32 addr -- IPv4 address
           ]
-      V6CidrIpAddress w1 w2 w3 w4 ->
+      V6CidrIp w1 w2 w3 w4 ->
         mconcat
           [ Write.word8 3, -- IPv6 address family for CIDR
             Write.word8 netmask,
@@ -112,14 +113,14 @@ instance Primitive Cidr where
             throwError (DecodingError ["address-length"] (UnexpectedValueDecodingErrorReason "4" (TextBuilder.toText (TextBuilder.decimal addrLen))))
           addr <- lift do
             PeekyBlinders.statically PeekyBlinders.beUnsignedInt4
-          pure (V4CidrIpAddress addr)
+          pure (V4CidrIp addr)
         3 -> do
           -- IPv6
           when (addrLen /= 16) do
             throwError (DecodingError ["address-length"] (UnexpectedValueDecodingErrorReason "16" (TextBuilder.toText (TextBuilder.decimal addrLen))))
           lift do
             PeekyBlinders.statically do
-              V6CidrIpAddress
+              V6CidrIp
                 <$> PeekyBlinders.beUnsignedInt4
                 <*> PeekyBlinders.beUnsignedInt4
                 <*> PeekyBlinders.beUnsignedInt4
@@ -131,7 +132,7 @@ instance Primitive Cidr where
 
   textualEncoder (Cidr ipAddr netmask) =
     case ipAddr of
-      V4CidrIpAddress addr ->
+      V4CidrIp addr ->
         let a = fromIntegral ((addr `shiftR` 24) .&. 0xFF)
             b = fromIntegral ((addr `shiftR` 16) .&. 0xFF)
             c = fromIntegral ((addr `shiftR` 8) .&. 0xFF)
@@ -145,7 +146,7 @@ instance Primitive Cidr where
               <> TextBuilder.string (show d)
               <> "/"
               <> TextBuilder.string (show netmask)
-      V6CidrIpAddress w1 w2 w3 w4 ->
+      V6CidrIp w1 w2 w3 w4 ->
         -- Convert 32-bit words to proper IPv6 hex representation
         let toHex w =
               let h1 = fromIntegral ((w `shiftR` 16) .&. 0xFFFF) :: Word16
@@ -161,40 +162,40 @@ instance Primitive Cidr where
               <> "/"
               <> TextBuilder.decimal netmask
 
--- | Convert from (CidrIpAddress, Word8) to Cidr.
-instance IsSome (CidrIpAddress, Word8) Cidr where
+-- | Convert from (CidrIp, Word8) to Cidr.
+instance IsSome (CidrIp, Word8) Cidr where
   to (Cidr addr netmask) = (addr, netmask)
   maybeFrom (addr, netmask) =
     case addr of
-      V4CidrIpAddress _ -> if netmask <= 32 then Just (constructCidr addr netmask) else Nothing
-      V6CidrIpAddress _ _ _ _ -> if netmask <= 128 then Just (constructCidr addr netmask) else Nothing
+      V4CidrIp _ -> if netmask <= 32 then Just (constructCidr addr netmask) else Nothing
+      V6CidrIp _ _ _ _ -> if netmask <= 128 then Just (constructCidr addr netmask) else Nothing
 
 -- | Direct conversion from tuple to Cidr.
-instance IsMany (CidrIpAddress, Word8) Cidr where
+instance IsMany (CidrIp, Word8) Cidr where
   from (addr, netmask) = constructCidr addr netmask
 
 -- | Normalize a CIDR address by zeroing out host bits.
 -- This ensures the address represents a valid network address.
-constructCidr :: CidrIpAddress -> Word8 -> Cidr
+constructCidr :: CidrIp -> Word8 -> Cidr
 constructCidr address netmask =
   case address of
-    V4CidrIpAddress addr ->
+    V4CidrIp addr ->
       let clampedNetmask = min 32 (fromIntegral netmask)
           hostBits = 32 - clampedNetmask
           -- Create mask with network bits as 1, host bits as 0
           networkMask = if hostBits >= 32 then 0 else complement ((1 `shiftL` hostBits) - 1)
           normalizedAddr = addr .&. networkMask
-       in Cidr (V4CidrIpAddress normalizedAddr) (fromIntegral clampedNetmask)
-    V6CidrIpAddress w1 w2 w3 w4 ->
+       in Cidr (V4CidrIp normalizedAddr) (fromIntegral clampedNetmask)
+    V6CidrIp w1 w2 w3 w4 ->
       let clampedNetmask = min 128 (fromIntegral netmask)
           ipAddress =
             if
-              | clampedNetmask <= 0 -> V6CidrIpAddress 0 0 0 0 -- No network bits to preserve
-              | clampedNetmask >= 128 -> V6CidrIpAddress w1 w2 w3 w4 -- All bits are network bits
-              | clampedNetmask >= 96 -> V6CidrIpAddress w1 w2 w3 (mask (clampedNetmask - 96) w4)
-              | clampedNetmask >= 64 -> V6CidrIpAddress w1 w2 (mask (clampedNetmask - 64) w3) 0
-              | clampedNetmask >= 32 -> V6CidrIpAddress w1 (mask (clampedNetmask - 32) w2) 0 0
-              | otherwise -> V6CidrIpAddress (mask clampedNetmask w1) 0 0 0
+              | clampedNetmask <= 0 -> V6CidrIp 0 0 0 0 -- No network bits to preserve
+              | clampedNetmask >= 128 -> V6CidrIp w1 w2 w3 w4 -- All bits are network bits
+              | clampedNetmask >= 96 -> V6CidrIp w1 w2 w3 (mask (clampedNetmask - 96) w4)
+              | clampedNetmask >= 64 -> V6CidrIp w1 w2 (mask (clampedNetmask - 64) w3) 0
+              | clampedNetmask >= 32 -> V6CidrIp w1 (mask (clampedNetmask - 32) w2) 0 0
+              | otherwise -> V6CidrIp (mask clampedNetmask w1) 0 0 0
        in Cidr ipAddress (fromIntegral clampedNetmask)
       where
         mask a b =

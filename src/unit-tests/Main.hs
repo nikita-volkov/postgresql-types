@@ -27,7 +27,7 @@ main = hspec do
   testIsMany @PrimitiveLayer.Bytea @ByteString Proxy Proxy
   testIsMany @PrimitiveLayer.Char @Word8 Proxy Proxy
   testIsMany @PrimitiveLayer.Char @Char Proxy Proxy
-  testIsMany @PrimitiveLayer.Cidr @(PrimitiveLayer.CidrIpAddress, Word8) Proxy Proxy
+  testIsMany @PrimitiveLayer.Cidr @(PrimitiveLayer.CidrIp, Word8) Proxy Proxy
   testIsMany @PrimitiveLayer.Circle @(Double, Double, Double) Proxy Proxy
   testIsMany @PrimitiveLayer.Date @Day Proxy Proxy
   testIsMany @PrimitiveLayer.Float4 @Float Proxy Proxy
