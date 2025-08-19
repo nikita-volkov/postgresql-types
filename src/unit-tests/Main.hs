@@ -8,249 +8,72 @@ import Data.Proxy
 import qualified Data.Scientific as Scientific
 import qualified Data.Text as Text
 import Data.Time
+import Data.Typeable
 import qualified Data.UUID as UUID
 import Data.Word
 import qualified LawfulConversions
 import qualified PrimitiveLayer
 import Test.Hspec
 import Test.Hspec.QuickCheck
+import Test.QuickCheck (Arbitrary)
 import Test.QuickCheck.Instances ()
 import Prelude
 
 main :: IO ()
 main = hspec do
-  describe "Bit" do
-    describe "[Bool]" do
+  testIsMany @PrimitiveLayer.Bit @[Bool] Proxy Proxy
+  testIsMany @PrimitiveLayer.Bool @Bool Proxy Proxy
+  testIsMany @PrimitiveLayer.Box @(Double, Double, Double, Double) Proxy Proxy
+  testIsMany @PrimitiveLayer.Bytea @ByteString Proxy Proxy
+  testIsMany @PrimitiveLayer.Char @Word8 Proxy Proxy
+  testIsMany @PrimitiveLayer.Char @Char Proxy Proxy
+  testIsMany @PrimitiveLayer.Cidr @(PrimitiveLayer.CidrIpAddress, Word8) Proxy Proxy
+  testIsMany @PrimitiveLayer.Circle @(Double, Double, Double) Proxy Proxy
+  testIsMany @PrimitiveLayer.Date @Day Proxy Proxy
+  testIsMany @PrimitiveLayer.Float4 @Float Proxy Proxy
+  testIsMany @PrimitiveLayer.Float8 @Double Proxy Proxy
+  testIsMany @PrimitiveLayer.Int2 @Int16 Proxy Proxy
+  testIsMany @PrimitiveLayer.Int4 @Int32 Proxy Proxy
+  testIsMany @PrimitiveLayer.Int8 @Int64 Proxy Proxy
+  testIsMany @PrimitiveLayer.Interval @(Int32, Int32, Int64) Proxy Proxy
+  testIsMany @PrimitiveLayer.IntervalInMicroseconds @PrimitiveLayer.Interval Proxy Proxy
+  testIsMany @PrimitiveLayer.IntervalInMicroseconds @DiffTime Proxy Proxy
+  testIsMany @PrimitiveLayer.Json @Aeson.Value Proxy Proxy
+  testIsMany @PrimitiveLayer.Line @(Double, Double, Double) Proxy Proxy
+  testIsMany @PrimitiveLayer.Lseg @((Double, Double), (Double, Double)) Proxy Proxy
+  testIsMany @PrimitiveLayer.Macaddr8 @(Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) Proxy Proxy
+  testIsMany @PrimitiveLayer.Money @Int64 Proxy Proxy
+  testIsMany @PrimitiveLayer.Numeric @Scientific.Scientific Proxy Proxy
+  testIsMany @PrimitiveLayer.Oid @Word32 Proxy Proxy
+  testIsMany @PrimitiveLayer.Path @(Bool, [(Double, Double)]) Proxy Proxy
+  testIsMany @PrimitiveLayer.Point @(Double, Double) Proxy Proxy
+  testIsMany @PrimitiveLayer.Polygon @[(Double, Double)] Proxy Proxy
+  testIsMany @PrimitiveLayer.Text @Text.Text Proxy Proxy
+  testIsMany @PrimitiveLayer.Time @TimeOfDay Proxy Proxy
+  testIsMany @PrimitiveLayer.Timestamp @LocalTime Proxy Proxy
+  testIsMany @PrimitiveLayer.Timestamptz @UTCTime Proxy Proxy
+  testIsMany @PrimitiveLayer.Uuid @UUID.UUID Proxy Proxy
+  testIsMany @PrimitiveLayer.Varbit @[Bool] Proxy Proxy
+  testIsMany @PrimitiveLayer.Xml @Text.Text Proxy Proxy
+
+-- | Test lawful conversions for a PostgreSQL type
+testIsMany ::
+  forall primitive projection.
+  ( LawfulConversions.IsMany projection primitive,
+    Typeable projection,
+    Typeable primitive,
+    Eq projection,
+    Eq primitive,
+    Show projection,
+    Show primitive,
+    Arbitrary projection,
+    Arbitrary primitive
+  ) =>
+  Proxy projection -> Proxy primitive -> Spec
+testIsMany projection primitive =
+  describe (show (typeOf (undefined :: primitive))) do
+    describe (show (typeOf (undefined :: projection))) do
       describe "IsMany" do
         traverse_
           (uncurry prop)
-          (LawfulConversions.isManyProperties @[Bool] @PrimitiveLayer.Bit Proxy Proxy)
-
-  describe "Bool" do
-    describe "Data.Bool.Bool" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @Bool @PrimitiveLayer.Bool Proxy Proxy)
-
-  describe "Box" do
-    describe "(Double, Double, Double, Double)" do
-      describe "Is" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @(Double, Double, Double, Double) @PrimitiveLayer.Box Proxy Proxy)
-
-  describe "Bytea" do
-    describe "ByteString" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @ByteString @PrimitiveLayer.Bytea Proxy Proxy)
-
-  describe "Char" do
-    describe "Word8" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @Word8 @PrimitiveLayer.Char Proxy Proxy)
-
-    describe "Data.Char.Char" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @Char @PrimitiveLayer.Char Proxy Proxy)
-
-  describe "Cidr" do
-    describe "(IpAddress, Word8)" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @(PrimitiveLayer.CidrIpAddress, Word8) @PrimitiveLayer.Cidr Proxy Proxy)
-
-  describe "Circle" do
-    describe "(Double, Double, Double)" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @(Double, Double, Double) @PrimitiveLayer.Circle Proxy Proxy)
-
-  describe "Date" do
-    describe "Data.Time.Day" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @Day @PrimitiveLayer.Date Proxy Proxy)
-
-  describe "Float4" do
-    describe "Float" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @Float @PrimitiveLayer.Float4 Proxy Proxy)
-
-  describe "Float8" do
-    describe "Double" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @Double @PrimitiveLayer.Float8 Proxy Proxy)
-
-  describe "Int2" do
-    describe "Int16" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @Int16 @PrimitiveLayer.Int2 Proxy Proxy)
-
-  describe "Int4" do
-    describe "Int32" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @Int32 @PrimitiveLayer.Int4 Proxy Proxy)
-
-  describe "Int8" do
-    describe "Int64" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @Int64 @PrimitiveLayer.Int8 Proxy Proxy)
-
-  describe "Interval" do
-    describe "(Int32, Int32, Int64)" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @(Int32, Int32, Int64) @PrimitiveLayer.Interval Proxy Proxy)
-
-  describe "IntervalInMicroseconds" do
-    describe "Interval" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @PrimitiveLayer.Interval @PrimitiveLayer.IntervalInMicroseconds Proxy Proxy)
-
-    describe "DiffTime" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @DiffTime @PrimitiveLayer.IntervalInMicroseconds Proxy Proxy)
-
-  describe "Json" do
-    describe "Data.Aeson.Value" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @Aeson.Value @PrimitiveLayer.Json Proxy Proxy)
-
-  describe "Line" do
-    describe "(Double, Double, Double)" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @(Double, Double, Double) @PrimitiveLayer.Line Proxy Proxy)
-
-  describe "Lseg" do
-    describe "((Double, Double), (Double, Double))" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @((Double, Double), (Double, Double)) @PrimitiveLayer.Lseg Proxy Proxy)
-
-  describe "Macaddr8" do
-    describe "(Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8)" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @(Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) @PrimitiveLayer.Macaddr8 Proxy Proxy)
-
-  describe "Money" do
-    describe "Int64" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @Int64 @PrimitiveLayer.Money Proxy Proxy)
-
-  describe "Numeric" do
-    describe "Data.Scientific.Scientific" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @Scientific.Scientific @PrimitiveLayer.Numeric Proxy Proxy)
-
-  describe "Oid" do
-    describe "Word32" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @Word32 @PrimitiveLayer.Oid Proxy Proxy)
-
-  describe "Path" do
-    describe "(Bool, [(Double, Double)])" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @(Bool, [(Double, Double)]) @PrimitiveLayer.Path Proxy Proxy)
-
-  describe "Point" do
-    describe "(Double, Double)" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @(Double, Double) @PrimitiveLayer.Point Proxy Proxy)
-
-  describe "Polygon" do
-    describe "[(Double, Double)]" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @[(Double, Double)] @PrimitiveLayer.Polygon Proxy Proxy)
-
-  describe "Text" do
-    describe "Data.Text.Text" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @Text.Text @PrimitiveLayer.Text Proxy Proxy)
-
-  describe "Time" do
-    describe "Data.Time.TimeOfDay" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @TimeOfDay @PrimitiveLayer.Time Proxy Proxy)
-
-  describe "Timestamp" do
-    describe "Data.Time.LocalTime" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @LocalTime @PrimitiveLayer.Timestamp Proxy Proxy)
-
-  describe "Timestamptz" do
-    describe "Data.Time.UTCTime" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @UTCTime @PrimitiveLayer.Timestamptz Proxy Proxy)
-
-  describe "Uuid" do
-    describe "Data.UUID.UUID" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @UUID.UUID @PrimitiveLayer.Uuid Proxy Proxy)
-
-  describe "Varbit" do
-    describe "[Bool]" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @[Bool] @PrimitiveLayer.Varbit Proxy Proxy)
-
-  describe "Xml" do
-    describe "Data.Text.Text" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @Text.Text @PrimitiveLayer.Xml Proxy Proxy)
+          (LawfulConversions.isManyProperties projection primitive)
