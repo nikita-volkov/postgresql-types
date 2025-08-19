@@ -10,6 +10,7 @@ import Numeric (showHex)
 import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
+import PrimitiveLayer.Vias
 import qualified PtrPoker.Write as Write
 import Test.QuickCheck (Gen, suchThat)
 import qualified TextBuilder
