@@ -77,3 +77,17 @@ instance IsSome (Int64, Int32) Timetz where
 instance IsMany (Int64, Int32) Timetz where
   from (time, offset) =
     Timetz (Time.normalizeFromMicroseconds time) (Offset.normalizeFromSeconds offset)
+
+instance IsSome (Time.TimetzTime, Offset.TimetzOffset) Timetz where
+  to (Timetz time offset) = (time, offset)
+
+instance IsSome Timetz (Time.TimetzTime, Offset.TimetzOffset) where
+  to (time, offset) = Timetz time offset
+
+instance IsMany (Time.TimetzTime, Offset.TimetzOffset) Timetz
+
+instance IsMany Timetz (Time.TimetzTime, Offset.TimetzOffset)
+
+instance Is (Time.TimetzTime, Offset.TimetzOffset) Timetz
+
+instance Is Timetz (Time.TimetzTime, Offset.TimetzOffset)
