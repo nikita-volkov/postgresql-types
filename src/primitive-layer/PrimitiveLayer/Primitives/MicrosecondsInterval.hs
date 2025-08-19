@@ -18,6 +18,7 @@ import qualified TextBuilder
 newtype MicrosecondsInterval = MicrosecondsInterval Integer
   deriving stock (Eq, Ord)
   deriving (Show) via (ViaPrimitive MicrosecondsInterval)
+  deriving (Primitive) via (ViaIsMany Interval MicrosecondsInterval)
 
 instance Bounded MicrosecondsInterval where
   minBound = fromInterval minBound
@@ -29,14 +30,6 @@ instance Arbitrary MicrosecondsInterval where
       <$> QuickCheck.choose (toInteger minBound, toInteger maxBound)
   shrink (MicrosecondsInterval microseconds) =
     [MicrosecondsInterval microseconds' | microseconds' <- shrink microseconds]
-
-instance Primitive MicrosecondsInterval where
-  typeName = retag @Interval typeName
-  baseOid = retag @Interval baseOid
-  arrayOid = retag @Interval arrayOid
-  binaryEncoder = binaryEncoder . toInterval
-  binaryDecoder = fmap (fmap fromInterval) binaryDecoder
-  textualEncoder = textualEncoder . toInterval
 
 instance IsSome Interval MicrosecondsInterval where
   to = toInterval
