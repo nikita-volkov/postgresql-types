@@ -19,24 +19,30 @@ newtype Xml = Xml Text
 instance Arbitrary Xml where
   arbitrary = do
     text <- arbitrary
-    -- PostgreSQL XML validation requires valid XML characters
-    -- Filter out control characters that are not allowed in XML
+    -- PostgreSQL XML validation requires valid XML characters and normalizes whitespace
     let validXmlText = Text.filter isValidXmlChar text
-        sanitized = if Text.null validXmlText
-                      then "test" -- Ensure non-empty content
-                      else validXmlText
-    pure (Xml sanitized)
+        -- PostgreSQL seems to trim leading/trailing whitespace from XML content
+        sanitized = Text.strip validXmlText
+        finalText = if Text.null sanitized then "test" else sanitized
+    pure (Xml finalText)
   shrink (Xml text) = [Xml t | t <- shrink text, 
                                let filtered = Text.filter isValidXmlChar t,
-                               not (Text.null filtered)]
+                               let trimmed = Text.strip filtered,
+                               not (Text.null trimmed)]
+
+-- | Check if character is XML whitespace
+isXmlWhitespace :: Char -> Bool  
+isXmlWhitespace c = c `elem` [' ', '\t', '\n', '\r']
 
 -- | Check if a character is valid in XML content
 -- Based on XML 1.0 specification: #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF]
+-- Also exclude XML special characters that need escaping
 isValidXmlChar :: Char -> Bool
 isValidXmlChar c = 
-  c == '\t' || c == '\n' || c == '\r' || 
-  (c >= '\x20' && c <= '\xD7FF') ||
-  (c >= '\xE000' && c <= '\xFFFD')
+  not (c `elem` ['<', '>', '&', '"', '\'']) &&  -- Exclude XML special chars
+  (c == '\t' || c == '\n' || c == '\r' || 
+   (c >= '\x20' && c <= '\xD7FF') ||
+   (c >= '\xE000' && c <= '\xFFFD'))
 
 instance Primitive Xml where
   typeName = Tagged "xml"
