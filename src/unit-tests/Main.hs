@@ -193,6 +193,34 @@ main = hspec do
           (uncurry prop)
           (LawfulConversions.isManyProperties @UUID.UUID @PrimitiveLayer.Uuid Proxy Proxy)
 
+  describe "Line" do
+    describe "(Double, Double, Double)" do
+      describe "IsMany" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isManyProperties @(Double, Double, Double) @PrimitiveLayer.Line Proxy Proxy)
+
+  describe "Lseg" do
+    describe "((Double, Double), (Double, Double))" do
+      describe "IsMany" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isManyProperties @((Double, Double), (Double, Double)) @PrimitiveLayer.Lseg Proxy Proxy)
+
+  describe "Macaddr8" do
+    describe "(Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8)" do
+      describe "IsMany" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isManyProperties @(Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) @PrimitiveLayer.Macaddr8 Proxy Proxy)
+
+  describe "Timetz" do
+    describe "(Data.Time.TimeOfDay, Int32)" do
+      describe "IsMany" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isManyProperties @(TimeOfDay, Int32) @PrimitiveLayer.Timetz Proxy Proxy)
+
   describe "Varbit" do
     describe "[Bool]" do
       describe "IsMany" do

@@ -118,13 +118,17 @@ library primitive-layer
     PrimitiveLayer.Primitives.Interval
     PrimitiveLayer.Primitives.Json
     PrimitiveLayer.Primitives.Jsonb
+    PrimitiveLayer.Primitives.Line
+    PrimitiveLayer.Primitives.Lseg
     PrimitiveLayer.Primitives.Macaddr
+    PrimitiveLayer.Primitives.Macaddr8
     PrimitiveLayer.Primitives.Money
     PrimitiveLayer.Primitives.Numeric
     PrimitiveLayer.Primitives.Oid
     PrimitiveLayer.Primitives.Point
     PrimitiveLayer.Primitives.Text
     PrimitiveLayer.Primitives.Time
+    PrimitiveLayer.Primitives.Timetz
     PrimitiveLayer.Primitives.Timestamp
     PrimitiveLayer.Primitives.Timestamptz
     PrimitiveLayer.Primitives.Uuid

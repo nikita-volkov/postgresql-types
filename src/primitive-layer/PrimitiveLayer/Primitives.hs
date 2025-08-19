@@ -16,13 +16,17 @@ module PrimitiveLayer.Primitives
     module PrimitiveLayer.Primitives.Interval,
     module PrimitiveLayer.Primitives.Json,
     module PrimitiveLayer.Primitives.Jsonb,
+    module PrimitiveLayer.Primitives.Line,
+    module PrimitiveLayer.Primitives.Lseg,
     module PrimitiveLayer.Primitives.Macaddr,
+    module PrimitiveLayer.Primitives.Macaddr8,
     module PrimitiveLayer.Primitives.Money,
     module PrimitiveLayer.Primitives.Numeric,
     module PrimitiveLayer.Primitives.Oid,
     module PrimitiveLayer.Primitives.Point,
     module PrimitiveLayer.Primitives.Text,
     module PrimitiveLayer.Primitives.Time,
+    module PrimitiveLayer.Primitives.Timetz,
     module PrimitiveLayer.Primitives.Timestamp,
     module PrimitiveLayer.Primitives.Timestamptz,
     module PrimitiveLayer.Primitives.Uuid,
@@ -48,13 +52,17 @@ import PrimitiveLayer.Primitives.Int8
 import PrimitiveLayer.Primitives.Interval
 import PrimitiveLayer.Primitives.Json
 import PrimitiveLayer.Primitives.Jsonb
+import PrimitiveLayer.Primitives.Line
+import PrimitiveLayer.Primitives.Lseg
 import PrimitiveLayer.Primitives.Macaddr
+import PrimitiveLayer.Primitives.Macaddr8
 import PrimitiveLayer.Primitives.Money
 import PrimitiveLayer.Primitives.Numeric
 import PrimitiveLayer.Primitives.Oid
 import PrimitiveLayer.Primitives.Point
 import PrimitiveLayer.Primitives.Text
 import PrimitiveLayer.Primitives.Time
+import PrimitiveLayer.Primitives.Timetz
 import PrimitiveLayer.Primitives.Timestamp
 import PrimitiveLayer.Primitives.Timestamptz
 import PrimitiveLayer.Primitives.Uuid
