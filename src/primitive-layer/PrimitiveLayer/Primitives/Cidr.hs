@@ -56,9 +56,9 @@ instance Arbitrary Cidr where
     netmask <- case address of
       V4CidrIpAddress _ -> arbitrary `suchThat` (<= 32) :: Gen Word8
       V6CidrIpAddress _ _ _ _ -> arbitrary `suchThat` (<= 128) :: Gen Word8
-    pure (normalizeCidr address netmask)
+    pure (constructCidr address netmask)
   shrink (Cidr address netmask) =
-    [ normalizeCidr address' netmask'
+    [ constructCidr address' netmask'
     | address' <- shrink address,
       netmask' <- shrink netmask,
       case address' of
@@ -166,49 +166,41 @@ instance IsSome (CidrIpAddress, Word8) Cidr where
   to (Cidr addr netmask) = (addr, netmask)
   maybeFrom (addr, netmask) =
     case addr of
-      V4CidrIpAddress _ -> if netmask <= 32 then Just (normalizeCidr addr netmask) else Nothing
-      V6CidrIpAddress _ _ _ _ -> if netmask <= 128 then Just (normalizeCidr addr netmask) else Nothing
+      V4CidrIpAddress _ -> if netmask <= 32 then Just (constructCidr addr netmask) else Nothing
+      V6CidrIpAddress _ _ _ _ -> if netmask <= 128 then Just (constructCidr addr netmask) else Nothing
 
 -- | Direct conversion from tuple to Cidr.
 instance IsMany (CidrIpAddress, Word8) Cidr where
-  from (addr, netmask) = case addr of
-    V4CidrIpAddress _ -> normalizeCidr addr (min netmask 32)
-    V6CidrIpAddress _ _ _ _ -> normalizeCidr addr (min netmask 128)
+  from (addr, netmask) = constructCidr addr netmask
 
 -- | Normalize a CIDR address by zeroing out host bits.
 -- This ensures the address represents a valid network address.
-normalizeCidr :: CidrIpAddress -> Word8 -> Cidr
-normalizeCidr address netmask =
+constructCidr :: CidrIpAddress -> Word8 -> Cidr
+constructCidr address netmask =
   case address of
     V4CidrIpAddress addr ->
-      let hostBits = 32 - min 32 (fromIntegral netmask)
+      let clampedNetmask = min 32 (fromIntegral netmask)
+          hostBits = 32 - clampedNetmask
           -- Create mask with network bits as 1, host bits as 0
           networkMask = if hostBits >= 32 then 0 else complement ((1 `shiftL` hostBits) - 1)
           normalizedAddr = addr .&. networkMask
-       in Cidr (V4CidrIpAddress normalizedAddr) netmask
+       in Cidr (V4CidrIpAddress normalizedAddr) (fromIntegral clampedNetmask)
     V6CidrIpAddress w1 w2 w3 w4 ->
-      let networkBits = min 128 (fromIntegral netmask)
-          normalizedWords = normalizeIPv6WordsNetwork (w1, w2, w3, w4) networkBits
-       in case normalizedWords of
-            (nw1, nw2, nw3, nw4) -> Cidr (V6CidrIpAddress nw1 nw2 nw3 nw4) netmask
-
--- | Helper function to normalize IPv6 address words by preserving only network bits.
-normalizeIPv6WordsNetwork :: (Word32, Word32, Word32, Word32) -> Int -> (Word32, Word32, Word32, Word32)
-normalizeIPv6WordsNetwork (w1, w2, w3, w4) networkBits
-  | networkBits <= 0 = (0, 0, 0, 0) -- No network bits to preserve
-  | networkBits >= 128 = (w1, w2, w3, w4) -- All bits are network bits
-  | networkBits >= 96 =
-      let bitsInW4 = networkBits - 96
-          maskW4 = if bitsInW4 <= 0 then 0 else if bitsInW4 >= 32 then w4 else w4 .&. complement ((1 `shiftL` (32 - bitsInW4)) - 1)
-       in (w1, w2, w3, maskW4)
-  | networkBits >= 64 =
-      let bitsInW3 = networkBits - 64
-          maskW3 = if bitsInW3 <= 0 then 0 else if bitsInW3 >= 32 then w3 else w3 .&. complement ((1 `shiftL` (32 - bitsInW3)) - 1)
-       in (w1, w2, maskW3, 0)
-  | networkBits >= 32 =
-      let bitsInW2 = networkBits - 32
-          maskW2 = if bitsInW2 <= 0 then 0 else if bitsInW2 >= 32 then w2 else w2 .&. complement ((1 `shiftL` (32 - bitsInW2)) - 1)
-       in (w1, maskW2, 0, 0)
-  | otherwise =
-      let maskW1 = if networkBits <= 0 then 0 else if networkBits >= 32 then w1 else w1 .&. complement ((1 `shiftL` (32 - networkBits)) - 1)
-       in (maskW1, 0, 0, 0)
+      let clampedNetmask = min 128 (fromIntegral netmask)
+          ipAddress =
+            if
+              | clampedNetmask <= 0 -> V6CidrIpAddress 0 0 0 0 -- No network bits to preserve
+              | clampedNetmask >= 128 -> V6CidrIpAddress w1 w2 w3 w4 -- All bits are network bits
+              | clampedNetmask >= 96 -> V6CidrIpAddress w1 w2 w3 (mask (clampedNetmask - 96) w4)
+              | clampedNetmask >= 64 -> V6CidrIpAddress w1 w2 (mask (clampedNetmask - 64) w3) 0
+              | clampedNetmask >= 32 -> V6CidrIpAddress w1 (mask (clampedNetmask - 32) w2) 0 0
+              | otherwise -> V6CidrIpAddress (mask clampedNetmask w1) 0 0 0
+       in Cidr ipAddress (fromIntegral clampedNetmask)
+      where
+        mask a b =
+          if a <= 0
+            then 0
+            else
+              if a >= 32
+                then b
+                else b .&. complement ((1 `shiftL` (32 - a)) - 1)
