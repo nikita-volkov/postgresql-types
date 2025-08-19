@@ -123,6 +123,19 @@ main = hspec do
           (uncurry prop)
           (LawfulConversions.isManyProperties @(Int32, Int32, Int64) @PrimitiveLayer.Interval Proxy Proxy)
 
+  describe "IntervalInMicroseconds" do
+    describe "Interval" do
+      describe "IsMany" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isManyProperties @PrimitiveLayer.Interval @PrimitiveLayer.IntervalInMicroseconds Proxy Proxy)
+
+    describe "DiffTime" do
+      describe "IsMany" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isManyProperties @DiffTime @PrimitiveLayer.IntervalInMicroseconds Proxy Proxy)
+
   describe "Json" do
     describe "Data.Aeson.Value" do
       describe "IsMany" do
@@ -150,19 +163,6 @@ main = hspec do
         traverse_
           (uncurry prop)
           (LawfulConversions.isManyProperties @(Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) @PrimitiveLayer.Macaddr8 Proxy Proxy)
-
-  describe "IntervalInMicroseconds" do
-    describe "Interval" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @PrimitiveLayer.Interval @PrimitiveLayer.IntervalInMicroseconds Proxy Proxy)
-
-    describe "DiffTime" do
-      describe "IsMany" do
-        traverse_
-          (uncurry prop)
-          (LawfulConversions.isManyProperties @DiffTime @PrimitiveLayer.IntervalInMicroseconds Proxy Proxy)
 
   describe "Money" do
     describe "Int64" do
