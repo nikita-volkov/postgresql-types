@@ -45,7 +45,7 @@ import Data.Ratio as Exports
 import Data.STRef as Exports
 import Data.Semigroup as Exports
 import Data.String as Exports
-import Data.Tagged as Exports (Tagged (..), untag)
+import Data.Tagged as Exports (Tagged (..), retag, untag)
 import Data.Text as Exports (Text)
 import Data.Time as Exports
 import Data.Traversable as Exports
