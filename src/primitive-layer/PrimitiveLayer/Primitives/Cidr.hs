@@ -1,6 +1,6 @@
 -- | PostgreSQL @cidr@ type.
 -- Represents IPv4 or IPv6 network addresses (CIDR notation) in PostgreSQL.
-module PrimitiveLayer.Primitives.Cidr (Cidr (..), CidrIpAddress (..)) where
+module PrimitiveLayer.Primitives.Cidr (Cidr, CidrIpAddress (..)) where
 
 import Data.Bits
 import qualified Data.ByteString as ByteString
@@ -169,27 +169,11 @@ instance IsSome (CidrIpAddress, Word8) Cidr where
       V4CidrIpAddress _ -> if netmask <= 32 then Just (normalizeCidr addr netmask) else Nothing
       V6CidrIpAddress _ _ _ _ -> if netmask <= 128 then Just (normalizeCidr addr netmask) else Nothing
 
--- | Convert from Cidr to (CidrIpAddress, Word8).
-instance IsSome Cidr (CidrIpAddress, Word8) where
-  to (addr, netmask) = case addr of
-    V4CidrIpAddress _ -> if netmask <= 32 then normalizeCidr addr netmask else error "Invalid IPv4 netmask"
-    V6CidrIpAddress _ _ _ _ -> if netmask <= 128 then normalizeCidr addr netmask else error "Invalid IPv6 netmask"
-  maybeFrom (Cidr addr netmask) = Just (addr, netmask)
-
 -- | Direct conversion from tuple to Cidr.
 instance IsMany (CidrIpAddress, Word8) Cidr where
   from (addr, netmask) = case addr of
     V4CidrIpAddress _ -> normalizeCidr addr (min netmask 32)
     V6CidrIpAddress _ _ _ _ -> normalizeCidr addr (min netmask 128)
-
--- | Direct conversion from Cidr to tuple.
-instance IsMany Cidr (CidrIpAddress, Word8) where
-  from (Cidr addr netmask) = (addr, netmask)
-
--- | Bidirectional conversion between tuple and Cidr.
-instance Is (CidrIpAddress, Word8) Cidr
-
-instance Is Cidr (CidrIpAddress, Word8)
 
 -- | Normalize a CIDR address by zeroing out host bits.
 -- This ensures the address represents a valid network address.
