@@ -29,7 +29,6 @@ data Timetz = Timetz
     offset :: Offset.TimetzOffset
   }
   deriving stock (Eq, Ord, Generic)
-  -- deriving stock (Show)
   deriving (Show) via (ViaPrimitive Timetz)
 
 instance Arbitrary Timetz where
