@@ -41,9 +41,13 @@ instance Primitive Line where
     c <- PeekyBlinders.statically (castWord64ToDouble <$> PeekyBlinders.beUnsignedInt8)
     pure (Right (Line a b c))
   textualEncoder (Line a b c) =
-    "{" <> TextBuilder.string (show a) <> "," 
-        <> TextBuilder.string (show b) <> "," 
-        <> TextBuilder.string (show c) <> "}"
+    "{"
+      <> TextBuilder.string (show a)
+      <> ","
+      <> TextBuilder.string (show b)
+      <> ","
+      <> TextBuilder.string (show c)
+      <> "}"
 
 -- | Convert from a tuple of three doubles to a Line.
 -- This is always safe since both represent the same data.

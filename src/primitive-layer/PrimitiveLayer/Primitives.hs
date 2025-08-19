@@ -67,9 +67,9 @@ import PrimitiveLayer.Primitives.Point
 import PrimitiveLayer.Primitives.Polygon
 import PrimitiveLayer.Primitives.Text
 import PrimitiveLayer.Primitives.Time
-import PrimitiveLayer.Primitives.Timetz
 import PrimitiveLayer.Primitives.Timestamp
 import PrimitiveLayer.Primitives.Timestamptz
+import PrimitiveLayer.Primitives.Timetz
 import PrimitiveLayer.Primitives.Uuid
 import PrimitiveLayer.Primitives.Varbit
 import PrimitiveLayer.Primitives.Varchar

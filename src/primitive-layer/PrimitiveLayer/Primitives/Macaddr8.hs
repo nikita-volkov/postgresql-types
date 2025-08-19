@@ -26,9 +26,16 @@ data Macaddr8 = Macaddr8
   deriving (Show) via (ViaPrimitive Macaddr8)
 
 instance Arbitrary Macaddr8 where
-  arbitrary = 
-    Macaddr8 <$> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary
-             <*> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary
+  arbitrary =
+    Macaddr8
+      <$> arbitrary
+      <*> arbitrary
+      <*> arbitrary
+      <*> arbitrary
+      <*> arbitrary
+      <*> arbitrary
+      <*> arbitrary
+      <*> arbitrary
   shrink (Macaddr8 a b c d e f g h) =
     [ Macaddr8 a' b' c' d' e' f' g' h'
     | (a', b', c', d', e', f', g', h') <- shrink (a, b, c, d, e, f, g, h)
@@ -64,12 +71,19 @@ instance Primitive Macaddr8 where
               )
       )
   textualEncoder (Macaddr8 a b c d e f g h) =
-    TextBuilder.intercalate ":" $
-      [ formatByte a, formatByte b, formatByte c, formatByte d,
-        formatByte e, formatByte f, formatByte g, formatByte h ]
+    TextBuilder.intercalate ":"
+      $ [ formatByte a,
+          formatByte b,
+          formatByte c,
+          formatByte d,
+          formatByte e,
+          formatByte f,
+          formatByte g,
+          formatByte h
+        ]
     where
       formatByte :: Word8 -> TextBuilder.TextBuilder
-      formatByte x 
+      formatByte x
         | x < 16 = "0" <> TextBuilder.hexadecimal x
         | otherwise = TextBuilder.hexadecimal x
 

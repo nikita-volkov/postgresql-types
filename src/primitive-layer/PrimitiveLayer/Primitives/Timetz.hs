@@ -8,8 +8,8 @@ import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
-import qualified TextBuilder
 import Text.Printf (printf)
+import qualified TextBuilder
 
 -- | PostgreSQL @timetz@ type representing time with time zone.
 -- Stored as microseconds since midnight and timezone offset in seconds.
@@ -57,11 +57,11 @@ instance Primitive Timetz where
 
 -- | Convert from a tuple of TimeOfDay and timezone offset to Timetz.
 instance IsSome (Time.TimeOfDay, Int32) Timetz where
-  to (Timetz time offset) = 
+  to (Timetz time offset) =
     let diffTime = fromIntegral time / 1_000_000
         timeOfDay = Time.timeToTimeOfDay diffTime
      in (timeOfDay, offset)
-  maybeFrom (timeOfDay, offset) = 
+  maybeFrom (timeOfDay, offset) =
     let diffTime = Time.timeOfDayToTime timeOfDay
         microseconds = round (diffTime * 1_000_000)
      in if microseconds >= 0 && microseconds < 86_400_000_000 -- 24 hours in microseconds
@@ -70,11 +70,11 @@ instance IsSome (Time.TimeOfDay, Int32) Timetz where
 
 -- | Convert from Timetz to a tuple of TimeOfDay and timezone offset.
 instance IsSome Timetz (Time.TimeOfDay, Int32) where
-  to (timeOfDay, offset) = 
+  to (timeOfDay, offset) =
     let diffTime = Time.timeOfDayToTime timeOfDay
         microseconds = round (diffTime * 1_000_000)
      in Timetz microseconds offset
-  maybeFrom (Timetz time offset) = 
+  maybeFrom (Timetz time offset) =
     let diffTime = fromIntegral time / 1_000_000
         timeOfDay = Time.timeToTimeOfDay diffTime
      in Just (timeOfDay, offset)

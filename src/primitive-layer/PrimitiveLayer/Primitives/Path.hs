@@ -25,10 +25,10 @@ data Path = Path
 instance Arbitrary Path where
   arbitrary = do
     closed <- arbitrary
-    numPoints <- QuickCheck.choose (2, 10) -- Paths need at least 2 points  
+    numPoints <- QuickCheck.choose (2, 10) -- Paths need at least 2 points
     points <- QuickCheck.vectorOf numPoints arbitrary
     pure (Path closed points)
-  shrink (Path closed points) = 
+  shrink (Path closed points) =
     [Path closed' points' | (closed', points') <- shrink (closed, points), length points' >= 2]
 
 instance Primitive Path where

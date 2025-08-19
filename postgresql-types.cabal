@@ -130,9 +130,9 @@ library primitive-layer
     PrimitiveLayer.Primitives.Polygon
     PrimitiveLayer.Primitives.Text
     PrimitiveLayer.Primitives.Time
-    PrimitiveLayer.Primitives.Timetz
     PrimitiveLayer.Primitives.Timestamp
     PrimitiveLayer.Primitives.Timestamptz
+    PrimitiveLayer.Primitives.Timetz
     PrimitiveLayer.Primitives.Uuid
     PrimitiveLayer.Primitives.Varbit
     PrimitiveLayer.Primitives.Varchar

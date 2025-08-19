@@ -26,13 +26,16 @@ instance Primitive Xml where
     bytes <- PeekyBlinders.remainderAsByteString
     case Text.Encoding.decodeUtf8' bytes of
       Right text -> pure (Right (Xml text))
-      Left err -> 
-        pure $ Left $ DecodingError
-          { location = ["xml"],
-            reason = ParsingDecodingErrorReason 
-              ("UTF-8 decoding error: " <> Text.pack (show err))
-              bytes
-          }
+      Left err ->
+        pure
+          $ Left
+          $ DecodingError
+            { location = ["xml"],
+              reason =
+                ParsingDecodingErrorReason
+                  ("UTF-8 decoding error: " <> Text.pack (show err))
+                  bytes
+            }
   textualEncoder (Xml text) = TextBuilder.text text
 
 -- | Direct conversion from 'Text'.

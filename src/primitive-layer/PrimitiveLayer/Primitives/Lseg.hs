@@ -24,7 +24,7 @@ data Lseg = Lseg
 
 instance Arbitrary Lseg where
   arbitrary = Lseg <$> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary
-  shrink (Lseg x1 y1 x2 y2) = 
+  shrink (Lseg x1 y1 x2 y2) =
     [Lseg x1' y1' x2' y2' | (x1', y1', x2', y2') <- shrink (x1, y1, x2, y2)]
 
 instance Primitive Lseg where
@@ -45,8 +45,16 @@ instance Primitive Lseg where
     y2 <- PeekyBlinders.statically (castWord64ToDouble <$> PeekyBlinders.beUnsignedInt8)
     pure (Right (Lseg x1 y1 x2 y2))
   textualEncoder (Lseg x1 y1 x2 y2) =
-    "[(" <> TextBuilder.string (show x1) <> "," <> TextBuilder.string (show y1) <> "),"
-        <> "(" <> TextBuilder.string (show x2) <> "," <> TextBuilder.string (show y2) <> ")]"
+    "[("
+      <> TextBuilder.string (show x1)
+      <> ","
+      <> TextBuilder.string (show y1)
+      <> "),"
+      <> "("
+      <> TextBuilder.string (show x2)
+      <> ","
+      <> TextBuilder.string (show y2)
+      <> ")]"
 
 -- | Convert from a tuple of two points to an Lseg.
 -- This is always safe since both represent the same data.
