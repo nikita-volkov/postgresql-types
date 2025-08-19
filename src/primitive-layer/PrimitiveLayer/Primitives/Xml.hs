@@ -37,14 +37,14 @@ instance Arbitrary Xml where
 
 -- | Check if character is XML whitespace
 isXmlWhitespace :: Char -> Bool
-isXmlWhitespace c = c `elem` [' ', '\t', '\n', '\r']
+isXmlWhitespace c = elem @[] c [' ', '\t', '\n', '\r']
 
 -- | Check if a character is valid in XML content
 -- Based on XML 1.0 specification: #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF]
 -- Also exclude XML special characters that need escaping
 isValidXmlChar :: Char -> Bool
 isValidXmlChar c =
-  not (c `elem` ['<', '>', '&', '"', '\''])
+  not (elem @[] c ['<', '>', '&', '"', '\''])
     && ( c -- Exclude XML special chars
            == '\t'
            || c
