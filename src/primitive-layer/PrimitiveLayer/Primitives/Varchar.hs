@@ -1,4 +1,4 @@
-module PrimitiveLayer.Primitives.Varchar (Varchar (..)) where
+module PrimitiveLayer.Primitives.Varchar (Varchar) where
 
 import qualified Data.ByteString as ByteString
 import Data.String
