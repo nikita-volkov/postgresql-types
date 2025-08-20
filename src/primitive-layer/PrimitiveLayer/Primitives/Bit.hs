@@ -1,9 +1,3 @@
--- | PostgreSQL @bit@ type.
--- Represents fixed-length bit strings in PostgreSQL.
---
--- This module provides conversions between PostgreSQL @bit@ and:
--- * Haskell lists of 'Bool' - for general purpose use
--- * Unboxed 'Data.Vector.Unboxed.Vector' 'Bool' - for high-performance operations
 module PrimitiveLayer.Primitives.Bit (Bit) where
 
 import qualified Data.Bits as Bits
@@ -20,8 +14,9 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
--- | PostgreSQL @bit@ type representing a fixed-length bit string.
--- Stored as a length (Int32) followed by the bit data in bytes.
+-- | PostgreSQL @bit@ type. Fixed-length bit string.
+--
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-bit.html)
 data Bit = Bit
   { -- | Number of bits
     bitLength :: Int32,

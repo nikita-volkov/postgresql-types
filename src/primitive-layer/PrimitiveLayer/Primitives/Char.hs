@@ -13,8 +13,12 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
--- | @char@. Don't confuse with @character(n)@ or @char(n)@.
--- 7-bit value, occupying 1 byte in the DB typically used for storing an ASCII character.
+-- | PostgreSQL @char@ type. Fixed-length character string.
+-- @7@-bit value, occupying @1@ byte in the DB typically used for storing an ASCII character.
+--
+-- Not to confuse with @character(n)@ or @char(n)@.
+--
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-character.html)
 newtype Char = Char Word8
   deriving newtype (Eq, Ord)
   deriving (Show) via (ViaPrimitive Char)

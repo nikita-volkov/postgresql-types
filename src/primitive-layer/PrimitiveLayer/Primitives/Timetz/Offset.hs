@@ -9,6 +9,7 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
+-- | Offset component of the @timetz@ type.
 newtype TimetzOffset = TimetzOffset Int32
   deriving newtype (Eq, Ord, Show)
 

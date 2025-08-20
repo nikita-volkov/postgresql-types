@@ -1,5 +1,3 @@
--- | PostgreSQL @xml@ type.
--- Represents XML data in PostgreSQL.
 module PrimitiveLayer.Primitives.Xml (Xml (..)) where
 
 import qualified Data.Text as Text
@@ -11,9 +9,11 @@ import PrimitiveLayer.Via
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
--- | PostgreSQL @xml@ type wrapper around 'Text'.
+-- | PostgreSQL @xml@ type. XML data.
+--
 -- Represents XML data stored as text in PostgreSQL.
--- Uses xml-types for type safety but stores as Text for simplicity.
+--
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-xml.html)
 newtype Xml = Xml Text
   deriving newtype (Eq, Ord)
   deriving (Show) via (ViaPrimitive Xml)

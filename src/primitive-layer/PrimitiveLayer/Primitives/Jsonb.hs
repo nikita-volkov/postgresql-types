@@ -14,6 +14,11 @@ import PrimitiveLayer.Via
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
+-- | PostgreSQL @jsonb@ type. Binary JSON data.
+--
+-- A more efficient representation than @json@, allowing for faster processing and smaller storage size.
+--
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-json.html)
 newtype Jsonb = Jsonb Aeson.Value
   deriving newtype (Eq, Ord)
   deriving (Show) via (ViaPrimitive Jsonb)

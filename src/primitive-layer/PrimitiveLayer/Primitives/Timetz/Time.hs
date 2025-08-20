@@ -9,6 +9,7 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
+-- | Time component of the @timetz@ type.
 newtype TimetzTime = TimetzTime Int64
   deriving newtype (Eq, Ord, Show)
 

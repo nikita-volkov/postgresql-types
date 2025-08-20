@@ -1,5 +1,3 @@
--- | PostgreSQL @bytea@ type.
--- Represents binary data stored in PostgreSQL.
 module PrimitiveLayer.Primitives.Bytea (Bytea) where
 
 import qualified Data.ByteString as ByteString
@@ -11,7 +9,9 @@ import PrimitiveLayer.Via
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
--- | PostgreSQL @bytea@ type wrapper around 'ByteString'.
+-- | PostgreSQL @bytea@ type. Binary data ("byte array").
+--
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-binary.html)
 newtype Bytea = Bytea ByteString
   deriving newtype (Eq, Ord, Arbitrary)
   deriving (Show) via (ViaPrimitive Bytea)

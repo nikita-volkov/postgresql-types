@@ -1,5 +1,3 @@
--- | PostgreSQL @box@ type.
--- Represents a rectangular box as two corner points in PostgreSQL.
 module PrimitiveLayer.Primitives.Box (Box (..)) where
 
 import Data.Bits
@@ -11,9 +9,13 @@ import PrimitiveLayer.Via
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
--- | PostgreSQL @box@ type representing a rectangular box defined by two opposite corners.
--- Stored as four 64-bit floating point numbers (x1,y1),(x2,y2) in PostgreSQL.
--- The box is normalized so that x1 <= x2 and y1 <= y2.
+-- | PostgreSQL @box@ type. Rectangular box in 2D plane.
+--
+-- Rectangular box defined by two opposite corners.
+-- Stored as four @64@-bit floating point numbers (@x1@,@y1@),(@x2@,@y2@) in PostgreSQL.
+-- The box is normalized so that @x1 <= x2@ and @y1 <= y2@.
+--
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-geometric.html#DATATYPE-GEOMETRIC-BOXES)
 data Box = Box
   { -- | Lower-left x coordinate
     boxX1 :: Double,

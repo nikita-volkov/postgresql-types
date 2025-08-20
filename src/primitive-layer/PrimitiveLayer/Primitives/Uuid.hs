@@ -1,5 +1,3 @@
--- | PostgreSQL @uuid@ type.
--- Represents a Universally Unique Identifier in PostgreSQL.
 module PrimitiveLayer.Primitives.Uuid (Uuid) where
 
 import qualified Data.UUID
@@ -10,7 +8,11 @@ import PrimitiveLayer.Via
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
--- | PostgreSQL @uuid@ type wrapper around 'Data.UUID.UUID'.
+-- | PostgreSQL @uuid@ type. Universally unique identifier.
+--
+-- Isomorphic to 'Data.UUID.UUID'.
+--
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-uuid.html)
 newtype Uuid = Uuid Data.UUID.UUID
   deriving newtype (Eq, Ord, Arbitrary)
   deriving (Show) via (ViaPrimitive Uuid)

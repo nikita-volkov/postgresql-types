@@ -1,5 +1,3 @@
--- | PostgreSQL @int2@ type.
--- Represents a 16-bit signed integer in PostgreSQL.
 module PrimitiveLayer.Primitives.Int2 (Int2) where
 
 import qualified PeekyBlinders
@@ -9,7 +7,11 @@ import PrimitiveLayer.Via
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
--- | PostgreSQL @int2@ type wrapper around 'Int16'.
+-- | PostgreSQL @int2@ type. 2-byte signed integer.
+--
+-- Range: @-32768@ to @+32767@.
+--
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-numeric.html#DATATYPE-INT)
 newtype Int2 = Int2 Int16
   deriving newtype (Eq, Ord, Arbitrary)
   deriving (Show) via (ViaPrimitive Int2)

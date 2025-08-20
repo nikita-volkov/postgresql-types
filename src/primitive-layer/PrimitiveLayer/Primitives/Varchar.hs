@@ -12,6 +12,9 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
+-- | PostgreSQL @varchar@ type. Variable-length character string with limit.
+--
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-character.html)
 newtype Varchar = Varchar Text.Text
   deriving newtype (Eq, Ord)
   deriving (Show) via (ViaPrimitive Varchar)

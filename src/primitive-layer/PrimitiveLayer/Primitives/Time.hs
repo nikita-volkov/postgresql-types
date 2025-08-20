@@ -9,7 +9,13 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
--- | Time stored as microseconds since midnight (00:00:00)
+-- | PostgreSQL @time@ type. Time of day (without time zone).
+--
+-- Gets stored as microseconds since midnight (@00:00:00@).
+--
+-- Range: @00:00:00@ to @24:00:00@.
+--
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-TIME)
 newtype Time = Time Int64
   deriving newtype (Eq, Ord)
   deriving (Show) via (ViaPrimitive Time)

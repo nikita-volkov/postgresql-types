@@ -1,6 +1,4 @@
--- | PostgreSQL @path@ type.
--- Represents a geometric path in 2D space, which is a series of connected points.
-module PrimitiveLayer.Primitives.Path (Path (..)) where
+module PrimitiveLayer.Primitives.Path (Path) where
 
 import Data.Bits
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
@@ -12,10 +10,11 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
--- | PostgreSQL @path@ type representing a geometric path in 2D space.
--- A path is a series of connected points, which can be either open or closed.
--- The first byte indicates if the path is closed (1) or open (0).
--- This is followed by the number of points and then the point coordinates.
+-- | PostgreSQL @path@ type. Geometric path in 2D plane (open or closed).
+--
+-- Represented as a series of connected points, which can be either open or closed.
+--
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-geometric.html#DATATYPE-PATH)
 data Path = Path
   { pathClosed :: Bool,
     pathPoints :: [(Double, Double)]

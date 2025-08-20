@@ -1,6 +1,4 @@
--- | PostgreSQL @oid@ type.
--- Represents object identifiers in PostgreSQL.
-module PrimitiveLayer.Primitives.Oid (Oid (..)) where
+module PrimitiveLayer.Primitives.Oid (Oid) where
 
 import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
@@ -9,7 +7,11 @@ import PrimitiveLayer.Via
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
--- | PostgreSQL @oid@ type wrapper around 'Word32'.
+-- | PostgreSQL @oid@ type. Object identifier.
+--
+-- Range: @0@ to @4294967295@.
+--
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-oid.html)
 newtype Oid = Oid Word32
   deriving newtype (Eq, Ord, Arbitrary)
   deriving (Show) via (ViaPrimitive Oid)

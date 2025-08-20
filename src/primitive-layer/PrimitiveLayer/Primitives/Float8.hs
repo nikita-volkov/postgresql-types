@@ -1,5 +1,3 @@
--- | PostgreSQL @float8@ type.
--- Represents a 64-bit floating point number in PostgreSQL.
 module PrimitiveLayer.Primitives.Float8 (Float8) where
 
 import Data.Bits
@@ -11,7 +9,9 @@ import PrimitiveLayer.Via
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
--- | PostgreSQL @float8@ type wrapper around 'Double'.
+-- | PostgreSQL @float8@ type. 8-byte floating-point number. 15 decimal digits precision.
+--
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-numeric.html#DATATYPE-FLOAT)
 newtype Float8 = Float8 Double
   deriving newtype (Eq, Ord, Arbitrary)
   deriving (Show) via (ViaPrimitive Float8)

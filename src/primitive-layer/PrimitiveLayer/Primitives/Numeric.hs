@@ -1,5 +1,3 @@
--- | PostgreSQL @numeric@ type.
--- Represents arbitrary precision decimal numbers in PostgreSQL.
 module PrimitiveLayer.Primitives.Numeric (Numeric (..)) where
 
 import qualified Data.ByteString as ByteString
@@ -15,7 +13,16 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
--- | PostgreSQL @numeric@ type wrapper around 'Data.Scientific.Scientific'.
+-- | PostgreSQL @numeric@ type. Arbitrary precision decimal number.
+--
+-- Up to @131072@ digits before decimal point, up to @16383@ digits after decimal point.
+--
+-- On the Haskell end the 'Scientific.Scientific' type fits well with an exception of it not supporting @NaN@ values, which Postgres does support.
+-- Hence is why we represent it as a sum-type with a separate constructor for @NaN@-values.
+--
+-- The 'IsMany' and 'IsSome' instances provide bidirectional conversions for convenience.
+--
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-numeric.html#DATATYPE-NUMERIC-DECIMAL)
 data Numeric
   = ScientificNumeric Scientific.Scientific
   | NanNumeric
@@ -112,12 +119,15 @@ instance Primitive Numeric where
     NanNumeric ->
       TextBuilder.text "NaN"
 
+-- |
+-- In 'maybeFrom' produces 'Nothing' for 'NanNumeric' values.
 instance IsSome Numeric Scientific.Scientific where
   to = ScientificNumeric
   maybeFrom = \case
     ScientificNumeric s -> Just s
     NanNumeric -> Nothing
 
+-- | Treats 'NanNumeric' values as @0@.
 instance IsMany Numeric Scientific.Scientific where
   from = \case
     ScientificNumeric s -> s

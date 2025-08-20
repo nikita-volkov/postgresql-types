@@ -1,5 +1,3 @@
--- | PostgreSQL @bool@ type.
--- Represents a boolean value as stored in PostgreSQL.
 module PrimitiveLayer.Primitives.Bool (Bool) where
 
 import qualified Data.Bool
@@ -10,7 +8,9 @@ import PrimitiveLayer.Via
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
--- | PostgreSQL @bool@ type wrapper around Haskell 'Data.Bool.Bool'.
+-- | PostgreSQL @bool@ type. Logical Boolean (@true@/@false@).
+--
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-boolean.html)
 newtype Bool = Bool Data.Bool.Bool
   deriving newtype (Eq, Ord, Arbitrary)
   deriving (Show) via (ViaPrimitive Bool)

@@ -12,6 +12,12 @@ import qualified TextBuilder
 import qualified TimeExtras.TimeOfDay as TimeOfDay
 import qualified TimeExtras.TimeZone as TimeZone
 
+-- | PostgreSQL @timetz@ type.
+-- Time of day with time zone, represented as separate time and timezone components normalized to precisions of the data-types from the \"time\" library.
+--
+-- Low value: @00:00:00+1559@. High value: @24:00:00-1559@.
+--
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-TIMEZONES)
 data TimetzAsTimeOfDayAndTimeZone
   = TimetzAsTimeOfDayAndTimeZone
       Time.TimeOfDay

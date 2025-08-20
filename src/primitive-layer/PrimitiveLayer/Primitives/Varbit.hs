@@ -1,9 +1,3 @@
--- | PostgreSQL @varbit@ type.
--- Represents variable-length bit strings in PostgreSQL.
---
--- This module provides conversions between PostgreSQL @varbit@ and:
--- * Haskell lists of 'Bool' - for general purpose use
--- * Unboxed 'Data.Vector.Unboxed.Vector' 'Bool' - for high-performance operations
 module PrimitiveLayer.Primitives.Varbit (Varbit) where
 
 import qualified Data.Bits as Bits
@@ -20,9 +14,11 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
--- | PostgreSQL @varbit@ type representing a variable-length bit string.
+-- | PostgreSQL @varbit@ type. Variable-length bit string.
+--
 -- Similar to @bit@ but without a fixed maximum length.
--- Stored as a length (Int32) followed by the bit data in bytes.
+--
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-bit.html)
 data Varbit = Varbit
   { -- | Number of bits
     varbitLength :: Int32,

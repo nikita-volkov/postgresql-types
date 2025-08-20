@@ -1,5 +1,3 @@
--- | PostgreSQL @text@ type.
--- Represents variable-length character string in PostgreSQL.
 module PrimitiveLayer.Primitives.Text (Text) where
 
 import qualified Data.ByteString as ByteString
@@ -14,8 +12,9 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
--- | PostgreSQL @text@ type wrapper around Haskell 'Data.Text.Text'.
--- Note: PostgreSQL doesn't support null characters in text fields.
+-- | PostgreSQL @text@ type. Variable-length character string with no null-characters.
+--
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-character.html)
 newtype Text = Text Text.Text
   deriving newtype (Eq, Ord)
   deriving (Show) via (ViaPrimitive Text)

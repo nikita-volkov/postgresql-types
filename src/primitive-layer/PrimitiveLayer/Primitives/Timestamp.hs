@@ -1,5 +1,3 @@
--- | PostgreSQL @timestamp@ type (without timezone).
--- Represents a timestamp without timezone information in PostgreSQL.
 module PrimitiveLayer.Primitives.Timestamp (Timestamp) where
 
 import qualified Data.Time as Time
@@ -11,7 +9,13 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
--- | PostgreSQL @timestamp@ type wrapper around microseconds since PostgreSQL epoch.
+-- | PostgreSQL @timestamp@ type. Date and time (without time zone).
+--
+-- Gets stored as microseconds since PostgreSQL epoch.
+--
+-- Range: @4713 BC@ to @294276 AD@.
+--
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-DATETIME)
 newtype Timestamp = Timestamp Int64
   deriving newtype (Eq, Ord)
   deriving (Show) via (ViaPrimitive Timestamp)

@@ -1,5 +1,3 @@
--- | PostgreSQL @interval@ type.
--- Represents a time span in PostgreSQL with separate month, day, and microsecond components.
 module PrimitiveLayer.Primitives.Interval (Interval) where
 
 import qualified Data.Time as Time
@@ -11,7 +9,13 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
--- | PostgreSQL @interval@ type with separate components for months, days, and microseconds.
+-- | PostgreSQL @interval@ type. Time span with separate components for months, days, and microseconds with individual signs.
+--
+-- For a simpler and more portable representation consider 'PrimitiveLayer.Primitives.IntervalAsMicroseconds.IntervalAsMicroseconds'.
+--
+-- Range: @-178000000@ years to @178000000@ years.
+--
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-INTERVAL-INPUT)
 data Interval = Interval
   { months :: Int32,
     days :: Int32,

@@ -1,6 +1,4 @@
--- | PostgreSQL @point@ type.
--- Represents a 2D geometric point as (x,y) coordinates in PostgreSQL.
-module PrimitiveLayer.Primitives.Point (Point (..)) where
+module PrimitiveLayer.Primitives.Point (Point) where
 
 import Data.Bits
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
@@ -11,8 +9,12 @@ import PrimitiveLayer.Via
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
--- | PostgreSQL @point@ type representing a 2D point with (x,y) coordinates.
--- Stored as two 64-bit floating point numbers (float8) in PostgreSQL.
+-- | PostgreSQL @point@ type. Geometric point in 2D plane.
+--
+-- Represented with (@x@,@y@) coordinates.
+-- Stored as two @64@-bit floating point numbers (@float8@) in PostgreSQL.
+--
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-geometric.html#DATATYPE-GEOMETRIC-POINTS)
 data Point = Point
   { pointX :: Double,
     pointY :: Double
