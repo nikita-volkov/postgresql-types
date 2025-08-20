@@ -10,6 +10,7 @@ import qualified Data.Text as Text
 import Data.Time
 import Data.Typeable
 import qualified Data.UUID as UUID
+import qualified Data.Vector.Unboxed as VU
 import Data.Word
 import qualified LawfulConversions
 import qualified PrimitiveLayer.Primitives as PrimitiveLayer
@@ -22,8 +23,11 @@ import Prelude
 main :: IO ()
 main = hspec do
   testIs @PrimitiveLayer.Inet @(PrimitiveLayer.Ip, Word8) Proxy Proxy
+  testIs @PrimitiveLayer.Bit @[Bool] Proxy Proxy
+  testIs @PrimitiveLayer.Bit @(VU.Vector Bool) Proxy Proxy
   testIs @PrimitiveLayer.Money @Int64 Proxy Proxy
-  testIsMany @PrimitiveLayer.Bit @[Bool] Proxy Proxy
+  testIs @PrimitiveLayer.Varbit @[Bool] Proxy Proxy
+  testIs @PrimitiveLayer.Varbit @(VU.Vector Bool) Proxy Proxy
   testIsMany @PrimitiveLayer.Bool @Bool Proxy Proxy
   testIsMany @PrimitiveLayer.Box @(Double, Double, Double, Double) Proxy Proxy
   testIsMany @PrimitiveLayer.Bytea @ByteString Proxy Proxy
@@ -56,7 +60,6 @@ main = hspec do
   testIsMany @PrimitiveLayer.TimetzAsTimeOfDayAndTimeZone @PrimitiveLayer.Timetz Proxy Proxy
   testIsMany @PrimitiveLayer.TimetzAsTimeOfDayAndTimeZone @(TimeOfDay, TimeZone) Proxy Proxy
   testIsMany @PrimitiveLayer.Uuid @UUID.UUID Proxy Proxy
-  testIsMany @PrimitiveLayer.Varbit @[Bool] Proxy Proxy
   testIsMany @PrimitiveLayer.Xml @Text.Text Proxy Proxy
   testIsMany @Scientific.Scientific @PrimitiveLayer.Numeric Proxy Proxy
 

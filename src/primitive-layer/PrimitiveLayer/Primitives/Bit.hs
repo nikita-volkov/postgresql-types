@@ -1,11 +1,16 @@
 -- | PostgreSQL @bit@ type.
 -- Represents fixed-length bit strings in PostgreSQL.
-module PrimitiveLayer.Primitives.Bit (Bit (..)) where
+--
+-- This module provides conversions between PostgreSQL @bit@ and:
+-- * Haskell lists of 'Bool' - for general purpose use
+-- * Unboxed 'Data.Vector.Unboxed.Vector' 'Bool' - for high-performance operations
+module PrimitiveLayer.Primitives.Bit (Bit) where
 
 import qualified Data.Bits as Bits
 import qualified Data.ByteString as ByteString
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text.Encoding
+import qualified Data.Vector.Unboxed as VU
 import qualified LawfulConversions
 import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
@@ -134,3 +139,103 @@ instance IsMany Bit [Bool] where
 instance Is [Bool] Bit
 
 instance Is Bit [Bool]
+
+-- | Convert from an unboxed vector of Bool to a Bit.
+--
+-- This provides an efficient conversion from 'Data.Vector.Unboxed.Vector' 'Bool'
+-- to PostgreSQL @bit@ type. The boolean vector is packed into bytes with proper
+-- padding to align to byte boundaries.
+--
+-- This instance allows using unboxed vectors for high-performance bit operations
+-- while maintaining compatibility with PostgreSQL's bit string format.
+instance IsSome (VU.Vector Bool) Bit where
+  to (Bit len bytes) =
+    let bits = concatMap byteToBits (ByteString.unpack bytes)
+        trimmedBits = take (fromIntegral len) bits
+     in VU.fromList trimmedBits
+    where
+      byteToBits :: Word8 -> [Bool]
+      byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
+  maybeFrom bitVector =
+    let bits = VU.toList bitVector
+        len = fromIntegral (VU.length bitVector)
+        numBytes = (len + 7) `div` 8
+        paddedBits = bits ++ replicate (numBytes * 8 - len) False
+        bytes = map boolsToByte (chunksOf 8 paddedBits)
+     in Just (Bit (fromIntegral len) (ByteString.pack bytes))
+    where
+      boolsToByte :: [Bool] -> Word8
+      boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
+      chunksOf :: Int -> [a] -> [[a]]
+      chunksOf n [] = []
+      chunksOf n xs = take n xs : chunksOf n (drop n xs)
+
+-- | Convert from a Bit to an unboxed vector of Bool.
+--
+-- This provides an efficient conversion from PostgreSQL @bit@ type to
+-- 'Data.Vector.Unboxed.Vector' 'Bool'. Only returns the actual bits,
+-- excluding any padding bits used for byte alignment.
+--
+-- This is the inverse of the 'IsSome' instance for @(VU.Vector Bool) Bit@.
+instance IsSome Bit (VU.Vector Bool) where
+  to bitVector =
+    let bits = VU.toList bitVector
+        len = fromIntegral (VU.length bitVector)
+        numBytes = (len + 7) `div` 8
+        paddedBits = bits ++ replicate (numBytes * 8 - len) False
+        bytes = map boolsToByte (chunksOf 8 paddedBits)
+     in Bit (fromIntegral len) (ByteString.pack bytes)
+    where
+      boolsToByte :: [Bool] -> Word8
+      boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
+      chunksOf :: Int -> [a] -> [[a]]
+      chunksOf n [] = []
+      chunksOf n xs = take n xs : chunksOf n (drop n xs)
+  maybeFrom (Bit len bytes) =
+    let bits = concatMap byteToBits (ByteString.unpack bytes)
+        trimmedBits = take (fromIntegral len) bits
+     in Just (VU.fromList trimmedBits)
+    where
+      byteToBits :: Word8 -> [Bool]
+      byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
+
+-- | Direct conversion from unboxed bit vector to Bit.
+--
+-- This is a total conversion that always succeeds. The boolean vector
+-- is efficiently packed into the PostgreSQL @bit@ format.
+instance IsMany (VU.Vector Bool) Bit where
+  from bitVector =
+    let bits = VU.toList bitVector
+        len = fromIntegral (VU.length bitVector)
+        numBytes = (len + 7) `div` 8
+        paddedBits = bits ++ replicate (numBytes * 8 - len) False
+        bytes = map boolsToByte (chunksOf 8 paddedBits)
+     in Bit (fromIntegral len) (ByteString.pack bytes)
+    where
+      boolsToByte :: [Bool] -> Word8
+      boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
+      chunksOf :: Int -> [a] -> [[a]]
+      chunksOf n [] = []
+      chunksOf n xs = take n xs : chunksOf n (drop n xs)
+
+-- | Direct conversion from Bit to unboxed bit vector.
+--
+-- This is a total conversion that always succeeds. Efficiently extracts
+-- the bit data from PostgreSQL @bit@ format into an unboxed vector.
+instance IsMany Bit (VU.Vector Bool) where
+  from (Bit len bytes) =
+    let bits = concatMap byteToBits (ByteString.unpack bytes)
+        trimmedBits = take (fromIntegral len) bits
+     in VU.fromList trimmedBits
+    where
+      byteToBits :: Word8 -> [Bool]
+      byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
+
+-- | Bidirectional conversion between unboxed bit vector and Bit.
+--
+-- This provides isomorphic conversion between 'Data.Vector.Unboxed.Vector' 'Bool'
+-- and PostgreSQL @bit@ type. These instances enable seamless use of unboxed vectors
+-- for efficient bit manipulation while maintaining PostgreSQL compatibility.
+instance Is (VU.Vector Bool) Bit
+
+instance Is Bit (VU.Vector Bool)
