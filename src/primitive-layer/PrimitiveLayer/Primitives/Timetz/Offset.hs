@@ -19,13 +19,6 @@ instance Bounded TimetzOffset where
   minBound = TimetzOffset (negate extemeInSeconds)
   maxBound = TimetzOffset extemeInSeconds
 
-instance IsSome Time.TimeZone TimetzOffset where
-  to = toTimeZone
-  maybeFrom = compileFromTimeZone
-
-instance IsMany Time.TimeZone TimetzOffset where
-  from = normalizeFromTimeZone
-
 -- | @15:59:59@
 extemeInSeconds :: Int32
 extemeInSeconds =

@@ -19,13 +19,6 @@ instance Bounded TimetzTime where
   minBound = TimetzTime 0
   maxBound = TimetzTime 86_400_000_000
 
-instance IsSome Time.TimeOfDay TimetzTime where
-  to = toTimeOfDay
-  maybeFrom = compileFromTimeOfDay
-
-instance IsMany Time.TimeOfDay TimetzTime where
-  from = normalizeFromTimeOfDay
-
 toMicroseconds :: TimetzTime -> Int64
 toMicroseconds (TimetzTime microseconds) = microseconds
 
