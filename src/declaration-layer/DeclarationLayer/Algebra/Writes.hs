@@ -3,12 +3,12 @@ module DeclarationLayer.Algebra.Writes where
 import DeclarationLayer.Prelude
 import PtrPoker.Write
 
-arrayHeader :: Int32 -> Bool -> Int32 -> [Int32] -> Write
+arrayHeader :: Int32 -> Bool -> Word32 -> [Int32] -> Write
 arrayHeader dimensionCount elementNullable baseOid dimensions =
   mconcat
     [ bInt32 dimensionCount,
       bInt32 (if elementNullable then 1 else 0),
-      bInt32 baseOid,
+      bWord32 baseOid,
       foldMap arrayHeaderDimension dimensions
     ]
 

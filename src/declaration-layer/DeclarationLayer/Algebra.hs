@@ -91,11 +91,11 @@ nonNullable =
 
 data Dimensionality scalar vec = Dimensionality
   { binaryEncoder ::
-      Int32 ->
+      Word32 ->
       (scalar -> Write.Write) ->
       (vec -> Write.Write),
     binaryDecoder ::
-      Int32 ->
+      Word32 ->
       PeekyBlinders.Dynamic (Either DecodingError scalar) ->
       PeekyBlinders.Dynamic (Either DecodingError vec),
     textualEncoder ::
@@ -136,7 +136,7 @@ d1 elementNullability (Dimension construct1 destruct1 count1) =
               hasNulls <- do
                 int <- PeekyBlinders.beSignedInt4
                 pure (int == 1)
-              baseOid <- PeekyBlinders.beSignedInt4
+              baseOid <- PeekyBlinders.beUnsignedInt4
               pure (dimensionCount, hasNulls, baseOid)
 
           -- Interrupt early if baseOid does not match the expected one.
@@ -221,11 +221,11 @@ data Scalar a = Scalar
     typeName :: Text,
     -- | Statically known OID for the type.
     -- When unspecified, the OID may be determined at runtime by looking up by name.
-    baseOid :: Maybe Int32,
+    baseOid :: Maybe Word32,
     -- | Statically known OID for the array-type with this type as the element.
     -- When unspecified, the OID may be determined at runtime by looking up by name.
     -- It may also mean that there may be no array type containing this type, which is the case in attempts to double-nest arrays.
-    arrayOid :: Maybe Int32,
+    arrayOid :: Maybe Word32,
     binaryEncoder :: a -> Write.Write,
     binaryDecoder :: PeekyBlinders.Dynamic (Either DecodingError a),
     -- | Represent in Postgres textual format.

@@ -10,6 +10,7 @@ import Data.Tagged (untag)
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text.Encoding
 import Data.Typeable
+import Data.Word
 import qualified Database.PostgreSQL.LibPQ as Pq
 import qualified PeekyBlinders
 import qualified PrimitiveLayer.Algebra as PrimitiveLayer
@@ -101,7 +102,7 @@ primitiveSpec _ = do
 
 runRoundtripQuery ::
   Pq.Connection ->
-  Int32 ->
+  Word32 ->
   ByteString.ByteString ->
   Pq.Format ->
   Pq.Format ->

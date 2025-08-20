@@ -10,10 +10,10 @@ class Primitive a where
   typeName :: Tagged a Text
 
   -- | Statically known OID for the base type.
-  baseOid :: Tagged a Int32
+  baseOid :: Tagged a Word32
 
   -- | Statically known OID for the array type.
-  arrayOid :: Tagged a Int32
+  arrayOid :: Tagged a Word32
 
   -- | Encode the value in PostgreSQL binary format.
   binaryEncoder :: a -> Write.Write
