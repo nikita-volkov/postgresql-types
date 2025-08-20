@@ -1,5 +1,4 @@
--- | PostgreSQL @inet@ type.
--- Represents an IPv4 or IPv6 host address, optionally with subnet mask.
+-- | @inet@. IPv4 or IPv6 host address.
 module PrimitiveLayer.Primitives.Inet (Inet (ip, netmask)) where
 
 import Data.Bits

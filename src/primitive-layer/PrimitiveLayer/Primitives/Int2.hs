@@ -1,5 +1,4 @@
--- | PostgreSQL @int2@ type.
--- Represents a 16-bit signed integer in PostgreSQL.
+-- | @int2@. 2-byte signed integer. Range: -32768 to +32767.
 module PrimitiveLayer.Primitives.Int2 (Int2 (..)) where
 
 import qualified PeekyBlinders

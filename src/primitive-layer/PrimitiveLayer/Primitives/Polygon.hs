@@ -1,5 +1,4 @@
--- | PostgreSQL @polygon@ type.
--- Represents a closed geometric polygon in 2D space.
+-- | @polygon@. Closed geometric path in 2D plane (polygon).
 module PrimitiveLayer.Primitives.Polygon (Polygon (..)) where
 
 import Data.Bits

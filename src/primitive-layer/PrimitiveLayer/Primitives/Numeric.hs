@@ -1,5 +1,4 @@
--- | PostgreSQL @numeric@ type.
--- Represents arbitrary precision decimal numbers in PostgreSQL.
+-- | @numeric@. Arbitrary precision decimal number. Up to 131072 digits before decimal point, up to 16383 digits after decimal point.
 module PrimitiveLayer.Primitives.Numeric (Numeric (..)) where
 
 import qualified Data.ByteString as ByteString

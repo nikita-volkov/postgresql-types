@@ -1,5 +1,4 @@
--- | PostgreSQL @timestamp@ type (without timezone).
--- Represents a timestamp without timezone information in PostgreSQL.
+-- | @timestamp@. Date and time (without time zone).
 module PrimitiveLayer.Primitives.Timestamp (Timestamp) where
 
 import qualified Data.Time as Time

@@ -1,5 +1,4 @@
--- | PostgreSQL @box@ type.
--- Represents a rectangular box as two corner points in PostgreSQL.
+-- | @box@. Rectangular box in 2D plane.
 module PrimitiveLayer.Primitives.Box (Box (..)) where
 
 import Data.Bits

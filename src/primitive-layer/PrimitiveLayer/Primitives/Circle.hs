@@ -1,5 +1,4 @@
--- | PostgreSQL @circle@ type.
--- Represents a circle with center point and radius in PostgreSQL.
+-- | @circle@. Circle in 2D plane.
 module PrimitiveLayer.Primitives.Circle (Circle (..)) where
 
 import Data.Bits

@@ -1,5 +1,4 @@
--- | PostgreSQL @date@ type.
--- Represents a calendar date (without time) in PostgreSQL.
+-- | @date@. Calendar date (year, month, day).
 module PrimitiveLayer.Primitives.Date (Date) where
 
 import qualified Data.Time as Time

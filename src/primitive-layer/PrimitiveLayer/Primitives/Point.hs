@@ -1,5 +1,4 @@
--- | PostgreSQL @point@ type.
--- Represents a 2D geometric point as (x,y) coordinates in PostgreSQL.
+-- | @point@. Geometric point in 2D plane.
 module PrimitiveLayer.Primitives.Point (Point (..)) where
 
 import Data.Bits

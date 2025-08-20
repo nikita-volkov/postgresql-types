@@ -1,3 +1,4 @@
+-- | @interval@. Time span represented as microseconds.
 module PrimitiveLayer.Primitives.IntervalAsMicroseconds (IntervalAsMicroseconds) where
 
 import qualified Data.Time as Time

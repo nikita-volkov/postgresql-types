@@ -1,5 +1,4 @@
--- | PostgreSQL @float4@ type.
--- Represents a 32-bit floating point number in PostgreSQL.
+-- | @float4@. 4-byte floating-point number. 6 decimal digits precision.
 module PrimitiveLayer.Primitives.Float4 (Float4 (..)) where
 
 import Data.Bits

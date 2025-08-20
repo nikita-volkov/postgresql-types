@@ -1,5 +1,4 @@
--- | PostgreSQL @timestamptz@ type (with timezone).
--- Represents a timestamp with timezone information in PostgreSQL.
+-- | @timestamptz@. Date and time with time zone.
 module PrimitiveLayer.Primitives.Timestamptz (Timestamptz) where
 
 import qualified Data.Time as Time

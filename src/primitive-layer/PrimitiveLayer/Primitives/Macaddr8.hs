@@ -1,5 +1,4 @@
--- | PostgreSQL @macaddr8@ type.
--- Represents an 8-byte MAC address (EUI-64 format).
+-- | @macaddr8@. MAC (Media Access Control) address (EUI-64 format).
 module PrimitiveLayer.Primitives.Macaddr8 (Macaddr8 (..)) where
 
 import Control.Monad (replicateM)

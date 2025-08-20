@@ -1,5 +1,4 @@
--- | PostgreSQL @timetz@ type.
--- Represents time with time zone.
+-- | @timetz@. Time of day with time zone.
 module PrimitiveLayer.Primitives.Timetz (Timetz) where
 
 import qualified Data.Time

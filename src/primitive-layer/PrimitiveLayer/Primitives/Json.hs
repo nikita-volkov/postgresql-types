@@ -1,3 +1,4 @@
+-- | @json@. Textual JSON data.
 module PrimitiveLayer.Primitives.Json (Json) where
 
 import qualified Data.Aeson as Aeson

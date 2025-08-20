@@ -1,5 +1,4 @@
--- | PostgreSQL @line@ type.
--- Represents an infinite line in 2D space using the linear equation Ax + By + C = 0.
+-- | @line@. Infinite line in 2D plane.
 module PrimitiveLayer.Primitives.Line (Line (..)) where
 
 import Data.Bits

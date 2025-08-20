@@ -1,5 +1,4 @@
--- | PostgreSQL @int4@ type.
--- Represents a 32-bit signed integer in PostgreSQL.
+-- | @int4@. 4-byte signed integer. Range: -2147483648 to +2147483647.
 module PrimitiveLayer.Primitives.Int4 (Int4 (..)) where
 
 import qualified PeekyBlinders

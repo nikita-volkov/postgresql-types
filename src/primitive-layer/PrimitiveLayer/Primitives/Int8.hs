@@ -1,5 +1,4 @@
--- | PostgreSQL @int8@ type.
--- Represents a 64-bit signed integer in PostgreSQL.
+-- | @int8@. 8-byte signed integer. Range: -9223372036854775808 to +9223372036854775807.
 module PrimitiveLayer.Primitives.Int8 (Int8 (..)) where
 
 import qualified PeekyBlinders

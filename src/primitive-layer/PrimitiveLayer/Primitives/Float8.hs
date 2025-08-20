@@ -1,5 +1,4 @@
--- | PostgreSQL @float8@ type.
--- Represents a 64-bit floating point number in PostgreSQL.
+-- | @float8@. 8-byte floating-point number. 15 decimal digits precision.
 module PrimitiveLayer.Primitives.Float8 (Float8 (..)) where
 
 import Data.Bits

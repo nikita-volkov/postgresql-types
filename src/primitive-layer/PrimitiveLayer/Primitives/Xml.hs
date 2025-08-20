@@ -1,5 +1,4 @@
--- | PostgreSQL @xml@ type.
--- Represents XML data in PostgreSQL.
+-- | @xml@. XML data.
 module PrimitiveLayer.Primitives.Xml (Xml (..)) where
 
 import qualified Data.Text as Text

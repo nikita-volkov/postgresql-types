@@ -1,3 +1,4 @@
+-- | @time@. Time of day (without time zone).
 module PrimitiveLayer.Primitives.Time (Time) where
 
 import qualified Data.Time as Time

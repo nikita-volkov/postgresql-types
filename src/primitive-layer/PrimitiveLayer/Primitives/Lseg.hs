@@ -1,5 +1,4 @@
--- | PostgreSQL @lseg@ type.
--- Represents a line segment in 2D space defined by two endpoints.
+-- | @lseg@. Line segment in 2D plane.
 module PrimitiveLayer.Primitives.Lseg (Lseg (..)) where
 
 import Data.Bits

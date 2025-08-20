@@ -1,3 +1,4 @@
+-- | @macaddr@. MAC (Media Access Control) address.
 module PrimitiveLayer.Primitives.Macaddr where
 
 import qualified PeekyBlinders

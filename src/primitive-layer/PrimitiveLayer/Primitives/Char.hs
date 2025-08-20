@@ -1,3 +1,4 @@
+-- | @char@. Fixed-length character string.
 module PrimitiveLayer.Primitives.Char (Char) where
 
 import qualified Data.ByteString as ByteString

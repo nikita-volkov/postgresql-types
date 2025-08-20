@@ -1,5 +1,4 @@
--- | PostgreSQL @text@ type.
--- Represents variable-length character string in PostgreSQL.
+-- | @text@. Variable-length character string.
 module PrimitiveLayer.Primitives.Text (Text) where
 
 import qualified Data.ByteString as ByteString

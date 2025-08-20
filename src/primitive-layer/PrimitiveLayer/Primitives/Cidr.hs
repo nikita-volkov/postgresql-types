@@ -1,5 +1,4 @@
--- | PostgreSQL @cidr@ type.
--- Represents IPv4 or IPv6 network addresses (CIDR notation) in PostgreSQL.
+-- | @cidr@. IPv4 or IPv6 network address.
 module PrimitiveLayer.Primitives.Cidr (Cidr (ip, netmask)) where
 
 import Data.Bits

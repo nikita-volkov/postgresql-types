@@ -1,5 +1,4 @@
--- | PostgreSQL @money@ type.
--- Represents a monetary amount stored as a 64-bit signed integer.
+-- | @money@. Currency amount.
 module PrimitiveLayer.Primitives.Money (Money (..)) where
 
 import qualified PeekyBlinders

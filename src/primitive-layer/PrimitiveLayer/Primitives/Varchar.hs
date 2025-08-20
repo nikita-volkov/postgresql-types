@@ -1,3 +1,4 @@
+-- | @varchar@. Variable-length character string with limit.
 module PrimitiveLayer.Primitives.Varchar (Varchar (..)) where
 
 import qualified Data.ByteString as ByteString

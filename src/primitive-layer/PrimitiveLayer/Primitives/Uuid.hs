@@ -1,5 +1,4 @@
--- | PostgreSQL @uuid@ type.
--- Represents a Universally Unique Identifier in PostgreSQL.
+-- | @uuid@. Universally unique identifier.
 module PrimitiveLayer.Primitives.Uuid (Uuid (..)) where
 
 import qualified Data.UUID

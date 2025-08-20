@@ -1,5 +1,4 @@
--- | PostgreSQL @bit@ type.
--- Represents fixed-length bit strings in PostgreSQL.
+-- | @bit@. Fixed-length bit string.
 module PrimitiveLayer.Primitives.Bit (Bit (..)) where
 
 import qualified Data.Bits as Bits

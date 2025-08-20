@@ -1,3 +1,4 @@
+-- | Custom IP address type. IPv4 or IPv6 address.
 module PrimitiveLayer.Primitives.Ip
   ( Ip (..),
     maskedV4,

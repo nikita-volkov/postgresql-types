@@ -1,5 +1,4 @@
--- | PostgreSQL @path@ type.
--- Represents a geometric path in 2D space, which is a series of connected points.
+-- | @path@. Geometric path in 2D plane (open or closed).
 module PrimitiveLayer.Primitives.Path (Path (..)) where
 
 import Data.Bits

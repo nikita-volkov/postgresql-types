@@ -1,5 +1,4 @@
--- | PostgreSQL @interval@ type.
--- Represents a time span in PostgreSQL with separate month, day, and microsecond components.
+-- | @interval@. Time span.
 module PrimitiveLayer.Primitives.Interval (Interval) where
 
 import qualified Data.Time as Time

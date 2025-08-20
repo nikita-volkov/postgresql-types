@@ -1,3 +1,4 @@
+-- | @jsonb@. Binary JSON data, decomposed.
 module PrimitiveLayer.Primitives.Jsonb (Jsonb) where
 
 import qualified Data.Aeson as Aeson

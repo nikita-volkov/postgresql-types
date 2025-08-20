@@ -1,5 +1,4 @@
--- | PostgreSQL @varbit@ type.
--- Represents variable-length bit strings in PostgreSQL.
+-- | @varbit@. Variable-length bit string.
 module PrimitiveLayer.Primitives.Varbit (Varbit (..)) where
 
 import qualified Data.Bits as Bits

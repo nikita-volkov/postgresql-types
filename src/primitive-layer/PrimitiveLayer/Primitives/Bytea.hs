@@ -1,5 +1,4 @@
--- | PostgreSQL @bytea@ type.
--- Represents binary data stored in PostgreSQL.
+-- | @bytea@. Binary data ("byte array").
 module PrimitiveLayer.Primitives.Bytea (Bytea (..)) where
 
 import qualified Data.ByteString as ByteString

@@ -1,3 +1,4 @@
+-- | @timetz@. Time of day with time zone, represented as separate time and timezone components.
 module PrimitiveLayer.Primitives.TimetzAsTimeOfDayAndTimeZone (TimetzAsTimeOfDayAndTimeZone) where
 
 import qualified Data.Time as Time
