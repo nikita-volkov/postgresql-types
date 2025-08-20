@@ -22,6 +22,7 @@ import Prelude
 main :: IO ()
 main = hspec do
   testIs @PrimitiveLayer.Inet @(PrimitiveLayer.Ip, Word8) Proxy Proxy
+  testIs @PrimitiveLayer.Money @Int64 Proxy Proxy
   testIsMany @PrimitiveLayer.Bit @[Bool] Proxy Proxy
   testIsMany @PrimitiveLayer.Bool @Bool Proxy Proxy
   testIsMany @PrimitiveLayer.Box @(Double, Double, Double, Double) Proxy Proxy
