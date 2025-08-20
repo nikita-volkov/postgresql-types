@@ -1,5 +1,9 @@
 -- | PostgreSQL @bit@ type.
 -- Represents fixed-length bit strings in PostgreSQL.
+--
+-- This module provides conversions between PostgreSQL @bit@ and:
+-- * Haskell lists of 'Bool' - for general purpose use
+-- * Unboxed 'Data.Vector.Unboxed.Vector' 'Bool' - for high-performance operations
 module PrimitiveLayer.Primitives.Bit (Bit) where
 
 import qualified Data.Bits as Bits
@@ -137,7 +141,13 @@ instance Is [Bool] Bit
 instance Is Bit [Bool]
 
 -- | Convert from an unboxed vector of Bool to a Bit.
--- The bit vector is packed into bytes with proper padding.
+-- 
+-- This provides an efficient conversion from 'Data.Vector.Unboxed.Vector' 'Bool'
+-- to PostgreSQL @bit@ type. The boolean vector is packed into bytes with proper
+-- padding to align to byte boundaries.
+--
+-- This instance allows using unboxed vectors for high-performance bit operations
+-- while maintaining compatibility with PostgreSQL's bit string format.
 instance IsSome (VU.Vector Bool) Bit where
   to (Bit len bytes) =
     let bits = concatMap byteToBits (ByteString.unpack bytes)
@@ -161,7 +171,12 @@ instance IsSome (VU.Vector Bool) Bit where
       chunksOf n xs = take n xs : chunksOf n (drop n xs)
 
 -- | Convert from a Bit to an unboxed vector of Bool.
--- Only returns the actual bits (not padding).
+--
+-- This provides an efficient conversion from PostgreSQL @bit@ type to
+-- 'Data.Vector.Unboxed.Vector' 'Bool'. Only returns the actual bits,
+-- excluding any padding bits used for byte alignment.
+--
+-- This is the inverse of the 'IsSome' instance for @(VU.Vector Bool) Bit@.
 instance IsSome Bit (VU.Vector Bool) where
   to bitVector =
     let bits = VU.toList bitVector
@@ -185,6 +200,9 @@ instance IsSome Bit (VU.Vector Bool) where
       byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
 
 -- | Direct conversion from unboxed bit vector to Bit.
+--
+-- This is a total conversion that always succeeds. The boolean vector
+-- is efficiently packed into the PostgreSQL @bit@ format.
 instance IsMany (VU.Vector Bool) Bit where
   from bitVector =
     let bits = VU.toList bitVector
@@ -201,6 +219,9 @@ instance IsMany (VU.Vector Bool) Bit where
       chunksOf n xs = take n xs : chunksOf n (drop n xs)
 
 -- | Direct conversion from Bit to unboxed bit vector.
+--
+-- This is a total conversion that always succeeds. Efficiently extracts
+-- the bit data from PostgreSQL @bit@ format into an unboxed vector.
 instance IsMany Bit (VU.Vector Bool) where
   from (Bit len bytes) =
     let bits = concatMap byteToBits (ByteString.unpack bytes)
@@ -211,6 +232,10 @@ instance IsMany Bit (VU.Vector Bool) where
       byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
 
 -- | Bidirectional conversion between unboxed bit vector and Bit.
+--
+-- This provides isomorphic conversion between 'Data.Vector.Unboxed.Vector' 'Bool'
+-- and PostgreSQL @bit@ type. These instances enable seamless use of unboxed vectors
+-- for efficient bit manipulation while maintaining PostgreSQL compatibility.
 instance Is (VU.Vector Bool) Bit
 
 instance Is Bit (VU.Vector Bool)
