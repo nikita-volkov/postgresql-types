@@ -1,11 +1,12 @@
 -- | PostgreSQL @bit@ type.
 -- Represents fixed-length bit strings in PostgreSQL.
-module PrimitiveLayer.Primitives.Bit (Bit (..)) where
+module PrimitiveLayer.Primitives.Bit (Bit) where
 
 import qualified Data.Bits as Bits
 import qualified Data.ByteString as ByteString
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text.Encoding
+import qualified Data.Vector.Unboxed as VU
 import qualified LawfulConversions
 import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
@@ -134,3 +135,82 @@ instance IsMany Bit [Bool] where
 instance Is [Bool] Bit
 
 instance Is Bit [Bool]
+
+-- | Convert from an unboxed vector of Bool to a Bit.
+-- The bit vector is packed into bytes with proper padding.
+instance IsSome (VU.Vector Bool) Bit where
+  to (Bit len bytes) =
+    let bits = concatMap byteToBits (ByteString.unpack bytes)
+        trimmedBits = take (fromIntegral len) bits
+     in VU.fromList trimmedBits
+    where
+      byteToBits :: Word8 -> [Bool]
+      byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
+  maybeFrom bitVector =
+    let bits = VU.toList bitVector
+        len = fromIntegral (VU.length bitVector)
+        numBytes = (len + 7) `div` 8
+        paddedBits = bits ++ replicate (numBytes * 8 - len) False
+        bytes = map boolsToByte (chunksOf 8 paddedBits)
+     in Just (Bit (fromIntegral len) (ByteString.pack bytes))
+    where
+      boolsToByte :: [Bool] -> Word8
+      boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
+      chunksOf :: Int -> [a] -> [[a]]
+      chunksOf n [] = []
+      chunksOf n xs = take n xs : chunksOf n (drop n xs)
+
+-- | Convert from a Bit to an unboxed vector of Bool.
+-- Only returns the actual bits (not padding).
+instance IsSome Bit (VU.Vector Bool) where
+  to bitVector =
+    let bits = VU.toList bitVector
+        len = fromIntegral (VU.length bitVector)
+        numBytes = (len + 7) `div` 8
+        paddedBits = bits ++ replicate (numBytes * 8 - len) False
+        bytes = map boolsToByte (chunksOf 8 paddedBits)
+     in Bit (fromIntegral len) (ByteString.pack bytes)
+    where
+      boolsToByte :: [Bool] -> Word8
+      boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
+      chunksOf :: Int -> [a] -> [[a]]
+      chunksOf n [] = []
+      chunksOf n xs = take n xs : chunksOf n (drop n xs)
+  maybeFrom (Bit len bytes) =
+    let bits = concatMap byteToBits (ByteString.unpack bytes)
+        trimmedBits = take (fromIntegral len) bits
+     in Just (VU.fromList trimmedBits)
+    where
+      byteToBits :: Word8 -> [Bool]
+      byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
+
+-- | Direct conversion from unboxed bit vector to Bit.
+instance IsMany (VU.Vector Bool) Bit where
+  from bitVector =
+    let bits = VU.toList bitVector
+        len = fromIntegral (VU.length bitVector)
+        numBytes = (len + 7) `div` 8
+        paddedBits = bits ++ replicate (numBytes * 8 - len) False
+        bytes = map boolsToByte (chunksOf 8 paddedBits)
+     in Bit (fromIntegral len) (ByteString.pack bytes)
+    where
+      boolsToByte :: [Bool] -> Word8
+      boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
+      chunksOf :: Int -> [a] -> [[a]]
+      chunksOf n [] = []
+      chunksOf n xs = take n xs : chunksOf n (drop n xs)
+
+-- | Direct conversion from Bit to unboxed bit vector.
+instance IsMany Bit (VU.Vector Bool) where
+  from (Bit len bytes) =
+    let bits = concatMap byteToBits (ByteString.unpack bytes)
+        trimmedBits = take (fromIntegral len) bits
+     in VU.fromList trimmedBits
+    where
+      byteToBits :: Word8 -> [Bool]
+      byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
+
+-- | Bidirectional conversion between unboxed bit vector and Bit.
+instance Is (VU.Vector Bool) Bit
+
+instance Is Bit (VU.Vector Bool)

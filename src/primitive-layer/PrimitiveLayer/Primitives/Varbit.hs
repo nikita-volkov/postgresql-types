@@ -1,11 +1,12 @@
 -- | PostgreSQL @varbit@ type.
 -- Represents variable-length bit strings in PostgreSQL.
-module PrimitiveLayer.Primitives.Varbit (Varbit (..)) where
+module PrimitiveLayer.Primitives.Varbit (Varbit) where
 
 import qualified Data.Bits as Bits
 import qualified Data.ByteString as ByteString
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text.Encoding
+import qualified Data.Vector.Unboxed as VU
 import qualified LawfulConversions
 import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
@@ -135,3 +136,82 @@ instance IsMany Varbit [Bool] where
 instance Is [Bool] Varbit
 
 instance Is Varbit [Bool]
+
+-- | Convert from an unboxed vector of Bool to a Varbit.
+-- The bit vector is packed into bytes with proper padding.
+instance IsSome (VU.Vector Bool) Varbit where
+  to (Varbit len bytes) =
+    let bits = concatMap byteToBits (ByteString.unpack bytes)
+        trimmedBits = take (fromIntegral len) bits
+     in VU.fromList trimmedBits
+    where
+      byteToBits :: Word8 -> [Bool]
+      byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
+  maybeFrom bitVector =
+    let bits = VU.toList bitVector
+        len = fromIntegral (VU.length bitVector)
+        numBytes = (len + 7) `div` 8
+        paddedBits = bits ++ replicate (numBytes * 8 - len) False
+        bytes = map boolsToByte (chunksOf 8 paddedBits)
+     in Just (Varbit (fromIntegral len) (ByteString.pack bytes))
+    where
+      boolsToByte :: [Bool] -> Word8
+      boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
+      chunksOf :: Int -> [a] -> [[a]]
+      chunksOf n [] = []
+      chunksOf n xs = take n xs : chunksOf n (drop n xs)
+
+-- | Convert from a Varbit to an unboxed vector of Bool.
+-- Only returns the actual bits (not padding).
+instance IsSome Varbit (VU.Vector Bool) where
+  to bitVector =
+    let bits = VU.toList bitVector
+        len = fromIntegral (VU.length bitVector)
+        numBytes = (len + 7) `div` 8
+        paddedBits = bits ++ replicate (numBytes * 8 - len) False
+        bytes = map boolsToByte (chunksOf 8 paddedBits)
+     in Varbit (fromIntegral len) (ByteString.pack bytes)
+    where
+      boolsToByte :: [Bool] -> Word8
+      boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
+      chunksOf :: Int -> [a] -> [[a]]
+      chunksOf n [] = []
+      chunksOf n xs = take n xs : chunksOf n (drop n xs)
+  maybeFrom (Varbit len bytes) =
+    let bits = concatMap byteToBits (ByteString.unpack bytes)
+        trimmedBits = take (fromIntegral len) bits
+     in Just (VU.fromList trimmedBits)
+    where
+      byteToBits :: Word8 -> [Bool]
+      byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
+
+-- | Direct conversion from unboxed bit vector to Varbit.
+instance IsMany (VU.Vector Bool) Varbit where
+  from bitVector =
+    let bits = VU.toList bitVector
+        len = fromIntegral (VU.length bitVector)
+        numBytes = (len + 7) `div` 8
+        paddedBits = bits ++ replicate (numBytes * 8 - len) False
+        bytes = map boolsToByte (chunksOf 8 paddedBits)
+     in Varbit (fromIntegral len) (ByteString.pack bytes)
+    where
+      boolsToByte :: [Bool] -> Word8
+      boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
+      chunksOf :: Int -> [a] -> [[a]]
+      chunksOf n [] = []
+      chunksOf n xs = take n xs : chunksOf n (drop n xs)
+
+-- | Direct conversion from Varbit to unboxed bit vector.
+instance IsMany Varbit (VU.Vector Bool) where
+  from (Varbit len bytes) =
+    let bits = concatMap byteToBits (ByteString.unpack bytes)
+        trimmedBits = take (fromIntegral len) bits
+     in VU.fromList trimmedBits
+    where
+      byteToBits :: Word8 -> [Bool]
+      byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
+
+-- | Bidirectional conversion between unboxed bit vector and Varbit.
+instance Is (VU.Vector Bool) Varbit
+
+instance Is Varbit (VU.Vector Bool)
