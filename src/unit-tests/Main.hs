@@ -75,6 +75,7 @@ main = hspec do
   testIsMany @PrimitiveLayer.TimetzAsTimeOfDayAndTimeZone @PrimitiveLayer.Timetz Proxy Proxy
   testIsMany @PrimitiveLayer.TimetzAsTimeOfDayAndTimeZone @(TimeOfDay, TimeZone) Proxy Proxy
   testIsMany @PrimitiveLayer.Uuid @UUID.UUID Proxy Proxy
+  testIsMany @PrimitiveLayer.Varchar @Text.Text Proxy Proxy
   testIsMany @PrimitiveLayer.Xml @Text.Text Proxy Proxy
   testIsMany @Scientific.Scientific @PrimitiveLayer.Numeric Proxy Proxy
 
