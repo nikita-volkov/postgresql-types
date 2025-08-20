@@ -41,7 +41,7 @@ main = hspec do
   testIsMany @PrimitiveLayer.IntervalAsMicroseconds @DiffTime Proxy Proxy
   testIsMany @PrimitiveLayer.Json @Aeson.Value Proxy Proxy
   testIsMany @PrimitiveLayer.Line @(Double, Double, Double) Proxy Proxy
-  testIsMany @PrimitiveLayer.Lseg @((Double, Double), (Double, Double)) Proxy Proxy
+  testIsMany @PrimitiveLayer.Lseg @(Double, Double, Double, Double) Proxy Proxy
   testIsMany @PrimitiveLayer.Macaddr8 @(Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) Proxy Proxy
   testIsMany @PrimitiveLayer.Money @Int64 Proxy Proxy
   testIsMany @PrimitiveLayer.Oid @Word32 Proxy Proxy
