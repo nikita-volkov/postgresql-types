@@ -1,4 +1,4 @@
-module PrimitiveLayer.Primitives.Xml (Xml (..)) where
+module PrimitiveLayer.Primitives.Xml (Xml) where
 
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text.Encoding
