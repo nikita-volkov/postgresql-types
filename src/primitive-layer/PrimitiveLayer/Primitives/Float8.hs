@@ -1,6 +1,6 @@
 -- | PostgreSQL @float8@ type.
 -- Represents a 64-bit floating point number in PostgreSQL.
-module PrimitiveLayer.Primitives.Float8 (Float8 (..)) where
+module PrimitiveLayer.Primitives.Float8 (Float8) where
 
 import Data.Bits
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)

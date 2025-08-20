@@ -1,6 +1,6 @@
 -- | PostgreSQL @int8@ type.
 -- Represents a 64-bit signed integer in PostgreSQL.
-module PrimitiveLayer.Primitives.Int8 (Int8 (..)) where
+module PrimitiveLayer.Primitives.Int8 (Int8) where
 
 import qualified PeekyBlinders
 import PrimitiveLayer.Algebra

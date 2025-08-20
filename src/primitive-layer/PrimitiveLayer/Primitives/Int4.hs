@@ -1,6 +1,6 @@
 -- | PostgreSQL @int4@ type.
 -- Represents a 32-bit signed integer in PostgreSQL.
-module PrimitiveLayer.Primitives.Int4 (Int4 (..)) where
+module PrimitiveLayer.Primitives.Int4 (Int4) where
 
 import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
