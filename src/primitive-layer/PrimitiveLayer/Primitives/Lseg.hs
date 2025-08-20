@@ -78,5 +78,3 @@ instance IsMany (Double, Double, Double, Double) Lseg where
 -- This is a total conversion as it always succeeds.
 instance IsMany Lseg (Double, Double, Double, Double) where
   from (Lseg x1 y1 x2 y2) = (x1, y1, x2, y2)
-
-
