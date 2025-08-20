@@ -19,7 +19,6 @@ import qualified TextBuilder
 -- <https://www.postgresql.org/docs/17/datatype-json.html>
 --
 -- PostgreSQL @jsonb@ type wrapper around Aeson 'Value'.
-
 newtype Jsonb = Jsonb Aeson.Value
   deriving newtype (Eq, Ord)
   deriving (Show) via (ViaPrimitive Jsonb)

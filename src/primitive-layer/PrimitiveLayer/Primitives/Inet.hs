@@ -12,8 +12,7 @@ import qualified PrimitiveLayer.Primitives.Ip as Ip
 import PrimitiveLayer.Vias
 import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
-
--- | @inet@. IPv4 or IPv6 host address.
+-- \| @inet@. IPv4 or IPv6 host address.
 --
 -- <https://www.postgresql.org/docs/17/datatype-net-types.html#DATATYPE-INET>
 --

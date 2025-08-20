@@ -17,7 +17,6 @@ import qualified TimeExtras.TimeZone as TimeZone
 -- <https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-TIMEZONES>
 --
 -- PostgreSQL @timetz@ type as separate time and timezone components.
-
 data TimetzAsTimeOfDayAndTimeZone
   = TimetzAsTimeOfDayAndTimeZone
       Time.TimeOfDay
