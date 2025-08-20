@@ -1,6 +1,11 @@
 -- | PostgreSQL @timetz@ type.
 -- Represents time with time zone.
-module PrimitiveLayer.Primitives.Timetz (Timetz) where
+module PrimitiveLayer.Primitives.Timetz
+  ( Timetz (time, offset),
+    Time.TimetzTime,
+    Offset.TimetzOffset,
+  )
+where
 
 import qualified Data.Time
 import qualified PeekyBlinders
