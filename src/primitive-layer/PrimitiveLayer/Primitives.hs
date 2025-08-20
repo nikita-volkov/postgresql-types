@@ -14,7 +14,7 @@ module PrimitiveLayer.Primitives
     module PrimitiveLayer.Primitives.Int4,
     module PrimitiveLayer.Primitives.Int8,
     module PrimitiveLayer.Primitives.Interval,
-    module PrimitiveLayer.Primitives.IntervalInMicroseconds,
+    module PrimitiveLayer.Primitives.IntervalAsMicroseconds,
     module PrimitiveLayer.Primitives.Ip,
     module PrimitiveLayer.Primitives.Json,
     module PrimitiveLayer.Primitives.Jsonb,
@@ -33,7 +33,7 @@ module PrimitiveLayer.Primitives
     module PrimitiveLayer.Primitives.Timestamp,
     module PrimitiveLayer.Primitives.Timestamptz,
     module PrimitiveLayer.Primitives.Timetz,
-    module PrimitiveLayer.Primitives.TimetzInTimeOfDayAndTimeZone,
+    module PrimitiveLayer.Primitives.TimetzAsTimeOfDayAndTimeZone,
     module PrimitiveLayer.Primitives.Uuid,
     module PrimitiveLayer.Primitives.Varbit,
     module PrimitiveLayer.Primitives.Varchar,
@@ -56,7 +56,7 @@ import PrimitiveLayer.Primitives.Int2
 import PrimitiveLayer.Primitives.Int4
 import PrimitiveLayer.Primitives.Int8
 import PrimitiveLayer.Primitives.Interval
-import PrimitiveLayer.Primitives.IntervalInMicroseconds
+import PrimitiveLayer.Primitives.IntervalAsMicroseconds
 import PrimitiveLayer.Primitives.Ip (Ip (..))
 import PrimitiveLayer.Primitives.Json
 import PrimitiveLayer.Primitives.Jsonb
@@ -75,7 +75,7 @@ import PrimitiveLayer.Primitives.Time
 import PrimitiveLayer.Primitives.Timestamp
 import PrimitiveLayer.Primitives.Timestamptz
 import PrimitiveLayer.Primitives.Timetz
-import PrimitiveLayer.Primitives.TimetzInTimeOfDayAndTimeZone
+import PrimitiveLayer.Primitives.TimetzAsTimeOfDayAndTimeZone
 import PrimitiveLayer.Primitives.Uuid
 import PrimitiveLayer.Primitives.Varbit
 import PrimitiveLayer.Primitives.Varchar

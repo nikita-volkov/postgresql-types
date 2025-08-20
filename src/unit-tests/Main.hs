@@ -37,8 +37,8 @@ main = hspec do
   testIsMany @PrimitiveLayer.Int4 @Int32 Proxy Proxy
   testIsMany @PrimitiveLayer.Int8 @Int64 Proxy Proxy
   testIsMany @PrimitiveLayer.Interval @(Int32, Int32, Int64) Proxy Proxy
-  testIsMany @PrimitiveLayer.IntervalInMicroseconds @PrimitiveLayer.Interval Proxy Proxy
-  testIsMany @PrimitiveLayer.IntervalInMicroseconds @DiffTime Proxy Proxy
+  testIsMany @PrimitiveLayer.IntervalAsMicroseconds @PrimitiveLayer.Interval Proxy Proxy
+  testIsMany @PrimitiveLayer.IntervalAsMicroseconds @DiffTime Proxy Proxy
   testIsMany @PrimitiveLayer.Json @Aeson.Value Proxy Proxy
   testIsMany @PrimitiveLayer.Line @(Double, Double, Double) Proxy Proxy
   testIsMany @PrimitiveLayer.Lseg @((Double, Double), (Double, Double)) Proxy Proxy
@@ -52,8 +52,8 @@ main = hspec do
   testIsMany @PrimitiveLayer.Time @TimeOfDay Proxy Proxy
   testIsMany @PrimitiveLayer.Timestamp @LocalTime Proxy Proxy
   testIsMany @PrimitiveLayer.Timestamptz @UTCTime Proxy Proxy
-  testIsMany @PrimitiveLayer.TimetzInTimeOfDayAndTimeZone @PrimitiveLayer.Timetz Proxy Proxy
-  testIsMany @PrimitiveLayer.TimetzInTimeOfDayAndTimeZone @(TimeOfDay, TimeZone) Proxy Proxy
+  testIsMany @PrimitiveLayer.TimetzAsTimeOfDayAndTimeZone @PrimitiveLayer.Timetz Proxy Proxy
+  testIsMany @PrimitiveLayer.TimetzAsTimeOfDayAndTimeZone @(TimeOfDay, TimeZone) Proxy Proxy
   testIsMany @PrimitiveLayer.Uuid @UUID.UUID Proxy Proxy
   testIsMany @PrimitiveLayer.Varbit @[Bool] Proxy Proxy
   testIsMany @PrimitiveLayer.Xml @Text.Text Proxy Proxy

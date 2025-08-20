@@ -1,4 +1,4 @@
-module PrimitiveLayer.Primitives.TimetzInTimeOfDayAndTimeZone (TimetzInTimeOfDayAndTimeZone) where
+module PrimitiveLayer.Primitives.TimetzAsTimeOfDayAndTimeZone (TimetzAsTimeOfDayAndTimeZone) where
 
 import qualified Data.Time as Time
 import qualified PeekyBlinders
@@ -12,41 +12,41 @@ import qualified TextBuilder
 import qualified TimeExtras.TimeOfDay as TimeOfDay
 import qualified TimeExtras.TimeZone as TimeZone
 
-data TimetzInTimeOfDayAndTimeZone
-  = TimetzInTimeOfDayAndTimeZone
+data TimetzAsTimeOfDayAndTimeZone
+  = TimetzAsTimeOfDayAndTimeZone
       Time.TimeOfDay
       Time.TimeZone
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaPrimitive TimetzInTimeOfDayAndTimeZone)
-  deriving (Primitive) via (ViaIsMany Timetz TimetzInTimeOfDayAndTimeZone)
+  deriving (Show) via (ViaPrimitive TimetzAsTimeOfDayAndTimeZone)
+  deriving (Primitive) via (ViaIsMany Timetz TimetzAsTimeOfDayAndTimeZone)
 
-instance Arbitrary TimetzInTimeOfDayAndTimeZone where
+instance Arbitrary TimetzAsTimeOfDayAndTimeZone where
   arbitrary = from @Timetz <$> arbitrary
-  shrink (TimetzInTimeOfDayAndTimeZone timeOfDay timeZone) =
-    [ TimetzInTimeOfDayAndTimeZone timeOfDay' timeZone'
+  shrink (TimetzAsTimeOfDayAndTimeZone timeOfDay timeZone) =
+    [ TimetzAsTimeOfDayAndTimeZone timeOfDay' timeZone'
     | (timeOfDay', timeZone') <- shrink (timeOfDay, timeZone)
     ]
 
-instance IsSome Timetz TimetzInTimeOfDayAndTimeZone where
-  to (TimetzInTimeOfDayAndTimeZone timeOfDay timeZone) =
+instance IsSome Timetz TimetzAsTimeOfDayAndTimeZone where
+  to (TimetzAsTimeOfDayAndTimeZone timeOfDay timeZone) =
     let time = TimeOfDay.toMicroseconds timeOfDay
         offset = TimeZone.toSeconds timeZone
      in from @(Int64, Int32) (fromIntegral time, fromIntegral offset)
   maybeFrom = Just . from
 
-instance IsMany Timetz TimetzInTimeOfDayAndTimeZone where
+instance IsMany Timetz TimetzAsTimeOfDayAndTimeZone where
   from timetz =
     let (time, offset) = to @(Int64, Int32) timetz
-     in TimetzInTimeOfDayAndTimeZone
+     in TimetzAsTimeOfDayAndTimeZone
           (TimeOfDay.fromMicroseconds (fromIntegral time))
           (TimeZone.fromSeconds (fromIntegral offset))
 
-instance IsSome (Time.TimeOfDay, Time.TimeZone) TimetzInTimeOfDayAndTimeZone where
-  to (TimetzInTimeOfDayAndTimeZone timeOfDay timeZone) =
+instance IsSome (Time.TimeOfDay, Time.TimeZone) TimetzAsTimeOfDayAndTimeZone where
+  to (TimetzAsTimeOfDayAndTimeZone timeOfDay timeZone) =
     (timeOfDay, timeZone)
   maybeFrom = Just . from
 
-instance IsMany (Time.TimeOfDay, Time.TimeZone) TimetzInTimeOfDayAndTimeZone where
+instance IsMany (Time.TimeOfDay, Time.TimeZone) TimetzAsTimeOfDayAndTimeZone where
   from (timeOfDay, timeZone) =
     let time = fromIntegral (TimeOfDay.toMicroseconds timeOfDay) :: Int64
         offset = fromIntegral (TimeZone.toSeconds timeZone) :: Int32
