@@ -1,4 +1,4 @@
-module PrimitiveLayer.Primitives.Int8 (Int8 (..)) where
+module PrimitiveLayer.Primitives.Int8 (Int8) where
 
 import qualified PeekyBlinders
 import PrimitiveLayer.Algebra

@@ -1,4 +1,4 @@
-module PrimitiveLayer.Primitives.Bool (Bool (..)) where
+module PrimitiveLayer.Primitives.Bool (Bool) where
 
 import qualified Data.Bool
 import qualified PeekyBlinders

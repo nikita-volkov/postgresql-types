@@ -1,4 +1,4 @@
-module PrimitiveLayer.Primitives.Money (Money (..)) where
+module PrimitiveLayer.Primitives.Money (Money) where
 
 import qualified PeekyBlinders
 import PrimitiveLayer.Algebra

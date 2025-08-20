@@ -1,4 +1,4 @@
-module PrimitiveLayer.Primitives.Float8 (Float8 (..)) where
+module PrimitiveLayer.Primitives.Float8 (Float8) where
 
 import Data.Bits
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)

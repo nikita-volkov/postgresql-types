@@ -1,4 +1,4 @@
-module PrimitiveLayer.Primitives.Uuid (Uuid (..)) where
+module PrimitiveLayer.Primitives.Uuid (Uuid) where
 
 import qualified Data.UUID
 import qualified PeekyBlinders

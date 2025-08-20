@@ -22,7 +22,7 @@ data Path = Path
   { pathClosed :: Bool,
     pathPoints :: [(Double, Double)]
   }
-  deriving stock (Eq, Ord, Generic)
+  deriving stock (Eq, Ord)
   deriving (Show) via (ViaPrimitive Path)
 
 instance Arbitrary Path where

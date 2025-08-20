@@ -232,6 +232,15 @@ data Scalar a = Scalar
     textualEncoder :: a -> TextBuilder.TextBuilder
   }
 
+instance Invariant Scalar where
+  invmap f g Scalar {..} =
+    Scalar
+      { binaryEncoder = binaryEncoder . g,
+        binaryDecoder = fmap (fmap f) binaryDecoder,
+        textualEncoder = textualEncoder . g,
+        ..
+      }
+
 -- | Lift a Primitive (from primitive-layer) into a declaration-layer Scalar.
 -- This allows reusing primitive implementations as declaration-layer scalars.
 primitive :: forall a. (Primitive.Primitive a) => Scalar a
@@ -312,7 +321,7 @@ timestamptz :: Scalar UTCTime
 timestamptz = error "TODO"
 
 uuid :: Scalar UUID
-uuid = coerce (primitive @Primitive.Uuid)
+uuid = invmap to to (primitive @Primitive.Uuid)
 
 jsonb :: Scalar Primitive.Jsonb
 jsonb = primitive

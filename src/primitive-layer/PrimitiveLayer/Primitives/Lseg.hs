@@ -1,4 +1,4 @@
-module PrimitiveLayer.Primitives.Lseg (Lseg (..)) where
+module PrimitiveLayer.Primitives.Lseg (Lseg) where
 
 import Data.Bits
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
@@ -22,7 +22,7 @@ data Lseg = Lseg
     lsegX2 :: Double,
     lsegY2 :: Double
   }
-  deriving stock (Eq, Ord, Generic)
+  deriving stock (Eq, Ord)
   deriving (Show) via (ViaPrimitive Lseg)
 
 instance Arbitrary Lseg where
@@ -59,29 +59,24 @@ instance Primitive Lseg where
       <> TextBuilder.string (show y2)
       <> ")]"
 
--- | Convert from a tuple of two points to an Lseg.
+-- | Convert from a 4-tuple to an Lseg.
 -- This is always safe since both represent the same data.
-instance IsSome ((Double, Double), (Double, Double)) Lseg where
-  to (Lseg x1 y1 x2 y2) = ((x1, y1), (x2, y2))
-  maybeFrom ((x1, y1), (x2, y2)) = Just (Lseg x1 y1 x2 y2)
+instance IsSome (Double, Double, Double, Double) Lseg where
+  to (Lseg x1 y1 x2 y2) = (x1, y1, x2, y2)
+  maybeFrom (x1, y1, x2, y2) = Just (Lseg x1 y1 x2 y2)
 
--- | Convert from an Lseg to a tuple of two points.
+-- | Convert from an Lseg to a 4-tuple.
 -- This is always safe since both represent the same data.
-instance IsSome Lseg ((Double, Double), (Double, Double)) where
-  to ((x1, y1), (x2, y2)) = Lseg x1 y1 x2 y2
-  maybeFrom (Lseg x1 y1 x2 y2) = Just ((x1, y1), (x2, y2))
+instance IsSome Lseg (Double, Double, Double, Double) where
+  to (x1, y1, x2, y2) = Lseg x1 y1 x2 y2
+  maybeFrom (Lseg x1 y1 x2 y2) = Just (x1, y1, x2, y2)
 
--- | Direct conversion from tuple of points to Lseg.
+-- | Direct conversion from 4-tuple to Lseg.
 -- This is a total conversion as it always succeeds.
-instance IsMany ((Double, Double), (Double, Double)) Lseg where
-  from ((x1, y1), (x2, y2)) = Lseg x1 y1 x2 y2
+instance IsMany (Double, Double, Double, Double) Lseg where
+  from (x1, y1, x2, y2) = Lseg x1 y1 x2 y2
 
--- | Direct conversion from Lseg to tuple of points.
+-- | Direct conversion from Lseg to 4-tuple.
 -- This is a total conversion as it always succeeds.
-instance IsMany Lseg ((Double, Double), (Double, Double)) where
-  from (Lseg x1 y1 x2 y2) = ((x1, y1), (x2, y2))
-
--- | Bidirectional conversion between tuple of points and Lseg.
-instance Is ((Double, Double), (Double, Double)) Lseg
-
-instance Is Lseg ((Double, Double), (Double, Double))
+instance IsMany Lseg (Double, Double, Double, Double) where
+  from (Lseg x1 y1 x2 y2) = (x1, y1, x2, y2)

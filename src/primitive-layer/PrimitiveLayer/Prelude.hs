@@ -53,6 +53,7 @@ import Data.Tuple as Exports
 import Data.UUID as Exports (UUID)
 import Data.Unique as Exports
 import Data.Vector as Exports (Vector)
+import qualified Data.Vector.Unboxed as Exports
 import Data.Version as Exports
 import Data.Word as Exports
 import Debug.Trace as Exports
@@ -63,7 +64,6 @@ import Foreign.StablePtr as Exports
 import Foreign.Storable as Exports hiding (alignment, sizeOf)
 import GHC.Conc as Exports hiding (threadWaitRead, threadWaitReadSTM, threadWaitWrite, threadWaitWriteSTM, withMVar)
 import GHC.Exts as Exports (groupWith, inline, lazy, sortWith)
-import GHC.Generics as Exports (Generic)
 import GHC.IO.Exception as Exports
 import LawfulConversions as Exports
 import Numeric as Exports

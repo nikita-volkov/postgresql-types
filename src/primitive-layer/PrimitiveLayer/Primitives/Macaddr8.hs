@@ -28,7 +28,7 @@ data Macaddr8 = Macaddr8
     macaddr8Byte7 :: Word8,
     macaddr8Byte8 :: Word8
   }
-  deriving stock (Eq, Ord, Generic)
+  deriving stock (Eq, Ord)
   deriving (Show) via (ViaPrimitive Macaddr8)
 
 instance Arbitrary Macaddr8 where

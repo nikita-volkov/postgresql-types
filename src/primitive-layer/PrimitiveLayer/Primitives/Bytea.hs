@@ -1,4 +1,4 @@
-module PrimitiveLayer.Primitives.Bytea (Bytea (..)) where
+module PrimitiveLayer.Primitives.Bytea (Bytea) where
 
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Base16 as Base16

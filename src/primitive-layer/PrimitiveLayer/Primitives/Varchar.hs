@@ -1,4 +1,4 @@
-module PrimitiveLayer.Primitives.Varchar (Varchar (..)) where
+module PrimitiveLayer.Primitives.Varchar (Varchar) where
 
 import qualified Data.ByteString as ByteString
 import Data.String
@@ -17,7 +17,6 @@ import qualified TextBuilder
 -- <https://www.postgresql.org/docs/17/datatype-character.html>
 --
 -- PostgreSQL @varchar@ type wrapper around Haskell 'Data.Text.Text'.
-
 newtype Varchar = Varchar Text.Text
   deriving newtype (Eq, Ord)
   deriving (Show) via (ViaPrimitive Varchar)

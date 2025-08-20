@@ -10,6 +10,7 @@ import qualified Data.Text as Text
 import Data.Time
 import Data.Typeable
 import qualified Data.UUID as UUID
+import qualified Data.Vector.Unboxed as VU
 import Data.Word
 import qualified LawfulConversions
 import qualified PrimitiveLayer.Primitives as PrimitiveLayer
@@ -22,7 +23,26 @@ import Prelude
 main :: IO ()
 main = hspec do
   testIs @PrimitiveLayer.Inet @(PrimitiveLayer.Ip, Word8) Proxy Proxy
-  testIsMany @PrimitiveLayer.Bit @[Bool] Proxy Proxy
+  testIs @PrimitiveLayer.Bit @[Bool] Proxy Proxy
+  testIs @PrimitiveLayer.Bit @(VU.Vector Bool) Proxy Proxy
+  testIs @PrimitiveLayer.Bool @Bool Proxy Proxy
+  testIs @PrimitiveLayer.Bytea @ByteString Proxy Proxy
+  testIs @PrimitiveLayer.Float4 @Float Proxy Proxy
+  testIs @PrimitiveLayer.Float8 @Double Proxy Proxy
+  testIs @PrimitiveLayer.Int2 @Int16 Proxy Proxy
+  testIs @PrimitiveLayer.Int4 @Int32 Proxy Proxy
+  testIs @PrimitiveLayer.Int8 @Int64 Proxy Proxy
+  testIs @PrimitiveLayer.Line @(Double, Double, Double) Proxy Proxy
+  testIs @PrimitiveLayer.Macaddr8 @(Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) Proxy Proxy
+  testIs @PrimitiveLayer.Money @Int64 Proxy Proxy
+  testIs @PrimitiveLayer.Oid @Word32 Proxy Proxy
+  testIs @PrimitiveLayer.Path @(Bool, [(Double, Double)]) Proxy Proxy
+  testIs @PrimitiveLayer.Point @(Double, Double) Proxy Proxy
+  testIs @PrimitiveLayer.Polygon @[(Double, Double)] Proxy Proxy
+  testIs @PrimitiveLayer.Uuid @UUID.UUID Proxy Proxy
+  testIs @PrimitiveLayer.Varbit @[Bool] Proxy Proxy
+  testIs @PrimitiveLayer.Varbit @(VU.Vector Bool) Proxy Proxy
+  testIs @PrimitiveLayer.Xml @Text.Text Proxy Proxy
   testIsMany @PrimitiveLayer.Bool @Bool Proxy Proxy
   testIsMany @PrimitiveLayer.Box @(Double, Double, Double, Double) Proxy Proxy
   testIsMany @PrimitiveLayer.Bytea @ByteString Proxy Proxy
@@ -41,7 +61,7 @@ main = hspec do
   testIsMany @PrimitiveLayer.IntervalAsMicroseconds @DiffTime Proxy Proxy
   testIsMany @PrimitiveLayer.Json @Aeson.Value Proxy Proxy
   testIsMany @PrimitiveLayer.Line @(Double, Double, Double) Proxy Proxy
-  testIsMany @PrimitiveLayer.Lseg @((Double, Double), (Double, Double)) Proxy Proxy
+  testIsMany @PrimitiveLayer.Lseg @(Double, Double, Double, Double) Proxy Proxy
   testIsMany @PrimitiveLayer.Macaddr8 @(Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) Proxy Proxy
   testIsMany @PrimitiveLayer.Money @Int64 Proxy Proxy
   testIsMany @PrimitiveLayer.Oid @Word32 Proxy Proxy
@@ -55,7 +75,6 @@ main = hspec do
   testIsMany @PrimitiveLayer.TimetzAsTimeOfDayAndTimeZone @PrimitiveLayer.Timetz Proxy Proxy
   testIsMany @PrimitiveLayer.TimetzAsTimeOfDayAndTimeZone @(TimeOfDay, TimeZone) Proxy Proxy
   testIsMany @PrimitiveLayer.Uuid @UUID.UUID Proxy Proxy
-  testIsMany @PrimitiveLayer.Varbit @[Bool] Proxy Proxy
   testIsMany @PrimitiveLayer.Xml @Text.Text Proxy Proxy
   testIsMany @Scientific.Scientific @PrimitiveLayer.Numeric Proxy Proxy
 

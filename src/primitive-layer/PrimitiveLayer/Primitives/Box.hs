@@ -26,7 +26,7 @@ data Box = Box
     -- | Upper-right y coordinate
     boxY2 :: Double
   }
-  deriving stock (Eq, Ord, Generic)
+  deriving stock (Eq, Ord)
   deriving (Show) via (ViaPrimitive Box)
 
 instance Arbitrary Box where
