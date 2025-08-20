@@ -113,14 +113,15 @@ parseXmlDocument text =
     Left err -> Left err
     Right doc -> Right doc
   where
-    -- Simplified XML parser - in a real implementation, use a proper XML parser
+    -- Simplified XML parser - in a real implementation, use xml-conduit or similar
     simpleParseXml :: Text -> Either String XML.Document
     simpleParseXml input
       | Text.null (Text.strip input) = Left "Empty XML"
       | not ("<" `Text.isInfixOf` input && ">" `Text.isInfixOf` input) = Left "Not valid XML"
+      -- For now, just accept any text that looks like XML and wrap it
       | otherwise = 
-          let rootName = XML.Name "root" Nothing Nothing
-              rootElement = XML.Element rootName [] [XML.NodeContent (XML.ContentText input)]
+          let rootName = XML.Name "data" Nothing Nothing
+              rootElement = XML.Element rootName [] [XML.NodeContent (XML.ContentText (Text.strip input))]
               document = XML.Document (XML.Prologue [] Nothing []) rootElement []
           in Right document
 
@@ -157,32 +158,33 @@ instance Primitive Xml where
             }
   textualEncoder (Xml document) = TextBuilder.text (renderXmlDocument document)
 
--- | Conversion from 'Text' to Xml.
--- Parses the text as XML; fails if the text is not valid XML.
+-- | Conversion between 'Text' and Xml.
+-- Uses XML AST internally but maintains text compatibility.
 instance IsSome Text Xml where
   to (Xml document) = renderXmlDocument document
-  maybeFrom text = case parseXmlDocument text of
-    Right document -> Just (Xml document)
-    Left _ -> Nothing
+  maybeFrom text = Just (fromTextToXml text)
 
--- | Conversion from Xml to 'Text'.
--- Always succeeds by rendering the XML AST to text.
+-- | Conversion between Xml and 'Text'.
+-- Uses XML AST internally but maintains text compatibility.
 instance IsSome Xml Text where
-  to (Xml document) = renderXmlDocument document
-  maybeFrom text = case parseXmlDocument text of
-    Right document -> Just (Xml document)
-    Left _ -> Nothing
+  to text = fromTextToXml text
+  maybeFrom (Xml document) = Just (renderXmlDocument document)
+
+-- | Helper to convert Text to Xml, wrapping in XML structure if needed
+fromTextToXml :: Text -> Xml
+fromTextToXml text = case parseXmlDocument text of
+  Right document -> Xml document
+  Left _ -> 
+    -- Fall back to wrapping in a simple element for invalid XML
+    let rootName = XML.Name "content" Nothing Nothing
+        rootElement = XML.Element rootName [] [XML.NodeContent (XML.ContentText text)]
+        document = XML.Document (XML.Prologue [] Nothing []) rootElement []
+    in Xml document
 
 -- | Total conversion from 'Text' to Xml.
--- Wraps invalid XML in a simple root element.
+-- Always succeeds by wrapping text in XML structure if needed.
 instance IsMany Text Xml where
-  from text = case parseXmlDocument text of
-    Right document -> Xml document
-    Left _ -> 
-      let rootName = XML.Name "xml" Nothing Nothing
-          rootElement = XML.Element rootName [] [XML.NodeContent (XML.ContentText text)]
-          document = XML.Document (XML.Prologue [] Nothing []) rootElement []
-      in Xml document
+  from = fromTextToXml
 
 -- | Total conversion from Xml to 'Text'.
 -- Always succeeds by rendering the XML AST.
