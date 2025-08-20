@@ -13,7 +13,7 @@ import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import PrimitiveLayer.Primitives.Ip (Ip (..))
 import qualified PrimitiveLayer.Primitives.Ip as Ip
-import PrimitiveLayer.Vias
+import PrimitiveLayer.Via
 import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder

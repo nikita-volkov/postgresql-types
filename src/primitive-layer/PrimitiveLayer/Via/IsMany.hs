@@ -1,4 +1,4 @@
-module PrimitiveLayer.Vias.IsMany where
+module PrimitiveLayer.Via.IsMany where
 
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude

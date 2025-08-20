@@ -13,7 +13,7 @@ import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import qualified PrimitiveLayer.Primitives.Timetz.Offset as Offset
 import qualified PrimitiveLayer.Primitives.Timetz.Time as Time
-import PrimitiveLayer.Vias
+import PrimitiveLayer.Via
 import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import Text.Printf (printf)
