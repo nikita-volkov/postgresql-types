@@ -19,7 +19,7 @@ import qualified TextBuilder
 newtype Polygon = Polygon
   { polygonPoints :: [(Double, Double)]
   }
-  deriving stock (Eq, Ord, Generic)
+  deriving stock (Eq, Ord)
   deriving (Show) via (ViaPrimitive Polygon)
 
 instance Arbitrary Polygon where

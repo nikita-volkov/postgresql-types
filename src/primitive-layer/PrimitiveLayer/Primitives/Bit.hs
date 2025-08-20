@@ -23,7 +23,7 @@ data Bit = Bit
     -- | Bit data (packed into bytes)
     bitData :: ByteString
   }
-  deriving stock (Eq, Ord, Generic)
+  deriving stock (Eq, Ord)
   deriving (Show) via (ViaPrimitive Bit)
 
 instance Arbitrary Bit where

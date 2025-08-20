@@ -17,7 +17,7 @@ data Point = Point
   { pointX :: Double,
     pointY :: Double
   }
-  deriving stock (Eq, Ord, Generic)
+  deriving stock (Eq, Ord)
   deriving (Show) via (ViaPrimitive Point)
 
 instance Arbitrary Point where

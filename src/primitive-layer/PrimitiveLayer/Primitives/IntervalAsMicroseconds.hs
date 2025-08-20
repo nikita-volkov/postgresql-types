@@ -17,7 +17,7 @@ import qualified TextBuilder
 -- This one simplifies the representation to a single value in microseconds.
 -- Thus, it can be easily compared, manipulated and converted to various other representations like 'Data.Time.DiffTime'.
 newtype IntervalAsMicroseconds = IntervalAsMicroseconds Integer
-  deriving stock (Eq, Ord, Generic)
+  deriving stock (Eq, Ord)
   deriving (Show) via (ViaPrimitive IntervalAsMicroseconds)
   deriving (Primitive) via (ViaIsMany Interval IntervalAsMicroseconds)
 

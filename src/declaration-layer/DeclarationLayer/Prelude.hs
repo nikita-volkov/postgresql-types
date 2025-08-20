@@ -62,7 +62,6 @@ import Foreign.StablePtr as Exports
 import Foreign.Storable as Exports hiding (alignment, sizeOf)
 import GHC.Conc as Exports hiding (threadWaitRead, threadWaitReadSTM, threadWaitWrite, threadWaitWriteSTM, withMVar)
 import GHC.Exts as Exports (groupWith, inline, lazy, sortWith)
-import GHC.Generics as Exports (Generic)
 import GHC.IO.Exception as Exports
 import LawfulConversions as Exports
 import Numeric as Exports

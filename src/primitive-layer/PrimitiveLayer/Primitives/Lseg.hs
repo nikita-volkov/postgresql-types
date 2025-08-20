@@ -20,7 +20,7 @@ data Lseg = Lseg
     lsegX2 :: Double,
     lsegY2 :: Double
   }
-  deriving stock (Eq, Ord, Generic)
+  deriving stock (Eq, Ord)
   deriving (Show) via (ViaPrimitive Lseg)
 
 instance Arbitrary Lseg where

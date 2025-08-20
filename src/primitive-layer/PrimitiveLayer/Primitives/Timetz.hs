@@ -33,7 +33,7 @@ data Timetz = Timetz
     -- | Timezone offset in seconds (positive is east of UTC, negative is west of UTC)
     offset :: Offset.TimetzOffset
   }
-  deriving stock (Eq, Ord, Generic)
+  deriving stock (Eq, Ord)
   deriving (Show) via (ViaPrimitive Timetz)
 
 instance Arbitrary Timetz where

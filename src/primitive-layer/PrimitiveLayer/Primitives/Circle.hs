@@ -21,7 +21,7 @@ data Circle = Circle
     -- | Circle radius (must be non-negative)
     circleRadius :: Double
   }
-  deriving stock (Eq, Ord, Generic)
+  deriving stock (Eq, Ord)
   deriving (Show) via (ViaPrimitive Circle)
 
 instance Arbitrary Circle where

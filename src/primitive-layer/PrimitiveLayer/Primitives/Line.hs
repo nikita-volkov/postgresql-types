@@ -19,7 +19,7 @@ data Line = Line
     lineB :: Double,
     lineC :: Double
   }
-  deriving stock (Eq, Ord, Generic)
+  deriving stock (Eq, Ord)
   deriving (Show) via (ViaPrimitive Line)
 
 instance Arbitrary Line where

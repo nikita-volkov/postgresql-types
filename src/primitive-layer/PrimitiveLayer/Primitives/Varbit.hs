@@ -24,7 +24,7 @@ data Varbit = Varbit
     -- | Bit data (packed into bytes)
     varbitData :: ByteString
   }
-  deriving stock (Eq, Ord, Generic)
+  deriving stock (Eq, Ord)
   deriving (Show) via (ViaPrimitive Varbit)
 
 instance Arbitrary Varbit where
