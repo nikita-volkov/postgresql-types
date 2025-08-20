@@ -9,11 +9,11 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
--- | @interval@. Time span. Range: -178000000 years to 178000000 years.
---
--- <https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-INTERVAL-INPUT>
+-- | @interval@. Time span. Range: @-178000000@ years to @178000000@ years.
 --
 -- PostgreSQL @interval@ type with separate components for months, days, and microseconds.
+--
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-INTERVAL-INPUT)
 data Interval = Interval
   { months :: Int32,
     days :: Int32,

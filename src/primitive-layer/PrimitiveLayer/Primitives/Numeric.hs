@@ -13,11 +13,11 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
--- | @numeric@. Arbitrary precision decimal number. Up to 131072 digits before decimal point, up to 16383 digits after decimal point.
---
--- <https://www.postgresql.org/docs/17/datatype-numeric.html#DATATYPE-NUMERIC-DECIMAL>
+-- | @numeric@. Arbitrary precision decimal number. Up to @131072@ digits before decimal point, up to @16383@ digits after decimal point.
 --
 -- PostgreSQL @numeric@ type wrapper around 'Data.Scientific.Scientific'.
+--
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-numeric.html#DATATYPE-NUMERIC-DECIMAL)
 data Numeric
   = ScientificNumeric Scientific.Scientific
   | NanNumeric

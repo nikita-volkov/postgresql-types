@@ -16,13 +16,12 @@ import qualified TextBuilder
 
 -- | @varbit@. Variable-length bit string.
 --
--- <https://www.postgresql.org/docs/17/datatype-bit.html>
---
 -- PostgreSQL @varbit@ type for storing variable-length bit strings.
-
--- | PostgreSQL @varbit@ type representing a variable-length bit string.
+-- PostgreSQL @varbit@ type representing a variable-length bit string.
 -- Similar to @bit@ but without a fixed maximum length.
 -- Stored as a length (Int32) followed by the bit data in bytes.
+--
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-bit.html)
 data Varbit = Varbit
   { -- | Number of bits
     varbitLength :: Int32,

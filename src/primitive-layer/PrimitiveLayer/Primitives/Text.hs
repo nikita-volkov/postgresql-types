@@ -14,10 +14,10 @@ import qualified TextBuilder
 
 -- | @text@. Variable-length character string.
 --
--- <https://www.postgresql.org/docs/17/datatype-character.html>
---
 -- PostgreSQL @text@ type wrapper around Haskell 'Data.Text.Text'.
 -- Note: PostgreSQL doesn't support null characters in text fields.
+--
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-character.html)
 newtype Text = Text Text.Text
   deriving newtype (Eq, Ord)
   deriving (Show) via (ViaPrimitive Text)

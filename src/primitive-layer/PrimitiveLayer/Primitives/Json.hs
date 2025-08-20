@@ -16,13 +16,13 @@ import qualified TextBuilder
 
 -- | @json@. Textual JSON data.
 --
--- <https://www.postgresql.org/docs/17/datatype-json.html>
---
 -- PostgreSQL @json@ type wrapper around Aeson 'Value'.
 --
--- The json type stores JSON data as text, unlike jsonb which stores
--- it in a binary format. This means json preserves the exact textual
+-- The @json@ type stores JSON data as text, unlike @jsonb@ which stores
+-- it in a binary format. This means @json@ preserves the exact textual
 -- representation including whitespace and key ordering.
+--
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-json.html)
 newtype Json = Json Aeson.Value
   deriving newtype (Eq, Ord)
   deriving (Show) via (ViaPrimitive Json)

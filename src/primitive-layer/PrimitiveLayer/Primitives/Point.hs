@@ -11,10 +11,10 @@ import qualified TextBuilder
 
 -- | @point@. Geometric point in 2D plane.
 --
--- <https://www.postgresql.org/docs/17/datatype-geometric.html#DATATYPE-GEOMETRIC-POINTS>
+-- PostgreSQL @point@ type representing a 2D point with (@x@,@y@) coordinates.
+-- Stored as two @64@-bit floating point numbers (@float8@) in PostgreSQL.
 --
--- PostgreSQL @point@ type representing a 2D point with (x,y) coordinates.
--- Stored as two 64-bit floating point numbers (float8) in PostgreSQL.
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-geometric.html#DATATYPE-GEOMETRIC-POINTS)
 data Point = Point
   { pointX :: Double,
     pointY :: Double

@@ -12,15 +12,14 @@ import qualified PrimitiveLayer.Primitives.Ip as Ip
 import PrimitiveLayer.Vias
 import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
--- \| @inet@. IPv4 or IPv6 host address.
---
--- <https://www.postgresql.org/docs/17/datatype-net-types.html#DATATYPE-INET>
+-- | @inet@. IPv4 or IPv6 host address.
 --
 -- PostgreSQL @inet@ type for storing IP addresses with optional netmask.
-import qualified TextBuilder
-
--- | PostgreSQL @inet@ type representing IPv4 or IPv6 host addresses.
+-- PostgreSQL @inet@ type representing IPv4 or IPv6 host addresses.
 -- Similar to @cidr@ but specifically for host addresses with optional subnet masks.
+--
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-net-types.html#DATATYPE-INET)
+import qualified TextBuilder
 data Inet = Inet
   { -- | Host address
     ip :: Ip,

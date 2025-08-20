@@ -10,15 +10,15 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
--- | @interval@. Time span represented as microseconds. Range: -178000000 years to 178000000 years.
---
--- <https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-INTERVAL-INPUT>
+-- | @interval@. Time span represented as microseconds. Range: @-178000000@ years to @178000000@ years.
 --
 -- PostgreSQL @interval@ type normalized to amount of microseconds.
 --
 -- The standard PostgreSQL @interval@ representation ('Interval') has separate amounts of months, days and microseconds with all having individual signs.
 -- This one simplifies the representation to a single value in microseconds.
 -- Thus, it can be easily compared, manipulated and converted to various other representations like 'Data.Time.DiffTime'.
+--
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-INTERVAL-INPUT)
 newtype IntervalAsMicroseconds = IntervalAsMicroseconds Integer
   deriving stock (Eq, Ord)
   deriving (Show) via (ViaPrimitive IntervalAsMicroseconds)

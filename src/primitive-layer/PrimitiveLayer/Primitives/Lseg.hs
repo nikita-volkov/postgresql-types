@@ -11,11 +11,11 @@ import qualified TextBuilder
 
 -- | @lseg@. Line segment in 2D plane.
 --
--- <https://www.postgresql.org/docs/17/datatype-geometric.html#DATATYPE-LSEG>
---
 -- PostgreSQL @lseg@ type representing a line segment in 2D space.
--- The line segment is defined by two endpoints, each with (x,y) coordinates.
--- Stored as four 64-bit floating point numbers: (x1, y1, x2, y2).
+-- The line segment is defined by two endpoints, each with (@x@,@y@) coordinates.
+-- Stored as four @64@-bit floating point numbers: (@x1@, @y1@, @x2@, @y2@).
+--
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-geometric.html#DATATYPE-LSEG)
 data Lseg = Lseg
   { lsegX1 :: Double,
     lsegY1 :: Double,

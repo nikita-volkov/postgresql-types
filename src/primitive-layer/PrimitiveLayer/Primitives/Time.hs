@@ -11,9 +11,9 @@ import qualified TextBuilder
 
 -- | @time@. Time of day (without time zone). Range: @00:00:00@ to @24:00:00@.
 --
--- <https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-TIME>
+-- Time stored as microseconds since midnight (@00:00:00@)
 --
--- Time stored as microseconds since midnight (00:00:00)
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-TIME)
 newtype Time = Time Int64
   deriving newtype (Eq, Ord)
   deriving (Show) via (ViaPrimitive Time)

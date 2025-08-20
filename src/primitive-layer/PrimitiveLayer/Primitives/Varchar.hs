@@ -14,9 +14,9 @@ import qualified TextBuilder
 
 -- | @varchar@. Variable-length character string with limit.
 --
--- <https://www.postgresql.org/docs/17/datatype-character.html>
---
 -- PostgreSQL @varchar@ type wrapper around Haskell 'Data.Text.Text'.
+--
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-character.html)
 newtype Varchar = Varchar Text.Text
   deriving newtype (Eq, Ord)
   deriving (Show) via (ViaPrimitive Varchar)

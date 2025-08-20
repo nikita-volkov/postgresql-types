@@ -9,12 +9,12 @@ import qualified TextBuilder
 
 -- | @macaddr@. MAC (Media Access Control) address.
 --
--- <https://www.postgresql.org/docs/17/datatype-net-types.html#DATATYPE-MACADDR>
---
 -- A MAC address type.
--- Represents a 6-byte MAC address, typically used in networking.
+-- Represents a @6@-byte MAC address, typically used in networking.
 -- The format is six groups of two hexadecimal digits, separated by colons.
--- Example: "01:23:45:67:89:ab"
+-- Example: @01:23:45:67:89:ab@
+--
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-net-types.html#DATATYPE-MACADDR)
 data Macaddr
   = Macaddr
       Word8

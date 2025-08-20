@@ -11,11 +11,11 @@ import qualified TextBuilder
 
 -- | @line@. Infinite line in 2D plane.
 --
--- <https://www.postgresql.org/docs/17/datatype-geometric.html#DATATYPE-LINE>
---
 -- PostgreSQL @line@ type representing an infinite line in 2D space.
--- The line is represented by the linear equation Ax + By + C = 0.
--- Stored as three 64-bit floating point numbers (A, B, C).
+-- The line is represented by the linear equation @Ax + By + C = 0@.
+-- Stored as three @64@-bit floating point numbers (@A@, @B@, @C@).
+--
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-geometric.html#DATATYPE-LINE)
 data Line = Line
   { lineA :: Double,
     lineB :: Double,

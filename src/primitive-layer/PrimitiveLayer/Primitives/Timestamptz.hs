@@ -9,11 +9,11 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
--- | @timestamptz@. Date and time with time zone. Range: 4713 BC to 294276 AD.
---
--- <https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-TIMEZONES>
+-- | @timestamptz@. Date and time with time zone. Range: @4713 BC@ to @294276 AD@.
 --
 -- PostgreSQL @timestamptz@ type wrapper around microseconds since PostgreSQL epoch.
+--
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-TIMEZONES)
 newtype Timestamptz = Timestamptz Int64
   deriving newtype (Eq, Ord)
   deriving (Show) via (ViaPrimitive Timestamptz)

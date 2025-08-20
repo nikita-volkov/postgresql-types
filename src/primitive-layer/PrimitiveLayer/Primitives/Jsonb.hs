@@ -16,9 +16,9 @@ import qualified TextBuilder
 
 -- | @jsonb@. Binary JSON data, decomposed.
 --
--- <https://www.postgresql.org/docs/17/datatype-json.html>
---
 -- PostgreSQL @jsonb@ type wrapper around Aeson 'Value'.
+--
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-json.html)
 newtype Jsonb = Jsonb Aeson.Value
   deriving newtype (Eq, Ord)
   deriving (Show) via (ViaPrimitive Jsonb)

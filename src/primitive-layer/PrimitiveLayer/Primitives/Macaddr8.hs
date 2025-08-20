@@ -12,12 +12,12 @@ import qualified TextBuilder
 
 -- | @macaddr8@. MAC (Media Access Control) address (EUI-64 format).
 --
--- <https://www.postgresql.org/docs/17/datatype-net-types.html#DATATYPE-MACADDR8>
---
--- PostgreSQL @macaddr8@ type representing an 8-byte MAC address.
+-- PostgreSQL @macaddr8@ type representing an @8@-byte MAC address.
 -- This is used for EUI-64 format MAC addresses.
 -- The format is eight groups of two hexadecimal digits, separated by colons.
--- Example: "01:23:45:67:89:ab:cd:ef"
+-- Example: @01:23:45:67:89:ab:cd:ef@
+--
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-net-types.html#DATATYPE-MACADDR8)
 data Macaddr8 = Macaddr8
   { macaddr8Byte1 :: Word8,
     macaddr8Byte2 :: Word8,

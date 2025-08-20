@@ -9,11 +9,11 @@ import PrimitiveLayer.Vias
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
--- | @float4@. 4-byte floating-point number. 6 decimal digits precision.
---
--- <https://www.postgresql.org/docs/17/datatype-numeric.html#DATATYPE-FLOAT>
+-- | @float4@. 4-byte floating-point number. @6@ decimal digits precision.
 --
 -- PostgreSQL @float4@ type wrapper around 'Float'.
+--
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-numeric.html#DATATYPE-FLOAT)
 newtype Float4 = Float4 Float
   deriving newtype (Eq, Ord, Arbitrary)
   deriving (Show) via (ViaPrimitive Float4)
