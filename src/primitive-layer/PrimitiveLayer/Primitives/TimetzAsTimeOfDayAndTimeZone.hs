@@ -5,6 +5,8 @@ import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import PrimitiveLayer.Primitives.Timetz (Timetz)
+import qualified PrimitiveLayer.Primitives.Timetz.Offset as TimetzOffset
+import qualified PrimitiveLayer.Primitives.Timetz.Time as TimetzTime
 import PrimitiveLayer.Via
 import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
@@ -35,26 +37,34 @@ instance Arbitrary TimetzAsTimeOfDayAndTimeZone where
 
 instance IsSome Timetz TimetzAsTimeOfDayAndTimeZone where
   to (TimetzAsTimeOfDayAndTimeZone timeOfDay timeZone) =
-    let time = TimeOfDay.toMicroseconds timeOfDay
-        offset = TimeZone.toSeconds timeZone
+    let time = TimeOfDay.compressToMicroseconds timeOfDay
+        offset = TimeZone.convertToSeconds timeZone
      in from @(Int64, Int32) (fromIntegral time, fromIntegral offset)
-  maybeFrom = Just . from
+  maybeFrom timetz = do
+    let (timeMicroseconds, offsetSeconds) = to @(Int64, Int32) timetz
+    let timeOfDay = TimeOfDay.convertFromMicroseconds (fromIntegral timeMicroseconds)
+    timeZone <- TimeZone.compileFromSeconds (fromIntegral offsetSeconds)
+    pure (TimetzAsTimeOfDayAndTimeZone timeOfDay timeZone)
 
 instance IsMany Timetz TimetzAsTimeOfDayAndTimeZone where
   from timetz =
     let (time, offset) = to @(Int64, Int32) timetz
      in TimetzAsTimeOfDayAndTimeZone
-          (TimeOfDay.fromMicroseconds (fromIntegral time))
-          (TimeZone.fromSeconds (fromIntegral offset))
+          (TimeOfDay.convertFromMicroseconds (fromIntegral time))
+          (TimeZone.compressFromSeconds (fromIntegral offset))
 
 instance IsSome (Time.TimeOfDay, Time.TimeZone) TimetzAsTimeOfDayAndTimeZone where
   to (TimetzAsTimeOfDayAndTimeZone timeOfDay timeZone) =
     (timeOfDay, timeZone)
-  maybeFrom = Just . from
+  maybeFrom (timeOfDay, timeZone) = do
+    time <- TimetzTime.compileFromTimeOfDay timeOfDay
+    offset <- TimetzOffset.compileFromTimeZone timeZone
+    let timetz = to @Timetz (time, offset)
+    maybeFrom timetz
 
 instance IsMany (Time.TimeOfDay, Time.TimeZone) TimetzAsTimeOfDayAndTimeZone where
   from (timeOfDay, timeZone) =
-    let time = fromIntegral (TimeOfDay.toMicroseconds timeOfDay) :: Int64
-        offset = fromIntegral (TimeZone.toSeconds timeZone) :: Int32
+    let time = fromIntegral (TimeOfDay.compressToMicroseconds timeOfDay) :: Int64
+        offset = fromIntegral (TimeZone.convertToSeconds timeZone) :: Int32
         timetz = from (time, offset) :: Timetz
      in from timetz

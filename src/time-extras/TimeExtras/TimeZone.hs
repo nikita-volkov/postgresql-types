@@ -4,14 +4,29 @@ import Data.Fixed
 import Data.Time
 import Prelude
 
-fromSeconds :: Int -> TimeZone
-fromSeconds seconds =
+convertFromMinutes :: Int -> TimeZone
+convertFromMinutes = minutesToTimeZone
+
+-- |
+-- Normalize, canonicalize, compress.
+compressFromSeconds :: Int -> TimeZone
+compressFromSeconds seconds =
   let -- Round to the nearest minute instead of truncating
       minutes = (seconds + 30) `div` 60
-   in minutesToTimeZone minutes
+   in convertFromMinutes minutes
 
-toMinutes :: TimeZone -> Int
-toMinutes (TimeZone minutes _ _) = minutes
+-- |
+-- Compile, distill, rectify seconds. Extract from seconds.
+compileFromSeconds :: Int -> Maybe TimeZone
+compileFromSeconds seconds =
+  let (minutes, remainder) = (seconds + 30) `divMod` 60
+   in if remainder == 0
+        then Just (convertFromMinutes minutes)
+        else Nothing
 
-toSeconds :: TimeZone -> Int
-toSeconds (TimeZone minutes _ _) = minutes * 60
+convertToMinutes :: TimeZone -> Int
+convertToMinutes (TimeZone minutes _ _) = minutes
+
+-- | Dilute.
+convertToSeconds :: TimeZone -> Int
+convertToSeconds (TimeZone minutes _ _) = minutes * 60
