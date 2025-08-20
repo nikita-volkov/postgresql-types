@@ -82,7 +82,8 @@ main = hspec do
 -- | Test lawful conversions for a PostgreSQL type
 testIsMany ::
   forall primitive projection.
-  ( LawfulConversions.IsMany projection primitive,
+  ( HasCallStack,
+    LawfulConversions.IsMany projection primitive,
     Typeable projection,
     Typeable primitive,
     Eq projection,
@@ -104,7 +105,8 @@ testIsMany projection primitive =
 -- | Test lawful conversions for a PostgreSQL type
 testIs ::
   forall primitive projection.
-  ( LawfulConversions.Is projection primitive,
+  ( HasCallStack,
+    LawfulConversions.Is projection primitive,
     Typeable projection,
     Typeable primitive,
     Eq projection,

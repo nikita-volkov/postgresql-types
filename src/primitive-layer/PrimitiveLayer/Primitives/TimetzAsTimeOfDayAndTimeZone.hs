@@ -57,9 +57,9 @@ instance IsSome (Time.TimeOfDay, Time.TimeZone) TimetzAsTimeOfDayAndTimeZone whe
   to (TimetzAsTimeOfDayAndTimeZone timeOfDay timeZone) =
     (timeOfDay, timeZone)
   maybeFrom (timeOfDay, timeZone) = do
-    time <- TimetzTime.compileFromTimeOfDay timeOfDay
-    offset <- TimetzOffset.compileFromTimeZone timeZone
-    let timetz = to @Timetz (time, offset)
+    time <- TimeOfDay.compileToMicroseconds timeOfDay
+    let offset = fromIntegral (TimeZone.convertToSeconds timeZone)
+    timetz :: Timetz <- maybeFrom (fromIntegral time :: Int64, offset :: Int32)
     maybeFrom timetz
 
 instance IsMany (Time.TimeOfDay, Time.TimeZone) TimetzAsTimeOfDayAndTimeZone where
