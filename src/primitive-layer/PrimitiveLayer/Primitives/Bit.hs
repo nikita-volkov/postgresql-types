@@ -1,4 +1,3 @@
--- | @bit@. Fixed-length bit string.
 module PrimitiveLayer.Primitives.Bit (Bit (..)) where
 
 import qualified Data.Bits as Bits
@@ -13,6 +12,12 @@ import PrimitiveLayer.Vias
 import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
+
+-- | @bit@. Fixed-length bit string.
+--
+-- <https://www.postgresql.org/docs/17/datatype-bit.html>
+--
+-- PostgreSQL @bit@ type for storing bit strings.
 
 -- | PostgreSQL @bit@ type representing a fixed-length bit string.
 -- Stored as a length (Int32) followed by the bit data in bytes.

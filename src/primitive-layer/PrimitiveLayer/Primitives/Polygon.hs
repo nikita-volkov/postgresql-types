@@ -1,4 +1,3 @@
--- | @polygon@. Closed geometric path in 2D plane (polygon).
 module PrimitiveLayer.Primitives.Polygon (Polygon (..)) where
 
 import Data.Bits
@@ -11,7 +10,11 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
--- | PostgreSQL @polygon@ type representing a closed polygon in 2D space.
+-- | @polygon@. Closed geometric path in 2D plane (polygon).
+--
+-- <https://www.postgresql.org/docs/17/datatype-geometric.html#DATATYPE-POLYGON>
+--
+-- PostgreSQL @polygon@ type representing a closed polygon in 2D space.
 -- A polygon is defined by a series of vertices (points).
 -- The polygon is automatically closed (the last point connects to the first).
 -- Stored as the number of points followed by the point coordinates.

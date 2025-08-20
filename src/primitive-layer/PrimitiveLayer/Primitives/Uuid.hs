@@ -1,4 +1,3 @@
--- | @uuid@. Universally unique identifier.
 module PrimitiveLayer.Primitives.Uuid (Uuid (..)) where
 
 import qualified Data.UUID
@@ -9,7 +8,11 @@ import PrimitiveLayer.Vias
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
--- | PostgreSQL @uuid@ type wrapper around 'Data.UUID.UUID'.
+-- | @uuid@. Universally unique identifier.
+--
+-- <https://www.postgresql.org/docs/17/datatype-uuid.html>
+--
+-- PostgreSQL @uuid@ type wrapper around 'Data.UUID.UUID'.
 newtype Uuid = Uuid Data.UUID.UUID
   deriving newtype (Eq, Ord, Arbitrary)
   deriving (Show) via (ViaPrimitive Uuid)

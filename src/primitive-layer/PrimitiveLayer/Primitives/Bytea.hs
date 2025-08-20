@@ -1,4 +1,3 @@
--- | @bytea@. Binary data ("byte array").
 module PrimitiveLayer.Primitives.Bytea (Bytea (..)) where
 
 import qualified Data.ByteString as ByteString
@@ -10,7 +9,11 @@ import PrimitiveLayer.Vias
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
--- | PostgreSQL @bytea@ type wrapper around 'ByteString'.
+-- | @bytea@. Binary data ("byte array").
+--
+-- <https://www.postgresql.org/docs/17/datatype-binary.html>
+--
+-- PostgreSQL @bytea@ type wrapper around 'ByteString'.
 newtype Bytea = Bytea ByteString
   deriving newtype (Eq, Ord, Arbitrary)
   deriving (Show) via (ViaPrimitive Bytea)

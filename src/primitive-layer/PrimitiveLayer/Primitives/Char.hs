@@ -1,4 +1,3 @@
--- | @char@. Fixed-length character string.
 module PrimitiveLayer.Primitives.Char (Char) where
 
 import qualified Data.ByteString as ByteString
@@ -14,7 +13,11 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
--- | @char@. Don't confuse with @character(n)@ or @char(n)@.
+-- | @char@. Fixed-length character string.
+--
+-- <https://www.postgresql.org/docs/17/datatype-character.html>
+--
+-- @char@. Don't confuse with @character(n)@ or @char(n)@.
 -- 7-bit value, occupying 1 byte in the DB typically used for storing an ASCII character.
 newtype Char = Char Word8
   deriving newtype (Eq, Ord)

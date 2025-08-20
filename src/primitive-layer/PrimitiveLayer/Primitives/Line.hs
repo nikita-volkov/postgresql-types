@@ -1,4 +1,3 @@
--- | @line@. Infinite line in 2D plane.
 module PrimitiveLayer.Primitives.Line (Line (..)) where
 
 import Data.Bits
@@ -10,7 +9,11 @@ import PrimitiveLayer.Vias
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
--- | PostgreSQL @line@ type representing an infinite line in 2D space.
+-- | @line@. Infinite line in 2D plane.
+--
+-- <https://www.postgresql.org/docs/17/datatype-geometric.html#DATATYPE-LINE>
+--
+-- PostgreSQL @line@ type representing an infinite line in 2D space.
 -- The line is represented by the linear equation Ax + By + C = 0.
 -- Stored as three 64-bit floating point numbers (A, B, C).
 data Line = Line

@@ -1,4 +1,3 @@
--- | @bool@. Logical Boolean (true/false).
 module PrimitiveLayer.Primitives.Bool (Bool (..)) where
 
 import qualified Data.Bool
@@ -9,7 +8,11 @@ import PrimitiveLayer.Vias
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
--- | PostgreSQL @bool@ type wrapper around Haskell 'Data.Bool.Bool'.
+-- | @bool@. Logical Boolean (true/false).
+--
+-- <https://www.postgresql.org/docs/17/datatype-boolean.html>
+--
+-- PostgreSQL @bool@ type wrapper around Haskell 'Data.Bool.Bool'.
 newtype Bool = Bool Data.Bool.Bool
   deriving newtype (Eq, Ord, Arbitrary)
   deriving (Show) via (ViaPrimitive Bool)

@@ -1,4 +1,3 @@
--- | @cidr@. IPv4 or IPv6 network address.
 module PrimitiveLayer.Primitives.Cidr (Cidr (ip, netmask)) where
 
 import Data.Bits
@@ -13,6 +12,12 @@ import PrimitiveLayer.Prelude
 import PrimitiveLayer.Primitives.Ip (Ip (..))
 import qualified PrimitiveLayer.Primitives.Ip as Ip
 import PrimitiveLayer.Vias
+
+-- | @cidr@. IPv4 or IPv6 network address.
+--
+-- <https://www.postgresql.org/docs/17/datatype-net-types.html#DATATYPE-CIDR>
+--
+-- PostgreSQL @cidr@ type for storing network addresses.
 import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder

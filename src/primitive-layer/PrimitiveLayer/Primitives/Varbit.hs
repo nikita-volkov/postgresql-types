@@ -1,4 +1,3 @@
--- | @varbit@. Variable-length bit string.
 module PrimitiveLayer.Primitives.Varbit (Varbit (..)) where
 
 import qualified Data.Bits as Bits
@@ -13,6 +12,12 @@ import PrimitiveLayer.Vias
 import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
+
+-- | @varbit@. Variable-length bit string.
+--
+-- <https://www.postgresql.org/docs/17/datatype-bit.html>
+--
+-- PostgreSQL @varbit@ type for storing variable-length bit strings.
 
 -- | PostgreSQL @varbit@ type representing a variable-length bit string.
 -- Similar to @bit@ but without a fixed maximum length.

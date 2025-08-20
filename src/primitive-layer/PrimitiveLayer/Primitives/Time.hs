@@ -1,4 +1,3 @@
--- | @time@. Time of day (without time zone).
 module PrimitiveLayer.Primitives.Time (Time) where
 
 import qualified Data.Time as Time
@@ -10,7 +9,11 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
--- | Time stored as microseconds since midnight (00:00:00)
+-- | @time@. Time of day (without time zone). Range: @00:00:00@ to @24:00:00@.
+--
+-- <https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-TIME>
+--
+-- Time stored as microseconds since midnight (00:00:00)
 newtype Time = Time Int64
   deriving newtype (Eq, Ord)
   deriving (Show) via (ViaPrimitive Time)

@@ -1,4 +1,3 @@
--- | @numeric@. Arbitrary precision decimal number. Up to 131072 digits before decimal point, up to 16383 digits after decimal point.
 module PrimitiveLayer.Primitives.Numeric (Numeric (..)) where
 
 import qualified Data.ByteString as ByteString
@@ -14,7 +13,11 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
--- | PostgreSQL @numeric@ type wrapper around 'Data.Scientific.Scientific'.
+-- | @numeric@. Arbitrary precision decimal number. Up to 131072 digits before decimal point, up to 16383 digits after decimal point.
+--
+-- <https://www.postgresql.org/docs/17/datatype-numeric.html#DATATYPE-NUMERIC-DECIMAL>
+--
+-- PostgreSQL @numeric@ type wrapper around 'Data.Scientific.Scientific'.
 data Numeric
   = ScientificNumeric Scientific.Scientific
   | NanNumeric

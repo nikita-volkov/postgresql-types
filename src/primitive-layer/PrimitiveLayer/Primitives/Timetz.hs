@@ -1,4 +1,3 @@
--- | @timetz@. Time of day with time zone.
 module PrimitiveLayer.Primitives.Timetz (Timetz) where
 
 import qualified Data.Time
@@ -13,14 +12,12 @@ import qualified Test.QuickCheck as QuickCheck
 import Text.Printf (printf)
 import qualified TextBuilder
 
--- | PostgreSQL @timetz@ type representing time with time zone.
+-- | @timetz@. Time of day with time zone. Low value: @00:00:00+1559@. High value: @24:00:00-1559@.
+--
+-- <https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-TIMEZONES>
+--
+-- PostgreSQL @timetz@ type representing time with time zone.
 -- Stored as microseconds since midnight and timezone offset in seconds.
---
--- Low value: @00:00:00+1559@
---
--- High value: @24:00:00-1559@
---
--- https://www.postgresql.org/docs/17/datatype-datetime.html
 data Timetz = Timetz
   { -- | Time as microseconds since midnight (00:00:00)
     time :: Time.TimetzTime,

@@ -1,4 +1,3 @@
--- | @interval@. Time span represented as microseconds.
 module PrimitiveLayer.Primitives.IntervalAsMicroseconds (IntervalAsMicroseconds) where
 
 import qualified Data.Time as Time
@@ -11,7 +10,10 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
--- |
+-- | @interval@. Time span represented as microseconds. Range: -178000000 years to 178000000 years.
+--
+-- <https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-INTERVAL-INPUT>
+--
 -- PostgreSQL @interval@ type normalized to amount of microseconds.
 --
 -- The standard PostgreSQL @interval@ representation ('Interval') has separate amounts of months, days and microseconds with all having individual signs.

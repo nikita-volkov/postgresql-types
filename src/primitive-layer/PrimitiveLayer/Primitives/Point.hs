@@ -1,4 +1,3 @@
--- | @point@. Geometric point in 2D plane.
 module PrimitiveLayer.Primitives.Point (Point (..)) where
 
 import Data.Bits
@@ -10,7 +9,11 @@ import PrimitiveLayer.Vias
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
--- | PostgreSQL @point@ type representing a 2D point with (x,y) coordinates.
+-- | @point@. Geometric point in 2D plane.
+--
+-- <https://www.postgresql.org/docs/17/datatype-geometric.html#DATATYPE-GEOMETRIC-POINTS>
+--
+-- PostgreSQL @point@ type representing a 2D point with (x,y) coordinates.
 -- Stored as two 64-bit floating point numbers (float8) in PostgreSQL.
 data Point = Point
   { pointX :: Double,

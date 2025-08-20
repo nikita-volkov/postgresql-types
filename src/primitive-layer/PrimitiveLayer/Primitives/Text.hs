@@ -1,4 +1,3 @@
--- | @text@. Variable-length character string.
 module PrimitiveLayer.Primitives.Text (Text) where
 
 import qualified Data.ByteString as ByteString
@@ -13,7 +12,11 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
--- | PostgreSQL @text@ type wrapper around Haskell 'Data.Text.Text'.
+-- | @text@. Variable-length character string.
+--
+-- <https://www.postgresql.org/docs/17/datatype-character.html>
+--
+-- PostgreSQL @text@ type wrapper around Haskell 'Data.Text.Text'.
 -- Note: PostgreSQL doesn't support null characters in text fields.
 newtype Text = Text Text.Text
   deriving newtype (Eq, Ord)

@@ -1,4 +1,3 @@
--- | @json@. Textual JSON data.
 module PrimitiveLayer.Primitives.Json (Json) where
 
 import qualified Data.Aeson as Aeson
@@ -15,7 +14,11 @@ import PrimitiveLayer.Vias
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
--- | PostgreSQL @json@ type wrapper around Aeson 'Value'.
+-- | @json@. Textual JSON data.
+--
+-- <https://www.postgresql.org/docs/17/datatype-json.html>
+--
+-- PostgreSQL @json@ type wrapper around Aeson 'Value'.
 --
 -- The json type stores JSON data as text, unlike jsonb which stores
 -- it in a binary format. This means json preserves the exact textual

@@ -1,4 +1,3 @@
--- | @timestamptz@. Date and time with time zone.
 module PrimitiveLayer.Primitives.Timestamptz (Timestamptz) where
 
 import qualified Data.Time as Time
@@ -10,7 +9,11 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
--- | PostgreSQL @timestamptz@ type wrapper around microseconds since PostgreSQL epoch.
+-- | @timestamptz@. Date and time with time zone. Range: 4713 BC to 294276 AD.
+--
+-- <https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-TIMEZONES>
+--
+-- PostgreSQL @timestamptz@ type wrapper around microseconds since PostgreSQL epoch.
 newtype Timestamptz = Timestamptz Int64
   deriving newtype (Eq, Ord)
   deriving (Show) via (ViaPrimitive Timestamptz)

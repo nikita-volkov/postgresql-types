@@ -1,4 +1,3 @@
--- | @varchar@. Variable-length character string with limit.
 module PrimitiveLayer.Primitives.Varchar (Varchar (..)) where
 
 import qualified Data.ByteString as ByteString
@@ -12,6 +11,12 @@ import PrimitiveLayer.Vias
 import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
+
+-- | @varchar@. Variable-length character string with limit.
+--
+-- <https://www.postgresql.org/docs/17/datatype-character.html>
+--
+-- PostgreSQL @varchar@ type wrapper around Haskell 'Data.Text.Text'.
 
 newtype Varchar = Varchar Text.Text
   deriving newtype (Eq, Ord)

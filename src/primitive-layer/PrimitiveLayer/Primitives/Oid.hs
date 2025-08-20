@@ -1,4 +1,3 @@
--- | @oid@. Object identifier.
 module PrimitiveLayer.Primitives.Oid (Oid (..)) where
 
 import qualified PeekyBlinders
@@ -8,7 +7,11 @@ import PrimitiveLayer.Vias
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
--- | PostgreSQL @oid@ type wrapper around 'Word32'.
+-- | @oid@. Object identifier. Range: 0 to 4294967295.
+--
+-- <https://www.postgresql.org/docs/17/datatype-oid.html>
+--
+-- PostgreSQL @oid@ type wrapper around 'Word32'.
 newtype Oid = Oid Word32
   deriving newtype (Eq, Ord, Arbitrary)
   deriving (Show) via (ViaPrimitive Oid)

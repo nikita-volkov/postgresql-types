@@ -1,4 +1,3 @@
--- | @lseg@. Line segment in 2D plane.
 module PrimitiveLayer.Primitives.Lseg (Lseg (..)) where
 
 import Data.Bits
@@ -10,7 +9,11 @@ import PrimitiveLayer.Vias
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
--- | PostgreSQL @lseg@ type representing a line segment in 2D space.
+-- | @lseg@. Line segment in 2D plane.
+--
+-- <https://www.postgresql.org/docs/17/datatype-geometric.html#DATATYPE-LSEG>
+--
+-- PostgreSQL @lseg@ type representing a line segment in 2D space.
 -- The line segment is defined by two endpoints, each with (x,y) coordinates.
 -- Stored as four 64-bit floating point numbers: (x1, y1, x2, y2).
 data Lseg = Lseg

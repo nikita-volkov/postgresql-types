@@ -1,4 +1,3 @@
--- | @money@. Currency amount.
 module PrimitiveLayer.Primitives.Money (Money (..)) where
 
 import qualified PeekyBlinders
@@ -8,7 +7,11 @@ import PrimitiveLayer.Vias
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
--- | PostgreSQL @money@ type wrapper around 'Int64'.
+-- | @money@. Currency amount. Range: -92233720368547758.08 to +92233720368547758.07.
+--
+-- <https://www.postgresql.org/docs/17/datatype-money.html>
+--
+-- PostgreSQL @money@ type wrapper around 'Int64'.
 --
 -- The money type stores currency amounts as a 64-bit signed integer.
 -- The scale (number of decimal places) is determined by the database's

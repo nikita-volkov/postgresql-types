@@ -1,4 +1,3 @@
--- | @float8@. 8-byte floating-point number. 15 decimal digits precision.
 module PrimitiveLayer.Primitives.Float8 (Float8 (..)) where
 
 import Data.Bits
@@ -10,7 +9,11 @@ import PrimitiveLayer.Vias
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
--- | PostgreSQL @float8@ type wrapper around 'Double'.
+-- | @float8@. 8-byte floating-point number. 15 decimal digits precision.
+--
+-- <https://www.postgresql.org/docs/17/datatype-numeric.html#DATATYPE-FLOAT>
+--
+-- PostgreSQL @float8@ type wrapper around 'Double'.
 newtype Float8 = Float8 Double
   deriving newtype (Eq, Ord, Arbitrary)
   deriving (Show) via (ViaPrimitive Float8)

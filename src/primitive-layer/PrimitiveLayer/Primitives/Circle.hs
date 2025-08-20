@@ -1,4 +1,3 @@
--- | @circle@. Circle in 2D plane.
 module PrimitiveLayer.Primitives.Circle (Circle (..)) where
 
 import Data.Bits
@@ -10,7 +9,11 @@ import PrimitiveLayer.Vias
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
--- | PostgreSQL @circle@ type representing a circle with center coordinates and radius.
+-- | @circle@. Circle in 2D plane.
+--
+-- <https://www.postgresql.org/docs/17/datatype-geometric.html#DATATYPE-CIRCLE>
+--
+-- PostgreSQL @circle@ type representing a circle with center coordinates and radius.
 -- Stored as three 64-bit floating point numbers (x,y,radius) in PostgreSQL.
 data Circle = Circle
   { -- | Center x coordinate

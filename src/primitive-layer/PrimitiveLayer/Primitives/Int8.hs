@@ -1,4 +1,3 @@
--- | @int8@. 8-byte signed integer. Range: -9223372036854775808 to +9223372036854775807.
 module PrimitiveLayer.Primitives.Int8 (Int8 (..)) where
 
 import qualified PeekyBlinders
@@ -8,7 +7,11 @@ import PrimitiveLayer.Vias
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
--- | PostgreSQL @int8@ type wrapper around 'Int64'.
+-- | @int8@. 8-byte signed integer. Range: -9223372036854775808 to +9223372036854775807.
+--
+-- <https://www.postgresql.org/docs/17/datatype-numeric.html#DATATYPE-INT>
+--
+-- PostgreSQL @int8@ type wrapper around 'Int64'.
 newtype Int8 = Int8 Int64
   deriving newtype (Eq, Ord, Arbitrary)
   deriving (Show) via (ViaPrimitive Int8)

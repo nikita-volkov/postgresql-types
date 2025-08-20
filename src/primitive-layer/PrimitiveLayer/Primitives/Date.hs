@@ -1,4 +1,3 @@
--- | @date@. Calendar date (year, month, day).
 module PrimitiveLayer.Primitives.Date (Date) where
 
 import qualified Data.Time as Time
@@ -10,7 +9,11 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
--- | @date@ type.
+-- | @date@. Calendar date (year, month, day). Range: 4713 BC to 5874897 AD.
+--
+-- <https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-DATE>
+--
+-- @date@ type.
 newtype Date
   = -- | Days since PostgreSQL epoch (2000-01-01).
     Date Int32

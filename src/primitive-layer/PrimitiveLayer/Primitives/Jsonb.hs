@@ -1,4 +1,3 @@
--- | @jsonb@. Binary JSON data, decomposed.
 module PrimitiveLayer.Primitives.Jsonb (Jsonb) where
 
 import qualified Data.Aeson as Aeson
@@ -14,6 +13,12 @@ import PrimitiveLayer.Prelude
 import PrimitiveLayer.Vias
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
+
+-- | @jsonb@. Binary JSON data, decomposed.
+--
+-- <https://www.postgresql.org/docs/17/datatype-json.html>
+--
+-- PostgreSQL @jsonb@ type wrapper around Aeson 'Value'.
 
 newtype Jsonb = Jsonb Aeson.Value
   deriving newtype (Eq, Ord)

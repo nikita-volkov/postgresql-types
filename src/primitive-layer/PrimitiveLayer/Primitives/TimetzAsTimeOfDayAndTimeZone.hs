@@ -1,4 +1,3 @@
--- | @timetz@. Time of day with time zone, represented as separate time and timezone components.
 module PrimitiveLayer.Primitives.TimetzAsTimeOfDayAndTimeZone (TimetzAsTimeOfDayAndTimeZone) where
 
 import qualified Data.Time as Time
@@ -12,6 +11,12 @@ import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 import qualified TimeExtras.TimeOfDay as TimeOfDay
 import qualified TimeExtras.TimeZone as TimeZone
+
+-- | @timetz@. Time of day with time zone, represented as separate time and timezone components. Low value: @00:00:00+1559@. High value: @24:00:00-1559@.
+--
+-- <https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-TIMEZONES>
+--
+-- PostgreSQL @timetz@ type as separate time and timezone components.
 
 data TimetzAsTimeOfDayAndTimeZone
   = TimetzAsTimeOfDayAndTimeZone

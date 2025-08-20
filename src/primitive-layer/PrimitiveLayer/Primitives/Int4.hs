@@ -1,4 +1,3 @@
--- | @int4@. 4-byte signed integer. Range: -2147483648 to +2147483647.
 module PrimitiveLayer.Primitives.Int4 (Int4 (..)) where
 
 import qualified PeekyBlinders
@@ -8,7 +7,11 @@ import PrimitiveLayer.Vias
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
--- | PostgreSQL @int4@ type wrapper around 'Int32'.
+-- | @int4@. 4-byte signed integer. Range: -2147483648 to +2147483647.
+--
+-- <https://www.postgresql.org/docs/17/datatype-numeric.html#DATATYPE-INT>
+--
+-- PostgreSQL @int4@ type wrapper around 'Int32'.
 newtype Int4 = Int4 Int32
   deriving newtype (Eq, Ord, Arbitrary)
   deriving (Show) via (ViaPrimitive Int4)

@@ -1,4 +1,3 @@
--- | @macaddr@. MAC (Media Access Control) address.
 module PrimitiveLayer.Primitives.Macaddr where
 
 import qualified PeekyBlinders
@@ -8,7 +7,11 @@ import PrimitiveLayer.Vias
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
--- | A MAC address type.
+-- | @macaddr@. MAC (Media Access Control) address.
+--
+-- <https://www.postgresql.org/docs/17/datatype-net-types.html#DATATYPE-MACADDR>
+--
+-- A MAC address type.
 -- Represents a 6-byte MAC address, typically used in networking.
 -- The format is six groups of two hexadecimal digits, separated by colons.
 -- Example: "01:23:45:67:89:ab"

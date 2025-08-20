@@ -1,4 +1,3 @@
--- | @interval@. Time span.
 module PrimitiveLayer.Primitives.Interval (Interval) where
 
 import qualified Data.Time as Time
@@ -10,7 +9,11 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
--- | PostgreSQL @interval@ type with separate components for months, days, and microseconds.
+-- | @interval@. Time span. Range: -178000000 years to 178000000 years.
+--
+-- <https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-INTERVAL-INPUT>
+--
+-- PostgreSQL @interval@ type with separate components for months, days, and microseconds.
 data Interval = Interval
   { months :: Int32,
     days :: Int32,
