@@ -57,8 +57,8 @@ The library follows a layered architecture:
 ## Key Dependencies and Documentation
 
 ### References
-- [PostgreSQL docs](https://www.postgresql.org/docs/17/index.html)
-   - [PostgreSQL types](https://www.postgresql.org/docs/17/datatype.html)
+- [PostgreSQL types docs](https://www.postgresql.org/docs/17/datatype.html) - contains a list of standard types and documentation on them
+- [libpqtypes library source code](https://github.com/pgagarinov/libpqtypes) - contains codecs for various types implemented in C
 - [PostgreSQL source](https://github.com/postgres/postgres)
    - Pay attention to [backend](https://github.com/postgres/postgres/tree/master/src/backend). It contains the code dealing with encoding of types and their structure.
 - ["peeky-blinders" source code](https://github.com/nikita-volkov/peeky-blinders)
