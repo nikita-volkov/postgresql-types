@@ -102,3 +102,8 @@ testIs projection primitive =
         traverse_
           (uncurry prop)
           (LawfulConversions.isProperties projection primitive)
+
+      describe "Mirror Is" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isProperties primitive projection)
