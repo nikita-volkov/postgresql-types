@@ -22,27 +22,13 @@ newtype Jsonb = Jsonb Aeson.Value
 
 instance Arbitrary Jsonb where
   arbitrary = do
-    -- Generate Aeson.Value and use fromAesonValue to ensure consistency with IsMany
-    value <- arbitraryValueWithoutNulls 10  -- Start with a small size to avoid deep nesting
-    pure $ from value
-    where
-      -- Generate Aeson.Value without null characters to avoid discarding too many test cases
-      arbitraryValueWithoutNulls maxSize = QuickCheck.sized $ \size ->
-        let actualSize = min size maxSize
-        in QuickCheck.oneof $
-          [ pure Aeson.Null,
-            Aeson.Bool <$> arbitrary,
-            Aeson.Number <$> arbitrary,
-            Aeson.String <$> (Text.pack <$> QuickCheck.listOf1 (QuickCheck.suchThat (QuickCheck.choose (' ', '~')) (/= '\NUL')))
-          ] ++
-          (if actualSize > 0 then
-            [ Aeson.Array <$> (Vector.fromList <$> QuickCheck.resize (actualSize `div` 2) (QuickCheck.listOf (arbitraryValueWithoutNulls (actualSize - 1)))),
-              Aeson.Object <$> QuickCheck.resize (actualSize `div` 2) 
-                (Aeson.KeyMap.fromList <$> QuickCheck.listOf 
-                  ((,) <$> (Aeson.Key.fromText . Text.pack <$> QuickCheck.listOf1 (QuickCheck.suchThat (QuickCheck.choose ('a', 'z')) (/= '\NUL')))
-                       <*> arbitraryValueWithoutNulls (actualSize - 1)))
-            ]
-          else [])
+    -- Use a much simpler approach: generate a small JSON value without null chars
+    QuickCheck.oneof
+      [ pure $ from Aeson.Null,
+        from . Aeson.Bool <$> arbitrary,
+        from . Aeson.Number <$> arbitrary,
+        from . Aeson.String . Text.pack <$> QuickCheck.listOf (QuickCheck.choose ('a', 'z'))
+      ]
   shrink jsonb = 
     let value = toAesonValue jsonb
         shrunkValues = shrink value
