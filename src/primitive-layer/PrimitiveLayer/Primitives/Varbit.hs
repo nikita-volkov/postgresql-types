@@ -2,7 +2,7 @@
 -- Represents variable-length bit strings in PostgreSQL.
 --
 -- This module provides conversions between PostgreSQL @varbit@ and:
--- * Haskell lists of 'Bool' - for general purpose use  
+-- * Haskell lists of 'Bool' - for general purpose use
 -- * Unboxed 'Data.Vector.Unboxed.Vector' 'Bool' - for high-performance operations
 module PrimitiveLayer.Primitives.Varbit (Varbit) where
 

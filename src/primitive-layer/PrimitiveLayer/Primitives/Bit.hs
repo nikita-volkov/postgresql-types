@@ -141,7 +141,7 @@ instance Is [Bool] Bit
 instance Is Bit [Bool]
 
 -- | Convert from an unboxed vector of Bool to a Bit.
--- 
+--
 -- This provides an efficient conversion from 'Data.Vector.Unboxed.Vector' 'Bool'
 -- to PostgreSQL @bit@ type. The boolean vector is packed into bytes with proper
 -- padding to align to byte boundaries.
