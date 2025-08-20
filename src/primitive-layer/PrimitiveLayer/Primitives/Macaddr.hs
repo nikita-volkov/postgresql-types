@@ -24,21 +24,17 @@ data Macaddr
 
 instance Arbitrary Macaddr where
   arbitrary = do
-    a <- arbitrary
-    b <- arbitrary
-    c <- arbitrary
-    d <- arbitrary
-    e <- arbitrary
-    f <- arbitrary
-    pure (Macaddr a b c d e f)
+    a <- arbitrary @Word8
+    b <- arbitrary @Word8
+    c <- arbitrary @Word8
+    d <- arbitrary @Word8
+    e <- arbitrary @Word8
+    f <- arbitrary @Word8
+    -- Use from to ensure consistency with IsMany instance
+    pure $ from (a, b, c, d, e, f)
   shrink (Macaddr a b c d e f) =
-    [ Macaddr a' b' c' d' e' f'
-    | a' <- shrink a,
-      b' <- shrink b,
-      c' <- shrink c,
-      d' <- shrink d,
-      e' <- shrink e,
-      f' <- shrink f
+    [ from (a', b', c', d', e', f')
+    | (a', b', c', d', e', f') <- shrink (a, b, c, d, e, f)
     ]
 
 instance Primitive Macaddr where
@@ -75,3 +71,30 @@ instance Primitive Macaddr where
         TextBuilder.hexadecimal e,
         TextBuilder.hexadecimal f
       ]
+
+-- | Direct conversion from 6-tuple of Word8 to Macaddr.
+-- This is always safe since both represent the same MAC address.
+instance IsSome (Word8, Word8, Word8, Word8, Word8, Word8) Macaddr where
+  to (Macaddr a b c d e f) = (a, b, c, d, e, f)
+  maybeFrom (a, b, c, d, e, f) = Just (Macaddr a b c d e f)
+
+-- | Direct conversion from Macaddr to 6-tuple of Word8.
+-- This is always safe since both represent the same MAC address.
+instance IsSome Macaddr (Word8, Word8, Word8, Word8, Word8, Word8) where
+  to (a, b, c, d, e, f) = Macaddr a b c d e f
+  maybeFrom (Macaddr a b c d e f) = Just (a, b, c, d, e, f)
+
+-- | Direct conversion from 6-tuple of Word8 to Macaddr.
+-- This is a total conversion as it always succeeds.
+instance IsMany (Word8, Word8, Word8, Word8, Word8, Word8) Macaddr where
+  from (a, b, c, d, e, f) = Macaddr a b c d e f
+
+-- | Direct conversion from Macaddr to 6-tuple of Word8.
+-- This is a total conversion as it always succeeds.
+instance IsMany Macaddr (Word8, Word8, Word8, Word8, Word8, Word8) where
+  from (Macaddr a b c d e f) = (a, b, c, d, e, f)
+
+-- | Bidirectional conversion between 6-tuple of Word8 and Macaddr.
+instance Is (Word8, Word8, Word8, Word8, Word8, Word8) Macaddr
+
+instance Is Macaddr (Word8, Word8, Word8, Word8, Word8, Word8)

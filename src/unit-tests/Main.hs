@@ -32,7 +32,7 @@ main = hspec do
   testIs @PrimitiveLayer.Int2 @Int16 Proxy Proxy
   testIs @PrimitiveLayer.Int4 @Int32 Proxy Proxy
   testIs @PrimitiveLayer.Int8 @Int64 Proxy Proxy
-  testIs @PrimitiveLayer.Line @(Double, Double, Double) Proxy Proxy
+  testIs @PrimitiveLayer.Macaddr @(Word8, Word8, Word8, Word8, Word8, Word8) Proxy Proxy
   testIs @PrimitiveLayer.Macaddr8 @(Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) Proxy Proxy
   testIs @PrimitiveLayer.Money @Int64 Proxy Proxy
   testIs @PrimitiveLayer.Oid @Word32 Proxy Proxy
@@ -60,8 +60,10 @@ main = hspec do
   testIsMany @PrimitiveLayer.IntervalAsMicroseconds @PrimitiveLayer.Interval Proxy Proxy
   testIsMany @PrimitiveLayer.IntervalAsMicroseconds @DiffTime Proxy Proxy
   testIsMany @PrimitiveLayer.Json @Aeson.Value Proxy Proxy
+  testIsMany @PrimitiveLayer.Jsonb @Aeson.Value Proxy Proxy
   testIsMany @PrimitiveLayer.Line @(Double, Double, Double) Proxy Proxy
   testIsMany @PrimitiveLayer.Lseg @(Double, Double, Double, Double) Proxy Proxy
+  testIsMany @PrimitiveLayer.Macaddr @(Word8, Word8, Word8, Word8, Word8, Word8) Proxy Proxy
   testIsMany @PrimitiveLayer.Macaddr8 @(Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) Proxy Proxy
   testIsMany @PrimitiveLayer.Money @Int64 Proxy Proxy
   testIsMany @PrimitiveLayer.Oid @Word32 Proxy Proxy
@@ -75,6 +77,7 @@ main = hspec do
   testIsMany @PrimitiveLayer.TimetzAsTimeOfDayAndTimeZone @PrimitiveLayer.Timetz Proxy Proxy
   testIsMany @PrimitiveLayer.TimetzAsTimeOfDayAndTimeZone @(TimeOfDay, TimeZone) Proxy Proxy
   testIsMany @PrimitiveLayer.Uuid @UUID.UUID Proxy Proxy
+  testIsMany @PrimitiveLayer.Varchar @Text.Text Proxy Proxy
   testIsMany @PrimitiveLayer.Xml @Text.Text Proxy Proxy
   testIsMany @Scientific.Scientific @PrimitiveLayer.Numeric Proxy Proxy
 

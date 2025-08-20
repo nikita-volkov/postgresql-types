@@ -17,13 +17,15 @@ newtype Varchar = Varchar Text.Text
   deriving (Show) via (ViaPrimitive Varchar)
 
 instance Arbitrary Varchar where
-  arbitrary =
-    Varchar <$> do
-      charList <- QuickCheck.listOf do
-        QuickCheck.suchThat arbitrary (\char -> char /= '\NUL')
-      pure (Text.pack charList)
+  arbitrary = do
+    charList <- QuickCheck.listOf do
+      QuickCheck.suchThat arbitrary (\char -> char /= '\NUL')
+    -- Use from to ensure consistency with IsMany instance
+    pure $ from (Text.pack charList)
   shrink (Varchar base) =
-    Varchar . Text.pack <$> shrink (Text.unpack base)
+    [ from (Text.pack chars)
+    | chars <- shrink (Text.unpack base)
+    ]
 
 instance Primitive Varchar where
   typeName = Tagged "varchar"

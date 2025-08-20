@@ -24,17 +24,15 @@ data Line = Line
 
 instance Arbitrary Line where
   arbitrary = do
-    a <- arbitrary
-    b <- arbitrary
-    c <- arbitrary
-    -- Ensure that at least one of A or B is non-zero for a valid line
-    if a == 0 && b == 0
-      then pure (Line 1 0 c) -- Default to vertical line x = -c
-      else pure (Line a b c)
+    a <- arbitrary @Double
+    b <- arbitrary @Double
+    c <- arbitrary @Double
+    -- Generate valid line equations where at least one of A or B is non-zero
+    -- Use the same logic as IsMany to ensure consistency
+    pure $ from (a, b, c)
   shrink (Line a b c) =
-    [ Line a' b' c'
-    | (a', b', c') <- shrink (a, b, c),
-      not (a' == 0 && b' == 0) -- Ensure shrunk values are also valid
+    [ from (a', b', c')
+    | (a', b', c') <- shrink (a, b, c)
     ]
 
 instance Primitive Line where
@@ -62,10 +60,13 @@ instance Primitive Line where
       <> "}"
 
 -- | Convert from a tuple of three doubles to a Line.
--- This is always safe since both represent the same data.
+-- Validates that at least one of A or B is non-zero for a valid line equation.
 instance IsSome (Double, Double, Double) Line where
   to (Line a b c) = (a, b, c)
-  maybeFrom (a, b, c) = Just (Line a b c)
+  maybeFrom (a, b, c) =
+    if a == 0 && b == 0
+      then Nothing  -- Invalid line equation: both A and B cannot be zero
+      else Just (Line a b c)
 
 -- | Convert from a Line to a tuple of three doubles.
 -- This is always safe since both represent the same data.
@@ -74,16 +75,14 @@ instance IsSome Line (Double, Double, Double) where
   maybeFrom (Line a b c) = Just (a, b, c)
 
 -- | Direct conversion from tuple to Line.
--- This is a total conversion as it always succeeds.
+-- Ensures that at least one of A or B is non-zero for a valid line equation.
 instance IsMany (Double, Double, Double) Line where
-  from (a, b, c) = Line a b c
+  from (a, b, c) =
+    if a == 0 && b == 0
+      then Line 1 0 c  -- Default to vertical line x = -c when invalid input
+      else Line a b c
 
 -- | Direct conversion from Line to tuple.
 -- This is a total conversion as it always succeeds.
 instance IsMany Line (Double, Double, Double) where
   from (Line a b c) = (a, b, c)
-
--- | Bidirectional conversion between tuple and Line.
-instance Is (Double, Double, Double) Line
-
-instance Is Line (Double, Double, Double)

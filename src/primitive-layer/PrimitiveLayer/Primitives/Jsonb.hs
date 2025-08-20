@@ -5,6 +5,7 @@ import qualified Data.Aeson.Key as Aeson.Key
 import qualified Data.Aeson.KeyMap as Aeson.KeyMap
 import qualified Data.Aeson.Text as Aeson.Text
 import qualified Data.Text as Text
+import qualified Data.Vector as Vector
 import qualified Jsonifier
 import qualified JsonifierAeson
 import qualified PeekyBlinders
@@ -12,6 +13,7 @@ import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import PrimitiveLayer.Vias
 import qualified PtrPoker.Write as Write
+import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
 newtype Jsonb = Jsonb Aeson.Value
@@ -19,8 +21,32 @@ newtype Jsonb = Jsonb Aeson.Value
   deriving (Show) via (ViaPrimitive Jsonb)
 
 instance Arbitrary Jsonb where
-  arbitrary = fromAesonValue <$> arbitrary
-  shrink = fmap Jsonb . shrink . toAesonValue
+  arbitrary = do
+    -- Generate Aeson.Value and use fromAesonValue to ensure consistency with IsMany
+    value <- arbitraryValueWithoutNulls 10  -- Start with a small size to avoid deep nesting
+    pure $ from value
+    where
+      -- Generate Aeson.Value without null characters to avoid discarding too many test cases
+      arbitraryValueWithoutNulls maxSize = QuickCheck.sized $ \size ->
+        let actualSize = min size maxSize
+        in QuickCheck.oneof $
+          [ pure Aeson.Null,
+            Aeson.Bool <$> arbitrary,
+            Aeson.Number <$> arbitrary,
+            Aeson.String <$> (Text.pack <$> QuickCheck.listOf1 (QuickCheck.suchThat (QuickCheck.choose (' ', '~')) (/= '\NUL')))
+          ] ++
+          (if actualSize > 0 then
+            [ Aeson.Array <$> (Vector.fromList <$> QuickCheck.resize (actualSize `div` 2) (QuickCheck.listOf (arbitraryValueWithoutNulls (actualSize - 1)))),
+              Aeson.Object <$> QuickCheck.resize (actualSize `div` 2) 
+                (Aeson.KeyMap.fromList <$> QuickCheck.listOf 
+                  ((,) <$> (Aeson.Key.fromText . Text.pack <$> QuickCheck.listOf1 (QuickCheck.suchThat (QuickCheck.choose ('a', 'z')) (/= '\NUL')))
+                       <*> arbitraryValueWithoutNulls (actualSize - 1)))
+            ]
+          else [])
+  shrink jsonb = 
+    let value = toAesonValue jsonb
+        shrunkValues = shrink value
+    in map from shrunkValues
 
 instance Primitive Jsonb where
   typeName = Tagged "jsonb"

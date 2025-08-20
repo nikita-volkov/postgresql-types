@@ -29,14 +29,14 @@ data Box = Box
 
 instance Arbitrary Box where
   arbitrary = do
-    x1 <- arbitrary
-    y1 <- arbitrary
-    x2 <- arbitrary
-    y2 <- arbitrary
-    -- Normalize the box so x1 <= x2 and y1 <= y2
-    pure $ Box (min x1 x2) (min y1 y2) (max x1 x2) (max y1 y2)
+    x1 <- arbitrary @Double
+    y1 <- arbitrary @Double
+    x2 <- arbitrary @Double
+    y2 <- arbitrary @Double
+    -- Use from to ensure consistency with IsMany instance
+    pure $ from (x1, y1, x2, y2)
   shrink (Box x1 y1 x2 y2) =
-    [ Box (min x1' x2') (min y1' y2') (max x1' x2') (max y1' y2')
+    [ from (x1', y1', x2', y2')
     | (x1', y1', x2', y2') <- shrink (x1, y1, x2, y2)
     ]
 

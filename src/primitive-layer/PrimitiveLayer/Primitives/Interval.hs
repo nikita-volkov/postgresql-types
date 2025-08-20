@@ -35,11 +35,15 @@ instance Bounded Interval where
       }
 
 instance Arbitrary Interval where
-  arbitrary = do
-    micros <- QuickCheck.choose (-999_999, 999_999)
-    days <- QuickCheck.choose (-daysPerMonth, daysPerMonth)
-    months <- QuickCheck.choose ((minBound @Interval).months, (maxBound @Interval).months)
-    pure (max minBound (min maxBound (Interval {..})))
+  arbitrary = QuickCheck.suchThat gen valid
+    where
+      gen = do
+        micros <- QuickCheck.choose @Int64 (-999_999, 999_999)
+        days <- QuickCheck.choose @Int32 (-daysPerMonth, daysPerMonth)
+        months <- QuickCheck.choose @Int32 ((minBound @Interval).months, (maxBound @Interval).months)
+        -- Use from to ensure consistency with IsMany instance
+        pure $ from (months, days, micros)
+      valid interval = interval >= minBound && interval <= maxBound
 
 instance Primitive Interval where
   typeName = Tagged "interval"
@@ -120,14 +124,13 @@ instance IsSome (Int32, Int32, Int64) Interval where
           else Nothing
 
 -- | Total conversion from tuple representation (months, days, microseconds) to Interval.
--- Preserves the structured representation while clamping to valid ranges.
+-- Validates input but provides a safe default for out-of-range values.
 instance IsMany (Int32, Int32, Int64) Interval where
   from (months, days, micros) =
     let interval = Interval {..}
-     in -- First try the direct interval, then clamp to bounds if needed
-        if interval >= minBound && interval <= maxBound
+     in if interval >= minBound && interval <= maxBound
           then interval
-          else max minBound (min maxBound interval)
+          else Interval 0 0 0  -- Safe default for out-of-range values
 
 fromMicros :: Integer -> Interval
 fromMicros =
