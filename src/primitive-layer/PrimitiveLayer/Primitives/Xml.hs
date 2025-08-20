@@ -8,8 +8,8 @@ import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import PrimitiveLayer.Via
 import qualified PtrPoker.Write as Write
+import Test.QuickCheck (Arbitrary (..), elements, listOf, oneof, resize)
 import qualified TextBuilder
-import Test.QuickCheck (Arbitrary(..), oneof, elements, listOf, resize)
 
 -- | PostgreSQL @xml@ type. XML data.
 --
@@ -36,23 +36,24 @@ instance Arbitrary Xml where
     pure (Xml document)
     where
       genValidXmlName = do
-        firstChar <- elements ['a'..'z']
-        rest <- listOf (elements (['a'..'z'] ++ ['A'..'Z'] ++ ['0'..'9'] ++ ['-', '_']))
+        firstChar <- elements ['a' .. 'z']
+        rest <- listOf (elements (['a' .. 'z'] ++ ['A' .. 'Z'] ++ ['0' .. '9'] ++ ['-', '_']))
         pure (Text.pack (firstChar : rest))
-      
-      arbitraryContent = oneof
-        [ XML.NodeContent <$> (XML.ContentText <$> genSafeText)
-        , XML.NodeElement <$> arbitraryElement
-        ]
-      
+
+      arbitraryContent =
+        oneof
+          [ XML.NodeContent <$> (XML.ContentText <$> genSafeText),
+            XML.NodeElement <$> arbitraryElement
+          ]
+
       arbitraryElement = do
         name <- XML.Name <$> genValidXmlName <*> pure Nothing <*> pure Nothing
         attrs <- pure []
         content <- resize 3 (listOf arbitraryContent) -- Limit recursion
         pure (XML.Element name attrs content)
-      
+
       genSafeText = Text.filter isValidXmlChar <$> arbitrary
-  
+
   shrink (Xml (XML.Document prologue root epilogue)) =
     [ Xml (XML.Document prologue' root' epilogue')
     | root' <- shrinkElement root,
@@ -88,27 +89,31 @@ renderXmlDocument :: XML.Document -> Text
 renderXmlDocument (XML.Document _prologue root _epilogue) = renderElement root
   where
     renderElement (XML.Element (XML.Name name _ _) attrs content) =
-      "<" <> name <> renderAttrs attrs <> ">" <> 
-      Text.concat (map renderNode content) <> 
-      "</" <> name <> ">"
-    
+      "<"
+        <> name
+        <> renderAttrs attrs
+        <> ">"
+        <> Text.concat (map renderNode content)
+        <> "</"
+        <> name
+        <> ">"
+
     renderAttrs [] = ""
     renderAttrs attrs = " " <> Text.intercalate " " (map renderAttr attrs)
-    
+
     renderAttr (XML.Name name _ _, value) = name <> "=\"" <> escapeAttrValue value <> "\""
-    
+
     renderNode (XML.NodeElement elem) = renderElement elem
     renderNode (XML.NodeContent (XML.ContentText text)) = escapeTextContent text
     renderNode (XML.NodeContent (XML.ContentEntity entity)) = "&" <> entity <> ";"
     renderNode (XML.NodeInstruction _) = "" -- Skip processing instructions for simplicity
     renderNode (XML.NodeComment _) = "" -- Skip comments for simplicity
-    
     escapeTextContent = Text.replace "&" "&amp;" . Text.replace "<" "&lt;" . Text.replace ">" "&gt;"
     escapeAttrValue = Text.replace "\"" "&quot;" . escapeTextContent
 
 -- | Helper function to parse Text into XML Document
 parseXmlDocument :: Text -> Either String XML.Document
-parseXmlDocument text = 
+parseXmlDocument text =
   case simpleParseXml text of
     Left err -> Left err
     Right doc -> Right doc
@@ -119,11 +124,11 @@ parseXmlDocument text =
       | Text.null (Text.strip input) = Left "Empty XML"
       | not ("<" `Text.isInfixOf` input && ">" `Text.isInfixOf` input) = Left "Not valid XML"
       -- For now, just accept any text that looks like XML and wrap it
-      | otherwise = 
+      | otherwise =
           let rootName = XML.Name "data" Nothing Nothing
               rootElement = XML.Element rootName [] [XML.NodeContent (XML.ContentText (Text.strip input))]
               document = XML.Document (XML.Prologue [] Nothing []) rootElement []
-          in Right document
+           in Right document
 
 instance Primitive Xml where
   typeName = Tagged "xml"
@@ -174,12 +179,12 @@ instance IsSome Xml Text where
 fromTextToXml :: Text -> Xml
 fromTextToXml text = case parseXmlDocument text of
   Right document -> Xml document
-  Left _ -> 
+  Left _ ->
     -- Fall back to wrapping in a simple element for invalid XML
     let rootName = XML.Name "content" Nothing Nothing
         rootElement = XML.Element rootName [] [XML.NodeContent (XML.ContentText text)]
         document = XML.Document (XML.Prologue [] Nothing []) rootElement []
-    in Xml document
+     in Xml document
 
 -- | Total conversion from 'Text' to Xml.
 -- Always succeeds by wrapping text in XML structure if needed.
