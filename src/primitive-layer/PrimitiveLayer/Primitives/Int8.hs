@@ -3,7 +3,7 @@ module PrimitiveLayer.Primitives.Int8 (Int8) where
 import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude hiding (Int8)
-import PrimitiveLayer.Vias
+import PrimitiveLayer.Via
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 

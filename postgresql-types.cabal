@@ -140,9 +140,9 @@ library primitive-layer
     PrimitiveLayer.Primitives.Varbit
     PrimitiveLayer.Primitives.Varchar
     PrimitiveLayer.Primitives.Xml
-    PrimitiveLayer.Vias
-    PrimitiveLayer.Vias.IsMany
-    PrimitiveLayer.Vias.Primitive
+    PrimitiveLayer.Via
+    PrimitiveLayer.Via.IsMany
+    PrimitiveLayer.Via.Primitive
 
   build-depends:
     QuickCheck >=2.14 && <3,

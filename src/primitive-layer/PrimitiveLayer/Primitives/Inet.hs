@@ -9,17 +9,16 @@ import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import PrimitiveLayer.Primitives.Ip (Ip (..))
 import qualified PrimitiveLayer.Primitives.Ip as Ip
-import PrimitiveLayer.Vias
+import PrimitiveLayer.Via
 import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
--- | @inet@. IPv4 or IPv6 host address.
+import qualified TextBuilder
+
+-- | @inet@. IPv4 or IPv6 host address network address in combination with netmask.
 --
--- PostgreSQL @inet@ type for storing IP addresses with optional netmask.
--- PostgreSQL @inet@ type representing IPv4 or IPv6 host addresses.
 -- Similar to @cidr@ but specifically for host addresses with optional subnet masks.
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-net-types.html#DATATYPE-INET)
-import qualified TextBuilder
 data Inet = Inet
   { -- | Host address
     ip :: Ip,

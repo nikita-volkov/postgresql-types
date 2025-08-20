@@ -4,7 +4,7 @@ import qualified Data.Time as Time
 import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
-import PrimitiveLayer.Vias
+import PrimitiveLayer.Via
 import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
@@ -19,13 +19,6 @@ instance Arbitrary TimetzTime where
 instance Bounded TimetzTime where
   minBound = TimetzTime 0
   maxBound = TimetzTime 86_400_000_000
-
-instance IsSome Time.TimeOfDay TimetzTime where
-  to = toTimeOfDay
-  maybeFrom = compileFromTimeOfDay
-
-instance IsMany Time.TimeOfDay TimetzTime where
-  from = normalizeFromTimeOfDay
 
 toMicroseconds :: TimetzTime -> Int64
 toMicroseconds (TimetzTime microseconds) = microseconds
