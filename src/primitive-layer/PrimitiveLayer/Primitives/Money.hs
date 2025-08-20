@@ -7,15 +7,15 @@ import PrimitiveLayer.Via
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
--- | @money@. Currency amount. Range: @-92233720368547758.08@ to @+92233720368547758.07@.
---
--- PostgreSQL @money@ type wrapper around 'Int64'.
+-- | PostgreSQL @money@ type. Currency amount.
 --
 -- The money type stores currency amounts as a 64-bit signed integer.
 -- The scale (number of decimal places) is determined by the database's
 -- currency locale settings, typically @2@ decimal places for most currencies.
 --
--- Note: The textual representation includes a currency symbol (e.g., @$1.23@).
+-- Range: @-92233720368547758.08@ to @+92233720368547758.07@.
+--
+-- Note: The textual representation includes a currency symbol (e.g., @$1.23@) and currently does not support localization.
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-money.html)
 newtype Money = Money Int64

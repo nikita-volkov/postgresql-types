@@ -12,10 +12,7 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
--- | @text@. Variable-length character string.
---
--- PostgreSQL @text@ type wrapper around Haskell 'Data.Text.Text'.
--- Note: PostgreSQL doesn't support null characters in text fields.
+-- | PostgreSQL @text@ type. Variable-length character string with no null-characters.
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-character.html)
 newtype Text = Text Text.Text

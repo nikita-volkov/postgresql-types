@@ -8,9 +8,7 @@ import PrimitiveLayer.Via
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
--- | @bool@. Logical Boolean (@true@/@false@).
---
--- PostgreSQL @bool@ type wrapper around Haskell 'Data.Bool.Bool'.
+-- | PostgreSQL @bool@ type. Logical Boolean (@true@/@false@).
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-boolean.html)
 newtype Bool = Bool Data.Bool.Bool

@@ -9,11 +9,9 @@ import PrimitiveLayer.Via
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
--- | @xml@. XML data.
+-- | PostgreSQL @xml@ type. XML data.
 --
--- PostgreSQL @xml@ type wrapper around 'Text'.
 -- Represents XML data stored as text in PostgreSQL.
--- Uses xml-types for type safety but stores as Text for simplicity.
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-xml.html)
 newtype Xml = Xml Text

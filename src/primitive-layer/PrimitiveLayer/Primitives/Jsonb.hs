@@ -14,9 +14,9 @@ import PrimitiveLayer.Via
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
--- | @jsonb@. Binary JSON data, decomposed.
+-- | PostgreSQL @jsonb@ type. Binary JSON data.
 --
--- PostgreSQL @jsonb@ type wrapper around Aeson 'Value'.
+-- A more efficient representation than @json@, allowing for faster processing and smaller storage size.
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-json.html)
 newtype Jsonb = Jsonb Aeson.Value

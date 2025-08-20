@@ -20,10 +20,12 @@ import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
 -- | IP address type for representing IPv4 and IPv6 addresses.
+--
+-- This type does not have a 'Primitive' instance and serves as a component to the 'Inet' and 'Cidr' types.
 data Ip
-  = -- | IPv4 address stored as 32-bit big-endian word
+  = -- | IPv4 address stored as 32-bit big-endian word.
     V4Ip Word32
-  | -- | IPv6 address stored as four 32-bit big-endian words
+  | -- | IPv6 address stored as four 32-bit big-endian words.
     V6Ip Word32 Word32 Word32 Word32
   deriving stock (Eq, Ord, Show)
 

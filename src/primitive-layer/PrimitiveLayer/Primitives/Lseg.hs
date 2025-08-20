@@ -9,9 +9,8 @@ import PrimitiveLayer.Via
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
--- | @lseg@. Line segment in 2D plane.
+-- | PostgreSQL @lseg@ type. Line segment in 2D plane.
 --
--- PostgreSQL @lseg@ type representing a line segment in 2D space.
 -- The line segment is defined by two endpoints, each with (@x@,@y@) coordinates.
 -- Stored as four @64@-bit floating point numbers: (@x1@, @y1@, @x2@, @y2@).
 --

@@ -7,9 +7,8 @@ import PrimitiveLayer.Via
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
--- | @macaddr@. MAC (Media Access Control) address.
+-- | PostgreSQL @macaddr@ type. MAC (Media Access Control) address.
 --
--- A MAC address type.
 -- Represents a @6@-byte MAC address, typically used in networking.
 -- The format is six groups of two hexadecimal digits, separated by colons.
 -- Example: @01:23:45:67:89:ab@

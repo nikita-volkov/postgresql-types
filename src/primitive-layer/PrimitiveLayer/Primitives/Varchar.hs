@@ -12,9 +12,7 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
--- | @varchar@. Variable-length character string with limit.
---
--- PostgreSQL @varchar@ type wrapper around Haskell 'Data.Text.Text'.
+-- | PostgreSQL @varchar@ type. Variable-length character string with limit.
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-character.html)
 newtype Varchar = Varchar Text.Text

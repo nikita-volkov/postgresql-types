@@ -14,13 +14,12 @@ import PrimitiveLayer.Via
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
--- | @json@. Textual JSON data.
+-- | PostgreSQL @json@ type.
 --
--- PostgreSQL @json@ type wrapper around Aeson 'Value'.
---
--- The @json@ type stores JSON data as text, unlike @jsonb@ which stores
+-- Stores JSON data as text, unlike @jsonb@ which stores
 -- it in a binary format. This means @json@ preserves the exact textual
 -- representation including whitespace and key ordering.
+-- However it is less efficient for both storage and processing.
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-json.html)
 newtype Json = Json Aeson.Value

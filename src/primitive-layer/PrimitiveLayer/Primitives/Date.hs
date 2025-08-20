@@ -9,9 +9,9 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
--- | @date@. Calendar date (year, month, day). Range: @4713 BC@ to @5874897 AD@.
+-- | PostgreSQL @date@ type. Calendar date (year, month, day).
 --
--- @date@ type.
+-- Range: @4713 BC@ to @5874897 AD@.
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-DATE)
 newtype Date

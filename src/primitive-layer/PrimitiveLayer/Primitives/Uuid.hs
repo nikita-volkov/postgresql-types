@@ -8,9 +8,9 @@ import PrimitiveLayer.Via
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
--- | @uuid@. Universally unique identifier.
+-- | PostgreSQL @uuid@ type. Universally unique identifier.
 --
--- PostgreSQL @uuid@ type wrapper around 'Data.UUID.UUID'.
+-- Isomorphic to 'Data.UUID.UUID'.
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-uuid.html)
 newtype Uuid = Uuid Data.UUID.UUID

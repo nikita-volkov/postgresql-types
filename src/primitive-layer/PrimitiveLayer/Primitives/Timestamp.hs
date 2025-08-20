@@ -9,9 +9,11 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
--- | @timestamp@. Date and time (without time zone). Range: @4713 BC@ to @294276 AD@.
+-- | PostgreSQL @timestamp@ type. Date and time (without time zone).
 --
--- PostgreSQL @timestamp@ type wrapper around microseconds since PostgreSQL epoch.
+-- Gets stored as microseconds since PostgreSQL epoch.
+--
+-- Range: @4713 BC@ to @294276 AD@.
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-DATETIME)
 newtype Timestamp = Timestamp Int64

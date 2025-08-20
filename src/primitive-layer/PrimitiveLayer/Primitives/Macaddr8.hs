@@ -10,10 +10,8 @@ import qualified PtrPoker.Write as Write
 import Text.Printf (printf)
 import qualified TextBuilder
 
--- | @macaddr8@. MAC (Media Access Control) address (EUI-64 format).
+-- | PostgreSQL @macaddr8@ type. 8-byte MAC (Media Access Control) address in EUI-64 format.
 --
--- PostgreSQL @macaddr8@ type representing an @8@-byte MAC address.
--- This is used for EUI-64 format MAC addresses.
 -- The format is eight groups of two hexadecimal digits, separated by colons.
 -- Example: @01:23:45:67:89:ab:cd:ef@
 --

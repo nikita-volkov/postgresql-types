@@ -7,9 +7,9 @@ import PrimitiveLayer.Via
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
--- | @int4@. 4-byte signed integer. Range: @-2147483648@ to @+2147483647@.
+-- | PostgreSQL @int4@ type. 4-byte signed integer.
 --
--- PostgreSQL @int4@ type wrapper around 'Int32'.
+-- Range: @-2147483648@ to @+2147483647@.
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-numeric.html#DATATYPE-INT)
 newtype Int4 = Int4 Int32

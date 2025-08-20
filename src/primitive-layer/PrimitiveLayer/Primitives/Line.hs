@@ -9,9 +9,8 @@ import PrimitiveLayer.Via
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
--- | @line@. Infinite line in 2D plane.
+-- | PostgreSQL @line@ type. Infinite line in 2D plane.
 --
--- PostgreSQL @line@ type representing an infinite line in 2D space.
 -- The line is represented by the linear equation @Ax + By + C = 0@.
 -- Stored as three @64@-bit floating point numbers (@A@, @B@, @C@).
 --

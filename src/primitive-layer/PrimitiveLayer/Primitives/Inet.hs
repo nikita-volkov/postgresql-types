@@ -14,7 +14,7 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
--- | @inet@. IPv4 or IPv6 host address network address in combination with netmask.
+-- | PostgreSQL @inet@ type. IPv4 or IPv6 host address network address in combination with netmask.
 --
 -- Similar to @cidr@ but specifically for host addresses with optional subnet masks.
 --

@@ -9,9 +9,9 @@ import PrimitiveLayer.Via
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
--- | @box@. Rectangular box in 2D plane.
+-- | PostgreSQL @box@ type. Rectangular box in 2D plane.
 --
--- PostgreSQL @box@ type representing a rectangular box defined by two opposite corners.
+-- Rectangular box defined by two opposite corners.
 -- Stored as four @64@-bit floating point numbers (@x1@,@y1@),(@x2@,@y2@) in PostgreSQL.
 -- The box is normalized so that @x1 <= x2@ and @y1 <= y2@.
 --

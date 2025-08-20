@@ -7,9 +7,9 @@ import PrimitiveLayer.Via
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
--- | @int2@. 2-byte signed integer. Range: @-32768@ to @+32767@.
+-- | PostgreSQL @int2@ type. 2-byte signed integer.
 --
--- PostgreSQL @int2@ type wrapper around 'Int16'.
+-- Range: @-32768@ to @+32767@.
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-numeric.html#DATATYPE-INT)
 newtype Int2 = Int2 Int16

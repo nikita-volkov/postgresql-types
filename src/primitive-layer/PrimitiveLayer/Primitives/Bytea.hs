@@ -9,9 +9,7 @@ import PrimitiveLayer.Via
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
--- | @bytea@. Binary data ("byte array").
---
--- PostgreSQL @bytea@ type wrapper around 'ByteString'.
+-- | PostgreSQL @bytea@ type. Binary data ("byte array").
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-binary.html)
 newtype Bytea = Bytea ByteString

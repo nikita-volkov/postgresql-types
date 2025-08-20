@@ -12,10 +12,11 @@ import qualified Test.QuickCheck as QuickCheck
 import Text.Printf (printf)
 import qualified TextBuilder
 
--- | @timetz@. Time of day with time zone. Low value: @00:00:00+1559@. High value: @24:00:00-1559@.
+-- | PostgreSQL @timetz@ type. Time of day with time zone.
 --
--- PostgreSQL @timetz@ type representing time with time zone.
 -- Stored as microseconds since midnight and timezone offset in seconds.
+--
+-- Low value: @00:00:00+1559@. High value: @24:00:00-1559@.
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-TIMEZONES)
 data Timetz = Timetz

@@ -16,7 +16,7 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
--- | @cidr@. IPv4 or IPv6 network address in combination with netmask.
+-- | PostgreSQL @cidr@ type. IPv4 or IPv6 network address in combination with netmask.
 --
 -- Similar to @inet@ but specifically for network addresses in CIDR notation.
 --

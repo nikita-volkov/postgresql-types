@@ -7,9 +7,9 @@ import PrimitiveLayer.Via
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
--- | @int8@. 8-byte signed integer. Range: @-9223372036854775808@ to @+9223372036854775807@.
+-- | PostgreSQL @int8@ type. 8-byte signed integer.
 --
--- PostgreSQL @int8@ type wrapper around 'Int64'.
+-- Range: @-9223372036854775808@ to @+9223372036854775807@.
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-numeric.html#DATATYPE-INT)
 newtype Int8 = Int8 Int64

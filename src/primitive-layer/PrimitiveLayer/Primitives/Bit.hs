@@ -14,11 +14,7 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
--- | @bit@. Fixed-length bit string.
---
--- PostgreSQL @bit@ type for storing bit strings.
--- PostgreSQL @bit@ type representing a fixed-length bit string.
--- Stored as a length (Int32) followed by the bit data in bytes.
+-- | PostgreSQL @bit@ type. Fixed-length bit string.
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-bit.html)
 data Bit = Bit
