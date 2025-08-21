@@ -43,15 +43,22 @@ instance IsSome Timetz TimetzAsTimeOfDayAndTimeZone where
   maybeFrom timetz = do
     let (timeMicroseconds, offsetSeconds) = to @(Int64, Int32) timetz
     let timeOfDay = TimeOfDay.convertFromMicroseconds (fromIntegral timeMicroseconds)
-    timeZone <- TimeZone.compileFromSeconds (fromIntegral offsetSeconds)
-    pure (TimetzAsTimeOfDayAndTimeZone timeOfDay timeZone)
+    -- Check if conversion is lossless by converting back and comparing
+    let timeZone = TimeZone.compressFromSeconds (fromIntegral offsetSeconds)
+    let reconstructedOffsetSeconds = fromIntegral (TimeZone.convertToSeconds timeZone)
+    if reconstructedOffsetSeconds == offsetSeconds
+      then pure (TimetzAsTimeOfDayAndTimeZone timeOfDay timeZone)
+      else Nothing
 
 instance IsMany Timetz TimetzAsTimeOfDayAndTimeZone where
   from timetz =
     let (time, offset) = to @(Int64, Int32) timetz
-     in TimetzAsTimeOfDayAndTimeZone
-          (TimeOfDay.convertFromMicroseconds (fromIntegral time))
-          (TimeZone.compressFromSeconds (fromIntegral offset))
+        timeOfDay = TimeOfDay.convertFromMicroseconds (fromIntegral time)
+        -- Use the same validation logic as IsSome, but fallback to normalized offset if validation fails
+        timeZone = case TimeZone.compileFromSeconds (fromIntegral offset) of
+          Just tz -> tz
+          Nothing -> TimeZone.compressFromSeconds (fromIntegral offset)
+     in TimetzAsTimeOfDayAndTimeZone timeOfDay timeZone
 
 instance IsSome (Time.TimeOfDay, Time.TimeZone) TimetzAsTimeOfDayAndTimeZone where
   to (TimetzAsTimeOfDayAndTimeZone timeOfDay timeZone) =
