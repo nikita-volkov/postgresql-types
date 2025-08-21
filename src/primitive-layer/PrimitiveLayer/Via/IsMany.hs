@@ -3,8 +3,10 @@ module PrimitiveLayer.Via.IsMany where
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 
+-- |
+-- Helper for deriving instances based on the 'IsMany' projection onto a superset type.
 newtype ViaIsMany a b = ViaIsMany b
-  deriving newtype (Eq, Ord, Arbitrary, Bounded)
+  deriving newtype (Eq, Ord)
 
 instance IsSome b (ViaIsMany a b) where
   to = coerce
@@ -34,3 +36,14 @@ instance (Primitive a, IsMany a b) => Primitive (ViaIsMany a b) where
   binaryEncoder = binaryEncoder . to @a
   binaryDecoder = fmap (fmap (from @a)) binaryDecoder
   textualEncoder = textualEncoder . to @a
+
+instance (Arbitrary a, IsMany a b) => Arbitrary (ViaIsMany a b) where
+  arbitrary = from <$> arbitrary @a
+  shrink (ViaIsMany b) = from <$> shrink (to @a b)
+
+instance (Bounded a, IsMany a b) => Bounded (ViaIsMany a b) where
+  minBound = from @a minBound
+  maxBound = from @a maxBound
+
+instance (Show a, IsMany a b) => Show (ViaIsMany a b) where
+  showsPrec p (ViaIsMany b) = showsPrec p (to @a b)
