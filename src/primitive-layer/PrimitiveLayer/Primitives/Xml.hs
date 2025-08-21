@@ -194,27 +194,16 @@ instance Primitive Xml where
   textualEncoder (Xml document) = TextBuilder.text (renderXmlDocument document)
 
 -- | Conversion between 'Text' and Xml.
--- Only succeeds for text that is already in canonical XML format.
+-- Total conversion for use with IsMany.
 instance IsSome Text Xml where
   to (Xml document) = renderXmlDocument document  
-  maybeFrom text = 
-    let xml = fromTextToXml text
-        rendered = renderXmlDocument (case xml of Xml doc -> doc)
-     in if rendered == text
-        then Just xml
-        else Nothing
+  maybeFrom text = Just (fromTextToXml text)  -- Always succeeds
 
 -- | Conversion between Xml and 'Text'.
--- XML can be converted to text; text can only be converted if it's canonical XML.
+-- Total conversion for use with IsMany.
 instance IsSome Xml Text where
-  to text = 
-    -- Convert text to XML, checking that it round-trips
-    let xml = fromTextToXml text
-        rendered = renderXmlDocument (case xml of Xml doc -> doc)
-     in if rendered == text
-        then xml
-        else error "IsSome Xml Text: text is not canonical XML"
-  maybeFrom (Xml document) = Just (renderXmlDocument document)
+  to text = fromTextToXml text
+  maybeFrom (Xml document) = Just (renderXmlDocument document)  -- Always succeeds
 
 -- | Helper to convert Text to Xml, preserving round trips where possible
 fromTextToXml :: Text -> Xml
