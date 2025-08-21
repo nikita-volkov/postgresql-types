@@ -36,8 +36,9 @@ instance Arbitrary Xml where
     pure (Xml document)
 
   shrink (Xml (XML.Document prologue (XML.Element name attrs content) epilogue)) =
-    [ Xml (XML.Document prologue (XML.Element name attrs []) epilogue) ] ++ -- Empty content
-    [ Xml (XML.Document prologue (XML.Element name attrs [c]) epilogue) | c <- content ] -- Single content items
+    [Xml (XML.Document prologue (XML.Element name attrs []) epilogue)]
+      ++ [Xml (XML.Document prologue (XML.Element name attrs [c]) epilogue) | c <- content] -- Empty content
+      -- Single content items
 
 -- | Check if character is XML whitespace
 isXmlWhitespace :: Char -> Bool
@@ -77,9 +78,9 @@ renderXmlDocument (XML.Document _prologue root _epilogue) = renderElement root
     renderAttrs attrs = " " <> Text.intercalate " " (map renderAttr attrs)
 
     renderAttr (XML.Name name _ _, contentList) = name <> "=\"" <> escapeAttrValue (renderContentList contentList) <> "\""
-    
+
     renderContentList = Text.concat . map renderContent
-    
+
     renderContent (XML.ContentText text) = text
     renderContent (XML.ContentEntity entity) = "&" <> entity <> ";"
 
@@ -133,32 +134,36 @@ parseXmlDocumentStrict text =
           -- This is our wrapped content, check if the inner content is also valid XML
           let innerContent = Text.drop 9 (Text.dropEnd 10 input)
            in if Text.null (Text.strip innerContent) || not ("<" `Text.isInfixOf` innerContent)
-              then 
-                -- Inner content is plain text, so this is our wrapped format
-                let rootName = XML.Name "content" Nothing Nothing
-                    rootElement = XML.Element rootName [] [XML.NodeContent (XML.ContentText innerContent)]
-                    document = XML.Document (XML.Prologue [] Nothing []) rootElement []
-                 in Right document
-              else Left "Ambiguous XML structure"
+                then
+                  -- Inner content is plain text, so this is our wrapped format
+                  let rootName = XML.Name "content" Nothing Nothing
+                      rootElement = XML.Element rootName [] [XML.NodeContent (XML.ContentText innerContent)]
+                      document = XML.Document (XML.Prologue [] Nothing []) rootElement []
+                   in Right document
+                else Left "Ambiguous XML structure"
       | otherwise =
           -- Only accept if it looks like genuine XML (has proper structure)
           if hasValidXmlStructure input
-          then 
-            let rootName = XML.Name "data" Nothing Nothing
-                rootElement = XML.Element rootName [] [XML.NodeContent (XML.ContentText (Text.strip input))]
-                document = XML.Document (XML.Prologue [] Nothing []) rootElement []
-             in Right document
-          else Left "Not valid XML structure"
-    
+            then
+              let rootName = XML.Name "data" Nothing Nothing
+                  rootElement = XML.Element rootName [] [XML.NodeContent (XML.ContentText (Text.strip input))]
+                  document = XML.Document (XML.Prologue [] Nothing []) rootElement []
+               in Right document
+            else Left "Not valid XML structure"
+
     hasValidXmlStructure :: Text -> Bool
     hasValidXmlStructure input =
       -- Very basic check - in a real implementation, this would be more sophisticated
       let stripped = Text.strip input
-       in Text.length stripped > 0 &&
-          Text.head stripped == '<' &&
-          Text.last stripped == '>' &&
-          -- Has matching opening and closing tags
-          (Text.count "</" stripped > 0 || Text.count "/>" stripped > 0)
+       in Text.length stripped
+            > 0
+            && Text.head stripped
+            == '<'
+            && Text.last stripped
+            == '>'
+            &&
+            -- Has matching opening and closing tags
+            (Text.count "</" stripped > 0 || Text.count "/>" stripped > 0)
 
 instance Primitive Xml where
   typeName = Tagged "xml"
@@ -196,18 +201,18 @@ instance Primitive Xml where
 -- | Conversion between 'Text' and Xml.
 -- Total conversion for use with IsMany.
 instance IsSome Text Xml where
-  to (Xml document) = renderXmlDocument document  
-  maybeFrom text = Just (fromTextToXml text)  -- Always succeeds
+  to (Xml document) = renderXmlDocument document
+  maybeFrom text = Just (fromTextToXml text) -- Always succeeds
 
 -- | Conversion between Xml and 'Text'.
 -- Total conversion for use with IsMany.
 instance IsSome Xml Text where
   to text = fromTextToXml text
-  maybeFrom (Xml document) = Just (renderXmlDocument document)  -- Always succeeds
+  maybeFrom (Xml document) = Just (renderXmlDocument document) -- Always succeeds
 
 -- | Helper to convert Text to Xml, preserving round trips where possible
 fromTextToXml :: Text -> Xml
-fromTextToXml text 
+fromTextToXml text
   -- Special case: if text is exactly our rendered content format, parse it properly
   | text == "<content></content>" =
       -- Empty content case - render as empty string
@@ -217,18 +222,18 @@ fromTextToXml text
        in Xml document
   | Text.isPrefixOf "<content>" text && Text.isSuffixOf "</content>" text =
       let innerContent = Text.drop 9 (Text.dropEnd 10 text) -- Remove <content> and </content>
-          -- Unescape the content  
+      -- Unescape the content
           unescapedContent = Text.replace "&amp;" "&" $ Text.replace "&lt;" "<" $ Text.replace "&gt;" ">" $ Text.replace "&quot;" "\"" $ innerContent
        in -- Only treat as wrapped content if inner content doesn't look like XML
           if not ("<" `Text.isInfixOf` unescapedContent && ">" `Text.isInfixOf` unescapedContent)
-          then 
-            let rootName = XML.Name "content" Nothing Nothing
-                rootElement = XML.Element rootName [] [XML.NodeContent (XML.ContentText unescapedContent)]
-                document = XML.Document (XML.Prologue [] Nothing []) rootElement []
-             in Xml document
-          else -- Inner content looks like XML, so treat the whole thing as wrapped
-            fallbackWrapping text
-  | Text.null text = 
+            then
+              let rootName = XML.Name "content" Nothing Nothing
+                  rootElement = XML.Element rootName [] [XML.NodeContent (XML.ContentText unescapedContent)]
+                  document = XML.Document (XML.Prologue [] Nothing []) rootElement []
+               in Xml document
+            else -- Inner content looks like XML, so treat the whole thing as wrapped
+              fallbackWrapping text
+  | Text.null text =
       -- Special case for empty string - just create empty content element
       let rootName = XML.Name "content" Nothing Nothing
           rootElement = XML.Element rootName [] []
