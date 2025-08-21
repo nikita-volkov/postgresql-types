@@ -11,17 +11,27 @@ convertFromMinutes = minutesToTimeZone
 -- Normalize, canonicalize, compress.
 compressFromSeconds :: Int -> TimeZone
 compressFromSeconds seconds =
-  let minutes = seconds `div` 60
-   in convertFromMinutes minutes
+  if seconds < 0
+    then fromSignerAndAbsSeconds negate (negate seconds)
+    else fromSignerAndAbsSeconds id seconds
+  where
+    fromSignerAndAbsSeconds signer seconds =
+      let minutes = signer (div seconds 60)
+       in convertFromMinutes minutes
 
 -- |
 -- Compile, distill, rectify seconds. Extract from seconds.
 compileFromSeconds :: Int -> Maybe TimeZone
 compileFromSeconds seconds =
-  let (minutes, remainder) = seconds `divMod` 60
-   in if remainder == 0
-        then Just (convertFromMinutes minutes)
-        else Nothing
+  if seconds < 0
+    then fromSignerAndAbsSeconds negate (negate seconds)
+    else fromSignerAndAbsSeconds id seconds
+  where
+    fromSignerAndAbsSeconds signer seconds =
+      let (minutes, remainder) = divMod seconds 60
+       in if remainder == 0
+            then Just (convertFromMinutes (signer minutes))
+            else Nothing
 
 convertToMinutes :: TimeZone -> Int
 convertToMinutes (TimeZone minutes _ _) = minutes
