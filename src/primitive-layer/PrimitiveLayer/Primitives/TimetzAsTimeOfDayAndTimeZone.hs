@@ -25,15 +25,7 @@ data TimetzAsTimeOfDayAndTimeZone
       Time.TimeOfDay
       Time.TimeZone
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaPrimitive TimetzAsTimeOfDayAndTimeZone)
-  deriving (Primitive) via (ViaIsMany Timetz TimetzAsTimeOfDayAndTimeZone)
-
-instance Arbitrary TimetzAsTimeOfDayAndTimeZone where
-  arbitrary = from @Timetz <$> arbitrary
-  shrink (TimetzAsTimeOfDayAndTimeZone timeOfDay timeZone) =
-    [ TimetzAsTimeOfDayAndTimeZone timeOfDay' timeZone'
-    | (timeOfDay', timeZone') <- shrink (timeOfDay, timeZone)
-    ]
+  deriving (Primitive, Arbitrary, Show) via (ViaIsMany Timetz TimetzAsTimeOfDayAndTimeZone)
 
 instance IsSome Timetz TimetzAsTimeOfDayAndTimeZone where
   to (TimetzAsTimeOfDayAndTimeZone timeOfDay timeZone) =
