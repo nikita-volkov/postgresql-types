@@ -62,7 +62,8 @@ instance Arbitrary Xml where
     ]
     where
       shrinkElement (XML.Element name attrs content) =
-        XML.Element name attrs <$> shrink content
+        [XML.Element name attrs []] ++ -- Empty content
+        [XML.Element name attrs (take n content) | n <- [0..length content - 1]] -- Truncate content
 
 -- | Check if character is XML whitespace
 isXmlWhitespace :: Char -> Bool
@@ -101,7 +102,12 @@ renderXmlDocument (XML.Document _prologue root _epilogue) = renderElement root
     renderAttrs [] = ""
     renderAttrs attrs = " " <> Text.intercalate " " (map renderAttr attrs)
 
-    renderAttr (XML.Name name _ _, value) = name <> "=\"" <> escapeAttrValue value <> "\""
+    renderAttr (XML.Name name _ _, contentList) = name <> "=\"" <> escapeAttrValue (renderContentList contentList) <> "\""
+    
+    renderContentList = Text.concat . map renderContent
+    
+    renderContent (XML.ContentText text) = text
+    renderContent (XML.ContentEntity entity) = "&" <> entity <> ";"
 
     renderNode (XML.NodeElement elem) = renderElement elem
     renderNode (XML.NodeContent (XML.ContentText text)) = escapeTextContent text
@@ -123,8 +129,15 @@ parseXmlDocument text =
     simpleParseXml input
       | Text.null (Text.strip input) = Left "Empty XML"
       | not ("<" `Text.isInfixOf` input && ">" `Text.isInfixOf` input) = Left "Not valid XML"
-      -- For now, just accept any text that looks like XML and wrap it
+      | Text.isPrefixOf "<content>" input && Text.isSuffixOf "</content>" input =
+          -- Handle our own wrapped content to preserve round trips
+          let innerContent = Text.drop 9 (Text.dropEnd 10 input) -- Remove <content> and </content>
+              rootName = XML.Name "content" Nothing Nothing
+              rootElement = XML.Element rootName [] [XML.NodeContent (XML.ContentText innerContent)]
+              document = XML.Document (XML.Prologue [] Nothing []) rootElement []
+           in Right document
       | otherwise =
+          -- For other XML-like content, create a simple wrapper
           let rootName = XML.Name "data" Nothing Nothing
               rootElement = XML.Element rootName [] [XML.NodeContent (XML.ContentText (Text.strip input))]
               document = XML.Document (XML.Prologue [] Nothing []) rootElement []
@@ -164,27 +177,35 @@ instance Primitive Xml where
   textualEncoder (Xml document) = TextBuilder.text (renderXmlDocument document)
 
 -- | Conversion between 'Text' and Xml.
--- Uses XML AST internally but maintains text compatibility.
+-- Text can be converted to XML, XML can be converted back to text.
 instance IsSome Text Xml where
-  to (Xml document) = renderXmlDocument document
+  to (Xml document) = renderXmlDocument document  
   maybeFrom text = Just (fromTextToXml text)
 
 -- | Conversion between Xml and 'Text'.
--- Uses XML AST internally but maintains text compatibility.
+-- XML can be converted to text, text can be converted back to XML.
 instance IsSome Xml Text where
   to text = fromTextToXml text
   maybeFrom (Xml document) = Just (renderXmlDocument document)
 
--- | Helper to convert Text to Xml, wrapping in XML structure if needed
+-- | Helper to convert Text to Xml, preserving round trips where possible
 fromTextToXml :: Text -> Xml
-fromTextToXml text = case parseXmlDocument text of
-  Right document -> Xml document
-  Left _ ->
-    -- Fall back to wrapping in a simple element for invalid XML
-    let rootName = XML.Name "content" Nothing Nothing
-        rootElement = XML.Element rootName [] [XML.NodeContent (XML.ContentText text)]
-        document = XML.Document (XML.Prologue [] Nothing []) rootElement []
-     in Xml document
+fromTextToXml text 
+  -- Special case: if text is our own rendered content, extract it
+  | Text.isPrefixOf "<content>" text && Text.isSuffixOf "</content>" text =
+      let innerContent = Text.drop 9 (Text.dropEnd 10 text) -- Remove <content> and </content>
+          rootName = XML.Name "content" Nothing Nothing
+          rootElement = XML.Element rootName [] [XML.NodeContent (XML.ContentText innerContent)]
+          document = XML.Document (XML.Prologue [] Nothing []) rootElement []
+       in Xml document
+  | otherwise = case parseXmlDocument text of
+      Right document -> Xml document
+      Left _ ->
+        -- Fall back to wrapping in a simple element for invalid XML
+        let rootName = XML.Name "content" Nothing Nothing
+            rootElement = XML.Element rootName [] [XML.NodeContent (XML.ContentText text)]
+            document = XML.Document (XML.Prologue [] Nothing []) rootElement []
+         in Xml document
 
 -- | Total conversion from 'Text' to Xml.
 -- Always succeeds by wrapping text in XML structure if needed.
