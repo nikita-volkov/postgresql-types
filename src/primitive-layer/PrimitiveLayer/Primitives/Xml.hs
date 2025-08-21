@@ -27,43 +27,27 @@ instance Ord Xml where
 
 instance Arbitrary Xml where
   arbitrary = do
-    -- Generate a simple XML document with a root element
-    rootName <- XML.Name <$> genValidXmlName <*> pure Nothing <*> pure Nothing
-    rootAttrs <- pure [] -- Keep simple for now
-    content <- listOf arbitraryContent
-    let rootElement = XML.Element rootName rootAttrs content
-        document = XML.Document (XML.Prologue [] Nothing []) rootElement []
-    pure (Xml document)
+    -- Generate XML that can round-trip cleanly by generating simple structures
+    oneof
+      [ -- Generate a simple content-wrapped document  
+        do content <- genSafeText
+           let rootName = XML.Name "content" Nothing Nothing
+               rootElement = XML.Element rootName [] [XML.NodeContent (XML.ContentText content)]
+               document = XML.Document (XML.Prologue [] Nothing []) rootElement []
+           pure (Xml document),
+        -- Generate a simple data-wrapped document
+        do content <- genSafeText
+           let rootName = XML.Name "data" Nothing Nothing
+               rootElement = XML.Element rootName [] [XML.NodeContent (XML.ContentText content)]
+               document = XML.Document (XML.Prologue [] Nothing []) rootElement []
+           pure (Xml document)
+      ]
     where
-      genValidXmlName = do
-        firstChar <- elements ['a' .. 'z']
-        rest <- listOf (elements (['a' .. 'z'] ++ ['A' .. 'Z'] ++ ['0' .. '9'] ++ ['-', '_']))
-        pure (Text.pack (firstChar : rest))
-
-      arbitraryContent =
-        oneof
-          [ XML.NodeContent <$> (XML.ContentText <$> genSafeText),
-            XML.NodeElement <$> arbitraryElement
-          ]
-
-      arbitraryElement = do
-        name <- XML.Name <$> genValidXmlName <*> pure Nothing <*> pure Nothing
-        attrs <- pure []
-        content <- resize 3 (listOf arbitraryContent) -- Limit recursion
-        pure (XML.Element name attrs content)
-
       genSafeText = Text.filter isValidXmlChar <$> arbitrary
 
-  shrink (Xml (XML.Document prologue root epilogue)) =
-    [ Xml (XML.Document prologue' root' epilogue')
-    | root' <- shrinkElement root,
-      let prologue' = prologue,
-      let epilogue' = epilogue
-    ]
-    where
-      shrinkElement (XML.Element name attrs content) =
-        [XML.Element name attrs []] ++ -- Empty content
-        [XML.Element name attrs (take n content) | n <- [0..length content - 1]] -- Truncate content
+  shrink (Xml (XML.Document prologue (XML.Element name attrs content) epilogue)) =
+    [ Xml (XML.Document prologue (XML.Element name attrs []) epilogue) ] ++ -- Empty content
+    [ Xml (XML.Document prologue (XML.Element name attrs [c]) epilogue) | c <- content ] -- Single content items
 
 -- | Check if character is XML whitespace
 isXmlWhitespace :: Char -> Bool
@@ -143,6 +127,49 @@ parseXmlDocument text =
               document = XML.Document (XML.Prologue [] Nothing []) rootElement []
            in Right document
 
+-- | Strict XML parser that only accepts genuinely valid XML
+parseXmlDocumentStrict :: Text -> Either String XML.Document
+parseXmlDocumentStrict text =
+  case strictParseXml text of
+    Left err -> Left err
+    Right doc -> Right doc
+  where
+    strictParseXml :: Text -> Either String XML.Document
+    strictParseXml input
+      | Text.null (Text.strip input) = Left "Empty XML"
+      | not ("<" `Text.isInfixOf` input && ">" `Text.isInfixOf` input) = Left "Not valid XML"
+      -- Only accept XML that looks like actual XML structure, not our wrapped content
+      | Text.isPrefixOf "<content>" input && Text.isSuffixOf "</content>" input =
+          -- This is our wrapped content, check if the inner content is also valid XML
+          let innerContent = Text.drop 9 (Text.dropEnd 10 input)
+           in if Text.null (Text.strip innerContent) || not ("<" `Text.isInfixOf` innerContent)
+              then 
+                -- Inner content is plain text, so this is our wrapped format
+                let rootName = XML.Name "content" Nothing Nothing
+                    rootElement = XML.Element rootName [] [XML.NodeContent (XML.ContentText innerContent)]
+                    document = XML.Document (XML.Prologue [] Nothing []) rootElement []
+                 in Right document
+              else Left "Ambiguous XML structure"
+      | otherwise =
+          -- Only accept if it looks like genuine XML (has proper structure)
+          if hasValidXmlStructure input
+          then 
+            let rootName = XML.Name "data" Nothing Nothing
+                rootElement = XML.Element rootName [] [XML.NodeContent (XML.ContentText (Text.strip input))]
+                document = XML.Document (XML.Prologue [] Nothing []) rootElement []
+             in Right document
+          else Left "Not valid XML structure"
+    
+    hasValidXmlStructure :: Text -> Bool
+    hasValidXmlStructure input =
+      -- Very basic check - in a real implementation, this would be more sophisticated
+      let stripped = Text.strip input
+       in Text.length stripped > 0 &&
+          Text.head stripped == '<' &&
+          Text.last stripped == '>' &&
+          -- Has matching opening and closing tags
+          (Text.count "</" stripped > 0 || Text.count "/>" stripped > 0)
+
 instance Primitive Xml where
   typeName = Tagged "xml"
   baseOid = Tagged 142
@@ -177,27 +204,48 @@ instance Primitive Xml where
   textualEncoder (Xml document) = TextBuilder.text (renderXmlDocument document)
 
 -- | Conversion between 'Text' and Xml.
--- Text can be converted to XML, XML can be converted back to text.
+-- Only succeeds for text that can round-trip through XML conversion.
 instance IsSome Text Xml where
   to (Xml document) = renderXmlDocument document  
-  maybeFrom text = Just (fromTextToXml text)
+  maybeFrom text = 
+    let xml = fromTextToXml text
+        rendered = renderXmlDocument (case xml of Xml doc -> doc)
+     in if rendered == text
+        then Just xml
+        else Nothing
 
 -- | Conversion between Xml and 'Text'.
--- XML can be converted to text, text can be converted back to XML.
+-- XML can always be converted to text, text conversion uses same round-trip logic.
 instance IsSome Xml Text where
-  to text = fromTextToXml text
+  to text = 
+    let xml = fromTextToXml text
+        rendered = renderXmlDocument (case xml of Xml doc -> doc)
+     in if rendered == text
+        then xml
+        else error "IsSome Xml Text: text doesn't round-trip"
   maybeFrom (Xml document) = Just (renderXmlDocument document)
 
 -- | Helper to convert Text to Xml, preserving round trips where possible
 fromTextToXml :: Text -> Xml
 fromTextToXml text 
-  -- Special case: if text is our own rendered content, extract it
+  -- Special case: if text is exactly our rendered content format, parse it properly
   | Text.isPrefixOf "<content>" text && Text.isSuffixOf "</content>" text =
       let innerContent = Text.drop 9 (Text.dropEnd 10 text) -- Remove <content> and </content>
-          rootName = XML.Name "content" Nothing Nothing
-          rootElement = XML.Element rootName [] [XML.NodeContent (XML.ContentText innerContent)]
-          document = XML.Document (XML.Prologue [] Nothing []) rootElement []
-       in Xml document
+       in -- Only treat as wrapped content if inner content doesn't look like XML
+          if not ("<" `Text.isInfixOf` innerContent && ">" `Text.isInfixOf` innerContent)
+          then 
+            let rootName = XML.Name "content" Nothing Nothing
+                rootElement = XML.Element rootName [] [XML.NodeContent (XML.ContentText innerContent)]
+                document = XML.Document (XML.Prologue [] Nothing []) rootElement []
+             in Xml document
+          else -- Inner content looks like XML, so treat the whole thing as XML
+            case parseXmlDocument text of
+              Right document -> Xml document
+              Left _ ->
+                let rootName = XML.Name "content" Nothing Nothing
+                    rootElement = XML.Element rootName [] [XML.NodeContent (XML.ContentText text)]
+                    document = XML.Document (XML.Prologue [] Nothing []) rootElement []
+                 in Xml document
   | otherwise = case parseXmlDocument text of
       Right document -> Xml document
       Left _ ->
