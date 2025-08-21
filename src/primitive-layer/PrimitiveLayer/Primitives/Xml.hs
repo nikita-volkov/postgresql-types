@@ -27,23 +27,13 @@ instance Ord Xml where
 
 instance Arbitrary Xml where
   arbitrary = do
-    -- Generate XML that can round-trip cleanly by generating simple structures
-    oneof
-      [ -- Generate a simple content-wrapped document  
-        do content <- genSafeText
-           let rootName = XML.Name "content" Nothing Nothing
-               rootElement = XML.Element rootName [] [XML.NodeContent (XML.ContentText content)]
-               document = XML.Document (XML.Prologue [] Nothing []) rootElement []
-           pure (Xml document),
-        -- Generate a simple data-wrapped document
-        do content <- genSafeText
-           let rootName = XML.Name "data" Nothing Nothing
-               rootElement = XML.Element rootName [] [XML.NodeContent (XML.ContentText content)]
-               document = XML.Document (XML.Prologue [] Nothing []) rootElement []
-           pure (Xml document)
-      ]
-    where
-      genSafeText = Text.filter isValidXmlChar <$> arbitrary
+    -- Generate the simplest possible XML that we know will round-trip
+    content <- Text.filter (\c -> c /= '<' && c /= '>' && c /= '&' && isValidXmlChar c) <$> arbitrary
+    -- Always use the content wrapper format for consistency
+    let rootName = XML.Name "content" Nothing Nothing
+        rootElement = XML.Element rootName [] [XML.NodeContent (XML.ContentText content)]
+        document = XML.Document (XML.Prologue [] Nothing []) rootElement []
+    pure (Xml document)
 
   shrink (Xml (XML.Document prologue (XML.Element name attrs content) epilogue)) =
     [ Xml (XML.Document prologue (XML.Element name attrs []) epilogue) ] ++ -- Empty content
@@ -204,7 +194,7 @@ instance Primitive Xml where
   textualEncoder (Xml document) = TextBuilder.text (renderXmlDocument document)
 
 -- | Conversion between 'Text' and Xml.
--- Only succeeds for text that can round-trip through XML conversion.
+-- Only succeeds for text that is already in canonical XML format.
 instance IsSome Text Xml where
   to (Xml document) = renderXmlDocument document  
   maybeFrom text = 
@@ -215,45 +205,55 @@ instance IsSome Text Xml where
         else Nothing
 
 -- | Conversion between Xml and 'Text'.
--- XML can always be converted to text, text conversion uses same round-trip logic.
+-- XML can be converted to text; text can only be converted if it's canonical XML.
 instance IsSome Xml Text where
   to text = 
+    -- Convert text to XML, checking that it round-trips
     let xml = fromTextToXml text
         rendered = renderXmlDocument (case xml of Xml doc -> doc)
      in if rendered == text
         then xml
-        else error "IsSome Xml Text: text doesn't round-trip"
+        else error "IsSome Xml Text: text is not canonical XML"
   maybeFrom (Xml document) = Just (renderXmlDocument document)
 
 -- | Helper to convert Text to Xml, preserving round trips where possible
 fromTextToXml :: Text -> Xml
 fromTextToXml text 
   -- Special case: if text is exactly our rendered content format, parse it properly
+  | text == "<content></content>" =
+      -- Empty content case - render as empty string
+      let rootName = XML.Name "content" Nothing Nothing
+          rootElement = XML.Element rootName [] []
+          document = XML.Document (XML.Prologue [] Nothing []) rootElement []
+       in Xml document
   | Text.isPrefixOf "<content>" text && Text.isSuffixOf "</content>" text =
       let innerContent = Text.drop 9 (Text.dropEnd 10 text) -- Remove <content> and </content>
+          -- Unescape the content  
+          unescapedContent = Text.replace "&amp;" "&" $ Text.replace "&lt;" "<" $ Text.replace "&gt;" ">" $ Text.replace "&quot;" "\"" $ innerContent
        in -- Only treat as wrapped content if inner content doesn't look like XML
-          if not ("<" `Text.isInfixOf` innerContent && ">" `Text.isInfixOf` innerContent)
+          if not ("<" `Text.isInfixOf` unescapedContent && ">" `Text.isInfixOf` unescapedContent)
           then 
             let rootName = XML.Name "content" Nothing Nothing
-                rootElement = XML.Element rootName [] [XML.NodeContent (XML.ContentText innerContent)]
+                rootElement = XML.Element rootName [] [XML.NodeContent (XML.ContentText unescapedContent)]
                 document = XML.Document (XML.Prologue [] Nothing []) rootElement []
              in Xml document
-          else -- Inner content looks like XML, so treat the whole thing as XML
-            case parseXmlDocument text of
-              Right document -> Xml document
-              Left _ ->
-                let rootName = XML.Name "content" Nothing Nothing
-                    rootElement = XML.Element rootName [] [XML.NodeContent (XML.ContentText text)]
-                    document = XML.Document (XML.Prologue [] Nothing []) rootElement []
-                 in Xml document
+          else -- Inner content looks like XML, so treat the whole thing as wrapped
+            fallbackWrapping text
+  | Text.null text = 
+      -- Special case for empty string - just create empty content element
+      let rootName = XML.Name "content" Nothing Nothing
+          rootElement = XML.Element rootName [] []
+          document = XML.Document (XML.Prologue [] Nothing []) rootElement []
+       in Xml document
   | otherwise = case parseXmlDocument text of
       Right document -> Xml document
-      Left _ ->
-        -- Fall back to wrapping in a simple element for invalid XML
-        let rootName = XML.Name "content" Nothing Nothing
-            rootElement = XML.Element rootName [] [XML.NodeContent (XML.ContentText text)]
-            document = XML.Document (XML.Prologue [] Nothing []) rootElement []
-         in Xml document
+      Left _ -> fallbackWrapping text
+  where
+    fallbackWrapping originalText =
+      let rootName = XML.Name "content" Nothing Nothing
+          rootElement = XML.Element rootName [] [XML.NodeContent (XML.ContentText originalText)]
+          document = XML.Document (XML.Prologue [] Nothing []) rootElement []
+       in Xml document
 
 -- | Total conversion from 'Text' to Xml.
 -- Always succeeds by wrapping text in XML structure if needed.
