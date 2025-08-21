@@ -43,7 +43,7 @@ instance IsSome Timetz TimetzAsTimeOfDayAndTimeZone where
   maybeFrom timetz = do
     let (timeMicroseconds, offsetSeconds) = to @(Int64, Int32) timetz
     let timeOfDay = TimeOfDay.convertFromMicroseconds (fromIntegral timeMicroseconds)
-    let timeZone = TimeZone.compressFromSeconds (fromIntegral offsetSeconds)
+    timeZone <- TimeZone.compileFromSeconds (fromIntegral offsetSeconds)
     pure (TimetzAsTimeOfDayAndTimeZone timeOfDay timeZone)
 
 instance IsMany Timetz TimetzAsTimeOfDayAndTimeZone where
