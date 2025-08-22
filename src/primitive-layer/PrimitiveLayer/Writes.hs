@@ -6,5 +6,5 @@ import PtrPoker.Write
 
 -- | Prefix a write with its size.
 sized :: Write -> Write
-sized =
-  error "TODO"
+sized write =
+  bWord32 (fromIntegral (writeSize write)) <> write

@@ -38,6 +38,7 @@ main =
       withType @PrimitiveLayer.Path [mappingSpec]
       withType @PrimitiveLayer.Point [mappingSpec]
       withType @PrimitiveLayer.Polygon [mappingSpec]
+      withType @(PrimitiveLayer.Range PrimitiveLayer.Int4) [mappingSpec]
       withType @PrimitiveLayer.Text [mappingSpec]
       withType @PrimitiveLayer.Time [mappingSpec]
       withType @PrimitiveLayer.Timestamp [mappingSpec]

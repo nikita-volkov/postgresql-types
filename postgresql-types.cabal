@@ -30,6 +30,7 @@ common base
   default-extensions:
     ApplicativeDo
     BangPatterns
+    BinaryLiterals
     BlockArguments
     ConstraintKinds
     DataKinds

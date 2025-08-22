@@ -13,7 +13,7 @@ import qualified TextBuilder
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-numeric.html#DATATYPE-INT)
 newtype Int4 = Int4 Int32
-  deriving newtype (Eq, Ord, Arbitrary)
+  deriving newtype (Eq, Ord, Arbitrary, Enum, Bounded)
   deriving (Show) via (ViaPrimitive Int4)
 
 instance Mapping Int4 where
