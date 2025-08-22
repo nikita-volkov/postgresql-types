@@ -96,6 +96,7 @@ library primitive-layer
   exposed-modules:
     PrimitiveLayer.Algebra
     PrimitiveLayer.Primitives
+    PrimitiveLayer.Via
 
   other-modules:
     PrimitiveLayer.Prelude
@@ -139,7 +140,6 @@ library primitive-layer
     PrimitiveLayer.Primitives.Uuid
     PrimitiveLayer.Primitives.Varbit
     PrimitiveLayer.Primitives.Varchar
-    PrimitiveLayer.Via
     PrimitiveLayer.Via.IsMany
     PrimitiveLayer.Via.Primitive
 
