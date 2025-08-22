@@ -154,12 +154,12 @@ runStatement connection sql params resultFormat = do
   result <- case result of
     Nothing -> do
       m <- Pq.errorMessage connection
-      failWithSql "No result" (onto (show m))
+      failWithSql "No result" (maybe "" onto m)
     Just result -> pure result
   resultErrorField <- Pq.resultErrorField result Pq.DiagMessagePrimary
   case resultErrorField of
     Nothing -> pure ()
-    Just err -> failWithSql "Error field present" (onto (show err))
+    Just err -> failWithSql "Error field present" (onto err)
   pure result
   where
     failWithSql :: Text -> Text -> IO a
