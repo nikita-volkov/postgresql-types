@@ -24,7 +24,7 @@ src/
 ├── primitive-layer/           # Core type definitions and codecs
 │   ├── PrimitiveLayer/
 │   │   ├── Algebra.hs        # Core algebraic structures
-│   │   ├── Primitives/       # Individual type implementations
+│   │   ├── Types/       # Individual type implementations
 │   │   └── Prelude.hs        # Common imports and utilities
 ├── declaration-layer/         # High-level declarative APIs
 ├── jsonifier-aeson/          # JSON integration
@@ -95,14 +95,14 @@ cabal test --test-show-details=direct  # Show detailed test output
 ```
 
 ### Adding New PostgreSQL Types
-1. Create new module in `src/primitive-layer/PrimitiveLayer/Primitives/`
+1. Create new module in `src/primitive-layer/PrimitiveLayer/Types/`
 2. Implement `Primitive` instance with:
    - `typeName`: PostgreSQL type name
    - `baseOid`: PostgreSQL type OID  
    - `arrayOid`: Array type OID
    - `binaryEncoder`/`binaryDecoder`: Binary format codecs
    - `textualEncoder`: Text format encoder
-3. Add module to `PrimitiveLayer.Primitives` exports
+3. Add module to `PrimitiveLayer.Types` exports
 4. Add integration test in `src/integration-tests/Main.hs`
 
 ### Codec Implementation Patterns

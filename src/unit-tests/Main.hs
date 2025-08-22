@@ -13,7 +13,7 @@ import qualified Data.UUID as UUID
 import qualified Data.Vector.Unboxed as VU
 import Data.Word
 import qualified LawfulConversions
-import qualified PrimitiveLayer.Primitives as PrimitiveLayer
+import qualified PrimitiveLayer.Types as PrimitiveLayer
 import Test.Hspec
 import Test.Hspec.QuickCheck
 import Test.QuickCheck (Arbitrary)

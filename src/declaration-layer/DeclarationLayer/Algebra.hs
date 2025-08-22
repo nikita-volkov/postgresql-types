@@ -7,7 +7,7 @@ import qualified DeclarationLayer.Algebra.Writes as Writes
 import DeclarationLayer.Prelude
 import qualified PeekyBlinders
 import qualified PrimitiveLayer.Algebra as Primitive
-import qualified PrimitiveLayer.Primitives as Primitive
+import qualified PrimitiveLayer.Types as Primitive
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 

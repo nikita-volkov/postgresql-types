@@ -95,51 +95,51 @@ library primitive-layer
   hs-source-dirs: src/primitive-layer
   exposed-modules:
     PrimitiveLayer.Algebra
-    PrimitiveLayer.Primitives
+    PrimitiveLayer.Types
     PrimitiveLayer.Via
 
   other-modules:
     PrimitiveLayer.Prelude
-    PrimitiveLayer.Primitives.Bit
-    PrimitiveLayer.Primitives.Bool
-    PrimitiveLayer.Primitives.Box
-    PrimitiveLayer.Primitives.Bytea
-    PrimitiveLayer.Primitives.Char
-    PrimitiveLayer.Primitives.Cidr
-    PrimitiveLayer.Primitives.Circle
-    PrimitiveLayer.Primitives.Date
-    PrimitiveLayer.Primitives.Float4
-    PrimitiveLayer.Primitives.Float8
-    PrimitiveLayer.Primitives.Inet
-    PrimitiveLayer.Primitives.Int2
-    PrimitiveLayer.Primitives.Int4
-    PrimitiveLayer.Primitives.Int8
-    PrimitiveLayer.Primitives.Interval
-    PrimitiveLayer.Primitives.IntervalAsMicroseconds
-    PrimitiveLayer.Primitives.Ip
-    PrimitiveLayer.Primitives.Json
-    PrimitiveLayer.Primitives.Jsonb
-    PrimitiveLayer.Primitives.Line
-    PrimitiveLayer.Primitives.Lseg
-    PrimitiveLayer.Primitives.Macaddr
-    PrimitiveLayer.Primitives.Macaddr8
-    PrimitiveLayer.Primitives.Money
-    PrimitiveLayer.Primitives.Numeric
-    PrimitiveLayer.Primitives.Oid
-    PrimitiveLayer.Primitives.Path
-    PrimitiveLayer.Primitives.Point
-    PrimitiveLayer.Primitives.Polygon
-    PrimitiveLayer.Primitives.Text
-    PrimitiveLayer.Primitives.Time
-    PrimitiveLayer.Primitives.Timestamp
-    PrimitiveLayer.Primitives.Timestamptz
-    PrimitiveLayer.Primitives.Timetz
-    PrimitiveLayer.Primitives.Timetz.Offset
-    PrimitiveLayer.Primitives.Timetz.Time
-    PrimitiveLayer.Primitives.TimetzAsTimeOfDayAndTimeZone
-    PrimitiveLayer.Primitives.Uuid
-    PrimitiveLayer.Primitives.Varbit
-    PrimitiveLayer.Primitives.Varchar
+    PrimitiveLayer.Types.Bit
+    PrimitiveLayer.Types.Bool
+    PrimitiveLayer.Types.Box
+    PrimitiveLayer.Types.Bytea
+    PrimitiveLayer.Types.Char
+    PrimitiveLayer.Types.Cidr
+    PrimitiveLayer.Types.Circle
+    PrimitiveLayer.Types.Date
+    PrimitiveLayer.Types.Float4
+    PrimitiveLayer.Types.Float8
+    PrimitiveLayer.Types.Inet
+    PrimitiveLayer.Types.Int2
+    PrimitiveLayer.Types.Int4
+    PrimitiveLayer.Types.Int8
+    PrimitiveLayer.Types.Interval
+    PrimitiveLayer.Types.IntervalAsMicroseconds
+    PrimitiveLayer.Types.Ip
+    PrimitiveLayer.Types.Json
+    PrimitiveLayer.Types.Jsonb
+    PrimitiveLayer.Types.Line
+    PrimitiveLayer.Types.Lseg
+    PrimitiveLayer.Types.Macaddr
+    PrimitiveLayer.Types.Macaddr8
+    PrimitiveLayer.Types.Money
+    PrimitiveLayer.Types.Numeric
+    PrimitiveLayer.Types.Oid
+    PrimitiveLayer.Types.Path
+    PrimitiveLayer.Types.Point
+    PrimitiveLayer.Types.Polygon
+    PrimitiveLayer.Types.Text
+    PrimitiveLayer.Types.Time
+    PrimitiveLayer.Types.Timestamp
+    PrimitiveLayer.Types.Timestamptz
+    PrimitiveLayer.Types.Timetz
+    PrimitiveLayer.Types.Timetz.Offset
+    PrimitiveLayer.Types.Timetz.Time
+    PrimitiveLayer.Types.TimetzAsTimeOfDayAndTimeZone
+    PrimitiveLayer.Types.Uuid
+    PrimitiveLayer.Types.Varbit
+    PrimitiveLayer.Types.Varchar
     PrimitiveLayer.Via.IsMany
     PrimitiveLayer.Via.Primitive
 
