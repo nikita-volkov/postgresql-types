@@ -24,6 +24,11 @@ instance Mapping Int4 where
   binaryDecoder = PeekyBlinders.statically (Right . Int4 <$> PeekyBlinders.beSignedInt4)
   textualEncoder (Int4 x) = TextBuilder.decimal x
 
+instance RangeMapping Int4 where
+  rangeTypeName = Tagged "int4range"
+  rangeOid = Tagged 3904
+  rangeArrayOid = Tagged 3905
+
 -- | Direct conversion from 'Int32'.
 -- This is always safe since both types represent 32-bit signed integers identically.
 instance IsSome Int32 Int4 where
