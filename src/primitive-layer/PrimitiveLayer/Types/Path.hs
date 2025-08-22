@@ -31,7 +31,7 @@ instance Arbitrary Path where
   shrink (Path closed points) =
     [Path closed' points' | (closed', points') <- shrink (closed, points), length points' >= 2]
 
-instance Primitive Path where
+instance Mapping Path where
   typeName = Tagged "path"
   baseOid = Tagged 602
   arrayOid = Tagged 1019

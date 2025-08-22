@@ -58,12 +58,12 @@ withPqConnection action = do
             password = "postgres"
             db = "postgres"
 
-primitiveSpec ::
+mappingSpec ::
   forall a.
-  (QuickCheck.Arbitrary a, Show a, Eq a, PrimitiveLayer.Primitive a, Typeable a) =>
+  (QuickCheck.Arbitrary a, Show a, Eq a, PrimitiveLayer.Mapping a, Typeable a) =>
   Proxy a ->
   SpecWith Pq.Connection
-primitiveSpec _ = do
+mappingSpec _ = do
   let typeName = untag (PrimitiveLayer.typeName @a)
       baseOid = untag (PrimitiveLayer.baseOid @a)
       binEnc = PrimitiveLayer.binaryEncoder @a

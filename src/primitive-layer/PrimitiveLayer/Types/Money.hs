@@ -22,7 +22,7 @@ newtype Money = Money Int64
   deriving newtype (Eq, Ord, Arbitrary)
   deriving (Show) via (ViaPrimitive Money)
 
-instance Primitive Money where
+instance Mapping Money where
   typeName = Tagged "money"
   baseOid = Tagged 790
   arrayOid = Tagged 791

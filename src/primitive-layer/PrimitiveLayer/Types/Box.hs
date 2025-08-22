@@ -42,7 +42,7 @@ instance Arbitrary Box where
     | (x1', y1', x2', y2') <- shrink (x1, y1, x2, y2)
     ]
 
-instance Primitive Box where
+instance Mapping Box where
   typeName = Tagged "box"
   baseOid = Tagged 603
   arrayOid = Tagged 1020

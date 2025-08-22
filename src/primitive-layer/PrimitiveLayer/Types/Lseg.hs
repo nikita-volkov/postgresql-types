@@ -29,7 +29,7 @@ instance Arbitrary Lseg where
   shrink (Lseg x1 y1 x2 y2) =
     [Lseg x1' y1' x2' y2' | (x1', y1', x2', y2') <- shrink (x1, y1, x2, y2)]
 
-instance Primitive Lseg where
+instance Mapping Lseg where
   typeName = Tagged "lseg"
   baseOid = Tagged 601
   arrayOid = Tagged 1018

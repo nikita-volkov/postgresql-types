@@ -30,7 +30,7 @@ instance Arbitrary Json where
   arbitrary = fromAesonValue <$> arbitrary
   shrink = fmap Json . shrink . toAesonValue
 
-instance Primitive Json where
+instance Mapping Json where
   typeName = Tagged "json"
   baseOid = Tagged 114
   arrayOid = Tagged 199

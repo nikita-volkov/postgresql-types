@@ -48,7 +48,7 @@ instance Arbitrary Date where
         )
       ]
 
-instance Primitive Date where
+instance Mapping Date where
   typeName = Tagged "date"
   baseOid = Tagged 1082
   arrayOid = Tagged 1182

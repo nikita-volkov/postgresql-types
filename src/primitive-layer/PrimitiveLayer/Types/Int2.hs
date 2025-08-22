@@ -16,7 +16,7 @@ newtype Int2 = Int2 Int16
   deriving newtype (Eq, Ord, Arbitrary)
   deriving (Show) via (ViaPrimitive Int2)
 
-instance Primitive Int2 where
+instance Mapping Int2 where
   typeName = Tagged "int2"
   baseOid = Tagged 21
   arrayOid = Tagged 1005

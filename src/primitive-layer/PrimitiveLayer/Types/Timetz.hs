@@ -34,7 +34,7 @@ instance Arbitrary Timetz where
     offset <- arbitrary
     pure (Timetz time offset)
 
-instance Primitive Timetz where
+instance Mapping Timetz where
   typeName = Tagged "timetz"
 
   baseOid = Tagged 1266

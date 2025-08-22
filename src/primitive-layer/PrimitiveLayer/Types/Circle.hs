@@ -35,7 +35,7 @@ instance Arbitrary Circle where
   shrink (Circle x y r) =
     [Circle x' y' (abs r') | (x', y', r') <- shrink (x, y, r)]
 
-instance Primitive Circle where
+instance Mapping Circle where
   typeName = Tagged "circle"
   baseOid = Tagged 718
   arrayOid = Tagged 719

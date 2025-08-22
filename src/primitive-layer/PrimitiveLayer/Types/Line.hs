@@ -38,7 +38,7 @@ instance Arbitrary Line where
       not (a' == 0 && b' == 0) -- Ensure shrunk values are also valid
     ]
 
-instance Primitive Line where
+instance Mapping Line where
   typeName = Tagged "line"
   baseOid = Tagged 628
   arrayOid = Tagged 629

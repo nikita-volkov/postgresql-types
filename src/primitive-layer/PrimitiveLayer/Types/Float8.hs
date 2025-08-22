@@ -16,7 +16,7 @@ newtype Float8 = Float8 Double
   deriving newtype (Eq, Ord, Arbitrary)
   deriving (Show) via (ViaPrimitive Float8)
 
-instance Primitive Float8 where
+instance Mapping Float8 where
   typeName = Tagged "float8"
   baseOid = Tagged 701
   arrayOid = Tagged 1022

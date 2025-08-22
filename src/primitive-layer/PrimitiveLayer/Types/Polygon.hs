@@ -30,7 +30,7 @@ instance Arbitrary Polygon where
     pure (Polygon points)
   shrink (Polygon points) = [Polygon points' | points' <- shrink points, length points' >= 3]
 
-instance Primitive Polygon where
+instance Mapping Polygon where
   typeName = Tagged "polygon"
   baseOid = Tagged 604
   arrayOid = Tagged 1027

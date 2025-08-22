@@ -39,7 +39,7 @@ instance Arbitrary Varbit where
         shrunkBitsList = shrink bits
      in map LawfulConversions.from shrunkBitsList
 
-instance Primitive Varbit where
+instance Mapping Varbit where
   typeName = Tagged "varbit"
   baseOid = Tagged 1562
   arrayOid = Tagged 1563

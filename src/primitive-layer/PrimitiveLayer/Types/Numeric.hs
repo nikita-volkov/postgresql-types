@@ -36,7 +36,7 @@ instance Arbitrary Numeric where
         pure NanNumeric
       ]
 
-instance Primitive Numeric where
+instance Mapping Numeric where
   typeName = Tagged "numeric"
 
   baseOid = Tagged 1700

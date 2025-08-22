@@ -28,7 +28,7 @@ instance Arbitrary Varchar where
   shrink (Varchar base) =
     Varchar . Text.pack <$> shrink (Text.unpack base)
 
-instance Primitive Varchar where
+instance Mapping Varchar where
   typeName = Tagged "varchar"
   baseOid = Tagged 1043
   arrayOid = Tagged 1015

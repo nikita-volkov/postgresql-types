@@ -141,7 +141,7 @@ library primitive-layer
     PrimitiveLayer.Types.Varbit
     PrimitiveLayer.Types.Varchar
     PrimitiveLayer.Via.IsMany
-    PrimitiveLayer.Via.Primitive
+    PrimitiveLayer.Via.Mapping
 
   build-depends:
     QuickCheck >=2.14 && <3,

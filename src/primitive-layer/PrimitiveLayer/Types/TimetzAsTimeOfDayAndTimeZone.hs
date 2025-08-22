@@ -25,7 +25,7 @@ data TimetzAsTimeOfDayAndTimeZone
       Time.TimeOfDay
       Time.TimeZone
   deriving stock (Eq, Ord)
-  deriving (Primitive, Arbitrary, Show) via (ViaIsMany Timetz TimetzAsTimeOfDayAndTimeZone)
+  deriving (Mapping, Arbitrary, Show) via (ViaIsMany Timetz TimetzAsTimeOfDayAndTimeZone)
 
 instance IsSome Timetz TimetzAsTimeOfDayAndTimeZone where
   to (TimetzAsTimeOfDayAndTimeZone timeOfDay timeZone) =

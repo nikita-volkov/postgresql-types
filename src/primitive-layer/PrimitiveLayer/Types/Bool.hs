@@ -15,7 +15,7 @@ newtype Bool = Bool Data.Bool.Bool
   deriving newtype (Eq, Ord, Arbitrary)
   deriving (Show) via (ViaPrimitive Bool)
 
-instance Primitive Bool where
+instance Mapping Bool where
   typeName = Tagged "bool"
   baseOid = Tagged 16
   arrayOid = Tagged 1000

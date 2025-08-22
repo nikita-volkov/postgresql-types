@@ -16,7 +16,7 @@ newtype Float4 = Float4 Float
   deriving newtype (Eq, Ord, Arbitrary)
   deriving (Show) via (ViaPrimitive Float4)
 
-instance Primitive Float4 where
+instance Mapping Float4 where
   typeName = Tagged "float4"
   baseOid = Tagged 700
   arrayOid = Tagged 1021

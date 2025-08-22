@@ -16,7 +16,7 @@ newtype Oid = Oid Word32
   deriving newtype (Eq, Ord, Arbitrary)
   deriving (Show) via (ViaPrimitive Oid)
 
-instance Primitive Oid where
+instance Mapping Oid where
   typeName = Tagged "oid"
   baseOid = Tagged 26
   arrayOid = Tagged 1028

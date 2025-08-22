@@ -48,7 +48,7 @@ instance Arbitrary Inet where
         V6Ip _ _ _ _ -> netmask' <= 128
     ]
 
-instance Primitive Inet where
+instance Mapping Inet where
   typeName = Tagged "inet"
   baseOid = Tagged 869
   arrayOid = Tagged 1041

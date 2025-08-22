@@ -29,7 +29,7 @@ instance (IsMany a b) => IsSome a (ViaIsMany a b) where
 instance (IsMany a b) => IsMany a (ViaIsMany a b) where
   from = ViaIsMany . from
 
-instance (Primitive a, IsMany a b) => Primitive (ViaIsMany a b) where
+instance (Mapping a, IsMany a b) => Mapping (ViaIsMany a b) where
   typeName = retag @a typeName
   baseOid = retag @a baseOid
   arrayOid = retag @a arrayOid

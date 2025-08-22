@@ -27,7 +27,7 @@ instance Arbitrary Jsonb where
   arbitrary = fromAesonValue <$> arbitrary
   shrink = fmap Jsonb . shrink . toAesonValue
 
-instance Primitive Jsonb where
+instance Mapping Jsonb where
   typeName = Tagged "jsonb"
   baseOid = Tagged 3802
   arrayOid = Tagged 3807

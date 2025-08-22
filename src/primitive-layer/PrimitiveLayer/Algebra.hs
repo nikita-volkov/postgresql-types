@@ -5,7 +5,7 @@ import PrimitiveLayer.Prelude
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
-class Primitive a where
+class Mapping a where
   -- | PostgreSQL type name.
   typeName :: Tagged a Text
 

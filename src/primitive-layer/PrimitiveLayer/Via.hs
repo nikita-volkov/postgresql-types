@@ -1,8 +1,8 @@
 module PrimitiveLayer.Via
-  ( module PrimitiveLayer.Via.Primitive,
+  ( module PrimitiveLayer.Via.Mapping,
     module PrimitiveLayer.Via.IsMany,
   )
 where
 
 import PrimitiveLayer.Via.IsMany
-import PrimitiveLayer.Via.Primitive
+import PrimitiveLayer.Via.Mapping

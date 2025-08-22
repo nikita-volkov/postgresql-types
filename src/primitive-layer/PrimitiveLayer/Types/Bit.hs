@@ -37,7 +37,7 @@ instance Arbitrary Bit where
         shrunkBitsList = shrink bits
      in map LawfulConversions.from shrunkBitsList
 
-instance Primitive Bit where
+instance Mapping Bit where
   typeName = Tagged "bit"
   baseOid = Tagged 1560
   arrayOid = Tagged 1561

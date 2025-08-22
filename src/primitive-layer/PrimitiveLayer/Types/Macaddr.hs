@@ -44,7 +44,7 @@ instance Arbitrary Macaddr where
       f' <- shrink f
     ]
 
-instance Primitive Macaddr where
+instance Mapping Macaddr where
   typeName = Tagged "macaddr"
   baseOid = Tagged 829
   arrayOid = Tagged 1040

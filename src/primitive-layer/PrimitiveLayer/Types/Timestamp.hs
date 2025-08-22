@@ -23,7 +23,7 @@ newtype Timestamp = Timestamp Int64
 instance Arbitrary Timestamp where
   arbitrary = Timestamp <$> QuickCheck.choose (0, maxBound)
 
-instance Primitive Timestamp where
+instance Mapping Timestamp where
   typeName = Tagged "timestamp"
   baseOid = Tagged 1114
   arrayOid = Tagged 1115

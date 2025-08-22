@@ -21,7 +21,7 @@ import qualified TextBuilder
 
 -- | IP address type for representing IPv4 and IPv6 addresses.
 --
--- This type does not have a 'Primitive' instance and serves as a component to the 'Inet' and 'Cidr' types.
+-- This type does not have a 'Mapping' instance and serves as a component to the 'Inet' and 'Cidr' types.
 data Ip
   = -- | IPv4 address stored as 32-bit big-endian word.
     V4Ip Word32

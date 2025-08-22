@@ -16,7 +16,7 @@ newtype Int8 = Int8 Int64
   deriving newtype (Eq, Ord, Arbitrary)
   deriving (Show) via (ViaPrimitive Int8)
 
-instance Primitive Int8 where
+instance Mapping Int8 where
   typeName = Tagged "int8"
   baseOid = Tagged 20
   arrayOid = Tagged 1016

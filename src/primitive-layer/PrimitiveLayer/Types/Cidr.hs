@@ -50,7 +50,7 @@ instance Arbitrary Cidr where
         V6Ip _ _ _ _ -> netmask' <= 128
     ]
 
-instance Primitive Cidr where
+instance Mapping Cidr where
   typeName = Tagged "cidr"
   baseOid = Tagged 650
   arrayOid = Tagged 651

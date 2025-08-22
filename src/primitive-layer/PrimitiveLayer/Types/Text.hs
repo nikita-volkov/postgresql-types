@@ -28,7 +28,7 @@ instance Arbitrary Text where
   shrink (Text base) =
     Text . Text.pack <$> shrink (Text.unpack base)
 
-instance Primitive Text where
+instance Mapping Text where
   typeName = Tagged "text"
   baseOid = Tagged 25
   arrayOid = Tagged 1009

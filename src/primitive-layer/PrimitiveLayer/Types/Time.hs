@@ -23,7 +23,7 @@ newtype Time = Time Int64
 instance Arbitrary Time where
   arbitrary = Time <$> QuickCheck.choose (toMicroseconds minBound, toMicroseconds maxBound)
 
-instance Primitive Time where
+instance Mapping Time where
   typeName = Tagged "time"
   baseOid = Tagged 1083
   arrayOid = Tagged 1183

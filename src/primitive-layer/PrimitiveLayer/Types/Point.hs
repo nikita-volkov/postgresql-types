@@ -26,7 +26,7 @@ instance Arbitrary Point where
   arbitrary = Point <$> arbitrary <*> arbitrary
   shrink (Point x y) = [Point x' y' | (x', y') <- shrink (x, y)]
 
-instance Primitive Point where
+instance Mapping Point where
   typeName = Tagged "point"
   baseOid = Tagged 600
   arrayOid = Tagged 1017

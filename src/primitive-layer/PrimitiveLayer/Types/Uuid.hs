@@ -17,7 +17,7 @@ newtype Uuid = Uuid Data.UUID.UUID
   deriving newtype (Eq, Ord, Arbitrary)
   deriving (Show) via (ViaPrimitive Uuid)
 
-instance Primitive Uuid where
+instance Mapping Uuid where
   typeName = Tagged "uuid"
   baseOid = Tagged 2950
   arrayOid = Tagged 2951

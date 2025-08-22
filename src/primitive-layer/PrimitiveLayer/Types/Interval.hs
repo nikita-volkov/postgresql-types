@@ -45,7 +45,7 @@ instance Arbitrary Interval where
     months <- QuickCheck.choose ((minBound @Interval).months, (maxBound @Interval).months)
     pure (max minBound (min maxBound (Interval {..})))
 
-instance Primitive Interval where
+instance Mapping Interval where
   typeName = Tagged "interval"
   baseOid = Tagged 1186
   arrayOid = Tagged 1187

@@ -16,7 +16,7 @@ newtype Int4 = Int4 Int32
   deriving newtype (Eq, Ord, Arbitrary)
   deriving (Show) via (ViaPrimitive Int4)
 
-instance Primitive Int4 where
+instance Mapping Int4 where
   typeName = Tagged "int4"
   baseOid = Tagged 23
   arrayOid = Tagged 1007

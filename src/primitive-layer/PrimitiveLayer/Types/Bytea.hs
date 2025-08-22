@@ -16,7 +16,7 @@ newtype Bytea = Bytea ByteString
   deriving newtype (Eq, Ord, Arbitrary)
   deriving (Show) via (ViaPrimitive Bytea)
 
-instance Primitive Bytea where
+instance Mapping Bytea where
   typeName = Tagged "bytea"
   baseOid = Tagged 17
   arrayOid = Tagged 1001

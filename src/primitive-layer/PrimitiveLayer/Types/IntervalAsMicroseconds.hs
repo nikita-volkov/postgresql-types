@@ -22,7 +22,7 @@ import qualified TextBuilder
 newtype IntervalAsMicroseconds = IntervalAsMicroseconds Integer
   deriving stock (Eq, Ord)
   deriving (Show) via (ViaPrimitive IntervalAsMicroseconds)
-  deriving (Primitive) via (ViaIsMany Interval IntervalAsMicroseconds)
+  deriving (Mapping) via (ViaIsMany Interval IntervalAsMicroseconds)
 
 instance Bounded IntervalAsMicroseconds where
   minBound = fromInterval minBound
