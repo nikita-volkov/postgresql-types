@@ -6,12 +6,14 @@ import Data.Int
 import Data.Maybe
 import Data.Proxy
 import Data.String
-import Data.Tagged (untag)
+import Data.Tagged
+import Data.Text (Text)
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text.Encoding
 import Data.Typeable
 import Data.Word
 import qualified Database.PostgreSQL.LibPQ as Pq
+import LawfulConversions
 import qualified PeekyBlinders
 import qualified PrimitiveLayer.Algebra as PrimitiveLayer
 import qualified PtrPoker.Write
@@ -20,7 +22,9 @@ import Test.QuickCheck ((===))
 import qualified Test.QuickCheck as QuickCheck
 import Test.QuickCheck.Instances ()
 import qualified TestcontainersPostgresql
+import TextBuilder (TextBuilder)
 import qualified TextBuilder
+import TextBuilderLawfulConversions ()
 import Prelude
 
 withPqConnection :: (Pq.Connection -> IO ()) -> IO ()
@@ -150,10 +154,14 @@ runStatement connection sql params resultFormat = do
   result <- case result of
     Nothing -> do
       m <- Pq.errorMessage connection
-      fail ("execParams produced no result due to: " <> show m)
+      failWithSql "No result" (onto (show m))
     Just result -> pure result
   resultErrorField <- Pq.resultErrorField result Pq.DiagMessagePrimary
   case resultErrorField of
     Nothing -> pure ()
-    Just err -> fail ("Query failed: " <> show err)
+    Just err -> failWithSql "Error field present" (onto (show err))
   pure result
+  where
+    failWithSql :: Text -> Text -> IO a
+    failWithSql msg reason =
+      fail (to @_ @TextBuilder (from @Text msg <> "\nDue to:\n\t\t" <> from @Text reason <> "\nQuery:\n\t\t" <> from @Text sql))

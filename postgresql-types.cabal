@@ -278,6 +278,7 @@ test-suite integration-tests
     base >=4.11 && <5,
     bytestring >=0.10 && <0.13,
     hspec >=2.11 && <3,
+    lawful-conversions ^>=0.2.0.1,
     peeky-blinders >=0.1 && <0.2,
     postgresql-libpq >=0.10 && <0.12,
     postgresql-types:primitive-layer,
@@ -287,3 +288,4 @@ test-suite integration-tests
     tagged ^>=0.8.9,
     text >=1.2 && <3,
     text-builder ^>=1.0.0.4,
+    text-builder-lawful-conversions ^>=0.1.3,
