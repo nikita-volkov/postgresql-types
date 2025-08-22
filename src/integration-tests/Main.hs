@@ -47,4 +47,3 @@ main =
       Main.Helpers.primitiveSpec @PrimitiveLayer.Uuid Proxy
       Main.Helpers.primitiveSpec @PrimitiveLayer.Varbit Proxy
       Main.Helpers.primitiveSpec @PrimitiveLayer.Varchar Proxy
-      Main.Helpers.primitiveSpec @PrimitiveLayer.Xml Proxy

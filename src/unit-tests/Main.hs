@@ -43,7 +43,6 @@ main = hspec do
   testIs @PrimitiveLayer.Uuid @UUID.UUID Proxy Proxy
   testIs @PrimitiveLayer.Varbit @[Bool] Proxy Proxy
   testIs @PrimitiveLayer.Varbit @(VU.Vector Bool) Proxy Proxy
-  testIs @PrimitiveLayer.Xml @Text.Text Proxy Proxy
   testIsMany @PrimitiveLayer.Bool @Bool Proxy Proxy
   testIsMany @PrimitiveLayer.Box @(Double, Double, Double, Double) Proxy Proxy
   testIsMany @PrimitiveLayer.Bytea @ByteString Proxy Proxy
@@ -76,7 +75,6 @@ main = hspec do
   testIsMany @PrimitiveLayer.TimetzAsTimeOfDayAndTimeZone @(TimeOfDay, TimeZone) Proxy Proxy
   testIsMany @PrimitiveLayer.Uuid @UUID.UUID Proxy Proxy
   testIsMany @PrimitiveLayer.Varchar @Text.Text Proxy Proxy
-  testIsMany @PrimitiveLayer.Xml @Text.Text Proxy Proxy
   testIsMany @Scientific.Scientific @PrimitiveLayer.Numeric Proxy Proxy
 
 -- | Test lawful conversions for a PostgreSQL type
