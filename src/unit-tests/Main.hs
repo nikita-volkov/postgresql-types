@@ -67,6 +67,12 @@ main = hspec do
   testIsMany @PrimitiveLayer.Path @(Bool, [(Double, Double)]) Proxy Proxy
   testIsMany @PrimitiveLayer.Point @(Double, Double) Proxy Proxy
   testIsMany @PrimitiveLayer.Polygon @[(Double, Double)] Proxy Proxy
+  testIsMany @(PrimitiveLayer.Range PrimitiveLayer.Int4) @(Maybe (Maybe PrimitiveLayer.Int4, Maybe PrimitiveLayer.Int4)) Proxy Proxy
+  testIsMany @(PrimitiveLayer.Range PrimitiveLayer.Int8) @(Maybe (Maybe PrimitiveLayer.Int8, Maybe PrimitiveLayer.Int8)) Proxy Proxy
+  testIsMany @(PrimitiveLayer.Range PrimitiveLayer.Numeric) @(Maybe (Maybe PrimitiveLayer.Numeric, Maybe PrimitiveLayer.Numeric)) Proxy Proxy
+  testIsMany @(PrimitiveLayer.Range PrimitiveLayer.Timestamp) @(Maybe (Maybe PrimitiveLayer.Timestamp, Maybe PrimitiveLayer.Timestamp)) Proxy Proxy
+  testIsMany @(PrimitiveLayer.Range PrimitiveLayer.Timestamptz) @(Maybe (Maybe PrimitiveLayer.Timestamptz, Maybe PrimitiveLayer.Timestamptz)) Proxy Proxy
+  testIsMany @(PrimitiveLayer.Range PrimitiveLayer.Date) @(Maybe (Maybe PrimitiveLayer.Date, Maybe PrimitiveLayer.Date)) Proxy Proxy
   testIsMany @PrimitiveLayer.Text @Text.Text Proxy Proxy
   testIsMany @PrimitiveLayer.Time @TimeOfDay Proxy Proxy
   testIsMany @PrimitiveLayer.Timestamp @LocalTime Proxy Proxy

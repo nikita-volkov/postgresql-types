@@ -1,4 +1,4 @@
-module PrimitiveLayer.Types.Range where
+module PrimitiveLayer.Types.Range (Range) where
 
 import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
@@ -114,3 +114,28 @@ instance (Arbitrary a, Ord a) => Arbitrary (Range a) where
             pure if value1 < value2 then BoundedRange value1 value2 else BoundedRange value2 value1
         )
       ]
+
+-- |
+-- Interprets values of @(Maybe (Maybe a, Maybe a))@ in the following way:
+--
+-- - @Nothing@ - empty range (@empty@)
+-- - @Just (Nothing, Nothing)@ - infinity to infinity (@(,)@)
+-- - @Just (Just lower, Just upper)@ - bounded range (@[lower, upper)@)
+-- - @Just (Just lower, Nothing)@ - half-open range (@[lower,)@)
+-- - @Just (Nothing, Just upper)@ - half-open range (@(,upper)@)
+instance (Ord a) => IsSome (Maybe (Maybe a, Maybe a)) (Range a) where
+  to = \case
+    EmptyRange -> Nothing
+    BoundedRange lower upper -> Just (lower, upper)
+
+  maybeFrom = \case
+    Just (Just lower, Just upper) -> if lower < upper then Just (BoundedRange (Just lower) (Just upper)) else Nothing
+    Just (lower, upper) -> Just (BoundedRange lower upper)
+    Nothing -> Just EmptyRange
+
+-- | Normalizes ranges with invalid bounds (lower >= upper) to empty range.
+instance (Ord a) => IsMany (Maybe (Maybe a, Maybe a)) (Range a) where
+  from = \case
+    Just (Just lower, Just upper) -> if lower < upper then BoundedRange (Just lower) (Just upper) else EmptyRange
+    Just (lower, upper) -> BoundedRange lower upper
+    Nothing -> EmptyRange
