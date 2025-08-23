@@ -25,7 +25,7 @@ main = hspec do
   testIs @PrimitiveLayer.Inet @(PrimitiveLayer.Ip, Word8) Proxy Proxy
   testIs @PrimitiveLayer.Bit @[Bool] Proxy Proxy
   testIs @PrimitiveLayer.Bit @(VU.Vector Bool) Proxy Proxy
-  testIs @PrimitiveLayer.Bool @Bool Proxy Proxy
+  testIs @PrimitiveLayer.Boolean @Bool Proxy Proxy
   testIs @PrimitiveLayer.Bytea @ByteString Proxy Proxy
   testIs @PrimitiveLayer.Float4 @Float Proxy Proxy
   testIs @PrimitiveLayer.Float8 @Double Proxy Proxy
@@ -43,7 +43,7 @@ main = hspec do
   testIs @PrimitiveLayer.Uuid @UUID.UUID Proxy Proxy
   testIs @PrimitiveLayer.Varbit @[Bool] Proxy Proxy
   testIs @PrimitiveLayer.Varbit @(VU.Vector Bool) Proxy Proxy
-  testIsMany @PrimitiveLayer.Bool @Bool Proxy Proxy
+  testIsMany @PrimitiveLayer.Boolean @Bool Proxy Proxy
   testIsMany @PrimitiveLayer.Box @(Double, Double, Double, Double) Proxy Proxy
   testIsMany @PrimitiveLayer.Bytea @ByteString Proxy Proxy
   testIsMany @PrimitiveLayer.Char @Word8 Proxy Proxy

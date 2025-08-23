@@ -11,7 +11,7 @@ main =
   hspec do
     aroundAll withPqConnection do
       withType @PrimitiveLayer.Bit [mappingSpec]
-      withType @PrimitiveLayer.Bool [mappingSpec]
+      withType @PrimitiveLayer.Boolean [mappingSpec]
       withType @PrimitiveLayer.Box [mappingSpec]
       withType @PrimitiveLayer.Bytea [mappingSpec]
       withType @PrimitiveLayer.Char [mappingSpec]
