@@ -10,7 +10,7 @@ import qualified TextBuilder
 
 -- | PostgreSQL @boolean@ type. Logical Boolean (@true@/@false@).
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-boolean.html)
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-boolean.html).
 newtype Boolean = Boolean Data.Bool.Bool
   deriving newtype (Eq, Ord, Arbitrary)
   deriving (Show) via (ViaPrimitive Boolean)

@@ -13,7 +13,7 @@ import qualified TextBuilder
 --
 -- Range: @4713 BC@ to @5874897 AD@.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-DATE)
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-DATE).
 newtype Date
   = -- | Days since PostgreSQL epoch (2000-01-01).
     Date Int32

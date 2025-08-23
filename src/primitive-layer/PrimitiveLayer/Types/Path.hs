@@ -14,7 +14,7 @@ import qualified TextBuilder
 --
 -- Represented as a series of connected points, which can be either open or closed.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-geometric.html#DATATYPE-PATH)
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-geometric.html#DATATYPE-PATH).
 data Path = Path
   { pathClosed :: Bool,
     pathPoints :: [(Double, Double)]

@@ -16,7 +16,7 @@ import qualified TextBuilder
 
 -- | PostgreSQL @bit@ type. Fixed-length bit string.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-bit.html)
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-bit.html).
 data Bit = Bit
   { -- | Number of bits
     bitLength :: Int32,

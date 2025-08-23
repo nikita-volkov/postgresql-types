@@ -15,7 +15,7 @@ import qualified TextBuilder
 -- The format is eight groups of two hexadecimal digits, separated by colons.
 -- Example: @01:23:45:67:89:ab:cd:ef@
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-net-types.html#DATATYPE-MACADDR8)
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-net-types.html#DATATYPE-MACADDR8).
 data Macaddr8 = Macaddr8
   { macaddr8Byte1 :: Word8,
     macaddr8Byte2 :: Word8,

@@ -15,6 +15,8 @@ import qualified TextBuilder
 -- Although PostgreSQL has the concept of inclusive and exclusive bounds in ranges in reality it always normalizes the range values to one form.
 -- The lower bound is inclusive and the upper bound is exclusive with one exception: if the lower bound is infinity then it is treated as exclusive.
 -- There is also another special value: empty.
+-- 
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/rangetypes.html).
 data Range a
   = EmptyRange
   | BoundedRange (Maybe a) (Maybe a)

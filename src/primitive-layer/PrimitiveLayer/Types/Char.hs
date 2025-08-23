@@ -18,7 +18,7 @@ import qualified TextBuilder
 --
 -- Not to confuse with @character(n)@ or @char(n)@.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-character.html)
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-character.html).
 newtype Char = Char Word8
   deriving newtype (Eq, Ord)
   deriving (Show) via (ViaPrimitive Char)

@@ -14,7 +14,7 @@ import qualified TextBuilder
 -- Represented with (@x@,@y@) coordinates.
 -- Stored as two @64@-bit floating point numbers (@float8@) in PostgreSQL.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-geometric.html#DATATYPE-GEOMETRIC-POINTS)
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-geometric.html#DATATYPE-GEOMETRIC-POINTS).
 data Point = Point
   { pointX :: Double,
     pointY :: Double

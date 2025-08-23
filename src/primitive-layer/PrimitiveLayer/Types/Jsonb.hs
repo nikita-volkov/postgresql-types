@@ -18,7 +18,7 @@ import qualified TextBuilder
 --
 -- A more efficient representation than @json@, allowing for faster processing and smaller storage size.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-json.html)
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-json.html).
 newtype Jsonb = Jsonb Aeson.Value
   deriving newtype (Eq, Ord)
   deriving (Show) via (ViaPrimitive Jsonb)

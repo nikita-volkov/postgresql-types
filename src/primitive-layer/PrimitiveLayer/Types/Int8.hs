@@ -11,7 +11,7 @@ import qualified TextBuilder
 --
 -- Range: @-9223372036854775808@ to @+9223372036854775807@.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-numeric.html#DATATYPE-INT)
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-numeric.html#DATATYPE-INT).
 newtype Int8 = Int8 Int64
   deriving newtype (Eq, Ord, Arbitrary)
   deriving (Show) via (ViaPrimitive Int8)

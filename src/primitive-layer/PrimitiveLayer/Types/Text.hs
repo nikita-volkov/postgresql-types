@@ -14,7 +14,7 @@ import qualified TextBuilder
 
 -- | PostgreSQL @text@ type. Variable-length character string with no null-characters.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-character.html)
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-character.html).
 newtype Text = Text Text.Text
   deriving newtype (Eq, Ord)
   deriving (Show) via (ViaPrimitive Text)

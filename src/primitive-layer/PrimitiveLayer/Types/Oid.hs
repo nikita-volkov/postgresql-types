@@ -11,7 +11,7 @@ import qualified TextBuilder
 --
 -- Range: @0@ to @4294967295@.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-oid.html)
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-oid.html).
 newtype Oid = Oid Word32
   deriving newtype (Eq, Ord, Arbitrary)
   deriving (Show) via (ViaPrimitive Oid)

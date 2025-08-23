@@ -12,7 +12,7 @@ import qualified TextBuilder
 --
 -- Isomorphic to 'Data.UUID.UUID'.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-uuid.html)
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-uuid.html).
 newtype Uuid = Uuid Data.UUID.UUID
   deriving newtype (Eq, Ord, Arbitrary)
   deriving (Show) via (ViaPrimitive Uuid)

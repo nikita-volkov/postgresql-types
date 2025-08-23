@@ -19,7 +19,7 @@ import qualified TimeExtras.TimeZone as TimeZone
 --
 -- Low value: @00:00:00+1559@. High value: @24:00:00-1559@.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-TIMEZONES)
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-TIMEZONES).
 data TimetzAsTimeOfDayAndTimeZone
   = TimetzAsTimeOfDayAndTimeZone
       Time.TimeOfDay

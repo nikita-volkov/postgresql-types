@@ -11,7 +11,7 @@ import qualified TextBuilder
 
 -- | PostgreSQL @float4@ type. 4-byte floating-point number. 6 decimal digits precision.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-numeric.html#DATATYPE-FLOAT)
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-numeric.html#DATATYPE-FLOAT).
 newtype Float4 = Float4 Float
   deriving newtype (Eq, Ord, Arbitrary)
   deriving (Show) via (ViaPrimitive Float4)

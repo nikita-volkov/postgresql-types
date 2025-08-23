@@ -15,7 +15,7 @@ import qualified TextBuilder
 --
 -- Range: @00:00:00@ to @24:00:00@.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-TIME)
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-TIME).
 newtype Time = Time Int64
   deriving newtype (Eq, Ord)
   deriving (Show) via (ViaPrimitive Time)

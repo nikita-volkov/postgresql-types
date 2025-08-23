@@ -15,7 +15,7 @@ import qualified TextBuilder
 --
 -- Range: @4713 BC@ to @294276 AD@.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-DATETIME)
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-DATETIME).
 newtype Timestamp = Timestamp Int64
   deriving newtype (Eq, Ord)
   deriving (Show) via (ViaPrimitive Timestamp)
