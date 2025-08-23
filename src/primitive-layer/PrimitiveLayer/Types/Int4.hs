@@ -13,7 +13,7 @@ import qualified TextBuilder
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-numeric.html#DATATYPE-INT)
 newtype Int4 = Int4 Int32
-  deriving newtype (Eq, Ord, Arbitrary)
+  deriving newtype (Eq, Ord, Arbitrary, Enum, Bounded)
   deriving (Show) via (ViaPrimitive Int4)
 
 instance Mapping Int4 where
@@ -23,6 +23,11 @@ instance Mapping Int4 where
   binaryEncoder (Int4 x) = Write.bInt32 x
   binaryDecoder = PeekyBlinders.statically (Right . Int4 <$> PeekyBlinders.beSignedInt4)
   textualEncoder (Int4 x) = TextBuilder.decimal x
+
+instance RangeMapping Int4 where
+  rangeTypeName = Tagged "int4range"
+  rangeOid = Tagged 3904
+  rangeArrayOid = Tagged 3905
 
 -- | Direct conversion from 'Int32'.
 -- This is always safe since both types represent 32-bit signed integers identically.

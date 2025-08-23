@@ -34,6 +34,11 @@ instance Mapping Timestamp where
   textualEncoder (toLocalTime -> localTime) =
     TextBuilder.string (Time.formatTime Time.defaultTimeLocale "%Y-%m-%d %H:%M:%S%Q" localTime)
 
+instance RangeMapping Timestamp where
+  rangeTypeName = Tagged "tsrange"
+  rangeOid = Tagged 3908
+  rangeArrayOid = Tagged 3909
+
 -- PostgreSQL timestamp epoch is 2000-01-01 00:00:00
 postgresTimestampEpoch :: Time.LocalTime
 postgresTimestampEpoch = Time.LocalTime (Time.fromGregorian 2000 1 1) Time.midnight

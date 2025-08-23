@@ -34,6 +34,11 @@ instance Mapping Timestamptz where
   textualEncoder (toUtcTime -> utcTime) =
     TextBuilder.string (Time.formatTime Time.defaultTimeLocale "%Y-%m-%d %H:%M:%S%Q%z" utcTime)
 
+instance RangeMapping Timestamptz where
+  rangeTypeName = Tagged "tstzrange"
+  rangeOid = Tagged 3910
+  rangeArrayOid = Tagged 3911
+
 -- PostgreSQL timestamptz epoch is 2000-01-01 00:00:00 UTC
 postgresUtcEpoch :: Time.UTCTime
 postgresUtcEpoch = Time.UTCTime (Time.fromGregorian 2000 1 1) 0

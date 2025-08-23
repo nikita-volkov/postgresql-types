@@ -24,6 +24,11 @@ instance Mapping Int8 where
   binaryDecoder = PeekyBlinders.statically (Right . Int8 <$> PeekyBlinders.beSignedInt8)
   textualEncoder (Int8 x) = TextBuilder.decimal x
 
+instance RangeMapping Int8 where
+  rangeTypeName = Tagged "int8range"
+  rangeOid = Tagged 3926
+  rangeArrayOid = Tagged 3927
+
 -- | Direct conversion from 'Int64'.
 -- This is always safe since both types represent 64-bit signed integers identically.
 instance IsSome Int64 Int8 where

@@ -30,6 +30,7 @@ common base
   default-extensions:
     ApplicativeDo
     BangPatterns
+    BinaryLiterals
     BlockArguments
     ConstraintKinds
     DataKinds
@@ -129,6 +130,7 @@ library primitive-layer
     PrimitiveLayer.Types.Path
     PrimitiveLayer.Types.Point
     PrimitiveLayer.Types.Polygon
+    PrimitiveLayer.Types.Range
     PrimitiveLayer.Types.Text
     PrimitiveLayer.Types.Time
     PrimitiveLayer.Types.Timestamp
@@ -142,6 +144,7 @@ library primitive-layer
     PrimitiveLayer.Types.Varchar
     PrimitiveLayer.Via.IsMany
     PrimitiveLayer.Via.Mapping
+    PrimitiveLayer.Writes
 
   build-depends:
     QuickCheck >=2.14 && <3,

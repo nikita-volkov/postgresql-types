@@ -28,6 +28,7 @@ module PrimitiveLayer.Types
     module PrimitiveLayer.Types.Path,
     module PrimitiveLayer.Types.Point,
     module PrimitiveLayer.Types.Polygon,
+    module PrimitiveLayer.Types.Range,
     module PrimitiveLayer.Types.Text,
     module PrimitiveLayer.Types.Time,
     module PrimitiveLayer.Types.Timestamp,
@@ -69,6 +70,7 @@ import PrimitiveLayer.Types.Oid
 import PrimitiveLayer.Types.Path
 import PrimitiveLayer.Types.Point
 import PrimitiveLayer.Types.Polygon
+import PrimitiveLayer.Types.Range
 import PrimitiveLayer.Types.Text
 import PrimitiveLayer.Types.Time
 import PrimitiveLayer.Types.Timestamp
