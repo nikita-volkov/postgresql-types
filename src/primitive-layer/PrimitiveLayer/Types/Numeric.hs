@@ -139,6 +139,24 @@ instance IsMany Numeric Scientific.Scientific where
     ScientificNumeric s -> s
     NanNumeric -> 0
 
+instance IsSome (Maybe Scientific.Scientific) Numeric where
+  to = \case
+    ScientificNumeric s -> Just s
+    NanNumeric -> Nothing
+
+instance IsMany (Maybe Scientific.Scientific) Numeric
+
+instance Is (Maybe Scientific.Scientific) Numeric
+
+instance IsSome Numeric (Maybe Scientific.Scientific) where
+  to = \case
+    Just s -> ScientificNumeric s
+    Nothing -> NanNumeric
+
+instance IsMany Numeric (Maybe Scientific.Scientific)
+
+instance Is Numeric (Maybe Scientific.Scientific)
+
 {-# INLINE extractComponents #-}
 extractComponents :: (Integral a) => a -> [Word16]
 extractComponents =

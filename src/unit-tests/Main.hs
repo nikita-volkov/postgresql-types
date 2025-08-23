@@ -35,6 +35,7 @@ main = hspec do
   testIs @PrimitiveLayer.Macaddr @(Word8, Word8, Word8, Word8, Word8, Word8) Proxy Proxy
   testIs @PrimitiveLayer.Macaddr8 @(Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) Proxy Proxy
   testIs @PrimitiveLayer.Money @Int64 Proxy Proxy
+  testIs @PrimitiveLayer.Numeric @(Maybe Scientific.Scientific) Proxy Proxy
   testIs @PrimitiveLayer.Oid @Word32 Proxy Proxy
   testIs @PrimitiveLayer.Path @(Bool, [(Double, Double)]) Proxy Proxy
   testIs @PrimitiveLayer.Point @(Double, Double) Proxy Proxy
