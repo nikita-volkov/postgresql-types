@@ -74,6 +74,11 @@ instance Mapping Date where
             if bc then " BC" else ""
           ]
 
+instance RangeMapping Date where
+  rangeTypeName = Tagged "daterange"
+  rangeOid = Tagged 3912
+  rangeArrayOid = Tagged 3913
+
 -- | Conversion to 'Data.Time.Day'.
 instance IsSome Time.Day Date where
   to = toDay

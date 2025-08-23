@@ -119,6 +119,11 @@ instance Mapping Numeric where
     NanNumeric ->
       TextBuilder.text "NaN"
 
+instance RangeMapping Numeric where
+  rangeTypeName = Tagged "numrange"
+  rangeOid = Tagged 3906
+  rangeArrayOid = Tagged 3907
+
 -- |
 -- In 'maybeFrom' produces 'Nothing' for 'NanNumeric' values.
 instance IsSome Numeric Scientific.Scientific where

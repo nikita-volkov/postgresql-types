@@ -9,6 +9,12 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
+-- |
+-- Normalized representation of a range in the @[inclusiveLowerBound,exclusiveUpperBound)@ form.
+--
+-- Although PostgreSQL has the concept of inclusive and exclusive bounds in ranges in reality it always normalizes the range values to one form.
+-- The lower bound is inclusive and the upper bound is exclusive with one exception: if the lower bound is infinity then it is treated as exclusive.
+-- There is also another special value: empty.
 data Range a
   = EmptyRange
   | BoundedRange (Maybe a) (Maybe a)
