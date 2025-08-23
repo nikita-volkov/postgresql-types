@@ -107,7 +107,7 @@ instance IsSome Bit [Bool] where
 
 -- | Direct conversion from bit list to Bit.
 instance IsMany [Bool] Bit where
-  from bits =
+  onfrom bits =
     let len = fromIntegral (length bits)
         numBytes = (len + 7) `div` 8
         paddedBits = bits ++ replicate (numBytes * 8 - len) False
@@ -122,7 +122,7 @@ instance IsMany [Bool] Bit where
 
 -- | Direct conversion from Bit to bit list.
 instance IsMany Bit [Bool] where
-  from (Bit len bytes) =
+  onfrom (Bit len bytes) =
     let bits = concatMap byteToBits (ByteString.unpack bytes)
         trimmedBits = take (fromIntegral len) bits
      in trimmedBits
@@ -199,7 +199,7 @@ instance IsSome Bit (VU.Vector Bool) where
 -- This is a total conversion that always succeeds. The boolean vector
 -- is efficiently packed into the PostgreSQL @bit@ format.
 instance IsMany (VU.Vector Bool) Bit where
-  from bitVector =
+  onfrom bitVector =
     let bits = VU.toList bitVector
         len = fromIntegral (VU.length bitVector)
         numBytes = (len + 7) `div` 8
@@ -218,7 +218,7 @@ instance IsMany (VU.Vector Bool) Bit where
 -- This is a total conversion that always succeeds. Efficiently extracts
 -- the bit data from PostgreSQL @bit@ format into an unboxed vector.
 instance IsMany Bit (VU.Vector Bool) where
-  from (Bit len bytes) =
+  onfrom (Bit len bytes) =
     let bits = concatMap byteToBits (ByteString.unpack bytes)
         trimmedBits = take (fromIntegral len) bits
      in VU.fromList trimmedBits

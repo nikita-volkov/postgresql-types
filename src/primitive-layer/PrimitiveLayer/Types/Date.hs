@@ -86,7 +86,7 @@ instance IsSome Time.Day Date where
 
 -- | Conversion from 'Data.Time.Day'.
 instance IsMany Time.Day Date where
-  from = normalizeFromDay
+  onfrom = normalizeFromDay
 
 -- | PostgreSQL epoch is 2000-01-01
 postgresEpoch :: Time.Day

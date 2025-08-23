@@ -63,4 +63,4 @@ instance IsSome Time.UTCTime Timestamptz where
 -- | Direct conversion from 'Data.Time.UTCTime'.
 -- This is a total conversion as it always succeeds.
 instance IsMany Time.UTCTime Timestamptz where
-  from = fromUtcTime
+  onfrom = fromUtcTime

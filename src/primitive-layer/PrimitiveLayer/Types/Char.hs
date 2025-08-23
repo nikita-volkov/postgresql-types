@@ -46,7 +46,7 @@ instance IsSome Word8 Char where
       else Just (Char word8)
 
 instance IsMany Word8 Char where
-  from word8 = Char (clearBit word8 7)
+  onfrom word8 = Char (clearBit word8 7)
 
 instance IsSome Data.Char.Char Char where
   to (Char word8) = Data.Char.chr (fromIntegral word8)
@@ -58,4 +58,4 @@ instance IsSome Data.Char.Char Char where
 
 -- | Turns invalid chars into '\NUL'.
 instance IsMany Data.Char.Char Char where
-  from = fromMaybe (Char 0) . maybeFrom
+  onfrom = fromMaybe (Char 0) . maybeFrom

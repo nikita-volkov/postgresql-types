@@ -7,3 +7,13 @@ source-repository-package
   type: git
   location: https://github.com/nikita-volkov/peeky-blinders
   tag: ccd0d5b3555d89c9c58604a2fff0c21ebf33bed2
+
+source-repository-package
+  type: git
+  location: https://github.com/nikita-volkov/lawful-conversions
+  tag: 2f6ba0f69827a7126abaaa6c9e6592e763776bd5
+
+source-repository-package
+  type: git
+  location: https://github.com/nikita-volkov/text-builder-lawful-conversions
+  tag: 37c5de07a2811ad54b1df105a80b058b15ff7e50

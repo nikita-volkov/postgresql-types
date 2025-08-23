@@ -134,7 +134,7 @@ instance IsSome Numeric Scientific.Scientific where
 
 -- | Treats 'NanNumeric' values as @0@.
 instance IsMany Numeric Scientific.Scientific where
-  from = \case
+  onfrom = \case
     ScientificNumeric s -> s
     NanNumeric -> 0
 

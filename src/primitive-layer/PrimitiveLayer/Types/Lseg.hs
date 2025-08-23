@@ -73,9 +73,9 @@ instance IsSome Lseg (Double, Double, Double, Double) where
 -- | Direct conversion from 4-tuple to Lseg.
 -- This is a total conversion as it always succeeds.
 instance IsMany (Double, Double, Double, Double) Lseg where
-  from (x1, y1, x2, y2) = Lseg x1 y1 x2 y2
+  onfrom (x1, y1, x2, y2) = Lseg x1 y1 x2 y2
 
 -- | Direct conversion from Lseg to 4-tuple.
 -- This is a total conversion as it always succeeds.
 instance IsMany Lseg (Double, Double, Double, Double) where
-  from (Lseg x1 y1 x2 y2) = (x1, y1, x2, y2)
+  onfrom (Lseg x1 y1 x2 y2) = (x1, y1, x2, y2)

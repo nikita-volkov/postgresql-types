@@ -40,14 +40,14 @@ instance IsSome Interval IntervalAsMicroseconds where
   maybeFrom = Just . fromInterval
 
 instance IsMany Interval IntervalAsMicroseconds where
-  from = fromInterval
+  onfrom = fromInterval
 
 instance IsSome DiffTime IntervalAsMicroseconds where
   to = Time.picosecondsToDiffTime . (1_000_000 *) . toInteger
   maybeFrom = compileFromDiffTime
 
 instance IsMany DiffTime IntervalAsMicroseconds where
-  from = normalizeFromDiffTime
+  onfrom = normalizeFromDiffTime
 
 -- * Constants
 
@@ -68,7 +68,7 @@ toInterval (IntervalAsMicroseconds microseconds) =
     microseconds <- fromIntegral <$> state (swap . flip divMod microsPerDay)
     days <- fromIntegral <$> state (swap . flip divMod daysPerMonth)
     months <- fromIntegral <$> get
-    pure (from @(Int32, Int32, Int64) (months, days, microseconds))
+    pure (onfrom @(Int32, Int32, Int64) (months, days, microseconds))
 
 fromInterval :: Interval -> IntervalAsMicroseconds
 fromInterval interval =

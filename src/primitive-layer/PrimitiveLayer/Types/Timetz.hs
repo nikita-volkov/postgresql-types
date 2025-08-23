@@ -71,7 +71,7 @@ instance IsSome (Int64, Int32) Timetz where
 
 -- | Normalize from time in microseconds and timezone offset in seconds, ensuring valid time range.
 instance IsMany (Int64, Int32) Timetz where
-  from (time, offset) =
+  onfrom (time, offset) =
     Timetz (Time.normalizeFromMicroseconds time) (Offset.normalizeFromSeconds offset)
 
 instance IsSome (Time.TimetzTime, Offset.TimetzOffset) Timetz where

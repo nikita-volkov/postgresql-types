@@ -63,4 +63,4 @@ instance IsSome Text.Text Text where
 -- | Total conversion from Haskell 'Data.Text.Text'.
 -- Strips null characters to ensure PostgreSQL compatibility.
 instance IsMany Text.Text Text where
-  from = Text . Text.replace "\NUL" ""
+  onfrom = Text . Text.replace "\NUL" ""

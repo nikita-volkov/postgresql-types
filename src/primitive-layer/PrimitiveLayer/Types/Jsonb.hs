@@ -72,7 +72,7 @@ instance IsSome Aeson.Value Jsonb where
   maybeFrom = maybeFromAesonValue
 
 instance IsMany Aeson.Value Jsonb where
-  from = fromAesonValue
+  onfrom = fromAesonValue
 
 toAesonValue :: Jsonb -> Aeson.Value
 toAesonValue (Jsonb value) = value

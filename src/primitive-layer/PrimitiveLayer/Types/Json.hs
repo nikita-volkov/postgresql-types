@@ -61,7 +61,7 @@ instance IsSome Aeson.Value Json where
   maybeFrom = maybeFromAesonValue
 
 instance IsMany Aeson.Value Json where
-  from = fromAesonValue
+  onfrom = fromAesonValue
 
 toAesonValue :: Json -> Aeson.Value
 toAesonValue (Json value) = value

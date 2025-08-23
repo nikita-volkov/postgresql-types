@@ -70,4 +70,4 @@ instance IsSome (Double, Double, Double) Circle where
 
 -- | Direct conversion from tuple to Circle.
 instance IsMany (Double, Double, Double) Circle where
-  from (x, y, r) = Circle x y (abs r)
+  onfrom (x, y, r) = Circle x y (abs r)

@@ -41,12 +41,12 @@ instance IsSome Boolean Data.Bool.Bool where
 -- | Direct conversion from Haskell 'Data.Bool.Bool'.
 -- This is a total conversion as it always succeeds.
 instance IsMany Data.Bool.Bool Boolean where
-  from = Boolean
+  onfrom = Boolean
 
 -- | Direct conversion from PostgreSQL Boolean to Haskell 'Data.Bool.Bool'.
 -- This is a total conversion as it always succeeds.
 instance IsMany Boolean Data.Bool.Bool where
-  from (Boolean b) = b
+  onfrom (Boolean b) = b
 
 -- | Bidirectional conversion between Haskell 'Data.Bool.Bool' and PostgreSQL Boolean.
 instance Is Data.Bool.Bool Boolean

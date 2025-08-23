@@ -58,4 +58,4 @@ instance IsSome Text.Text Varchar where
       else Just (Varchar text)
 
 instance IsMany Text.Text Varchar where
-  from = Varchar . Text.replace "\NUL" ""
+  onfrom = Varchar . Text.replace "\NUL" ""

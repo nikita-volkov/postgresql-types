@@ -52,7 +52,7 @@ instance IsSome Time.TimeOfDay Time where
 
 -- | Convert from TimeOfDay to Time, wrapping negative values around 24-hour period
 instance IsMany Time.TimeOfDay Time where
-  from timeOfDay =
+  onfrom timeOfDay =
     let diffTime = Time.timeOfDayToTime timeOfDay
         microseconds = round (diffTime * 1_000_000)
         -- Wrap around 24-hour period for negative values

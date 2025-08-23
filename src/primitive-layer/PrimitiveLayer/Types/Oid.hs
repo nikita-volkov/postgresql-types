@@ -39,12 +39,12 @@ instance IsSome Oid Word32 where
 -- | Direct conversion from 'Word32'.
 -- This is a total conversion as it always succeeds.
 instance IsMany Word32 Oid where
-  from = Oid
+  onfrom = Oid
 
 -- | Direct conversion from PostgreSQL Oid to 'Word32'.
 -- This is a total conversion as it always succeeds.
 instance IsMany Oid Word32 where
-  from (Oid w) = w
+  onfrom (Oid w) = w
 
 -- | Bidirectional conversion between 'Word32' and PostgreSQL Oid.
 instance Is Word32 Oid

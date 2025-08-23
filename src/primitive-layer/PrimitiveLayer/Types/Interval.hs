@@ -126,7 +126,7 @@ instance IsSome (Int32, Int32, Int64) Interval where
 -- | Total conversion from tuple representation (months, days, microseconds) to Interval.
 -- Preserves the structured representation while clamping to valid ranges.
 instance IsMany (Int32, Int32, Int64) Interval where
-  from (months, days, micros) =
+  onfrom (months, days, micros) =
     let interval = Interval {..}
      in -- First try the direct interval, then clamp to bounds if needed
         if interval >= minBound && interval <= maxBound

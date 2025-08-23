@@ -94,12 +94,12 @@ instance IsSome Macaddr (Word8, Word8, Word8, Word8, Word8, Word8) where
 -- | Direct conversion from 6-tuple of Word8 to Macaddr.
 -- This is a total conversion as it always succeeds.
 instance IsMany (Word8, Word8, Word8, Word8, Word8, Word8) Macaddr where
-  from (a, b, c, d, e, f) = Macaddr a b c d e f
+  onfrom (a, b, c, d, e, f) = Macaddr a b c d e f
 
 -- | Direct conversion from Macaddr to 6-tuple of Word8.
 -- This is a total conversion as it always succeeds.
 instance IsMany Macaddr (Word8, Word8, Word8, Word8, Word8, Word8) where
-  from (Macaddr a b c d e f) = (a, b, c, d, e, f)
+  onfrom (Macaddr a b c d e f) = (a, b, c, d, e, f)
 
 -- | Bidirectional conversion between 6-tuple of Word8 and Macaddr.
 instance Is (Word8, Word8, Word8, Word8, Word8, Word8) Macaddr

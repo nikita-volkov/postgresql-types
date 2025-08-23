@@ -100,11 +100,11 @@ instance IsSome Macaddr8 (Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8
 
 -- | Convert from a tuple of 8 Word8s to Macaddr8.
 instance IsMany (Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) Macaddr8 where
-  from (a, b, c, d, e, f, g, h) = Macaddr8 a b c d e f g h
+  onfrom (a, b, c, d, e, f, g, h) = Macaddr8 a b c d e f g h
 
 -- | Convert from Macaddr8 to a tuple of 8 Word8s.
 instance IsMany Macaddr8 (Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) where
-  from (Macaddr8 a b c d e f g h) = (a, b, c, d, e, f, g, h)
+  onfrom (Macaddr8 a b c d e f g h) = (a, b, c, d, e, f, g, h)
 
 -- | Bidirectional conversion between tuple and Macaddr8.
 instance Is (Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) Macaddr8

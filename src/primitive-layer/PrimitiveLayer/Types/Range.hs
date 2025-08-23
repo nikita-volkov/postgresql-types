@@ -137,7 +137,7 @@ instance (Ord a) => IsSome (Maybe (Maybe a, Maybe a)) (Range a) where
 
 -- | Normalizes ranges with invalid bounds (lower >= upper) to empty range.
 instance (Ord a) => IsMany (Maybe (Maybe a, Maybe a)) (Range a) where
-  from = \case
+  onfrom = \case
     Just (Just lower, Just upper) -> if lower < upper then BoundedRange (Just lower) (Just upper) else EmptyRange
     Just (lower, upper) -> BoundedRange lower upper
     Nothing -> EmptyRange

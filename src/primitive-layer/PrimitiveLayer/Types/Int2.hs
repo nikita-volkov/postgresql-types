@@ -39,12 +39,12 @@ instance IsSome Int2 Int16 where
 -- | Direct conversion from 'Int16'.
 -- This is a total conversion as it always succeeds.
 instance IsMany Int16 Int2 where
-  from = Int2
+  onfrom = Int2
 
 -- | Direct conversion from PostgreSQL Int2 to 'Int16'.
 -- This is a total conversion as it always succeeds.
 instance IsMany Int2 Int16 where
-  from (Int2 i) = i
+  onfrom (Int2 i) = i
 
 -- | Bidirectional conversion between 'Int16' and PostgreSQL Int2.
 instance Is Int16 Int2

@@ -63,4 +63,4 @@ instance IsSome Time.LocalTime Timestamp where
 -- | Direct conversion from 'Data.Time.LocalTime'.
 -- This is a total conversion as it always succeeds.
 instance IsMany Time.LocalTime Timestamp where
-  from = fromLocalTime
+  onfrom = fromLocalTime

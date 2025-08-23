@@ -44,12 +44,12 @@ instance IsSome Int8 Int64 where
 -- | Direct conversion from 'Int64'.
 -- This is a total conversion as it always succeeds.
 instance IsMany Int64 Int8 where
-  from = Int8
+  onfrom = Int8
 
 -- | Direct conversion from PostgreSQL Int8 to 'Int64'.
 -- This is a total conversion as it always succeeds.
 instance IsMany Int8 Int64 where
-  from (Int8 i) = i
+  onfrom (Int8 i) = i
 
 -- | Bidirectional conversion between 'Int64' and PostgreSQL Int8.
 instance Is Int64 Int8

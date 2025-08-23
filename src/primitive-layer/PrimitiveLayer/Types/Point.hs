@@ -57,12 +57,12 @@ instance IsSome Point (Double, Double) where
 -- | Direct conversion from tuple to Point.
 -- This is a total conversion as it always succeeds.
 instance IsMany (Double, Double) Point where
-  from (x, y) = Point x y
+  onfrom (x, y) = Point x y
 
 -- | Direct conversion from Point to tuple.
 -- This is a total conversion as it always succeeds.
 instance IsMany Point (Double, Double) where
-  from (Point x y) = (x, y)
+  onfrom (Point x y) = (x, y)
 
 -- | Bidirectional conversion between tuple and Point.
 instance Is (Double, Double) Point

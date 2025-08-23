@@ -155,7 +155,7 @@ instance IsSome (Ip, Word8) Cidr where
 
 -- | Direct conversion from tuple to Cidr.
 instance IsMany (Ip, Word8) Cidr where
-  from (addr, netmask) = constructCidr addr netmask
+  onfrom (addr, netmask) = constructCidr addr netmask
 
 -- | Normalize a CIDR address by zeroing out host bits.
 -- This ensures the address represents a valid network address.

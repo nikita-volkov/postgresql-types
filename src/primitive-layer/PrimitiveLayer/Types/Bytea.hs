@@ -42,12 +42,12 @@ instance IsSome Bytea ByteString where
 -- | Direct conversion from 'ByteString'.
 -- This is a total conversion as it always succeeds.
 instance IsMany ByteString Bytea where
-  from = Bytea
+  onfrom = Bytea
 
 -- | Direct conversion from PostgreSQL Bytea to 'ByteString'.
 -- This is a total conversion as it always succeeds.
 instance IsMany Bytea ByteString where
-  from (Bytea bs) = bs
+  onfrom (Bytea bs) = bs
 
 -- | Bidirectional conversion between 'ByteString' and PostgreSQL Bytea.
 instance Is ByteString Bytea

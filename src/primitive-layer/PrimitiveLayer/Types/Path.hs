@@ -85,12 +85,12 @@ instance IsSome Path (Bool, [(Double, Double)]) where
 -- | Direct conversion from tuple to Path.
 -- This is a total conversion as it always succeeds.
 instance IsMany (Bool, [(Double, Double)]) Path where
-  from (closed, points) = Path closed points
+  onfrom (closed, points) = Path closed points
 
 -- | Direct conversion from Path to tuple.
 -- This is a total conversion as it always succeeds.
 instance IsMany Path (Bool, [(Double, Double)]) where
-  from (Path closed points) = (closed, points)
+  onfrom (Path closed points) = (closed, points)
 
 -- | Bidirectional conversion between tuple and Path.
 instance Is (Bool, [(Double, Double)]) Path

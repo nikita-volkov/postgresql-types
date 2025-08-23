@@ -27,23 +27,23 @@ instance (IsMany a b) => IsSome a (ViaIsMany a b) where
   maybeFrom = fmap ViaIsMany . maybeFrom @a
 
 instance (IsMany a b) => IsMany a (ViaIsMany a b) where
-  from = ViaIsMany . from
+  onfrom = ViaIsMany . onfrom
 
 instance (Mapping a, IsMany a b) => Mapping (ViaIsMany a b) where
   typeName = retag @a typeName
   baseOid = retag @a baseOid
   arrayOid = retag @a arrayOid
   binaryEncoder = binaryEncoder . to @a
-  binaryDecoder = fmap (fmap (from @a)) binaryDecoder
+  binaryDecoder = fmap (fmap (onfrom @a)) binaryDecoder
   textualEncoder = textualEncoder . to @a
 
 instance (Arbitrary a, IsMany a b) => Arbitrary (ViaIsMany a b) where
-  arbitrary = from <$> arbitrary @a
-  shrink (ViaIsMany b) = from <$> shrink (to @a b)
+  arbitrary = onfrom <$> arbitrary @a
+  shrink (ViaIsMany b) = onfrom <$> shrink (to @a b)
 
 instance (Bounded a, IsMany a b) => Bounded (ViaIsMany a b) where
-  minBound = from @a minBound
-  maxBound = from @a maxBound
+  minBound = onfrom @a minBound
+  maxBound = onfrom @a maxBound
 
 instance (Show a, IsMany a b) => Show (ViaIsMany a b) where
   showsPrec p (ViaIsMany b) = showsPrec p (to @a b)

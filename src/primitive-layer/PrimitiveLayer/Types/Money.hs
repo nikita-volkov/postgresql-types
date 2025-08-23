@@ -58,12 +58,12 @@ instance IsSome Money Int64 where
 -- | Direct conversion from 'Int64'.
 -- This is a total conversion as it always succeeds.
 instance IsMany Int64 Money where
-  from = Money
+  onfrom = Money
 
 -- | Direct conversion from PostgreSQL Money to 'Int64'.
 -- This is a total conversion as it always succeeds.
 instance IsMany Money Int64 where
-  from (Money i) = i
+  onfrom (Money i) = i
 
 -- | Bidirectional conversion between 'Int64' and PostgreSQL Money.
 instance Is Int64 Money

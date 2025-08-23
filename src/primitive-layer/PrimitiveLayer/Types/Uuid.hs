@@ -56,12 +56,12 @@ instance IsSome Uuid Data.UUID.UUID where
 -- | Direct conversion from 'Data.UUID.UUID'.
 -- This is a total conversion as it always succeeds.
 instance IsMany Data.UUID.UUID Uuid where
-  from = Uuid
+  onfrom = Uuid
 
 -- | Direct conversion from PostgreSQL Uuid to 'Data.UUID.UUID'.
 -- This is a total conversion as it always succeeds.
 instance IsMany Uuid Data.UUID.UUID where
-  from (Uuid uuid) = uuid
+  onfrom (Uuid uuid) = uuid
 
 -- | Bidirectional conversion between 'Data.UUID.UUID' and PostgreSQL Uuid.
 instance Is Data.UUID.UUID Uuid

@@ -75,9 +75,9 @@ instance Mapping Box where
 -- Input is normalized to ensure x1 <= x2 and y1 <= y2.
 instance IsSome (Double, Double, Double, Double) Box where
   to (Box x1 y1 x2 y2) = (x1, y1, x2, y2)
-  maybeFrom = Just . from
+  maybeFrom = Just . onfrom
 
 -- | Direct conversion from two points to Box.
 -- Input is normalized to ensure valid box representation.
 instance IsMany (Double, Double, Double, Double) Box where
-  from (x1, y1, x2, y2) = Box (min x1 x2) (min y1 y2) (max x1 x2) (max y1 y2)
+  onfrom (x1, y1, x2, y2) = Box (min x1 x2) (min y1 y2) (max x1 x2) (max y1 y2)

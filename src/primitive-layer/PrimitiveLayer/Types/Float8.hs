@@ -39,12 +39,12 @@ instance IsSome Float8 Double where
 -- | Direct conversion from 'Double'.
 -- This is a total conversion as it always succeeds.
 instance IsMany Double Float8 where
-  from = Float8
+  onfrom = Float8
 
 -- | Direct conversion from PostgreSQL Float8 to 'Double'.
 -- This is a total conversion as it always succeeds.
 instance IsMany Float8 Double where
-  from (Float8 d) = d
+  onfrom (Float8 d) = d
 
 -- | Bidirectional conversion between 'Double' and PostgreSQL Float8.
 instance Is Double Float8

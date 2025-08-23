@@ -39,12 +39,12 @@ instance IsSome Float4 Float where
 -- | Direct conversion from 'Float'.
 -- This is a total conversion as it always succeeds.
 instance IsMany Float Float4 where
-  from = Float4
+  onfrom = Float4
 
 -- | Direct conversion from PostgreSQL Float4 to 'Float'.
 -- This is a total conversion as it always succeeds.
 instance IsMany Float4 Float where
-  from (Float4 f) = f
+  onfrom (Float4 f) = f
 
 -- | Bidirectional conversion between 'Float' and PostgreSQL Float4.
 instance Is Float Float4

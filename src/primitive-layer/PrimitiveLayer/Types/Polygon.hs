@@ -77,12 +77,12 @@ instance IsSome Polygon [(Double, Double)] where
 -- | Direct conversion from list of points to Polygon.
 -- This is a total conversion as it always succeeds.
 instance IsMany [(Double, Double)] Polygon where
-  from points = Polygon points
+  onfrom points = Polygon points
 
 -- | Direct conversion from Polygon to list of points.
 -- This is a total conversion as it always succeeds.
 instance IsMany Polygon [(Double, Double)] where
-  from (Polygon points) = points
+  onfrom (Polygon points) = points
 
 -- | Bidirectional conversion between list of points and Polygon.
 instance Is [(Double, Double)] Polygon

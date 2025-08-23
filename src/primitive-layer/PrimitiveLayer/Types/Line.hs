@@ -77,12 +77,12 @@ instance IsSome Line (Double, Double, Double) where
 -- | Direct conversion from tuple to Line.
 -- This is a total conversion as it always succeeds.
 instance IsMany (Double, Double, Double) Line where
-  from (a, b, c) = Line a b c
+  onfrom (a, b, c) = Line a b c
 
 -- | Direct conversion from Line to tuple.
 -- This is a total conversion as it always succeeds.
 instance IsMany Line (Double, Double, Double) where
-  from (Line a b c) = (a, b, c)
+  onfrom (Line a b c) = (a, b, c)
 
 -- | Bidirectional conversion between tuple and Line.
 instance Is (Double, Double, Double) Line

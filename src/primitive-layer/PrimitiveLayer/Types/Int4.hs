@@ -44,12 +44,12 @@ instance IsSome Int4 Int32 where
 -- | Direct conversion from 'Int32'.
 -- This is a total conversion as it always succeeds.
 instance IsMany Int32 Int4 where
-  from = Int4
+  onfrom = Int4
 
 -- | Direct conversion from PostgreSQL Int4 to 'Int32'.
 -- This is a total conversion as it always succeeds.
 instance IsMany Int4 Int32 where
-  from (Int4 i) = i
+  onfrom (Int4 i) = i
 
 -- | Bidirectional conversion between 'Int32' and PostgreSQL Int4.
 instance Is Int32 Int4
