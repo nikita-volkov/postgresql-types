@@ -34,6 +34,7 @@ instance Mapping Timestamptz where
   textualEncoder (toUtcTime -> utcTime) =
     TextBuilder.string (Time.formatTime Time.defaultTimeLocale "%Y-%m-%d %H:%M:%S%Q%z" utcTime)
 
+-- | Mapping to @tstzrange@ type.
 instance RangeMapping Timestamptz where
   rangeTypeName = Tagged "tstzrange"
   rangeOid = Tagged 3910

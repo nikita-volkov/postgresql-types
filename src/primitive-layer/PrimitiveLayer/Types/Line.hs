@@ -1,4 +1,4 @@
-module PrimitiveLayer.Types.Line (Line (..)) where
+module PrimitiveLayer.Types.Line (Line) where
 
 import Data.Bits
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
@@ -7,6 +7,7 @@ import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import PrimitiveLayer.Via
 import qualified PtrPoker.Write as Write
+import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
 -- | PostgreSQL @line@ type. Infinite line in 2D plane.
@@ -25,13 +26,13 @@ data Line = Line
 
 instance Arbitrary Line where
   arbitrary = do
-    a <- arbitrary
-    b <- arbitrary
+    -- Ensure at least one of A or B is non-zero
+    (a, b) <-
+      QuickCheck.suchThat
+        ((,) <$> arbitrary <*> arbitrary)
+        (\(a, b) -> not (a == 0 && b == 0))
     c <- arbitrary
-    -- Ensure that at least one of A or B is non-zero for a valid line
-    if a == 0 && b == 0
-      then pure (Line 1 0 c) -- Default to vertical line x = -c
-      else pure (Line a b c)
+    pure (Line a b c)
   shrink (Line a b c) =
     [ Line a' b' c'
     | (a', b', c') <- shrink (a, b, c),
@@ -66,25 +67,15 @@ instance Mapping Line where
 -- This is always safe since both represent the same data.
 instance IsSome (Double, Double, Double) Line where
   to (Line a b c) = (a, b, c)
-  maybeFrom (a, b, c) = Just (Line a b c)
-
--- | Convert from a Line to a tuple of three doubles.
--- This is always safe since both represent the same data.
-instance IsSome Line (Double, Double, Double) where
-  to (a, b, c) = Line a b c
-  maybeFrom (Line a b c) = Just (a, b, c)
+  maybeFrom (a, b, c) = do
+    when (a == 0 && b == 0) empty
+    pure (Line a b c)
 
 -- | Direct conversion from tuple to Line.
--- This is a total conversion as it always succeeds.
+--
+-- Defaults to vertical line, when A and B equal 0.
 instance IsMany (Double, Double, Double) Line where
-  onfrom (a, b, c) = Line a b c
-
--- | Direct conversion from Line to tuple.
--- This is a total conversion as it always succeeds.
-instance IsMany Line (Double, Double, Double) where
-  onfrom (Line a b c) = (a, b, c)
-
--- | Bidirectional conversion between tuple and Line.
-instance Is (Double, Double, Double) Line
-
-instance Is Line (Double, Double, Double)
+  onfrom (a, b, c) =
+    if a == 0 && b == 0
+      then Line 1 0 c
+      else Line a b c

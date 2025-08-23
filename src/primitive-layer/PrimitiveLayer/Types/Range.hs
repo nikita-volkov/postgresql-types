@@ -15,7 +15,20 @@ import qualified TextBuilder
 -- Although PostgreSQL has the concept of inclusive and exclusive bounds in ranges in reality it always normalizes the range values to one form.
 -- The lower bound is inclusive and the upper bound is exclusive with one exception: if the lower bound is infinity then it is treated as exclusive.
 -- There is also another special value: empty.
--- 
+--
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/rangetypes.html).
+--
+-- The following standard types are supported via the 'RangeMapping' instances:
+--
+-- - @int4range@ - @Range Int4@
+-- - @int8range@ - @Range Int8@
+-- - @numrange@ - @Range Numeric@
+-- - @tsrange@ - @Range Timestamp@
+-- - @tstzrange@ - @Range Timestamptz@
+-- - @daterange@ - @Range Date@
+--
+-- You can also define your own.
+--
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/rangetypes.html).
 data Range a
   = EmptyRange

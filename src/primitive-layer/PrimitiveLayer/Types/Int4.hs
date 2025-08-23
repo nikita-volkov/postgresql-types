@@ -24,6 +24,7 @@ instance Mapping Int4 where
   binaryDecoder = PeekyBlinders.statically (Right . Int4 <$> PeekyBlinders.beSignedInt4)
   textualEncoder (Int4 x) = TextBuilder.decimal x
 
+-- | Mapping to @int4range@ type.
 instance RangeMapping Int4 where
   rangeTypeName = Tagged "int4range"
   rangeOid = Tagged 3904

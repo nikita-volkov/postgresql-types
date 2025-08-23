@@ -74,6 +74,7 @@ instance Mapping Date where
             if bc then " BC" else ""
           ]
 
+-- | Mapping to @daterange@ type.
 instance RangeMapping Date where
   rangeTypeName = Tagged "daterange"
   rangeOid = Tagged 3912
