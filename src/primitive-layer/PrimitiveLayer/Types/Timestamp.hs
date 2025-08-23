@@ -34,6 +34,7 @@ instance Mapping Timestamp where
   textualEncoder (toLocalTime -> localTime) =
     TextBuilder.string (Time.formatTime Time.defaultTimeLocale "%Y-%m-%d %H:%M:%S%Q" localTime)
 
+-- | Mapping to @tsrange@ type.
 instance RangeMapping Timestamp where
   rangeTypeName = Tagged "tsrange"
   rangeOid = Tagged 3908

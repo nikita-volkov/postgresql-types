@@ -17,6 +17,19 @@ import qualified TextBuilder
 -- There is also another special value: empty.
 -- 
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/rangetypes.html).
+--
+-- The following standard types are supported via the 'RangeMapping' instances:
+--
+-- - @int4range@ - @Range Int4@
+-- - @int8range@ - @Range Int8@
+-- - @numrange@ - @Range Numeric@
+-- - @tsrange@ - @Range Timestamp@
+-- - @tstzrange@ - @Range Timestamptz@
+-- - @daterange@ - @Range Date@
+--
+-- You can also define your own.
+--
+-- [PostgreSQL docs](https://www.postgresql.org/docs/17/rangetypes.html).
 data Range a
   = EmptyRange
   | BoundedRange (Maybe a) (Maybe a)

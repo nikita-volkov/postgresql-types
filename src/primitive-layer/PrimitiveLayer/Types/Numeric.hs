@@ -119,6 +119,7 @@ instance Mapping Numeric where
     NanNumeric ->
       TextBuilder.text "NaN"
 
+-- | Mapping to @numrange@ type.
 instance RangeMapping Numeric where
   rangeTypeName = Tagged "numrange"
   rangeOid = Tagged 3906
