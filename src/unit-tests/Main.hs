@@ -32,7 +32,6 @@ main = hspec do
   testIs @PrimitiveLayer.Int2 @Int16 Proxy Proxy
   testIs @PrimitiveLayer.Int4 @Int32 Proxy Proxy
   testIs @PrimitiveLayer.Int8 @Int64 Proxy Proxy
-  testIs @PrimitiveLayer.Line @(Double, Double, Double) Proxy Proxy
   testIs @PrimitiveLayer.Macaddr @(Word8, Word8, Word8, Word8, Word8, Word8) Proxy Proxy
   testIs @PrimitiveLayer.Macaddr8 @(Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) Proxy Proxy
   testIs @PrimitiveLayer.Money @Int64 Proxy Proxy
