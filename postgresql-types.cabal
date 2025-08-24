@@ -246,6 +246,7 @@ library pq-procedures
   hs-source-dirs: src/pq-procedures
   exposed-modules:
     PqProcedures.GetTypeInfoByName
+    PqProcedures.RunRoundtripQuery
     PqProcedures.RunStatement
 
   build-depends:

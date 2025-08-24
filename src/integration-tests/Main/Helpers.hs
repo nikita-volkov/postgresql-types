@@ -1,5 +1,6 @@
 module Main.Helpers where
 
+import Control.Monad
 import qualified Data.ByteString as ByteString
 import Data.Function
 import Data.Int
@@ -16,10 +17,11 @@ import qualified Database.PostgreSQL.LibPQ as Pq
 import LawfulConversions
 import qualified PeekyBlinders
 import qualified PqProcedures.GetTypeInfoByName
+import qualified PqProcedures.RunRoundtripQuery
 import qualified PrimitiveLayer.Algebra as PrimitiveLayer
 import qualified PtrPoker.Write
 import Test.Hspec
-import Test.QuickCheck ((===))
+import Test.QuickCheck ((.&&.), (===))
 import qualified Test.QuickCheck as QuickCheck
 import Test.QuickCheck.Instances ()
 import qualified TestcontainersPostgresql
@@ -28,25 +30,26 @@ import qualified TextBuilder
 import TextBuilderLawfulConversions ()
 import Prelude
 
-withPqConnection :: (Pq.Connection -> IO ()) -> IO ()
-withPqConnection action = do
-  TestcontainersPostgresql.with False \(host, port) -> do
-    connection <- Pq.connectdb (connectionString host port)
-    status <- Pq.status connection
-    case status of
-      Pq.ConnectionOk -> return ()
-      _ -> do
-        message <- Pq.errorMessage connection
-        fail ("Failed to connect to database: " <> show message)
-    _ <-
-      Pq.exec
-        connection
-        "SET client_min_messages TO WARNING;\n\
-        \SET client_encoding = 'UTF8';\n\
-        \SET intervalstyle = 'postgres';"
-    result <- action connection
-    Pq.finish connection
-    pure result
+withPqConnection :: SpecWith Pq.Connection -> Spec
+withPqConnection =
+  aroundAll \action -> do
+    TestcontainersPostgresql.with False \(host, port) -> do
+      connection <- Pq.connectdb (connectionString host port)
+      status <- Pq.status connection
+      case status of
+        Pq.ConnectionOk -> return ()
+        _ -> do
+          message <- Pq.errorMessage connection
+          fail ("Failed to connect to database: " <> show message)
+      _ <-
+        Pq.exec
+          connection
+          "SET client_min_messages TO WARNING;\n\
+          \SET client_encoding = 'UTF8';\n\
+          \SET intervalstyle = 'postgres';"
+      result <- action connection
+      Pq.finish connection
+      pure result
   where
     connectionString host port =
       ByteString.intercalate " " components
@@ -87,12 +90,14 @@ mappingSpec _ = describe "Mapping" do
         QuickCheck.property \(value :: a) -> do
           QuickCheck.idempotentIOProperty do
             bytes <-
-              runRoundtripQuery
+              PqProcedures.RunRoundtripQuery.run
                 connection
-                baseOid
-                (Text.Encoding.encodeUtf8 (TextBuilder.toText (txtEnc value)))
-                Pq.Text
-                Pq.Binary
+                PqProcedures.RunRoundtripQuery.Params
+                  { paramOid = baseOid,
+                    paramEncoding = Text.Encoding.encodeUtf8 (TextBuilder.toText (txtEnc value)),
+                    paramFormat = Pq.Text,
+                    resultFormat = Pq.Binary
+                  }
             let decoding = PeekyBlinders.decodeByteStringDynamically binDec bytes
             pure (decoding === Right (Right value))
 
@@ -102,74 +107,71 @@ mappingSpec _ = describe "Mapping" do
         QuickCheck.property \(value :: a) -> do
           QuickCheck.idempotentIOProperty do
             bytes <-
-              runRoundtripQuery
+              PqProcedures.RunRoundtripQuery.run
                 connection
-                baseOid
-                (PtrPoker.Write.writeToByteString (binEnc value))
-                Pq.Binary
-                Pq.Binary
+                PqProcedures.RunRoundtripQuery.Params
+                  { paramOid = baseOid,
+                    paramEncoding = PtrPoker.Write.writeToByteString (binEnc value),
+                    paramFormat = Pq.Binary,
+                    resultFormat = Pq.Binary
+                  }
             let decoding = PeekyBlinders.decodeByteStringDynamically binDec bytes
             pure (decoding === Right (Right value))
+
+    describe "As array" do
+      let arrayElementBinEnc value =
+            let write = binEnc value
+             in PtrPoker.Write.bInt32 (fromIntegral (PtrPoker.Write.writeSize write)) <> write
+          arrayBinEnc value =
+            mconcat
+              [ PtrPoker.Write.bWord32 1,
+                PtrPoker.Write.bWord32 0,
+                PtrPoker.Write.bWord32 baseOid,
+                PtrPoker.Write.bInt32 (fromIntegral (length value)),
+                PtrPoker.Write.bWord32 1,
+                foldMap arrayElementBinEnc value
+              ]
+          arrayElementBinDec = do
+            size <- PeekyBlinders.statically PeekyBlinders.beSignedInt4
+            case size of
+              -1 -> error "TODO"
+              _ -> PeekyBlinders.forceSize (fromIntegral size) binDec
+          arrayBinDec = do
+            dims <- PeekyBlinders.statically PeekyBlinders.beUnsignedInt4
+            _ <- PeekyBlinders.statically PeekyBlinders.beUnsignedInt4
+            baseOid <- PeekyBlinders.statically PeekyBlinders.beUnsignedInt4
+            case dims of
+              0 -> pure (baseOid, Right [])
+              1 -> do
+                length <- PeekyBlinders.statically PeekyBlinders.beUnsignedInt4
+                _ <- PeekyBlinders.statically PeekyBlinders.beUnsignedInt4
+                values <- replicateM (fromIntegral length) arrayElementBinDec
+                pure (baseOid, sequence values)
+              _ -> error "Bug"
+      describe "And decoding via binaryDecoder" do
+        it "Should produce the original value" \(connection :: Pq.Connection) ->
+          QuickCheck.property \(value :: [a]) -> do
+            QuickCheck.idempotentIOProperty do
+              bytes <-
+                PqProcedures.RunRoundtripQuery.run
+                  connection
+                  PqProcedures.RunRoundtripQuery.Params
+                    { paramOid = arrayOid,
+                      paramEncoding = PtrPoker.Write.writeToByteString (arrayBinEnc value),
+                      paramFormat = Pq.Binary,
+                      resultFormat = Pq.Binary
+                    }
+              let decoding = PeekyBlinders.decodeByteStringDynamically arrayBinDec bytes
+              (decodedBaseOid, decoding) <- case decoding of
+                Left bytesNeeded -> fail $ "More input bytes needed: " <> show bytesNeeded
+                Right decoding -> pure decoding
+              decodedValue <- case decoding of
+                Right value -> pure value
+                _ -> fail "Decoding failed 2"
+              pure (decodedBaseOid === baseOid .&&. decodedValue === value)
 
   describe "Metadata" do
     it "Should match the DB catalogue" \(connection :: Pq.Connection) -> do
       result <- PqProcedures.GetTypeInfoByName.run connection typeName
       shouldBe (Just baseOid) result.baseOid
       shouldBe (Just arrayOid) result.arrayOid
-
-runRoundtripQuery ::
-  Pq.Connection ->
-  Word32 ->
-  ByteString.ByteString ->
-  Pq.Format ->
-  Pq.Format ->
-  IO ByteString.ByteString
-runRoundtripQuery connection paramOid paramEncoding paramFormat resultFormat = do
-  let params =
-        [ Just
-            ( paramOid,
-              paramEncoding,
-              paramFormat
-            )
-        ]
-  result <- runStatement connection "select $1" params resultFormat
-  bytes <- Pq.getvalue result 0 0
-  bytes <- case bytes of
-    Nothing -> fail "getvalue produced no bytes"
-    Just bytes -> pure bytes
-  pure bytes
-
-runStatement ::
-  Pq.Connection ->
-  Text.Text ->
-  -- | Params
-  [ Maybe
-      ( Word32,
-        ByteString.ByteString,
-        Pq.Format
-      )
-  ] ->
-  -- | Result format.
-  Pq.Format ->
-  IO Pq.Result
-runStatement connection sql params resultFormat = do
-  result <-
-    Pq.execParams
-      connection
-      (Text.Encoding.encodeUtf8 sql)
-      (fmap (fmap (\(oid, encoding, format) -> (Pq.Oid (fromIntegral oid), encoding, format))) params)
-      resultFormat
-  result <- case result of
-    Nothing -> do
-      m <- Pq.errorMessage connection
-      failWithSql "No result" (maybe "" onto m)
-    Just result -> pure result
-  resultErrorField <- Pq.resultErrorField result Pq.DiagMessagePrimary
-  case resultErrorField of
-    Nothing -> pure ()
-    Just err -> failWithSql "Error field present" (onto err)
-  pure result
-  where
-    failWithSql :: Text -> Text -> IO a
-    failWithSql msg reason =
-      fail (to @_ @TextBuilder (from @Text msg <> "\nDue to:\n\t\t" <> from @Text reason <> "\nQuery:\n\t\t" <> from @Text sql))
