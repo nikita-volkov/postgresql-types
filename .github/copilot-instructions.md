@@ -54,6 +54,18 @@ The library follows a layered architecture:
 - Strict data fields and unboxed tuples for performance. No bangs in data-types
 - QuickCheck properties for testing roundtrip conversions
 
+### Lawful Conversions
+- Hide the constructors of mapping types in preference to lawful conversions
+   - This makes the types safer as it makes it impossible to construct invalid values
+   - This makes the API more stable and the underlying representation more flexible
+- Declare `IsSome` for smart construction and extraction of types
+- Declare `IsMany` instances where normalizing construction is possible
+- Declare `Is` instances where the underlying representation is isomorphic
+
+### Arbitrary
+- All mapping types must have an Arbitrary instance, which strictly follows its constraints
+- The instance must not reuse the lawful-conversions since it is intended to be used to test them
+
 ## Key Dependencies and Documentation
 
 ### References
