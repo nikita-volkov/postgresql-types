@@ -125,6 +125,7 @@ library primitive-layer
     PrimitiveLayer.Types.Macaddr
     PrimitiveLayer.Types.Macaddr8
     PrimitiveLayer.Types.Money
+    PrimitiveLayer.Types.Multirange
     PrimitiveLayer.Types.Numeric
     PrimitiveLayer.Types.Oid
     PrimitiveLayer.Types.Path

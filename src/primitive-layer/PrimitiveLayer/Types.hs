@@ -29,6 +29,7 @@ module PrimitiveLayer.Types
     module PrimitiveLayer.Types.Point,
     module PrimitiveLayer.Types.Polygon,
     module PrimitiveLayer.Types.Range,
+    module PrimitiveLayer.Types.Multirange,
     module PrimitiveLayer.Types.Text,
     module PrimitiveLayer.Types.Time,
     module PrimitiveLayer.Types.Timestamp,
@@ -65,6 +66,7 @@ import PrimitiveLayer.Types.Lseg
 import PrimitiveLayer.Types.Macaddr
 import PrimitiveLayer.Types.Macaddr8
 import PrimitiveLayer.Types.Money
+import PrimitiveLayer.Types.Multirange
 import PrimitiveLayer.Types.Numeric
 import PrimitiveLayer.Types.Oid
 import PrimitiveLayer.Types.Path

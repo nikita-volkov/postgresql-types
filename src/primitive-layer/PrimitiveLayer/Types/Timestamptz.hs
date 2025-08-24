@@ -40,6 +40,12 @@ instance RangeMapping Timestamptz where
   rangeOid = Tagged 3910
   rangeArrayOid = Tagged 3911
 
+-- | Mapping to @tstzmultirange@ type.
+instance MultirangeMapping Timestamptz where
+  multirangeTypeName = Tagged "tstzmultirange"
+  multirangeOid = Tagged 4534
+  multirangeArrayOid = Tagged 6153
+
 -- PostgreSQL timestamptz epoch is 2000-01-01 00:00:00 UTC
 postgresUtcEpoch :: Time.UTCTime
 postgresUtcEpoch = Time.UTCTime (Time.fromGregorian 2000 1 1) 0

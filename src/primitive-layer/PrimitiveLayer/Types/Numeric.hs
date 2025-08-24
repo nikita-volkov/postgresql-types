@@ -129,6 +129,12 @@ instance RangeMapping Numeric where
   rangeOid = Tagged 3906
   rangeArrayOid = Tagged 3907
 
+-- | Mapping to @nummultirange@ type.
+instance MultirangeMapping Numeric where
+  multirangeTypeName = Tagged "nummultirange"
+  multirangeOid = Tagged 4532
+  multirangeArrayOid = Tagged 6151
+
 -- |
 -- In 'maybeFrom' produces 'Nothing' for 'NanNumeric' values.
 instance IsSome Numeric Scientific.Scientific where

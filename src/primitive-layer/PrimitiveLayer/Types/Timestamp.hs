@@ -40,6 +40,12 @@ instance RangeMapping Timestamp where
   rangeOid = Tagged 3908
   rangeArrayOid = Tagged 3909
 
+-- | Mapping to @tsmultirange@ type.
+instance MultirangeMapping Timestamp where
+  multirangeTypeName = Tagged "tsmultirange"
+  multirangeOid = Tagged 4533
+  multirangeArrayOid = Tagged 6152
+
 -- PostgreSQL timestamp epoch is 2000-01-01 00:00:00
 postgresTimestampEpoch :: Time.LocalTime
 postgresTimestampEpoch = Time.LocalTime (Time.fromGregorian 2000 1 1) Time.midnight
