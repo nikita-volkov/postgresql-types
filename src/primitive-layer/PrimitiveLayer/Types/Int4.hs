@@ -30,6 +30,12 @@ instance RangeMapping Int4 where
   rangeOid = Tagged 3904
   rangeArrayOid = Tagged 3905
 
+-- | Mapping to @int4multirange@ type.
+instance MultirangeMapping Int4 where
+  multirangeTypeName = Tagged "int4multirange"
+  multirangeOid = Tagged 4451
+  multirangeArrayOid = Tagged 6150
+
 -- | Direct conversion from 'Int32'.
 -- This is always safe since both types represent 32-bit signed integers identically.
 instance IsSome Int32 Int4 where

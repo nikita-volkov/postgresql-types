@@ -64,13 +64,15 @@ instance (MultirangeMapping a, Ord a) => Mapping (Multirange a) where
     Multirange ranges ->
       mconcat
         [ "{",
-          TextBuilder.intercalate "," (map (textualEncoder @(Range a)) (Vector.toList ranges)),
+          TextBuilder.intercalate "," (Vector.toList (Vector.map (textualEncoder @(Range a)) ranges)),
           "}"
         ]
 
 instance (Arbitrary a, Ord a) => Arbitrary (Multirange a) where
   arbitrary = do
-    ranges <- QuickCheck.listOf (arbitrary @(Range a))
+    -- Generate a small number of ranges to keep the multirange manageable
+    numRanges <- QuickCheck.chooseInt (0, 5)
+    ranges <- replicateM numRanges (arbitrary @(Range a))
     pure (Multirange (Vector.fromList ranges))
 
 -- |

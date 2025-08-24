@@ -30,6 +30,12 @@ instance RangeMapping Int8 where
   rangeOid = Tagged 3926
   rangeArrayOid = Tagged 3927
 
+-- | Mapping to @int8multirange@ type.
+instance MultirangeMapping Int8 where
+  multirangeTypeName = Tagged "int8multirange"
+  multirangeOid = Tagged 4536
+  multirangeArrayOid = Tagged 6157
+
 -- | Direct conversion from 'Int64'.
 -- This is always safe since both types represent 64-bit signed integers identically.
 instance IsSome Int64 Int8 where

@@ -80,6 +80,12 @@ instance RangeMapping Date where
   rangeOid = Tagged 3912
   rangeArrayOid = Tagged 3913
 
+-- | Mapping to @datemultirange@ type.
+instance MultirangeMapping Date where
+  multirangeTypeName = Tagged "datemultirange"
+  multirangeOid = Tagged 4535
+  multirangeArrayOid = Tagged 6155
+
 -- | Conversion to 'Data.Time.Day'.
 instance IsSome Time.Day Date where
   to = toDay
