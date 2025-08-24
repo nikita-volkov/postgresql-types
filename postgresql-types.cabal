@@ -125,13 +125,13 @@ library primitive-layer
     PrimitiveLayer.Types.Macaddr
     PrimitiveLayer.Types.Macaddr8
     PrimitiveLayer.Types.Money
+    PrimitiveLayer.Types.Multirange
     PrimitiveLayer.Types.Numeric
     PrimitiveLayer.Types.Oid
     PrimitiveLayer.Types.Path
     PrimitiveLayer.Types.Point
     PrimitiveLayer.Types.Polygon
     PrimitiveLayer.Types.Range
-    PrimitiveLayer.Types.Multirange
     PrimitiveLayer.Types.Text
     PrimitiveLayer.Types.Time
     PrimitiveLayer.Types.Timestamp

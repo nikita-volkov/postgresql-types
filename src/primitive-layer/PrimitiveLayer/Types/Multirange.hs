@@ -118,7 +118,7 @@ instance (Ord a) => Is (Vector (Range a)) (Multirange a)
 instance (Ord a) => Is (Multirange a) (Vector (Range a))
 
 -- | Create a multirange from a list of ranges.
--- Note: PostgreSQL performs the actual normalization (merging overlapping ranges, 
+-- Note: PostgreSQL performs the actual normalization (merging overlapping ranges,
 -- removing empty ranges, sorting) server-side. This function simply creates
 -- the multirange structure that will be normalized by PostgreSQL.
 normalizeMultirange :: [Range a] -> Multirange a

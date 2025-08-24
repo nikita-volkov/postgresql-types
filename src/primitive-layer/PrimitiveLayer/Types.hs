@@ -66,13 +66,13 @@ import PrimitiveLayer.Types.Lseg
 import PrimitiveLayer.Types.Macaddr
 import PrimitiveLayer.Types.Macaddr8
 import PrimitiveLayer.Types.Money
+import PrimitiveLayer.Types.Multirange
 import PrimitiveLayer.Types.Numeric
 import PrimitiveLayer.Types.Oid
 import PrimitiveLayer.Types.Path
 import PrimitiveLayer.Types.Point
 import PrimitiveLayer.Types.Polygon
 import PrimitiveLayer.Types.Range
-import PrimitiveLayer.Types.Multirange
 import PrimitiveLayer.Types.Text
 import PrimitiveLayer.Types.Time
 import PrimitiveLayer.Types.Timestamp
