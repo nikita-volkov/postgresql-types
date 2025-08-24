@@ -1,4 +1,8 @@
-module PrimitiveLayer.Types.Numeric (Numeric (..)) where
+-- The constructors are hidden to keep us more flexible in the representation.
+module PrimitiveLayer.Types.Numeric
+  ( Numeric,
+  )
+where
 
 import qualified Data.ByteString as ByteString
 import qualified Data.Scientific as Scientific
