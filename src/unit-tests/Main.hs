@@ -10,6 +10,7 @@ import qualified Data.Text as Text
 import Data.Time
 import Data.Typeable
 import qualified Data.UUID as UUID
+import Data.Vector (Vector)
 import qualified Data.Vector.Unboxed
 import qualified Data.Vector.Unboxed as VU
 import Data.Word
@@ -36,6 +37,12 @@ main = hspec do
   testIs @PrimitiveLayer.Macaddr @(Word8, Word8, Word8, Word8, Word8, Word8) Proxy Proxy
   testIs @PrimitiveLayer.Macaddr8 @(Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) Proxy Proxy
   testIs @PrimitiveLayer.Money @Int64 Proxy Proxy
+  testIs @(PrimitiveLayer.Multirange PrimitiveLayer.Int4) @(Vector (PrimitiveLayer.Range PrimitiveLayer.Int4)) Proxy Proxy
+  testIs @(PrimitiveLayer.Multirange PrimitiveLayer.Int8) @(Vector (PrimitiveLayer.Range PrimitiveLayer.Int8)) Proxy Proxy
+  testIs @(PrimitiveLayer.Multirange PrimitiveLayer.Numeric) @(Vector (PrimitiveLayer.Range PrimitiveLayer.Numeric)) Proxy Proxy
+  testIs @(PrimitiveLayer.Multirange PrimitiveLayer.Timestamp) @(Vector (PrimitiveLayer.Range PrimitiveLayer.Timestamp)) Proxy Proxy
+  testIs @(PrimitiveLayer.Multirange PrimitiveLayer.Timestamptz) @(Vector (PrimitiveLayer.Range PrimitiveLayer.Timestamptz)) Proxy Proxy
+  testIs @(PrimitiveLayer.Multirange PrimitiveLayer.Date) @(Vector (PrimitiveLayer.Range PrimitiveLayer.Date)) Proxy Proxy
   testIs @PrimitiveLayer.Numeric @(Maybe Scientific.Scientific) Proxy Proxy
   testIs @PrimitiveLayer.Oid @Word32 Proxy Proxy
   testIs @PrimitiveLayer.Point @(Double, Double) Proxy Proxy
@@ -62,6 +69,12 @@ main = hspec do
   testIsMany @PrimitiveLayer.Line @(Double, Double, Double) Proxy Proxy
   testIsMany @PrimitiveLayer.Lseg @(Double, Double, Double, Double) Proxy Proxy
   testIsMany @PrimitiveLayer.Money @Int64 Proxy Proxy
+  testIsMany @(PrimitiveLayer.Multirange PrimitiveLayer.Int4) @(Vector (PrimitiveLayer.Range PrimitiveLayer.Int4)) Proxy Proxy
+  testIsMany @(PrimitiveLayer.Multirange PrimitiveLayer.Int8) @(Vector (PrimitiveLayer.Range PrimitiveLayer.Int8)) Proxy Proxy
+  testIsMany @(PrimitiveLayer.Multirange PrimitiveLayer.Numeric) @(Vector (PrimitiveLayer.Range PrimitiveLayer.Numeric)) Proxy Proxy
+  testIsMany @(PrimitiveLayer.Multirange PrimitiveLayer.Timestamp) @(Vector (PrimitiveLayer.Range PrimitiveLayer.Timestamp)) Proxy Proxy
+  testIsMany @(PrimitiveLayer.Multirange PrimitiveLayer.Timestamptz) @(Vector (PrimitiveLayer.Range PrimitiveLayer.Timestamptz)) Proxy Proxy
+  testIsMany @(PrimitiveLayer.Multirange PrimitiveLayer.Date) @(Vector (PrimitiveLayer.Range PrimitiveLayer.Date)) Proxy Proxy
   testIsMany @PrimitiveLayer.Oid @Word32 Proxy Proxy
   testIsMany @PrimitiveLayer.Point @(Double, Double) Proxy Proxy
   testIsMany @(PrimitiveLayer.Range PrimitiveLayer.Int4) @(Maybe (Maybe PrimitiveLayer.Int4, Maybe PrimitiveLayer.Int4)) Proxy Proxy
