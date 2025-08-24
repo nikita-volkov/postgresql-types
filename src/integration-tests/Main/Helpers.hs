@@ -29,41 +29,45 @@ import qualified TextBuilder
 import TextBuilderLawfulConversions ()
 import Prelude
 
-withPqConnection :: SpecWith Pq.Connection -> Spec
-withPqConnection =
-  aroundAll \action -> do
-    TestcontainersPostgresql.with False \(host, port) -> do
-      connection <- Pq.connectdb (connectionString host port)
-      status <- Pq.status connection
-      case status of
-        Pq.ConnectionOk -> return ()
-        _ -> do
-          message <- Pq.errorMessage connection
-          fail ("Failed to connect to database: " <> show message)
-      _ <-
-        Pq.exec
-          connection
-          "SET client_min_messages TO WARNING;\n\
-          \SET client_encoding = 'UTF8';\n\
-          \SET intervalstyle = 'postgres';"
-      result <- action connection
-      Pq.finish connection
-      pure result
+withPqConnection :: TestcontainersPostgresql.Config -> SpecWith Pq.Connection -> Spec
+withPqConnection config =
+  describe testName . aroundAll executor
   where
-    connectionString host port =
-      ByteString.intercalate " " components
+    testName =
+      show config.distro
+    executor action = do
+      TestcontainersPostgresql.run config \(host, port) -> do
+        connection <- Pq.connectdb (connectionString host port)
+        status <- Pq.status connection
+        case status of
+          Pq.ConnectionOk -> return ()
+          _ -> do
+            message <- Pq.errorMessage connection
+            fail ("Failed to connect to database: " <> show message)
+        _ <-
+          Pq.exec
+            connection
+            "SET client_min_messages TO WARNING;\n\
+            \SET client_encoding = 'UTF8';\n\
+            \SET intervalstyle = 'postgres';"
+        result <- action connection
+        Pq.finish connection
+        pure result
       where
-        components =
-          [ "host=" <> (Text.Encoding.encodeUtf8 host),
-            "port=" <> (fromString . show) port,
-            "user=" <> user,
-            "password=" <> password,
-            "dbname=" <> db
-          ]
+        connectionString host port =
+          ByteString.intercalate " " components
           where
-            user = "postgres"
-            password = "postgres"
-            db = "postgres"
+            components =
+              [ "host=" <> (Text.Encoding.encodeUtf8 host),
+                "port=" <> (fromString . show) port,
+                "user=" <> user,
+                "password=" <> password,
+                "dbname=" <> db
+              ]
+              where
+                user = "postgres"
+                password = "postgres"
+                db = "postgres"
 
 withType :: forall a. (Typeable a) => [Proxy a -> SpecWith Pq.Connection] -> SpecWith Pq.Connection
 withType specs = do

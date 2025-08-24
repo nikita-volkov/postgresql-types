@@ -1,5 +1,8 @@
 module TestcontainersPostgresql
-  ( with,
+  ( Config (..),
+    Distro (..),
+    run,
+    tag,
   )
 where
 
@@ -10,9 +13,23 @@ import qualified TestContainers
 import qualified TestContainers.Hspec
 import Prelude
 
-containerRequest :: Bool -> TestContainers.ContainerRequest
-containerRequest forwardLogs =
-  TestContainers.containerRequest (TestContainers.fromTag "postgres:17")
+data Config = Config
+  { forwardLogs :: Bool,
+    distro :: Distro
+  }
+
+data Distro
+  = Distro17
+  | Distro9
+  deriving stock (Show, Eq)
+
+tag :: Distro -> Text
+tag Distro17 = "postgres:17"
+tag Distro9 = "postgres:9"
+
+containerRequest :: Config -> TestContainers.ContainerRequest
+containerRequest (Config forwardLogs distro) =
+  TestContainers.containerRequest (TestContainers.fromTag (tag distro))
     & TestContainers.setExpose [5432]
     & TestContainers.setWaitingFor waitUntilReady
     & TestContainers.setEnv [("POSTGRES_HOST_AUTH_METHOD", "trust")]
@@ -25,11 +42,12 @@ waitUntilReady =
       TestContainers.waitUntilMappedPortReachable 5432
     ]
 
-setup :: (TestContainers.MonadDocker m) => Bool -> m (Text, Int)
-setup forwardLogs = do
-  container <- TestContainers.run (containerRequest forwardLogs)
+setup :: (TestContainers.MonadDocker m) => Config -> m (Text, Int)
+setup config = do
+  container <- TestContainers.run (containerRequest config)
   pure $ TestContainers.containerAddress container 5432
 
-with :: Bool -> ((Text, Int) -> IO ()) -> IO ()
-with forwardLogs = do
-  TestContainers.Hspec.withContainers (setup forwardLogs)
+-- | Run a session on a PostgreSQL container on the scope of a host and a port.
+run :: Config -> ((Text, Int) -> IO ()) -> IO ()
+run config = do
+  TestContainers.Hspec.withContainers (setup config)
