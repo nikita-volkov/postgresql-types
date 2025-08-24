@@ -1,4 +1,4 @@
-module PrimitiveLayer.Types.Macaddr8 (Macaddr8 (..)) where
+module PrimitiveLayer.Types.Macaddr8 (Macaddr8) where
 
 import Control.Monad (replicateM)
 import qualified Data.Text as Text
