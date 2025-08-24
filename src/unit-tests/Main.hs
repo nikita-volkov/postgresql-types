@@ -37,12 +37,6 @@ main = hspec do
   testIs @PrimitiveLayer.Macaddr @(Word8, Word8, Word8, Word8, Word8, Word8) Proxy Proxy
   testIs @PrimitiveLayer.Macaddr8 @(Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) Proxy Proxy
   testIs @PrimitiveLayer.Money @Int64 Proxy Proxy
-  testIs @(PrimitiveLayer.Multirange PrimitiveLayer.Int4) @(Vector (PrimitiveLayer.Range PrimitiveLayer.Int4)) Proxy Proxy
-  testIs @(PrimitiveLayer.Multirange PrimitiveLayer.Int8) @(Vector (PrimitiveLayer.Range PrimitiveLayer.Int8)) Proxy Proxy
-  testIs @(PrimitiveLayer.Multirange PrimitiveLayer.Numeric) @(Vector (PrimitiveLayer.Range PrimitiveLayer.Numeric)) Proxy Proxy
-  testIs @(PrimitiveLayer.Multirange PrimitiveLayer.Timestamp) @(Vector (PrimitiveLayer.Range PrimitiveLayer.Timestamp)) Proxy Proxy
-  testIs @(PrimitiveLayer.Multirange PrimitiveLayer.Timestamptz) @(Vector (PrimitiveLayer.Range PrimitiveLayer.Timestamptz)) Proxy Proxy
-  testIs @(PrimitiveLayer.Multirange PrimitiveLayer.Date) @(Vector (PrimitiveLayer.Range PrimitiveLayer.Date)) Proxy Proxy
   testIs @PrimitiveLayer.Numeric @(Maybe Scientific.Scientific) Proxy Proxy
   testIs @PrimitiveLayer.Oid @Word32 Proxy Proxy
   testIs @PrimitiveLayer.Point @(Double, Double) Proxy Proxy

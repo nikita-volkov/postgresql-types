@@ -78,38 +78,18 @@ instance (RangeMapping a, Arbitrary a, Ord a) => Arbitrary (Multirange a) where
     pure (normalizeMultirange ranges)
 
 -- |
--- Interprets values of @[Range a]@ as a multirange by normalizing overlapping and adjacent ranges.
-instance (Ord a) => IsSome [Range a] (Multirange a) where
-  to (Multirange ranges) = Vector.toList ranges
-
-  maybeFrom ranges = Just (normalizeMultirange ranges)
-
--- |
--- Normalizes lists of ranges by combining overlapping and adjacent ranges.
-instance (Ord a) => IsMany [Range a] (Multirange a) where
-  onfrom ranges = normalizeMultirange ranges
-
--- |
 -- Direct conversion to and from Vector.
 instance (Ord a) => IsSome (Vector (Range a)) (Multirange a) where
   to (Multirange ranges) = ranges
 
-  maybeFrom ranges = Just (normalizeMultirange (Vector.toList ranges))
-
-instance (Ord a) => IsSome (Multirange a) (Vector (Range a)) where
-  to ranges = Multirange ranges
-
-  maybeFrom (Multirange ranges) = Just ranges
+  maybeFrom unnormalized =
+    let Multirange normalized = normalizeMultirange (Vector.toList unnormalized)
+     in if unnormalized == normalized
+          then Just (Multirange normalized)
+          else Nothing
 
 instance (Ord a) => IsMany (Vector (Range a)) (Multirange a) where
   onfrom ranges = normalizeMultirange (Vector.toList ranges)
-
-instance (Ord a) => IsMany (Multirange a) (Vector (Range a)) where
-  onfrom (Multirange ranges) = ranges
-
-instance (Ord a) => Is (Vector (Range a)) (Multirange a)
-
-instance (Ord a) => Is (Multirange a) (Vector (Range a))
 
 -- | Create a multirange from a list of ranges.
 -- Performs the same normalization as PostgreSQL:
