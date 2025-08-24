@@ -139,6 +139,8 @@ library primitive-layer
     PrimitiveLayer.Types.Timetz.Offset
     PrimitiveLayer.Types.Timetz.Time
     PrimitiveLayer.Types.TimetzAsTimeOfDayAndTimeZone
+    PrimitiveLayer.Types.Tsquery
+    PrimitiveLayer.Types.Tsvector
     PrimitiveLayer.Types.Uuid
     PrimitiveLayer.Types.Varbit
     PrimitiveLayer.Types.Varchar

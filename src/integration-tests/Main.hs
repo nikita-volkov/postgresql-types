@@ -49,6 +49,8 @@ main =
       withType @PrimitiveLayer.Timestamp [mappingSpec]
       withType @PrimitiveLayer.Timestamptz [mappingSpec]
       withType @PrimitiveLayer.Timetz [mappingSpec]
+      withType @PrimitiveLayer.Tsquery [mappingSpec]
+      withType @PrimitiveLayer.Tsvector [mappingSpec]
       withType @PrimitiveLayer.Uuid [mappingSpec]
       withType @PrimitiveLayer.Varbit [mappingSpec]
       withType @PrimitiveLayer.Varchar [mappingSpec]
