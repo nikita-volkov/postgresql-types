@@ -241,6 +241,30 @@ library testcontainers-postgresql
     testcontainers ^>=0.5.1,
     text >=1.2 && <3,
 
+library pq-procedures
+  import: base
+  hs-source-dirs: src/pq-procedures
+  exposed-modules:
+    PqProcedures.GetTypeInfoByName
+    PqProcedures.RunStatement
+
+  build-depends:
+    QuickCheck >=2.14 && <3,
+    base >=4.11 && <5,
+    bytestring >=0.10 && <0.13,
+    hspec >=2.11 && <3,
+    lawful-conversions ^>=0.2.0.1,
+    peeky-blinders >=0.1 && <0.2,
+    postgresql-libpq >=0.10 && <0.12,
+    postgresql-types:primitive-layer,
+    postgresql-types:testcontainers-postgresql,
+    ptr-poker ^>=0.1.2.16,
+    quickcheck-instances ^>=0.3.33,
+    tagged ^>=0.8.9,
+    text >=1.2 && <3,
+    text-builder ^>=1.0.0.4,
+    text-builder-lawful-conversions ^>=0.1.3,
+
 test-suite unit-tests
   import: test
   type: exitcode-stdio-1.0
@@ -284,6 +308,7 @@ test-suite integration-tests
     lawful-conversions ^>=0.2.0.1,
     peeky-blinders >=0.1 && <0.2,
     postgresql-libpq >=0.10 && <0.12,
+    postgresql-types:pq-procedures,
     postgresql-types:primitive-layer,
     postgresql-types:testcontainers-postgresql,
     ptr-poker ^>=0.1.2.16,

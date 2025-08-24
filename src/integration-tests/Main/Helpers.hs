@@ -15,6 +15,7 @@ import Data.Word
 import qualified Database.PostgreSQL.LibPQ as Pq
 import LawfulConversions
 import qualified PeekyBlinders
+import qualified PqProcedures.GetTypeInfoByName
 import qualified PrimitiveLayer.Algebra as PrimitiveLayer
 import qualified PtrPoker.Write
 import Test.Hspec
@@ -75,6 +76,7 @@ mappingSpec ::
 mappingSpec _ = describe "Mapping" do
   let typeName = untag (PrimitiveLayer.typeName @a)
       baseOid = untag (PrimitiveLayer.baseOid @a)
+      arrayOid = untag (PrimitiveLayer.arrayOid @a)
       binEnc = PrimitiveLayer.binaryEncoder @a
       binDec = PrimitiveLayer.binaryDecoder @a
       txtEnc = PrimitiveLayer.textualEncoder @a
@@ -108,6 +110,12 @@ mappingSpec _ = describe "Mapping" do
                 Pq.Binary
             let decoding = PeekyBlinders.decodeByteStringDynamically binDec bytes
             pure (decoding === Right (Right value))
+
+  describe "Metadata" do
+    it "Should match the DB catalogue" \(connection :: Pq.Connection) -> do
+      result <- PqProcedures.GetTypeInfoByName.run connection typeName
+      shouldBe (Just baseOid) result.baseOid
+      shouldBe (Just arrayOid) result.arrayOid
 
 runRoundtripQuery ::
   Pq.Connection ->
