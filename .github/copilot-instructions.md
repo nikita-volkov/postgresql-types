@@ -2,17 +2,17 @@
 
 ## Project Overview
 
-This is a Haskell library that provides type mappings and integrations for PostgreSQL types. The library supports both binary and text format codecs as per PostgreSQL terminology and serves as a foundation for various PostgreSQL libraries (e.g., used in the "hasql" library).
+This is a high-performance Haskell library that provides comprehensive type mappings and integrations for PostgreSQL types. The library implements both binary and text format codecs according to PostgreSQL's wire protocol specification and serves as a foundational component for various PostgreSQL client libraries, most notably the "hasql" ecosystem.
 
 ## Project Structure
 
 This is a multi-package Cabal project with the following components:
 
 ### Core Libraries
-- **primitive-layer**: Core PostgreSQL type mappings with binary/text encoders and decoders
-- **declaration-layer**: Higher-level abstractions and declarative APIs 
-- **jsonifier-aeson**: Integration between Jsonifier and Aeson for JSON handling
-- **testcontainers-postgresql**: PostgreSQL test container utilities
+- **primitive-layer**: Core PostgreSQL type mappings with efficient binary/text encoders and decoders
+- **declaration-layer**: Higher-level abstractions and declarative APIs built on the primitive layer
+- **jsonifier-aeson**: JSON integration bridging Jsonifier and Aeson libraries for efficient JSON handling
+- **testcontainers-postgresql**: PostgreSQL test container utilities for integration testing
 
 ### Test Suites
 - **unit-tests**: Unit tests for type conversions and properties
@@ -24,7 +24,7 @@ src/
 ├── primitive-layer/           # Core type definitions and codecs
 │   ├── PrimitiveLayer/
 │   │   ├── Algebra.hs        # Core algebraic structures
-│   │   ├── Types/       # Individual type implementations
+│   │   ├── Types/            # Individual type implementations
 │   │   └── Prelude.hs        # Common imports and utilities
 ├── declaration-layer/         # High-level declarative APIs
 ├── jsonifier-aeson/          # JSON integration
@@ -40,41 +40,49 @@ The library follows a layered architecture:
 2. **Declaration Layer**: High-level declarative APIs built on primitives
 3. **Integration Layers**: Specific integrations (JSON, testing, etc.)
 
+### Core Concepts
+- **Wire Protocol Compliance**: All codecs follow PostgreSQL's wire protocol specification
+- **Type Safety**: Extensive use of phantom types and lawful conversions
+- **Performance**: Zero-copy parsing and efficient encoding where possible
+- **Correctness**: Property-based testing ensures codec reliability
+
 ### Type Classes and Patterns
-- `Mapping` typeclass defines PostgreSQL type mappings with OIDs, encoders, and decoders
-- Heavy use of `Tagged` types for type-safe OID associations
-- Binary encoders use `PtrPoker.Write` for efficient memory operations
-- Binary decoders use `PeekyBlinders` for safe parsing
-- Text encoders use `TextBuilder` for efficient string construction
+- **`Mapping` typeclass**: Defines PostgreSQL type mappings with OIDs, encoders, and decoders
+- **Tagged types**: Extensive use of `Tagged` types for type-safe OID associations
+- **Binary encoding**: Uses `PtrPoker.Write` for efficient memory operations
+- **Binary decoding**: Uses `PeekyBlinders` for safe parsing with proper error handling
+- **Text encoding**: Uses `TextBuilder` for efficient string construction
 
 ### Code Style
 - Uses extensive language extensions (see `postgresql-types.cabal`)
 - Custom Prelude modules for consistent imports
-- NoImplicitPrelude with explicit re-exports
-- Strict data fields and unboxed tuples for performance. No bangs in data-types
+- `NoImplicitPrelude` with explicit re-exports
+- Strict data fields and unboxed tuples for performance (no bangs in data types)
 - QuickCheck properties for testing roundtrip conversions
 
 ### Lawful Conversions
-- Hide the constructors of mapping types in preference to lawful conversions
-   - This makes the types safer as it makes it impossible to construct invalid values
-   - This makes the API more stable and the underlying representation more flexible
-- Declare `IsSome` for smart construction and extraction of types
-- Declare `IsMany` instances where normalizing construction is possible
-- Declare `Is` instances where the underlying representation is isomorphic
+The library emphasizes type safety through lawful conversions:
 
-### Arbitrary
-- All mapping types must have an Arbitrary instance, which strictly follows its constraints
-- The instance must not reuse the lawful-conversions since it is intended to be used to test them
+- **Hide constructors**: Mapping type constructors are hidden in favor of lawful conversions
+  - Makes types safer by preventing construction of invalid values
+  - Provides API stability while allowing flexible underlying representations
+- **`IsSome` instances**: For smart construction and extraction of types
+- **`IsMany` instances**: Where normalizing construction is possible
+- **`Is` instances**: Where the underlying representation is isomorphic
+
+### Arbitrary Instances
+- All mapping types must have an `Arbitrary` instance that strictly follows constraints
+- Instances must not reuse lawful-conversions since they are intended to test them
 
 ## Key Dependencies and Documentation
 
 ### References
-- [PostgreSQL types docs](https://www.postgresql.org/docs/17/datatype.html) - contains a list of standard types and documentation on them
-- [libpqtypes library source code](https://github.com/pgagarinov/libpqtypes) - contains codecs for various types implemented in C
-- [PostgreSQL source](https://github.com/postgres/postgres)
-   - Pay attention to [backend](https://github.com/postgres/postgres/tree/master/src/backend). It contains the code dealing with encoding of types and their structure.
-- ["peeky-blinders" source code](https://github.com/nikita-volkov/peeky-blinders)
-- ["ptr-poker" Hackage docs](https://hackage.haskell.org/package/ptr-poker)
+- [PostgreSQL types documentation](https://www.postgresql.org/docs/17/datatype.html) - Complete list of standard types and documentation
+- [libpqtypes library source](https://github.com/pgagarinov/libpqtypes) - Reference C implementations of various type codecs
+- [PostgreSQL source code](https://github.com/postgres/postgres)
+  - Focus on [backend](https://github.com/postgres/postgres/tree/master/src/backend) - Contains encoding logic and type structure implementations
+- [peeky-blinders source](https://github.com/nikita-volkov/peeky-blinders) - Binary parsing library
+- [ptr-poker documentation](https://hackage.haskell.org/package/ptr-poker) - Binary encoding library
 
 ### Core Dependencies
 - **[text-builder](https://hackage.haskell.org/package/text-builder)**: Efficient text construction for encoders
@@ -144,8 +152,8 @@ cabal test --test-show-details=direct  # Show detailed test output
 - Handle null bytes appropriately (PostgreSQL limitation)
 - Include proper error handling with `DecodingError`
 - Make sure to implement the "lawful-conversions" instances lawfully
-   - IsSome must be injective
-   - Is must be isomorphic
+   - `IsSome` must be injective
+   - `Is` must be isomorphic
 
 ## Testing Patterns
 
@@ -195,3 +203,17 @@ The project uses many modern Haskell extensions. Key ones include:
 - Leverage efficient libraries (TextBuilder, PtrPoker, etc.)
 - Avoid unnecessary allocations in hot paths
 - Consider memory layout for binary codecs
+
+## Debugging and Development Tips
+
+### Common Issues
+- **Null byte handling**: PostgreSQL text format doesn't support null bytes (`\0`) - handle appropriately
+- **OID mismatches**: Ensure correct OID assignments for custom types
+- **Endianness**: Binary codecs must handle PostgreSQL's network byte order (big-endian)
+- **Array encoding**: Array types have different OIDs and require special handling
+
+### Development Workflow
+1. **Start with tests**: Write property tests before implementing codecs
+2. **Binary first**: Implement binary codecs before text (more efficient, better documented)
+3. **Reference PostgreSQL source**: Check backend implementation for edge cases
+4. **Integration testing**: Always test against real PostgreSQL instances
