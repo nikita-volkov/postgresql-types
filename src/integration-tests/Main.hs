@@ -9,7 +9,7 @@ import Prelude
 main :: IO ()
 main =
   hspec do
-    aroundAll withPqConnection do
+    withPqConnection do
       withType @PrimitiveLayer.Bit [mappingSpec]
       withType @PrimitiveLayer.Bool [mappingSpec]
       withType @PrimitiveLayer.Box [mappingSpec]
