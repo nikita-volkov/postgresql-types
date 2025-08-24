@@ -1,4 +1,4 @@
-module PrimitiveLayer.Types.Circle (Circle (..)) where
+module PrimitiveLayer.Types.Circle (Circle) where
 
 import Data.Bits
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
@@ -7,6 +7,7 @@ import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import PrimitiveLayer.Via
 import qualified PtrPoker.Write as Write
+import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
 -- | PostgreSQL @circle@ type. Circle in 2D plane.
@@ -30,10 +31,13 @@ instance Arbitrary Circle where
   arbitrary = do
     x <- arbitrary
     y <- arbitrary
-    r <- abs <$> arbitrary -- Ensure radius is non-negative
+    r <- QuickCheck.suchThat arbitrary (>= 0)
     pure (Circle x y r)
-  shrink (Circle x y r) =
-    [Circle x' y' (abs r') | (x', y', r') <- shrink (x, y, r)]
+  shrink (Circle x y r) = do
+    x' <- shrink x
+    y' <- shrink y
+    r' <- abs <$> shrink r
+    pure (Circle x' y' r')
 
 instance Mapping Circle where
   typeName = Tagged "circle"
@@ -51,16 +55,18 @@ instance Mapping Circle where
     r <- castWord64ToDouble <$> PeekyBlinders.beUnsignedInt8
     pure (Right (Circle x y r))
   textualEncoder (Circle x y r) =
-    "<("
-      <> TextBuilder.string (show x)
-      <> ","
-      <> TextBuilder.string (show y)
-      <> "),"
-      <> TextBuilder.string (show r)
-      <> ">"
+    mconcat
+      [ "<(",
+        TextBuilder.string (show x),
+        ",",
+        TextBuilder.string (show y),
+        "),",
+        TextBuilder.string (show r),
+        ">"
+      ]
 
--- | Convert from a tuple of three doubles to a Circle.
--- The radius is made non-negative by taking the absolute value.
+-- | Conversion from (x, y, radius) to Circle.
+-- The radius is validated to be non-negative.
 instance IsSome (Double, Double, Double) Circle where
   to (Circle x y r) = (x, y, r)
   maybeFrom (x, y, r) =
@@ -68,6 +74,7 @@ instance IsSome (Double, Double, Double) Circle where
       then Nothing
       else Just (Circle x y r)
 
--- | Direct conversion from tuple to Circle.
+-- | Conversion from (x, y, radius) to Circle.
+-- The radius is made non-negative by taking the absolute value.
 instance IsMany (Double, Double, Double) Circle where
   onfrom (x, y, r) = Circle x y (abs r)
