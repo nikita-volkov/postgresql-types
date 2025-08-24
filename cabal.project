@@ -11,7 +11,7 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/nikita-volkov/lawful-conversions
-  tag: 2f6ba0f69827a7126abaaa6c9e6592e763776bd5
+  tag: 3650ec01175ff8800630e0ccae3859ae68b9c736
 
 source-repository-package
   type: git
