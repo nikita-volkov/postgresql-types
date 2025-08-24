@@ -1,5 +1,6 @@
 module Main.Helpers where
 
+import Control.Monad
 import qualified Data.ByteString as ByteString
 import Data.Function
 import Data.Int
@@ -20,7 +21,7 @@ import qualified PqProcedures.RunRoundtripQuery
 import qualified PrimitiveLayer.Algebra as PrimitiveLayer
 import qualified PtrPoker.Write
 import Test.Hspec
-import Test.QuickCheck ((===))
+import Test.QuickCheck ((.&&.), (===))
 import qualified Test.QuickCheck as QuickCheck
 import Test.QuickCheck.Instances ()
 import qualified TestcontainersPostgresql
@@ -116,6 +117,58 @@ mappingSpec _ = describe "Mapping" do
                   }
             let decoding = PeekyBlinders.decodeByteStringDynamically binDec bytes
             pure (decoding === Right (Right value))
+
+    describe "As array" do
+      let arrayElementBinEnc value =
+            let write = binEnc value
+             in PtrPoker.Write.bInt32 (fromIntegral (PtrPoker.Write.writeSize write)) <> write
+          arrayBinEnc value =
+            mconcat
+              [ PtrPoker.Write.bWord32 1,
+                PtrPoker.Write.bWord32 0,
+                PtrPoker.Write.bWord32 baseOid,
+                PtrPoker.Write.bInt32 (fromIntegral (length value)),
+                PtrPoker.Write.bWord32 1,
+                foldMap arrayElementBinEnc value
+              ]
+          arrayElementBinDec = do
+            size <- PeekyBlinders.statically PeekyBlinders.beSignedInt4
+            case size of
+              -1 -> error "TODO"
+              _ -> PeekyBlinders.forceSize (fromIntegral size) binDec
+          arrayBinDec = do
+            dims <- PeekyBlinders.statically PeekyBlinders.beUnsignedInt4
+            _ <- PeekyBlinders.statically PeekyBlinders.beUnsignedInt4
+            baseOid <- PeekyBlinders.statically PeekyBlinders.beUnsignedInt4
+            case dims of
+              0 -> pure (baseOid, Right [])
+              1 -> do
+                length <- PeekyBlinders.statically PeekyBlinders.beUnsignedInt4
+                _ <- PeekyBlinders.statically PeekyBlinders.beUnsignedInt4
+                values <- replicateM (fromIntegral length) arrayElementBinDec
+                pure (baseOid, sequence values)
+              _ -> error "Bug"
+      describe "And decoding via binaryDecoder" do
+        it "Should produce the original value" \(connection :: Pq.Connection) ->
+          QuickCheck.property \(value :: [a]) -> do
+            QuickCheck.idempotentIOProperty do
+              bytes <-
+                PqProcedures.RunRoundtripQuery.run
+                  connection
+                  PqProcedures.RunRoundtripQuery.Params
+                    { paramOid = arrayOid,
+                      paramEncoding = PtrPoker.Write.writeToByteString (arrayBinEnc value),
+                      paramFormat = Pq.Binary,
+                      resultFormat = Pq.Binary
+                    }
+              let decoding = PeekyBlinders.decodeByteStringDynamically arrayBinDec bytes
+              (decodedBaseOid, decoding) <- case decoding of
+                Left bytesNeeded -> fail $ "More input bytes needed: " <> show bytesNeeded
+                Right decoding -> pure decoding
+              decodedValue <- case decoding of
+                Right value -> pure value
+                _ -> fail "Decoding failed 2"
+              pure (decodedBaseOid === baseOid .&&. decodedValue === value)
 
   describe "Metadata" do
     it "Should match the DB catalogue" \(connection :: Pq.Connection) -> do
