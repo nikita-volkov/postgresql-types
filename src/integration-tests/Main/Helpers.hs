@@ -16,8 +16,7 @@ import Data.Word
 import qualified Database.PostgreSQL.LibPQ as Pq
 import LawfulConversions
 import qualified PeekyBlinders
-import qualified PqProcedures.GetTypeInfoByName
-import qualified PqProcedures.RunRoundtripQuery
+import qualified PqProcedures as Procedures
 import qualified PrimitiveLayer.Algebra as PrimitiveLayer
 import qualified PtrPoker.Write
 import Test.Hspec
@@ -90,9 +89,9 @@ mappingSpec _ = describe "Mapping" do
         QuickCheck.property \(value :: a) -> do
           QuickCheck.idempotentIOProperty do
             bytes <-
-              PqProcedures.RunRoundtripQuery.run
+              Procedures.run
                 connection
-                PqProcedures.RunRoundtripQuery.Params
+                Procedures.RunRoundtripQueryParams
                   { paramOid = baseOid,
                     paramEncoding = Text.Encoding.encodeUtf8 (TextBuilder.toText (txtEnc value)),
                     paramFormat = Pq.Text,
@@ -107,9 +106,9 @@ mappingSpec _ = describe "Mapping" do
         QuickCheck.property \(value :: a) -> do
           QuickCheck.idempotentIOProperty do
             bytes <-
-              PqProcedures.RunRoundtripQuery.run
+              Procedures.run
                 connection
-                PqProcedures.RunRoundtripQuery.Params
+                Procedures.RunRoundtripQueryParams
                   { paramOid = baseOid,
                     paramEncoding = PtrPoker.Write.writeToByteString (binEnc value),
                     paramFormat = Pq.Binary,
@@ -153,9 +152,9 @@ mappingSpec _ = describe "Mapping" do
           QuickCheck.property \(value :: [a]) -> do
             QuickCheck.idempotentIOProperty do
               bytes <-
-                PqProcedures.RunRoundtripQuery.run
+                Procedures.run
                   connection
-                  PqProcedures.RunRoundtripQuery.Params
+                  Procedures.RunRoundtripQueryParams
                     { paramOid = arrayOid,
                       paramEncoding = PtrPoker.Write.writeToByteString (arrayBinEnc value),
                       paramFormat = Pq.Binary,
@@ -172,6 +171,6 @@ mappingSpec _ = describe "Mapping" do
 
   describe "Metadata" do
     it "Should match the DB catalogue" \(connection :: Pq.Connection) -> do
-      result <- PqProcedures.GetTypeInfoByName.run connection typeName
+      result <- Procedures.run connection Procedures.GetTypeInfoByNameParams {name = typeName}
       shouldBe (Just baseOid) result.baseOid
       shouldBe (Just arrayOid) result.arrayOid

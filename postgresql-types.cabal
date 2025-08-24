@@ -245,9 +245,14 @@ library pq-procedures
   import: base
   hs-source-dirs: src/pq-procedures
   exposed-modules:
-    PqProcedures.GetTypeInfoByName
-    PqProcedures.RunRoundtripQuery
-    PqProcedures.RunStatement
+    PqProcedures
+    PqProcedures.Algebra
+    PqProcedures.Procedures
+
+  other-modules:
+    PqProcedures.Procedures.GetTypeInfoByName
+    PqProcedures.Procedures.RunRoundtripQuery
+    PqProcedures.Procedures.RunStatement
 
   build-depends:
     QuickCheck >=2.14 && <3,

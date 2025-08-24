@@ -1,4 +1,8 @@
-module PqProcedures.GetTypeInfoByName where
+module PqProcedures.Procedures.GetTypeInfoByName
+  ( GetTypeInfoByNameParams (..),
+    GetTypeInfoByNameResult (..),
+  )
+where
 
 import qualified Data.ByteString as ByteString
 import Data.Function
@@ -15,7 +19,8 @@ import Data.Word
 import qualified Database.PostgreSQL.LibPQ as Pq
 import LawfulConversions
 import qualified PeekyBlinders
-import qualified PqProcedures.RunStatement as RunStatement
+import PqProcedures.Algebra
+import PqProcedures.Procedures.RunStatement
 import qualified PrimitiveLayer.Algebra as PrimitiveLayer
 import qualified PtrPoker.Write
 import Test.Hspec
@@ -28,39 +33,41 @@ import qualified TextBuilder
 import TextBuilderLawfulConversions ()
 import Prelude
 
-type Params = Text
+newtype GetTypeInfoByNameParams = GetTypeInfoByNameParams
+  { name :: Text
+  }
 
-data Result = Result
+data GetTypeInfoByNameResult = GetTypeInfoByNameResult
   { baseOid :: Maybe Word32,
     arrayOid :: Maybe Word32
   }
 
-run :: Pq.Connection -> Params -> IO Result
-run connection name =
-  RunStatement.run
-    connection
-    RunStatement.Params
-      { sql =
-          "SELECT t.oid AS base_oid, t.typarray AS array_oid\n\
-          \FROM pg_type t\n\
-          \WHERE t.typname = $1\n\
-          \LIMIT 1",
-        params =
-          [ Just
-              ( 25, -- OID of TEXT
-                Text.Encoding.encodeUtf8 name,
-                Pq.Binary
-              )
-          ],
-        resultFormat = Pq.Binary
-      }
-    >>= processResult
+instance Procedure GetTypeInfoByNameParams GetTypeInfoByNameResult where
+  run connection GetTypeInfoByNameParams {name} = do
+    run
+      connection
+      RunStatementParams
+        { sql =
+            "SELECT t.oid AS base_oid, t.typarray AS array_oid\n\
+            \FROM pg_type t\n\
+            \WHERE t.typname = $1\n\
+            \LIMIT 1",
+          params =
+            [ Just
+                ( 25, -- OID of TEXT
+                  Text.Encoding.encodeUtf8 name,
+                  Pq.Binary
+                )
+            ],
+          resultFormat = Pq.Binary
+        }
+      >>= processPqResult
 
-processResult :: Pq.Result -> IO Result
-processResult result = do
+processPqResult :: Pq.Result -> IO GetTypeInfoByNameResult
+processPqResult result = do
   baseOid <- readOid 0 0
   arrayOid <- readOid 0 1
-  pure Result {baseOid, arrayOid}
+  pure GetTypeInfoByNameResult {baseOid, arrayOid}
   where
     readOid x y =
       Pq.getvalue result x y >>= \case
