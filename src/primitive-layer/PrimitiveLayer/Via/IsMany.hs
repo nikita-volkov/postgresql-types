@@ -22,7 +22,7 @@ instance Is b (ViaIsMany a b)
 
 instance Is (ViaIsMany a b) b
 
-instance (IsMany a b) => IsSome a (ViaIsMany a b) where
+instance (IsSome a b) => IsSome a (ViaIsMany a b) where
   to = to @a . to @b
   maybeFrom = fmap ViaIsMany . maybeFrom @a
 

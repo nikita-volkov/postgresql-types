@@ -10,6 +10,7 @@ import qualified Data.Text as Text
 import Data.Time
 import Data.Typeable
 import qualified Data.UUID as UUID
+import qualified Data.Vector.Unboxed
 import qualified Data.Vector.Unboxed as VU
 import Data.Word
 import qualified LawfulConversions
@@ -39,7 +40,6 @@ main = hspec do
   testIs @PrimitiveLayer.Oid @Word32 Proxy Proxy
   testIs @PrimitiveLayer.Path @(Bool, [(Double, Double)]) Proxy Proxy
   testIs @PrimitiveLayer.Point @(Double, Double) Proxy Proxy
-  testIs @PrimitiveLayer.Polygon @[(Double, Double)] Proxy Proxy
   testIs @PrimitiveLayer.Uuid @UUID.UUID Proxy Proxy
   testIs @PrimitiveLayer.Varbit @[Bool] Proxy Proxy
   testIs @PrimitiveLayer.Varbit @(VU.Vector Bool) Proxy Proxy
@@ -66,7 +66,6 @@ main = hspec do
   testIsMany @PrimitiveLayer.Oid @Word32 Proxy Proxy
   testIsMany @PrimitiveLayer.Path @(Bool, [(Double, Double)]) Proxy Proxy
   testIsMany @PrimitiveLayer.Point @(Double, Double) Proxy Proxy
-  testIsMany @PrimitiveLayer.Polygon @[(Double, Double)] Proxy Proxy
   testIsMany @(PrimitiveLayer.Range PrimitiveLayer.Int4) @(Maybe (Maybe PrimitiveLayer.Int4, Maybe PrimitiveLayer.Int4)) Proxy Proxy
   testIsMany @(PrimitiveLayer.Range PrimitiveLayer.Int8) @(Maybe (Maybe PrimitiveLayer.Int8, Maybe PrimitiveLayer.Int8)) Proxy Proxy
   testIsMany @(PrimitiveLayer.Range PrimitiveLayer.Numeric) @(Maybe (Maybe PrimitiveLayer.Numeric, Maybe PrimitiveLayer.Numeric)) Proxy Proxy
@@ -82,6 +81,8 @@ main = hspec do
   testIsMany @PrimitiveLayer.Uuid @UUID.UUID Proxy Proxy
   testIsMany @PrimitiveLayer.Varchar @Text.Text Proxy Proxy
   testIsMany @Scientific.Scientific @PrimitiveLayer.Numeric Proxy Proxy
+  testIsSome @PrimitiveLayer.Polygon @(Data.Vector.Unboxed.Vector (Double, Double)) Proxy Proxy
+  testIsSome @PrimitiveLayer.Polygon @[(Double, Double)] Proxy Proxy
 
 -- | Test lawful conversions for a PostgreSQL type
 testIsMany ::
@@ -105,6 +106,29 @@ testIsMany projection primitive =
         traverse_
           (uncurry prop)
           (LawfulConversions.isManyProperties projection primitive)
+
+-- | Test lawful conversions for a PostgreSQL type
+testIsSome ::
+  forall primitive projection.
+  ( HasCallStack,
+    LawfulConversions.IsSome projection primitive,
+    Typeable projection,
+    Typeable primitive,
+    Eq projection,
+    Eq primitive,
+    Show projection,
+    Show primitive,
+    Arbitrary projection,
+    Arbitrary primitive
+  ) =>
+  Proxy projection -> Proxy primitive -> Spec
+testIsSome projection primitive =
+  describe (show (typeOf (undefined :: primitive))) do
+    describe (show (typeOf (undefined :: projection))) do
+      describe "IsSome" do
+        traverse_
+          (uncurry prop)
+          (LawfulConversions.isSomeProperties projection primitive)
 
 -- | Test lawful conversions for a PostgreSQL type
 testIs ::

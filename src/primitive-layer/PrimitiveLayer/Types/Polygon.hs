@@ -1,6 +1,7 @@
-module PrimitiveLayer.Types.Polygon (Polygon (..)) where
+module PrimitiveLayer.Types.Polygon (Polygon) where
 
 import Data.Bits
+import qualified Data.Vector.Unboxed as UnboxedVector
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
 import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
@@ -18,25 +19,28 @@ import qualified TextBuilder
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-geometric.html#DATATYPE-POLYGON).
 newtype Polygon = Polygon
-  { polygonPoints :: [(Double, Double)]
+  { polygonPoints :: UnboxedVector.Vector (Double, Double)
   }
   deriving stock (Eq, Ord)
   deriving (Show) via (ViaPrimitive Polygon)
 
 instance Arbitrary Polygon where
   arbitrary = do
-    numPoints <- QuickCheck.choose (3, 10) -- Polygons need at least 3 points
-    points <- QuickCheck.vectorOf numPoints arbitrary
+    size <- QuickCheck.getSize
+    -- Polygons need at least 3 points
+    numPoints <- QuickCheck.choose (3, max 3 size)
+    points <- UnboxedVector.fromList <$> QuickCheck.vectorOf numPoints arbitrary
     pure (Polygon points)
-  shrink (Polygon points) = [Polygon points' | points' <- shrink points, length points' >= 3]
+
+  shrink (Polygon points) = [Polygon points' | points' <- shrink points, UnboxedVector.length points' >= 3]
 
 instance Mapping Polygon where
   typeName = Tagged "polygon"
   baseOid = Tagged 604
   arrayOid = Tagged 1027
   binaryEncoder (Polygon points) =
-    let numPoints = fromIntegral (length points) :: Int32
-        pointsEncoded = foldMap encodePoint points
+    let numPoints = fromIntegral (UnboxedVector.length points) :: Int32
+        pointsEncoded = UnboxedVector.foldMap encodePoint points
      in mconcat
           [ Write.bInt32 numPoints,
             pointsEncoded
@@ -49,42 +53,28 @@ instance Mapping Polygon where
           ]
   binaryDecoder = do
     numPoints <- PeekyBlinders.statically PeekyBlinders.beSignedInt4
-    points <- PeekyBlinders.statically (replicateM (fromIntegral numPoints) decodePoint)
+    points <- UnboxedVector.replicateM (fromIntegral numPoints) decodePoint
     pure (Right (Polygon points))
     where
-      decodePoint = do
+      decodePoint = PeekyBlinders.statically do
         x <- castWord64ToDouble <$> PeekyBlinders.beUnsignedInt8
         y <- castWord64ToDouble <$> PeekyBlinders.beUnsignedInt8
         pure (x, y)
   textualEncoder (Polygon points) =
-    "(" <> TextBuilder.intercalate "," (map encodePoint points) <> ")"
+    "(" <> TextBuilder.intercalateMap "," encodePoint (UnboxedVector.toList points) <> ")"
     where
       encodePoint (x, y) =
         "(" <> TextBuilder.string (show x) <> "," <> TextBuilder.string (show y) <> ")"
 
--- | Convert from a list of points to a Polygon.
--- This is always safe since both represent the same data.
-instance IsSome [(Double, Double)] Polygon where
+-- | Conversion to a list of points. At least 3 points are required to form a valid polygon.
+instance IsSome (UnboxedVector.Vector (Double, Double)) Polygon where
   to (Polygon points) = points
-  maybeFrom points = Just (Polygon points)
+  maybeFrom vector =
+    if UnboxedVector.length vector >= 3
+      then Just (Polygon vector)
+      else Nothing
 
--- | Convert from a Polygon to a list of points.
--- This is always safe since both represent the same data.
-instance IsSome Polygon [(Double, Double)] where
-  to points = Polygon points
-  maybeFrom (Polygon points) = Just points
-
--- | Direct conversion from list of points to Polygon.
--- This is a total conversion as it always succeeds.
-instance IsMany [(Double, Double)] Polygon where
-  onfrom points = Polygon points
-
--- | Direct conversion from Polygon to list of points.
--- This is a total conversion as it always succeeds.
-instance IsMany Polygon [(Double, Double)] where
-  onfrom (Polygon points) = points
-
--- | Bidirectional conversion between list of points and Polygon.
-instance Is [(Double, Double)] Polygon
-
-instance Is Polygon [(Double, Double)]
+-- | Conversion to a list of points. At least 3 points are required to form a valid polygon.
+instance IsSome [(Double, Double)] Polygon where
+  to (Polygon points) = UnboxedVector.toList points
+  maybeFrom = maybeFrom . UnboxedVector.fromList
