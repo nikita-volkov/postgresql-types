@@ -1,4 +1,4 @@
-module PqProcedures.RunRoundtripQuery where
+module PqProcedures.Algebra where
 
 import qualified Data.ByteString as ByteString
 import Data.Function
@@ -15,7 +15,6 @@ import Data.Word
 import qualified Database.PostgreSQL.LibPQ as Pq
 import LawfulConversions
 import qualified PeekyBlinders
-import qualified PqProcedures.RunStatement
 import qualified PrimitiveLayer.Algebra as PrimitiveLayer
 import qualified PtrPoker.Write
 import Test.Hspec
@@ -28,28 +27,5 @@ import qualified TextBuilder
 import TextBuilderLawfulConversions ()
 import Prelude
 
-data Params = Params
-  { paramOid :: Word32,
-    paramEncoding :: ByteString.ByteString,
-    paramFormat :: Pq.Format,
-    resultFormat :: Pq.Format
-  }
-
-type Result = ByteString.ByteString
-
-run :: Pq.Connection -> Params -> IO Result
-run connection (Params {..}) = do
-  pqResult <-
-    PqProcedures.RunStatement.run
-      connection
-      PqProcedures.RunStatement.Params
-        { sql = "SELECT $1",
-          params =
-            [ Just (paramOid, paramEncoding, paramFormat)
-            ],
-          resultFormat = resultFormat
-        }
-  bytes <- Pq.getvalue pqResult 0 0
-  case bytes of
-    Nothing -> fail "getvalue produced no bytes"
-    Just bytes -> pure bytes
+class Procedure params result | params -> result where
+  run :: Pq.Connection -> params -> IO result
