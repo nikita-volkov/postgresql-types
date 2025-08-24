@@ -1,6 +1,7 @@
 module PrimitiveLayer.Types.Path (Path) where
 
 import Data.Bits
+import qualified Data.Vector.Unboxed as UnboxedVector
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
 import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
@@ -16,8 +17,8 @@ import qualified TextBuilder
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-geometric.html#DATATYPE-PATH).
 data Path = Path
-  { pathClosed :: Bool,
-    pathPoints :: [(Double, Double)]
+  { closed :: Bool,
+    points :: UnboxedVector.Vector (Double, Double)
   }
   deriving stock (Eq, Ord)
   deriving (Show) via (ViaPrimitive Path)
@@ -25,11 +26,16 @@ data Path = Path
 instance Arbitrary Path where
   arbitrary = do
     closed <- arbitrary
-    numPoints <- QuickCheck.choose (2, 10) -- Paths need at least 2 points
-    points <- QuickCheck.vectorOf numPoints arbitrary
+    size <- QuickCheck.getSize
+    -- Paths need at least 1 point
+    numPoints <- QuickCheck.chooseInt (1, max 1 size)
+    points <- UnboxedVector.replicateM numPoints arbitrary
     pure (Path closed points)
   shrink (Path closed points) =
-    [Path closed' points' | (closed', points') <- shrink (closed, points), length points' >= 2]
+    [ Path closed' points'
+    | (closed', points') <- shrink (closed, points),
+      UnboxedVector.length points' >= 1
+    ]
 
 instance Mapping Path where
   typeName = Tagged "path"
@@ -37,8 +43,8 @@ instance Mapping Path where
   arrayOid = Tagged 1019
   binaryEncoder (Path closed points) =
     let closedByte = if closed then 1 else 0 :: Word8
-        numPoints = fromIntegral (length points) :: Int32
-        pointsEncoded = foldMap encodePoint points
+        numPoints = fromIntegral (UnboxedVector.length points) :: Int32
+        pointsEncoded = UnboxedVector.foldMap encodePoint points
      in mconcat
           [ Write.word8 closedByte,
             Write.bInt32 numPoints,
@@ -51,20 +57,20 @@ instance Mapping Path where
             Write.bWord64 (castDoubleToWord64 y)
           ]
   binaryDecoder = do
-    closedByte <- PeekyBlinders.statically PeekyBlinders.unsignedInt1
-    numPoints <- PeekyBlinders.statically PeekyBlinders.beSignedInt4
-    points <- PeekyBlinders.statically (replicateM (fromIntegral numPoints) decodePoint)
+    (closedByte, numPoints) <- PeekyBlinders.statically do
+      (,) <$> PeekyBlinders.unsignedInt1 <*> PeekyBlinders.beSignedInt4
+    points <- UnboxedVector.replicateM (fromIntegral numPoints) decodePoint
     let closed = closedByte /= 0
     pure (Right (Path closed points))
     where
-      decodePoint = do
+      decodePoint = PeekyBlinders.statically do
         x <- castWord64ToDouble <$> PeekyBlinders.beUnsignedInt8
         y <- castWord64ToDouble <$> PeekyBlinders.beUnsignedInt8
         pure (x, y)
   textualEncoder (Path closed points) =
     let openChar = if closed then "(" else "["
         closeChar = if closed then ")" else "]"
-        pointsStr = TextBuilder.intercalate "," (map encodePoint points)
+        pointsStr = TextBuilder.intercalateMap "," encodePoint (UnboxedVector.toList points)
      in openChar <> pointsStr <> closeChar
     where
       encodePoint (x, y) =
@@ -73,26 +79,17 @@ instance Mapping Path where
 -- | Convert from a tuple of Bool and list of points to a Path.
 -- This is always safe since both represent the same data.
 instance IsSome (Bool, [(Double, Double)]) Path where
-  to (Path closed points) = (closed, points)
-  maybeFrom (closed, points) = Just (Path closed points)
+  to (Path closed points) = (closed, UnboxedVector.toList points)
+  maybeFrom (closed, points) =
+    case points of
+      [] -> Nothing
+      _ -> Just (Path closed (UnboxedVector.fromList points))
 
--- | Convert from a Path to a tuple of Bool and list of points.
+-- | Convert from a tuple of Bool and list of points to a Path.
 -- This is always safe since both represent the same data.
-instance IsSome Path (Bool, [(Double, Double)]) where
-  to (closed, points) = Path closed points
-  maybeFrom (Path closed points) = Just (closed, points)
-
--- | Direct conversion from tuple to Path.
--- This is a total conversion as it always succeeds.
-instance IsMany (Bool, [(Double, Double)]) Path where
-  onfrom (closed, points) = Path closed points
-
--- | Direct conversion from Path to tuple.
--- This is a total conversion as it always succeeds.
-instance IsMany Path (Bool, [(Double, Double)]) where
-  onfrom (Path closed points) = (closed, points)
-
--- | Bidirectional conversion between tuple and Path.
-instance Is (Bool, [(Double, Double)]) Path
-
-instance Is Path (Bool, [(Double, Double)])
+instance IsSome (Bool, (UnboxedVector.Vector (Double, Double))) Path where
+  to (Path closed points) = (closed, points)
+  maybeFrom (closed, points) =
+    if UnboxedVector.length points >= 1
+      then Just (Path closed points)
+      else Nothing

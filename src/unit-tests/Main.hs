@@ -38,7 +38,6 @@ main = hspec do
   testIs @PrimitiveLayer.Money @Int64 Proxy Proxy
   testIs @PrimitiveLayer.Numeric @(Maybe Scientific.Scientific) Proxy Proxy
   testIs @PrimitiveLayer.Oid @Word32 Proxy Proxy
-  testIs @PrimitiveLayer.Path @(Bool, [(Double, Double)]) Proxy Proxy
   testIs @PrimitiveLayer.Point @(Double, Double) Proxy Proxy
   testIs @PrimitiveLayer.Uuid @UUID.UUID Proxy Proxy
   testIs @PrimitiveLayer.Varbit @[Bool] Proxy Proxy
@@ -64,7 +63,6 @@ main = hspec do
   testIsMany @PrimitiveLayer.Lseg @(Double, Double, Double, Double) Proxy Proxy
   testIsMany @PrimitiveLayer.Money @Int64 Proxy Proxy
   testIsMany @PrimitiveLayer.Oid @Word32 Proxy Proxy
-  testIsMany @PrimitiveLayer.Path @(Bool, [(Double, Double)]) Proxy Proxy
   testIsMany @PrimitiveLayer.Point @(Double, Double) Proxy Proxy
   testIsMany @(PrimitiveLayer.Range PrimitiveLayer.Int4) @(Maybe (Maybe PrimitiveLayer.Int4, Maybe PrimitiveLayer.Int4)) Proxy Proxy
   testIsMany @(PrimitiveLayer.Range PrimitiveLayer.Int8) @(Maybe (Maybe PrimitiveLayer.Int8, Maybe PrimitiveLayer.Int8)) Proxy Proxy
@@ -81,6 +79,8 @@ main = hspec do
   testIsMany @PrimitiveLayer.Uuid @UUID.UUID Proxy Proxy
   testIsMany @PrimitiveLayer.Varchar @Text.Text Proxy Proxy
   testIsMany @Scientific.Scientific @PrimitiveLayer.Numeric Proxy Proxy
+  testIsSome @PrimitiveLayer.Path @(Bool, [(Double, Double)]) Proxy Proxy
+  testIsSome @PrimitiveLayer.Path @(Bool, (Data.Vector.Unboxed.Vector (Double, Double))) Proxy Proxy
   testIsSome @PrimitiveLayer.Polygon @(Data.Vector.Unboxed.Vector (Double, Double)) Proxy Proxy
   testIsSome @PrimitiveLayer.Polygon @[(Double, Double)] Proxy Proxy
 
