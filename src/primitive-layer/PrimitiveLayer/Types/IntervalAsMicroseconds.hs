@@ -49,6 +49,15 @@ instance IsSome DiffTime IntervalAsMicroseconds where
 instance IsMany DiffTime IntervalAsMicroseconds where
   onfrom = normalizeFromDiffTime
 
+-- | Conversion to 'Integer' amount of microseconds.
+instance IsSome Integer IntervalAsMicroseconds where
+  to = toInteger
+  maybeFrom = compileFromMicroseconds
+
+-- | Conversion to 'Integer' amount of microseconds.
+instance IsMany Integer IntervalAsMicroseconds where
+  onfrom = normalizeFromMicroseconds
+
 -- * Constants
 
 microsPerDay :: (Num a) => a
