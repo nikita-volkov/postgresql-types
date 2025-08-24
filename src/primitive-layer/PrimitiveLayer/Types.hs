@@ -1,6 +1,6 @@
 module PrimitiveLayer.Types
   ( module PrimitiveLayer.Types.Bit,
-    module PrimitiveLayer.Types.Boolean,
+    module PrimitiveLayer.Types.Bool,
     module PrimitiveLayer.Types.Box,
     module PrimitiveLayer.Types.Bytea,
     module PrimitiveLayer.Types.Char,
@@ -42,7 +42,7 @@ module PrimitiveLayer.Types
 where
 
 import PrimitiveLayer.Types.Bit
-import PrimitiveLayer.Types.Boolean
+import PrimitiveLayer.Types.Bool
 import PrimitiveLayer.Types.Box
 import PrimitiveLayer.Types.Bytea
 import PrimitiveLayer.Types.Char

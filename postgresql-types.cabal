@@ -102,7 +102,7 @@ library primitive-layer
   other-modules:
     PrimitiveLayer.Prelude
     PrimitiveLayer.Types.Bit
-    PrimitiveLayer.Types.Boolean
+    PrimitiveLayer.Types.Bool
     PrimitiveLayer.Types.Box
     PrimitiveLayer.Types.Bytea
     PrimitiveLayer.Types.Char
