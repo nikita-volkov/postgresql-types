@@ -1,4 +1,4 @@
-module PrimitiveLayer.Types.Box (Box (..)) where
+module PrimitiveLayer.Types.Box (Box) where
 
 import Data.Bits
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
@@ -36,7 +36,8 @@ instance Arbitrary Box where
     x2 <- arbitrary
     y2 <- arbitrary
     -- Normalize the box so x1 <= x2 and y1 <= y2
-    pure $ Box (min x1 x2) (min y1 y2) (max x1 x2) (max y1 y2)
+    pure (Box (min x1 x2) (min y1 y2) (max x1 x2) (max y1 y2))
+
   shrink (Box x1 y1 x2 y2) =
     [ Box (min x1' x2') (min y1' y2') (max x1' x2') (max y1' y2')
     | (x1', y1', x2', y2') <- shrink (x1, y1, x2, y2)
@@ -60,24 +61,27 @@ instance Mapping Box where
     y1 <- PeekyBlinders.statically (castWord64ToDouble <$> PeekyBlinders.beUnsignedInt8)
     pure (Right (Box x1 y1 x2 y2))
   textualEncoder (Box x1 y1 x2 y2) =
-    "("
-      <> TextBuilder.string (show x1)
-      <> ","
-      <> TextBuilder.string (show y1)
-      <> "),"
-      <> "("
-      <> TextBuilder.string (show x2)
-      <> ","
-      <> TextBuilder.string (show y2)
-      <> ")"
+    mconcat
+      [ "(",
+        TextBuilder.string (show x1),
+        ",",
+        TextBuilder.string (show y1),
+        "),(",
+        TextBuilder.string (show x2),
+        ",",
+        TextBuilder.string (show y2),
+        ")"
+      ]
 
--- | Convert from two Points (lower-left and upper-right) to a Box.
--- Input is normalized to ensure x1 <= x2 and y1 <= y2.
+-- | Mapping to a tuple of coordinates of lower-left and upper-right corners represented as @(lowerX, lowerY, upperX, upperY)@.
+--
+-- Input is validated to ensure @lowerX <= upperX@ and @lowerY <= upperY@.
 instance IsSome (Double, Double, Double, Double) Box where
   to (Box x1 y1 x2 y2) = (x1, y1, x2, y2)
   maybeFrom = Just . onfrom
 
--- | Direct conversion from two points to Box.
--- Input is normalized to ensure valid box representation.
+-- | Mapping to a tuple of coordinates of lower-left and upper-right corners represented as @(lowerX, lowerY, upperX, upperY)@.
+--
+-- Input is normalized to ensure @lowerX <= upperX@ and @lowerY <= upperY@.
 instance IsMany (Double, Double, Double, Double) Box where
   onfrom (x1, y1, x2, y2) = Box (min x1 x2) (min y1 y2) (max x1 x2) (max y1 y2)
