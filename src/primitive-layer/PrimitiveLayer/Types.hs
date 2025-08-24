@@ -35,6 +35,8 @@ module PrimitiveLayer.Types
     module PrimitiveLayer.Types.Timestamptz,
     module PrimitiveLayer.Types.Timetz,
     module PrimitiveLayer.Types.TimetzAsTimeOfDayAndTimeZone,
+    module PrimitiveLayer.Types.Tsquery,
+    module PrimitiveLayer.Types.Tsvector,
     module PrimitiveLayer.Types.Uuid,
     module PrimitiveLayer.Types.Varbit,
     module PrimitiveLayer.Types.Varchar,
@@ -77,6 +79,8 @@ import PrimitiveLayer.Types.Timestamp
 import PrimitiveLayer.Types.Timestamptz
 import PrimitiveLayer.Types.Timetz
 import PrimitiveLayer.Types.TimetzAsTimeOfDayAndTimeZone
+import PrimitiveLayer.Types.Tsquery
+import PrimitiveLayer.Types.Tsvector
 import PrimitiveLayer.Types.Uuid
 import PrimitiveLayer.Types.Varbit
 import PrimitiveLayer.Types.Varchar
