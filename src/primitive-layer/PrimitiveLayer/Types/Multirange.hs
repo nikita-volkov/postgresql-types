@@ -71,11 +71,37 @@ instance (MultirangeMapping a, Ord a) => Mapping (Multirange a) where
 
 instance (RangeMapping a, Arbitrary a, Ord a) => Arbitrary (Multirange a) where
   arbitrary = do
-    -- Generate a reasonable number of ranges
-    numRanges <- QuickCheck.chooseInt (0, 4)
-    ranges <- replicateM numRanges (arbitrary @(Range a))
-    -- Apply normalization to match PostgreSQL behavior
-    pure (normalizeMultirange ranges)
+    stop <- arbitrary
+    if stop
+      then pure (Multirange mempty)
+      else do
+        lowerBound <- arbitrary @a
+        upperBound <- genUpperBoundLargerThan lowerBound
+        let firstRange = onfrom (Just (Just lowerBound, upperBound))
+        case upperBound of
+          Nothing -> pure (Multirange (Vector.singleton firstRange))
+          Just upperBound -> go [firstRange] upperBound
+    where
+      go !ranges !bound = do
+        stop <- arbitrary
+        if stop
+          then pure (Multirange (Vector.fromList (List.reverse ranges)))
+          else do
+            lower <- genLargerThan bound
+            upper <- genUpperBoundLargerThan lower
+            let range = onfrom (Just (Just lower, upper))
+            case upper of
+              Nothing -> pure (Multirange (Vector.fromList (List.reverse (range : ranges))))
+              Just upper -> go (range : ranges) upper
+
+      genLargerThan what =
+        QuickCheck.suchThat arbitrary \x -> x > what
+
+      genUpperBoundLargerThan what =
+        QuickCheck.frequency
+          [ (1, pure Nothing),
+            (10, Just <$> genLargerThan what)
+          ]
 
 -- |
 -- Direct conversion to and from Vector.
