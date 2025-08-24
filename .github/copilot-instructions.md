@@ -73,6 +73,7 @@ The library emphasizes type safety through lawful conversions:
 ### Arbitrary Instances
 - All mapping types must have an `Arbitrary` instance that strictly follows constraints
 - Instances must not reuse lawful-conversions since they are intended to test them
+- Instances MUST NOT avoid any values to make the tests pass
 
 ## Key Dependencies and Documentation
 
