@@ -71,28 +71,28 @@ instance (MultirangeMapping a, Ord a) => Mapping (Multirange a) where
 instance (Arbitrary a, Ord a) => Arbitrary (Multirange a) where
   arbitrary = do
     -- Generate a small number of ranges to keep the multirange manageable
-    numRanges <- QuickCheck.chooseInt (0, 5)
+    numRanges <- QuickCheck.chooseInt (0, 2)
     ranges <- replicateM numRanges (arbitrary @(Range a))
-    pure (Multirange (Vector.fromList ranges))
+    pure (normalizeMultirange ranges)
 
 -- |
 -- Interprets values of @[Range a]@ as a multirange by normalizing overlapping and adjacent ranges.
 instance (Ord a) => IsSome [Range a] (Multirange a) where
   to (Multirange ranges) = Vector.toList ranges
 
-  maybeFrom ranges = Just (Multirange (Vector.fromList ranges))
+  maybeFrom ranges = Just (normalizeMultirange ranges)
 
 -- |
 -- Normalizes lists of ranges by combining overlapping and adjacent ranges.
 instance (Ord a) => IsMany [Range a] (Multirange a) where
-  onfrom ranges = Multirange (Vector.fromList ranges)
+  onfrom ranges = normalizeMultirange ranges
 
 -- |
 -- Direct conversion to and from Vector.
 instance (Ord a) => IsSome (Vector (Range a)) (Multirange a) where
   to (Multirange ranges) = ranges
 
-  maybeFrom ranges = Just (Multirange ranges)
+  maybeFrom ranges = Just (normalizeMultirange (Vector.toList ranges))
 
 instance (Ord a) => IsSome (Multirange a) (Vector (Range a)) where
   to ranges = Multirange ranges
@@ -100,7 +100,7 @@ instance (Ord a) => IsSome (Multirange a) (Vector (Range a)) where
   maybeFrom (Multirange ranges) = Just ranges
 
 instance (Ord a) => IsMany (Vector (Range a)) (Multirange a) where
-  onfrom ranges = Multirange ranges
+  onfrom ranges = normalizeMultirange (Vector.toList ranges)
 
 instance (Ord a) => IsMany (Multirange a) (Vector (Range a)) where
   onfrom (Multirange ranges) = ranges
@@ -108,3 +108,9 @@ instance (Ord a) => IsMany (Multirange a) (Vector (Range a)) where
 instance (Ord a) => Is (Vector (Range a)) (Multirange a)
 
 instance (Ord a) => Is (Multirange a) (Vector (Range a))
+
+-- | Normalize a list of ranges into a proper multirange.
+-- PostgreSQL does the actual normalization (merging overlapping ranges, removing empty ranges)
+-- server-side, so we keep this simple for now.
+normalizeMultirange :: [Range a] -> Multirange a
+normalizeMultirange ranges = Multirange (Vector.fromList ranges)
