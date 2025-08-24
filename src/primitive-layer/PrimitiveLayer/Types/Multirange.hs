@@ -121,23 +121,23 @@ normalizeMultirange ranges = Multirange (Vector.fromList (mergeRanges (sortRange
   where
     -- Step 1: Remove empty ranges
     filterNonEmpty = filter (not . isEmptyRange)
-    
+
     -- Step 2: Sort ranges by their lower bound
     sortRanges = sortBy compareRanges
-    
+
     -- Step 3: Merge overlapping and adjacent ranges
     mergeRanges [] = []
     mergeRanges [r] = [r]
-    mergeRanges (r1:r2:rs) =
+    mergeRanges (r1 : r2 : rs) =
       case mergeTwo r1 r2 of
-        Just merged -> mergeRanges (merged:rs)
-        Nothing -> r1 : mergeRanges (r2:rs)
+        Just merged -> mergeRanges (merged : rs)
+        Nothing -> r1 : mergeRanges (r2 : rs)
 
 -- | Check if a range is empty
 isEmptyRange :: (Ord a) => Range a -> Bool
 isEmptyRange range = isNothing (rangeToBounds range)
 
--- | Convert range to bounds tuple  
+-- | Convert range to bounds tuple
 rangeToBounds :: (Ord a) => Range a -> Maybe (Maybe a, Maybe a)
 rangeToBounds = to
 
@@ -147,19 +147,19 @@ boundsToRange = maybeFrom
 
 -- | Compare ranges by their lower bounds for sorting
 compareRanges :: (Ord a) => Range a -> Range a -> Ordering
-compareRanges r1 r2 = 
+compareRanges r1 r2 =
   case (rangeToBounds r1, rangeToBounds r2) of
-    (Nothing, Nothing) -> EQ  -- Both empty
-    (Nothing, Just _) -> LT   -- Empty range comes first
-    (Just _, Nothing) -> GT   -- Empty range comes first
+    (Nothing, Nothing) -> EQ -- Both empty
+    (Nothing, Just _) -> LT -- Empty range comes first
+    (Just _, Nothing) -> GT -- Empty range comes first
     (Just (lower1, _), Just (lower2, _)) -> compare lower1 lower2
 
 -- | Merge two ranges if they are overlapping or adjacent
 mergeTwo :: (Ord a) => Range a -> Range a -> Maybe (Range a)
 mergeTwo r1 r2 =
   case (rangeToBounds r1, rangeToBounds r2) of
-    (Nothing, _) -> Just r2  -- First range is empty, keep second
-    (_, Nothing) -> Just r1  -- Second range is empty, keep first  
+    (Nothing, _) -> Just r2 -- First range is empty, keep second
+    (_, Nothing) -> Just r1 -- Second range is empty, keep first
     (Just (lower1, upper1), Just (lower2, upper2)) ->
       if areOverlappingOrAdjacent (lower1, upper1) (lower2, upper2)
         then boundsToRange (Just (minRangeBound lower1 lower2, maxRangeBound upper1 upper2))
@@ -170,17 +170,18 @@ areOverlappingOrAdjacent :: (Ord a) => (Maybe a, Maybe a) -> (Maybe a, Maybe a) 
 areOverlappingOrAdjacent (lower1, upper1) (lower2, upper2) =
   -- Ranges are overlapping or adjacent if the end of one is >= start of the other
   case (upper1, lower2) of
-    (Nothing, _) -> True  -- First range extends to infinity
-    (_, Nothing) -> True  -- Second range starts from negative infinity  
-    (Just u1, Just l2) -> u1 >= l2 && case (lower1, upper2) of
-      (Nothing, _) -> True  -- First range starts from negative infinity
-      (_, Nothing) -> True  -- Second range extends to infinity
-      (Just l1, Just u2) -> l1 <= u2
+    (Nothing, _) -> True -- First range extends to infinity
+    (_, Nothing) -> True -- Second range starts from negative infinity
+    (Just u1, Just l2) ->
+      u1 >= l2 && case (lower1, upper2) of
+        (Nothing, _) -> True -- First range starts from negative infinity
+        (_, Nothing) -> True -- Second range extends to infinity
+        (Just l1, Just u2) -> l1 <= u2
 
 -- | Get the minimum of two bounds (Nothing represents infinity)
 minRangeBound :: (Ord a) => Maybe a -> Maybe a -> Maybe a
 minRangeBound Nothing _ = Nothing
-minRangeBound _ Nothing = Nothing  
+minRangeBound _ Nothing = Nothing
 minRangeBound (Just a) (Just b) = Just (min a b)
 
 -- | Get the maximum of two bounds (Nothing represents infinity)
