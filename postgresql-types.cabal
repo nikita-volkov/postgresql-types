@@ -240,12 +240,14 @@ library quick-check-extras
   exposed-modules:
     QuickCheckExtras.Arbitrary
     QuickCheckExtras.Gen
+    QuickCheckExtras.Random
 
   other-modules:
   build-depends:
     QuickCheck >=2.14 && <3,
     base >=4.11 && <5,
     containers >=0.6 && <0.9,
+    splitmix ^>=0.1,
 
 library base-extras
   import: base

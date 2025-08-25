@@ -75,23 +75,33 @@ instance (MultirangeMapping a, Ord a) => Mapping (Multirange a) where
 instance (RangeMapping a, Arbitrary a, Ord a) => Arbitrary (Multirange a) where
   arbitrary = do
     size <- QuickCheck.getSize
-    lowerInfinity <- arbitrary
-    upperInfinity <- arbitrary
-    numRanges <- QuickCheck.chooseInt (0, max 0 size)
-    let numBounds = numRanges * 2 + bool 1 0 lowerInfinity + bool 1 0 upperInfinity
-    bounds <- QuickCheckExtras.Gen.setOfSize numBounds (arbitrary @a)
-    let preparedBounds =
-          mconcat
-            [ if lowerInfinity then [Nothing] else [],
-              fmap Just (Set.toList bounds),
-              if upperInfinity then [Nothing] else []
-            ]
-        pairs =
-          BaseExtras.List.toPairs preparedBounds
-        ranges =
-          fmap (onfrom . Just) pairs :: [Range a]
+    QuickCheck.frequency
+      [ ( 1,
+          pure (Multirange Vector.empty)
+        ),
+        ( max 1 size,
+          do
+            lowerInfinity <- arbitrary
+            upperInfinity <- arbitrary
+            numRanges <- QuickCheck.chooseInt (0, max 0 size)
+            let numBounds =
+                  numRanges * 2 + bool 1 0 lowerInfinity + bool 1 0 upperInfinity
+            bounds <- QuickCheckExtras.Gen.setOfSize numBounds (arbitrary @a)
+            let preparedBounds =
+                  mconcat
+                    [ if lowerInfinity then [Nothing] else [],
+                      fmap Just (Set.toList bounds),
+                      if upperInfinity then [Nothing] else []
+                    ]
+                pairs =
+                  BaseExtras.List.toPairs preparedBounds
+                ranges =
+                  fmap (onfrom . Just) pairs :: [Range a]
 
-    pure (Multirange (Vector.fromList ranges))
+            pure
+              (Multirange (Vector.fromList ranges))
+        )
+      ]
 
 -- |
 -- Direct conversion to and from Vector.
