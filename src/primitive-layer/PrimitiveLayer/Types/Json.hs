@@ -58,9 +58,9 @@ instance Mapping Json where
 
 instance IsSome Aeson.Value Json where
   to = toAesonValue
-  maybeFrom value = 
+  maybeFrom value =
     let normalized = fromAesonValue value
-    in if toAesonValue normalized == value then Just normalized else Nothing
+     in if toAesonValue normalized == value then Just normalized else Nothing
 
 instance IsMany Aeson.Value Json where
   onfrom = fromAesonValue

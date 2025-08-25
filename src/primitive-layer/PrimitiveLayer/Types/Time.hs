@@ -47,8 +47,12 @@ instance IsSome Time.TimeOfDay Time where
     let diffTime = Time.timeOfDayToTime timeOfDay
         microseconds = round (diffTime * 1_000_000)
         time = Time microseconds
-     in if microseconds >= 0 && microseconds < 86_400_000_000 -- 24 hours in microseconds
-          && to time == timeOfDay -- Check precision is preserved
+     in if microseconds
+          >= 0
+          && microseconds
+          < 86_400_000_000 -- 24 hours in microseconds
+          && to time
+          == timeOfDay -- Check precision is preserved
           then Just time
           else Nothing
 
