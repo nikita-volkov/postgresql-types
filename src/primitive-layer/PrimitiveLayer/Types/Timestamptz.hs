@@ -21,7 +21,12 @@ newtype Timestamptz = Timestamptz Int64
   deriving (Show) via (ViaPrimitive Timestamptz)
 
 instance Arbitrary Timestamptz where
-  arbitrary = Timestamptz <$> QuickCheck.choose (0, maxBound)
+  arbitrary = Timestamptz <$> QuickCheck.choose (pgTimestampMin, pgTimestampMax)
+    where
+      -- PostgreSQL's actual documented timestamptz range: 4713 BC to 294276 AD
+      -- Do not artificially restrict to avoid edge cases - let the tests expose real issues
+      pgTimestampMin = -210866803200000000 -- 4713 BC January 1 00:00:00 UTC
+      pgTimestampMax = 9214646400000000000 -- 294276 AD December 31 23:59:59.999999 UTC
 
 instance Mapping Timestamptz where
   typeName = Tagged "timestamptz"
@@ -32,7 +37,7 @@ instance Mapping Timestamptz where
     microseconds <- PeekyBlinders.statically PeekyBlinders.beSignedInt8
     pure (Right (Timestamptz microseconds))
   textualEncoder (toUtcTime -> utcTime) =
-    TextBuilder.string (Time.formatTime Time.defaultTimeLocale "%Y-%m-%d %H:%M:%S%Q%z" utcTime)
+    formatTimestamptzForPostgreSQL utcTime
 
 -- | Mapping to @tstzrange@ type.
 instance RangeMapping Timestamptz where
@@ -79,3 +84,74 @@ instance IsSome Time.UTCTime Timestamptz where
 -- This is a total conversion as it always succeeds.
 instance IsMany Time.UTCTime Timestamptz where
   onfrom = fromUtcTime
+
+-- | Format a UTCTime for PostgreSQL timestamptz text format.
+-- PostgreSQL requires specific formatting for extreme dates:
+-- - Years must be 4-digit zero-padded for AD dates
+-- - BC dates use "YYYY-MM-DD HH:MM:SS+0000 BC" format
+-- - Always includes +0000 timezone for UTC
+-- - Microseconds must be properly formatted
+formatTimestamptzForPostgreSQL :: Time.UTCTime -> TextBuilder
+formatTimestamptzForPostgreSQL utcTime =
+  let day = Time.utctDay utcTime
+      diffTime = Time.utctDayTime utcTime
+      (year, month, dayOfMonth) = Time.toGregorian day
+      -- Convert DiffTime to hours, minutes, seconds, microseconds
+      totalSecs = floor (toRational diffTime) :: Integer
+      totalMicros = round (toRational diffTime * 1000000) :: Integer
+      micros = totalMicros `mod` 1000000 :: Integer
+      secs = totalSecs `mod` 60 :: Integer
+      totalMins = totalSecs `div` 60 :: Integer
+      mins = totalMins `mod` 60 :: Integer
+      hours = totalMins `div` 60 :: Integer
+      timeBuilder =
+        if micros == 0
+          then
+            mconcat
+              [ TextBuilder.fixedLengthDecimal 2 (hours :: Integer),
+                ":",
+                TextBuilder.fixedLengthDecimal 2 (mins :: Integer),
+                ":",
+                TextBuilder.fixedLengthDecimal 2 (secs :: Integer)
+              ]
+          else
+            mconcat
+              [ TextBuilder.fixedLengthDecimal 2 (hours :: Integer),
+                ":",
+                TextBuilder.fixedLengthDecimal 2 (mins :: Integer),
+                ":",
+                TextBuilder.fixedLengthDecimal 2 (secs :: Integer),
+                ".",
+                TextBuilder.fixedLengthDecimal 6 (micros :: Integer)
+              ]
+   in if year <= 0
+        then
+          -- For BC dates (year <= 0), PostgreSQL expects format like "0001-01-01 00:00:00+0000 BC"
+          -- Note: year 0 is 1 BC, year -1 is 2 BC, etc.
+          let bcYear = negate (1 - year)
+           in mconcat
+                [ if bcYear <= 999
+                    then TextBuilder.fixedLengthDecimal 4 (bcYear :: Integer)
+                    else TextBuilder.decimal (bcYear :: Integer),
+                  "-",
+                  TextBuilder.fixedLengthDecimal 2 (fromIntegral month :: Integer),
+                  "-",
+                  TextBuilder.fixedLengthDecimal 2 (fromIntegral dayOfMonth :: Integer),
+                  " ",
+                  timeBuilder,
+                  "+0000 BC"
+                ]
+        else
+          -- For AD dates (year > 0), use zero-padded 4-digit year
+          mconcat
+            [ if year <= 999
+                then TextBuilder.fixedLengthDecimal 4 (year :: Integer)
+                else TextBuilder.decimal (year :: Integer),
+              "-",
+              TextBuilder.fixedLengthDecimal 2 (fromIntegral month :: Integer),
+              "-",
+              TextBuilder.fixedLengthDecimal 2 (fromIntegral dayOfMonth :: Integer),
+              " ",
+              timeBuilder,
+              "+0000"
+            ]
