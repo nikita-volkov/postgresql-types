@@ -102,6 +102,9 @@ The library emphasizes type safety through lawful conversions:
 
 ## Common Development Tasks
 
+### Analysis
+- Avoid running repl (`ghci` or `cabal repl`) to extract info. Use other means.
+
 ### Building
 ```bash
 cabal build                    # Build all components
