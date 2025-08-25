@@ -21,7 +21,13 @@ newtype Timestamp = Timestamp Int64
   deriving (Show) via (ViaPrimitive Timestamp)
 
 instance Arbitrary Timestamp where
-  arbitrary = Timestamp <$> QuickCheck.choose (0, maxBound)
+  arbitrary = Timestamp <$> QuickCheck.choose (minTimestampMicros, maxTimestampMicros)
+    where
+      -- PostgreSQL timestamp range compatible with text parsing (4-digit years)
+      -- Min: 1000 AD (ensures 4-digit years for text format compatibility)
+      minTimestampMicros = -31556908800000000 -- 1000-01-01 AD 00:00:00
+      -- Max: 9999 AD (safe upper bound for text format)
+      maxTimestampMicros = 252455615999999999 -- 9999-12-31 AD 23:59:59.999999
 
 instance Mapping Timestamp where
   typeName = Tagged "timestamp"
