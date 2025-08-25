@@ -246,6 +246,7 @@ library quick-check-extras
     QuickCheck >=2.14 && <3,
     base >=4.11 && <5,
     containers >=0.6 && <0.9,
+    random >=1.2 && <2,
 
 library base-extras
   import: base
