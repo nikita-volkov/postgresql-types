@@ -36,7 +36,7 @@ instance Mapping Time where
 
 instance Bounded Time where
   minBound = Time 0
-  maxBound = Time (24 * 60 * 60 * 1_000_000 - 1) -- 24 hours in microseconds
+  maxBound = Time (24 * 60 * 60 * 1_000_000) -- 24 hours in microseconds
 
 -- | Convert from TimeOfDay to Time (microseconds)
 instance IsSome Time.TimeOfDay Time where
@@ -47,7 +47,7 @@ instance IsSome Time.TimeOfDay Time where
     let diffTime = Time.timeOfDayToTime timeOfDay
         microseconds = round (diffTime * 1_000_000)
         time = Time microseconds
-     in if microseconds >= 0 && microseconds < 86_400_000_000 && to time == timeOfDay
+     in if microseconds >= 0 && microseconds <= 86_400_000_000 && to time == timeOfDay
           then Just time
           else Nothing
 

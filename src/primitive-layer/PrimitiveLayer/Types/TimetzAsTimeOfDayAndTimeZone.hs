@@ -27,6 +27,10 @@ data TimetzAsTimeOfDayAndTimeZone
   deriving stock (Eq, Ord)
   deriving (Mapping, Arbitrary, Show) via (ViaIsMany Timetz TimetzAsTimeOfDayAndTimeZone)
 
+instance Bounded TimetzAsTimeOfDayAndTimeZone where
+  minBound = TimetzAsTimeOfDayAndTimeZone (Time.TimeOfDay 0 0 0) (TimeZone.convertFromMinutes (negate (15 * 60 + 59)))
+  maxBound = TimetzAsTimeOfDayAndTimeZone (Time.TimeOfDay 24 0 0) (TimeZone.convertFromMinutes (15 * 60 + 59))
+
 instance IsSome Timetz TimetzAsTimeOfDayAndTimeZone where
   to (TimetzAsTimeOfDayAndTimeZone timeOfDay timeZone) =
     let time = TimeOfDay.compressToMicroseconds timeOfDay

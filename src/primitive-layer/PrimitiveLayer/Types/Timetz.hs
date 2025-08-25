@@ -54,9 +54,9 @@ instance Mapping Timetz where
       pure (Timetz <$> time <*> offset)
 
   -- Format:
-  -- 23:59:59+15:59:59
-  -- 24:00:00+15:59:59
-  -- 00:00:00-15:59:59
+  -- 23:59:59-15:59:59
+  -- 24:00:00-15:59:59
+  -- 00:00:00+15:59:59
   textualEncoder (Timetz time offset) =
     Time.renderInTextFormat time <> Offset.renderInTextFormat offset
 

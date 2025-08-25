@@ -90,6 +90,8 @@ main = hspec do
   testIsSome @PrimitiveLayer.Path @(Bool, (Data.Vector.Unboxed.Vector (Double, Double))) Proxy Proxy
   testIsSome @PrimitiveLayer.Polygon @(Data.Vector.Unboxed.Vector (Double, Double)) Proxy Proxy
   testIsSome @PrimitiveLayer.Polygon @[(Double, Double)] Proxy Proxy
+  testIsSomeBounded @PrimitiveLayer.Time @TimeOfDay Proxy Proxy
+  testIsSomeBounded @PrimitiveLayer.TimetzAsTimeOfDayAndTimeZone @(TimeOfDay, TimeZone) Proxy Proxy
 
 -- | Test lawful conversions for a PostgreSQL type
 testIsMany ::
@@ -136,6 +138,37 @@ testIsSome projection primitive =
         traverse_
           (uncurry prop)
           (LawfulConversions.isSomeProperties projection primitive)
+
+-- | Test lawful conversions for a PostgreSQL type
+testIsSomeBounded ::
+  forall primitive projection.
+  ( HasCallStack,
+    LawfulConversions.IsSome projection primitive,
+    Bounded primitive,
+    Typeable projection,
+    Typeable primitive,
+    Eq projection,
+    Eq primitive,
+    Show projection,
+    Show primitive,
+    Arbitrary projection,
+    Arbitrary primitive
+  ) =>
+  Proxy projection -> Proxy primitive -> Spec
+testIsSomeBounded projection primitive =
+  describe (show (typeOf (undefined :: primitive))) do
+    describe (show (typeOf (undefined :: projection))) do
+      describe "Bounded" do
+        describe "minBound" do
+          it "is convertible" do
+            let projection = LawfulConversions.to @projection (minBound @primitive)
+                restoration = LawfulConversions.maybeTo @primitive projection
+            shouldBe restoration (Just (minBound @primitive))
+        describe "maxBound" do
+          it "is convertible" do
+            let projection = LawfulConversions.to @projection (maxBound @primitive)
+                restoration = LawfulConversions.maybeTo @primitive projection
+            shouldBe restoration (Just (maxBound @primitive))
 
 -- | Test lawful conversions for a PostgreSQL type
 testIs ::
