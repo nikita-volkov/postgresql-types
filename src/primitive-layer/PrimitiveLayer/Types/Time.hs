@@ -46,8 +46,10 @@ instance IsSome Time.TimeOfDay Time where
   maybeFrom timeOfDay =
     let diffTime = Time.timeOfDayToTime timeOfDay
         microseconds = round (diffTime * 1_000_000)
+        time = Time microseconds
      in if microseconds >= 0 && microseconds < 86_400_000_000 -- 24 hours in microseconds
-          then Just (Time microseconds)
+          && to time == timeOfDay -- Check precision is preserved
+          then Just time
           else Nothing
 
 -- | Convert from TimeOfDay to Time, wrapping negative values around 24-hour period

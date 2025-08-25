@@ -65,7 +65,11 @@ fromLocalTime localTime =
 -- This is always safe since both represent local timestamps.
 instance IsSome Time.LocalTime Timestamp where
   to = toLocalTime
-  maybeFrom = Just . fromLocalTime
+  maybeFrom localTime = 
+    let timestamp = fromLocalTime localTime
+    in if to timestamp == localTime 
+       then Just timestamp 
+       else Nothing
 
 -- | Direct conversion from 'Data.Time.LocalTime'.
 -- This is a total conversion as it always succeeds.

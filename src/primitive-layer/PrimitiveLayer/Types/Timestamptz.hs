@@ -65,7 +65,11 @@ fromUtcTime utcTime =
 -- This is always safe since both represent UTC timestamps.
 instance IsSome Time.UTCTime Timestamptz where
   to = toUtcTime
-  maybeFrom = Just . fromUtcTime
+  maybeFrom utcTime = 
+    let timestamptz = fromUtcTime utcTime
+    in if to timestamptz == utcTime 
+       then Just timestamptz 
+       else Nothing
 
 -- | Direct conversion from 'Data.Time.UTCTime'.
 -- This is a total conversion as it always succeeds.

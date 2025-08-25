@@ -150,8 +150,14 @@ instance IsSome (Ip, Word8) Cidr where
   to (Cidr addr netmask) = (addr, netmask)
   maybeFrom (addr, netmask) =
     case addr of
-      V4Ip _ -> if netmask <= 32 then Just (constructCidr addr netmask) else Nothing
-      V6Ip _ _ _ _ -> if netmask <= 128 then Just (constructCidr addr netmask) else Nothing
+      V4Ip _ -> if netmask <= 32 then 
+        let normalized = constructCidr addr netmask
+        in if normalized == Cidr addr netmask then Just normalized else Nothing
+        else Nothing
+      V6Ip _ _ _ _ -> if netmask <= 128 then 
+        let normalized = constructCidr addr netmask
+        in if normalized == Cidr addr netmask then Just normalized else Nothing
+        else Nothing
 
 -- | Direct conversion from tuple to Cidr.
 instance IsMany (Ip, Word8) Cidr where

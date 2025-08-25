@@ -37,7 +37,11 @@ instance Arbitrary IntervalAsMicroseconds where
 
 instance IsSome Interval IntervalAsMicroseconds where
   to = toInterval
-  maybeFrom = Just . fromInterval
+  maybeFrom interval = 
+    let intervalAsMicros = fromInterval interval
+    in if to intervalAsMicros == interval 
+       then Just intervalAsMicros 
+       else Nothing
 
 instance IsMany Interval IntervalAsMicroseconds where
   onfrom = fromInterval
