@@ -24,9 +24,9 @@ instance Arbitrary Timestamptz where
   arbitrary = Timestamptz <$> QuickCheck.choose (pgTimestampMin, pgTimestampMax)
     where
       -- PostgreSQL's actual documented timestamptz range: 4713 BC to 294276 AD
-      -- Do not artificially restrict to avoid edge cases - let the tests expose real issues  
-      pgTimestampMin = -210866803200000000  -- 4713 BC January 1 00:00:00 UTC
-      pgTimestampMax = 9214646400000000000  -- 294276 AD December 31 23:59:59.999999 UTC
+      -- Do not artificially restrict to avoid edge cases - let the tests expose real issues
+      pgTimestampMin = -210866803200000000 -- 4713 BC January 1 00:00:00 UTC
+      pgTimestampMax = 9214646400000000000 -- 294276 AD December 31 23:59:59.999999 UTC
 
 instance Mapping Timestamptz where
   typeName = Tagged "timestamptz"

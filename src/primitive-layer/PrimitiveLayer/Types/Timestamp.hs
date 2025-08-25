@@ -25,8 +25,8 @@ instance Arbitrary Timestamp where
     where
       -- PostgreSQL's actual documented timestamp range: 4713 BC to 294276 AD
       -- Do not artificially restrict to avoid edge cases - let the tests expose real issues
-      pgTimestampMin = -210866803200000000  -- 4713 BC January 1 00:00:00
-      pgTimestampMax = 9214646400000000000  -- 294276 AD December 31 23:59:59.999999
+      pgTimestampMin = -210866803200000000 -- 4713 BC January 1 00:00:00
+      pgTimestampMax = 9214646400000000000 -- 294276 AD December 31 23:59:59.999999
 
 instance Mapping Timestamp where
   typeName = Tagged "timestamp"
