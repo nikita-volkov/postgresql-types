@@ -238,6 +238,7 @@ library quick-check-extras
   import: base
   hs-source-dirs: src/quick-check-extras
   exposed-modules:
+    QuickCheckExtras.Arbitrary
     QuickCheckExtras.Gen
 
   other-modules:
@@ -313,6 +314,7 @@ test-suite unit-tests
     peeky-blinders >=0.1 && <0.2,
     postgresql-libpq >=0.10 && <0.12,
     postgresql-types:primitive-layer,
+    postgresql-types:quick-check-extras,
     postgresql-types:testcontainers-postgresql,
     ptr-poker ^>=0.1.2.16,
     quickcheck-instances ^>=0.3.33,
