@@ -65,7 +65,15 @@ fromUtcTime utcTime =
 -- This is always safe since both represent UTC timestamps.
 instance IsSome Time.UTCTime Timestamptz where
   to = toUtcTime
-  maybeFrom = Just . fromUtcTime
+  maybeFrom utcTime =
+    let diffTime = Time.diffUTCTime utcTime postgresUtcEpoch
+        picoSeconds = Time.nominalDiffTimeToSeconds diffTime
+        -- Convert Pico to Integer picoseconds (Pico has 10^12 precision)
+        picosecondsInteger = round (toRational picoSeconds * 1_000_000_000_000)
+        (microseconds, remainder) = divMod picosecondsInteger 1_000_000
+     in if remainder == 0
+          then Just (Timestamptz (fromIntegral microseconds))
+          else Nothing
 
 -- | Direct conversion from 'Data.Time.UTCTime'.
 -- This is a total conversion as it always succeeds.
