@@ -98,11 +98,11 @@ formatTimestampForPostgreSQL localTime =
           -- Note: year 0 is 1 BC, year -1 is 2 BC, etc.
           let bcYear = 1 - year
            in mconcat
-                [ TextBuilder.fixedLengthDecimal 4 bcYear,
+                [ TextBuilder.fixedLengthDecimal 4 (bcYear :: Integer),
                   "-",
-                  TextBuilder.fixedLengthDecimal 2 month,
+                  TextBuilder.fixedLengthDecimal 2 (fromIntegral month :: Integer),
                   "-",
-                  TextBuilder.fixedLengthDecimal 2 dayOfMonth,
+                  TextBuilder.fixedLengthDecimal 2 (fromIntegral dayOfMonth :: Integer),
                   " ",
                   timeBuilder,
                   " BC"
@@ -110,11 +110,11 @@ formatTimestampForPostgreSQL localTime =
         else
           -- For AD dates (year > 0), use zero-padded 4-digit year
           mconcat
-            [ TextBuilder.fixedLengthDecimal 4 year,
+            [ TextBuilder.fixedLengthDecimal 4 (year :: Integer),
               "-",
-              TextBuilder.fixedLengthDecimal 2 month,
+              TextBuilder.fixedLengthDecimal 2 (fromIntegral month :: Integer),
               "-",
-              TextBuilder.fixedLengthDecimal 2 dayOfMonth,
+              TextBuilder.fixedLengthDecimal 2 (fromIntegral dayOfMonth :: Integer),
               " ",
               timeBuilder
             ]
@@ -131,17 +131,17 @@ formatTimestampForPostgreSQL localTime =
        in if micros == 0
             then
               mconcat
-                [ TextBuilder.fixedLengthDecimal 2 h,
+                [ TextBuilder.fixedLengthDecimal 2 (fromIntegral h :: Integer),
                   ":",
-                  TextBuilder.fixedLengthDecimal 2 m,
+                  TextBuilder.fixedLengthDecimal 2 (fromIntegral m :: Integer),
                   ":",
                   TextBuilder.fixedLengthDecimal 2 secs
                 ]
             else
               mconcat
-                [ TextBuilder.fixedLengthDecimal 2 h,
+                [ TextBuilder.fixedLengthDecimal 2 (fromIntegral h :: Integer),
                   ":",
-                  TextBuilder.fixedLengthDecimal 2 m,
+                  TextBuilder.fixedLengthDecimal 2 (fromIntegral m :: Integer),
                   ":",
                   TextBuilder.fixedLengthDecimal 2 secs,
                   ".",

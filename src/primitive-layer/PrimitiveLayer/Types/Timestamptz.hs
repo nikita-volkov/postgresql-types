@@ -108,21 +108,21 @@ formatTimestamptzForPostgreSQL utcTime =
         if micros == 0
           then
             mconcat
-              [ TextBuilder.fixedLengthDecimal 2 hours,
+              [ TextBuilder.fixedLengthDecimal 2 (hours :: Integer),
                 ":",
-                TextBuilder.fixedLengthDecimal 2 mins,
+                TextBuilder.fixedLengthDecimal 2 (mins :: Integer),
                 ":",
-                TextBuilder.fixedLengthDecimal 2 secs
+                TextBuilder.fixedLengthDecimal 2 (secs :: Integer)
               ]
           else
             mconcat
-              [ TextBuilder.fixedLengthDecimal 2 hours,
+              [ TextBuilder.fixedLengthDecimal 2 (hours :: Integer),
                 ":",
-                TextBuilder.fixedLengthDecimal 2 mins,
+                TextBuilder.fixedLengthDecimal 2 (mins :: Integer),
                 ":",
-                TextBuilder.fixedLengthDecimal 2 secs,
+                TextBuilder.fixedLengthDecimal 2 (secs :: Integer),
                 ".",
-                TextBuilder.fixedLengthDecimal 6 micros
+                TextBuilder.fixedLengthDecimal 6 (micros :: Integer)
               ]
    in if year <= 0
         then
@@ -130,11 +130,11 @@ formatTimestamptzForPostgreSQL utcTime =
           -- Note: year 0 is 1 BC, year -1 is 2 BC, etc.
           let bcYear = 1 - year
            in mconcat
-                [ TextBuilder.fixedLengthDecimal 4 bcYear,
+                [ TextBuilder.fixedLengthDecimal 4 (bcYear :: Integer),
                   "-",
-                  TextBuilder.fixedLengthDecimal 2 month,
+                  TextBuilder.fixedLengthDecimal 2 (fromIntegral month :: Integer),
                   "-",
-                  TextBuilder.fixedLengthDecimal 2 dayOfMonth,
+                  TextBuilder.fixedLengthDecimal 2 (fromIntegral dayOfMonth :: Integer),
                   " ",
                   timeBuilder,
                   "+0000 BC"
@@ -142,11 +142,11 @@ formatTimestamptzForPostgreSQL utcTime =
         else
           -- For AD dates (year > 0), use zero-padded 4-digit year
           mconcat
-            [ TextBuilder.fixedLengthDecimal 4 year,
+            [ TextBuilder.fixedLengthDecimal 4 (year :: Integer),
               "-",
-              TextBuilder.fixedLengthDecimal 2 month,
+              TextBuilder.fixedLengthDecimal 2 (fromIntegral month :: Integer),
               "-",
-              TextBuilder.fixedLengthDecimal 2 dayOfMonth,
+              TextBuilder.fixedLengthDecimal 2 (fromIntegral dayOfMonth :: Integer),
               " ",
               timeBuilder,
               "+0000"
