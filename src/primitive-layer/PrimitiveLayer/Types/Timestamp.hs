@@ -84,7 +84,7 @@ instance IsMany Time.LocalTime Timestamp where
 -- | Format a LocalTime for PostgreSQL timestamp text format.
 -- PostgreSQL requires specific formatting for extreme dates:
 -- - Years must be 4-digit zero-padded for AD dates
--- - BC dates use "YYYY-MM-DD HH:MM:SS BC" format  
+-- - BC dates use "YYYY-MM-DD HH:MM:SS BC" format
 -- - Microseconds must be properly formatted
 formatTimestampForPostgreSQL :: Time.LocalTime -> String
 formatTimestampForPostgreSQL localTime =
