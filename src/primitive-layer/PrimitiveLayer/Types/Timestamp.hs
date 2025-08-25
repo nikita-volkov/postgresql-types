@@ -37,7 +37,7 @@ instance Mapping Timestamp where
     microseconds <- PeekyBlinders.statically PeekyBlinders.beSignedInt8
     pure (Right (Timestamp microseconds))
   textualEncoder (toLocalTime -> localTime) =
-    TextBuilder.string (Time.formatTime Time.defaultTimeLocale "%Y-%m-%d %H:%M:%S%Q" localTime)
+    TextBuilder.string (formatTimestampForPostgreSQL localTime)
 
 -- | Mapping to @tsrange@ type.
 instance RangeMapping Timestamp where
@@ -80,3 +80,37 @@ instance IsSome Time.LocalTime Timestamp where
 -- This is a total conversion as it always succeeds.
 instance IsMany Time.LocalTime Timestamp where
   onfrom = fromLocalTime
+
+-- | Format a LocalTime for PostgreSQL timestamp text format.
+-- PostgreSQL requires specific formatting for extreme dates:
+-- - Years must be 4-digit zero-padded for AD dates
+-- - BC dates use "YYYY-MM-DD HH:MM:SS BC" format  
+-- - Microseconds must be properly formatted
+formatTimestampForPostgreSQL :: Time.LocalTime -> String
+formatTimestampForPostgreSQL localTime =
+  let day = Time.localDay localTime
+      timeOfDay = Time.localTimeOfDay localTime
+      (year, month, dayOfMonth) = Time.toGregorian day
+      timeStr = formatTimeOfDay timeOfDay
+   in if year <= 0
+        then
+          -- For BC dates (year <= 0), PostgreSQL expects format like "0001-01-01 00:00:00 BC"
+          -- Note: year 0 is 1 BC, year -1 is 2 BC, etc.
+          let bcYear = 1 - year
+           in printf "%04d-%02d-%02d %s BC" (bcYear :: Integer) (month :: Int) (dayOfMonth :: Int) timeStr
+        else
+          -- For AD dates (year > 0), use zero-padded 4-digit year
+          printf "%04d-%02d-%02d %s" (year :: Integer) (month :: Int) (dayOfMonth :: Int) timeStr
+  where
+    formatTimeOfDay :: Time.TimeOfDay -> String
+    formatTimeOfDay tod =
+      let h = Time.todHour tod :: Int
+          m = Time.todMin tod :: Int
+          pico = Time.todSec tod
+          -- Convert from Pico to microseconds
+          totalMicros = round (toRational pico * 1000000) :: Integer
+          secs = totalMicros `div` 1000000 :: Integer
+          micros = totalMicros `mod` 1000000 :: Integer
+       in if micros == 0
+            then printf "%02d:%02d:%02d" h m secs
+            else printf "%02d:%02d:%02d.%06d" h m secs micros
