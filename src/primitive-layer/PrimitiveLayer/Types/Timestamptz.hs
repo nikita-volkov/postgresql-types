@@ -37,7 +37,7 @@ instance Mapping Timestamptz where
     microseconds <- PeekyBlinders.statically PeekyBlinders.beSignedInt8
     pure (Right (Timestamptz microseconds))
   textualEncoder (toUtcTime -> utcTime) =
-    TextBuilder.string (formatTimestamptzForPostgreSQL utcTime)
+    formatTimestamptzForPostgreSQL utcTime
 
 -- | Mapping to @tstzrange@ type.
 instance RangeMapping Timestamptz where
@@ -91,7 +91,7 @@ instance IsMany Time.UTCTime Timestamptz where
 -- - BC dates use "YYYY-MM-DD HH:MM:SS+0000 BC" format
 -- - Always includes +0000 timezone for UTC
 -- - Microseconds must be properly formatted
-formatTimestamptzForPostgreSQL :: Time.UTCTime -> String
+formatTimestamptzForPostgreSQL :: Time.UTCTime -> TextBuilder
 formatTimestamptzForPostgreSQL utcTime =
   let day = Time.utctDay utcTime
       diffTime = Time.utctDayTime utcTime
@@ -104,16 +104,50 @@ formatTimestamptzForPostgreSQL utcTime =
       totalMins = totalSecs `div` 60 :: Integer
       mins = totalMins `mod` 60 :: Integer
       hours = totalMins `div` 60 :: Integer
+      timeBuilder =
+        if micros == 0
+          then
+            mconcat
+              [ TextBuilder.fixedLengthDecimal 2 hours,
+                ":",
+                TextBuilder.fixedLengthDecimal 2 mins,
+                ":",
+                TextBuilder.fixedLengthDecimal 2 secs
+              ]
+          else
+            mconcat
+              [ TextBuilder.fixedLengthDecimal 2 hours,
+                ":",
+                TextBuilder.fixedLengthDecimal 2 mins,
+                ":",
+                TextBuilder.fixedLengthDecimal 2 secs,
+                ".",
+                TextBuilder.fixedLengthDecimal 6 micros
+              ]
    in if year <= 0
         then
           -- For BC dates (year <= 0), PostgreSQL expects format like "0001-01-01 00:00:00+0000 BC"
           -- Note: year 0 is 1 BC, year -1 is 2 BC, etc.
           let bcYear = 1 - year
-           in if micros == 0
-                then printf "%04d-%02d-%02d %02d:%02d:%02d+0000 BC" (bcYear :: Integer) (month :: Int) (dayOfMonth :: Int) hours mins secs
-                else printf "%04d-%02d-%02d %02d:%02d:%02d.%06d+0000 BC" (bcYear :: Integer) (month :: Int) (dayOfMonth :: Int) hours mins secs micros
+           in mconcat
+                [ TextBuilder.fixedLengthDecimal 4 bcYear,
+                  "-",
+                  TextBuilder.fixedLengthDecimal 2 month,
+                  "-",
+                  TextBuilder.fixedLengthDecimal 2 dayOfMonth,
+                  " ",
+                  timeBuilder,
+                  "+0000 BC"
+                ]
         else
           -- For AD dates (year > 0), use zero-padded 4-digit year
-          if micros == 0
-            then printf "%04d-%02d-%02d %02d:%02d:%02d+0000" (year :: Integer) (month :: Int) (dayOfMonth :: Int) hours mins secs
-            else printf "%04d-%02d-%02d %02d:%02d:%02d.%06d+0000" (year :: Integer) (month :: Int) (dayOfMonth :: Int) hours mins secs micros
+          mconcat
+            [ TextBuilder.fixedLengthDecimal 4 year,
+              "-",
+              TextBuilder.fixedLengthDecimal 2 month,
+              "-",
+              TextBuilder.fixedLengthDecimal 2 dayOfMonth,
+              " ",
+              timeBuilder,
+              "+0000"
+            ]

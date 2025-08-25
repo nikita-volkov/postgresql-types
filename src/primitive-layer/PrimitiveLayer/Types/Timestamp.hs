@@ -37,7 +37,7 @@ instance Mapping Timestamp where
     microseconds <- PeekyBlinders.statically PeekyBlinders.beSignedInt8
     pure (Right (Timestamp microseconds))
   textualEncoder (toLocalTime -> localTime) =
-    TextBuilder.string (formatTimestampForPostgreSQL localTime)
+    formatTimestampForPostgreSQL localTime
 
 -- | Mapping to @tsrange@ type.
 instance RangeMapping Timestamp where
@@ -86,23 +86,40 @@ instance IsMany Time.LocalTime Timestamp where
 -- - Years must be 4-digit zero-padded for AD dates
 -- - BC dates use "YYYY-MM-DD HH:MM:SS BC" format
 -- - Microseconds must be properly formatted
-formatTimestampForPostgreSQL :: Time.LocalTime -> String
+formatTimestampForPostgreSQL :: Time.LocalTime -> TextBuilder
 formatTimestampForPostgreSQL localTime =
   let day = Time.localDay localTime
       timeOfDay = Time.localTimeOfDay localTime
       (year, month, dayOfMonth) = Time.toGregorian day
-      timeStr = formatTimeOfDay timeOfDay
+      timeBuilder = formatTimeOfDay timeOfDay
    in if year <= 0
         then
           -- For BC dates (year <= 0), PostgreSQL expects format like "0001-01-01 00:00:00 BC"
           -- Note: year 0 is 1 BC, year -1 is 2 BC, etc.
           let bcYear = 1 - year
-           in printf "%04d-%02d-%02d %s BC" (bcYear :: Integer) (month :: Int) (dayOfMonth :: Int) timeStr
+           in mconcat
+                [ TextBuilder.fixedLengthDecimal 4 bcYear,
+                  "-",
+                  TextBuilder.fixedLengthDecimal 2 month,
+                  "-",
+                  TextBuilder.fixedLengthDecimal 2 dayOfMonth,
+                  " ",
+                  timeBuilder,
+                  " BC"
+                ]
         else
           -- For AD dates (year > 0), use zero-padded 4-digit year
-          printf "%04d-%02d-%02d %s" (year :: Integer) (month :: Int) (dayOfMonth :: Int) timeStr
+          mconcat
+            [ TextBuilder.fixedLengthDecimal 4 year,
+              "-",
+              TextBuilder.fixedLengthDecimal 2 month,
+              "-",
+              TextBuilder.fixedLengthDecimal 2 dayOfMonth,
+              " ",
+              timeBuilder
+            ]
   where
-    formatTimeOfDay :: Time.TimeOfDay -> String
+    formatTimeOfDay :: Time.TimeOfDay -> TextBuilder
     formatTimeOfDay tod =
       let h = Time.todHour tod :: Int
           m = Time.todMin tod :: Int
@@ -112,5 +129,21 @@ formatTimestampForPostgreSQL localTime =
           secs = totalMicros `div` 1000000 :: Integer
           micros = totalMicros `mod` 1000000 :: Integer
        in if micros == 0
-            then printf "%02d:%02d:%02d" h m secs
-            else printf "%02d:%02d:%02d.%06d" h m secs micros
+            then
+              mconcat
+                [ TextBuilder.fixedLengthDecimal 2 h,
+                  ":",
+                  TextBuilder.fixedLengthDecimal 2 m,
+                  ":",
+                  TextBuilder.fixedLengthDecimal 2 secs
+                ]
+            else
+              mconcat
+                [ TextBuilder.fixedLengthDecimal 2 h,
+                  ":",
+                  TextBuilder.fixedLengthDecimal 2 m,
+                  ":",
+                  TextBuilder.fixedLengthDecimal 2 secs,
+                  ".",
+                  TextBuilder.fixedLengthDecimal 6 micros
+                ]
