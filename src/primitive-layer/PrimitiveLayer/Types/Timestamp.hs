@@ -96,9 +96,11 @@ formatTimestampForPostgreSQL localTime =
         then
           -- For BC dates (year <= 0), PostgreSQL expects format like "0001-01-01 00:00:00 BC"
           -- Note: year 0 is 1 BC, year -1 is 2 BC, etc.
-          let bcYear = 1 - year
+          let bcYear = negate (1 - year)
            in mconcat
-                [ TextBuilder.fixedLengthDecimal 4 (bcYear :: Integer),
+                [ if bcYear <= 999
+                    then TextBuilder.fixedLengthDecimal 4 (bcYear :: Integer)
+                    else TextBuilder.decimal (bcYear :: Integer),
                   "-",
                   TextBuilder.fixedLengthDecimal 2 (fromIntegral month :: Integer),
                   "-",
@@ -110,7 +112,9 @@ formatTimestampForPostgreSQL localTime =
         else
           -- For AD dates (year > 0), use zero-padded 4-digit year
           mconcat
-            [ TextBuilder.fixedLengthDecimal 4 (year :: Integer),
+            [ if year <= 999
+                then TextBuilder.fixedLengthDecimal 4 (year :: Integer)
+                else TextBuilder.decimal (year :: Integer),
               "-",
               TextBuilder.fixedLengthDecimal 2 (fromIntegral month :: Integer),
               "-",
