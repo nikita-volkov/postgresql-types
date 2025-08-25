@@ -1,8 +1,7 @@
 module QuickCheckExtras.Gen where
 
 import qualified Data.Set as Set
-import System.Random (RandomGen)
-import qualified System.Random as SysRandom
+import System.Random (randomR)
 import Test.QuickCheck
 import Test.QuickCheck.Gen
 import qualified Test.QuickCheck.Random as Random
@@ -24,9 +23,7 @@ run gen size seed = unGen gen (Random.mkQCGen seed) size
 
 -- | Get the current seed from the underlying generator.
 getSeed :: Gen Int
-getSeed = MkGen (\qcGen _size -> 
-  let (randomInt, _) = SysRandom.randomR (minBound, maxBound) qcGen
-  in randomInt)
+getSeed = MkGen (\r _ -> let (x, _) = randomR (minBound, maxBound) r in x)
 
 setOfSize :: (Ord a) => Int -> Gen a -> Gen (Set.Set a)
 setOfSize n elementGen = go Set.empty
