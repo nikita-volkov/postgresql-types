@@ -1,6 +1,8 @@
 module PrimitiveLayer.Types.Multirange (Multirange) where
 
+import qualified BaseExtras.List
 import qualified Data.List as List
+import qualified Data.Set as Set
 import qualified Data.Vector as Vector
 import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
@@ -9,6 +11,7 @@ import PrimitiveLayer.Types.Range (Range (..))
 import PrimitiveLayer.Via
 import qualified PrimitiveLayer.Writes as Writes
 import qualified PtrPoker.Write as Write
+import qualified QuickCheckExtras.Gen
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
@@ -71,37 +74,24 @@ instance (MultirangeMapping a, Ord a) => Mapping (Multirange a) where
 
 instance (RangeMapping a, Arbitrary a, Ord a) => Arbitrary (Multirange a) where
   arbitrary = do
-    stop <- arbitrary
-    if stop
-      then pure (Multirange mempty)
-      else do
-        lowerBound <- arbitrary @a
-        upperBound <- genUpperBoundLargerThan lowerBound
-        let firstRange = onfrom (Just (Just lowerBound, upperBound))
-        case upperBound of
-          Nothing -> pure (Multirange (Vector.singleton firstRange))
-          Just upperBound -> go [firstRange] upperBound
-    where
-      go !ranges !bound = do
-        stop <- arbitrary
-        if stop
-          then pure (Multirange (Vector.fromList (List.reverse ranges)))
-          else do
-            lower <- genLargerThan bound
-            upper <- genUpperBoundLargerThan lower
-            let range = onfrom (Just (Just lower, upper))
-            case upper of
-              Nothing -> pure (Multirange (Vector.fromList (List.reverse (range : ranges))))
-              Just upper -> go (range : ranges) upper
+    size <- QuickCheck.getSize
+    lowerInfinity <- arbitrary
+    upperInfinity <- arbitrary
+    numRanges <- QuickCheck.chooseInt (0, max 0 size)
+    let numBounds = numRanges * 2 + bool 1 0 lowerInfinity + bool 1 0 upperInfinity
+    bounds <- QuickCheckExtras.Gen.setOfSize numBounds (arbitrary @a)
+    let preparedBounds =
+          mconcat
+            [ if lowerInfinity then [Nothing] else [],
+              fmap Just (Set.toList bounds),
+              if upperInfinity then [Nothing] else []
+            ]
+        pairs =
+          BaseExtras.List.toPairs preparedBounds
+        ranges =
+          fmap (onfrom . Just) pairs :: [Range a]
 
-      genLargerThan what =
-        QuickCheck.suchThat arbitrary \x -> x > what
-
-      genUpperBoundLargerThan what =
-        QuickCheck.frequency
-          [ (1, pure Nothing),
-            (10, Just <$> genLargerThan what)
-          ]
+    pure (Multirange (Vector.fromList ranges))
 
 -- |
 -- Direct conversion to and from Vector.
