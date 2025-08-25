@@ -91,6 +91,7 @@ main = hspec do
   testIsSome @PrimitiveLayer.Polygon @(Data.Vector.Unboxed.Vector (Double, Double)) Proxy Proxy
   testIsSome @PrimitiveLayer.Polygon @[(Double, Double)] Proxy Proxy
   testIsSomeBounded @PrimitiveLayer.Time @TimeOfDay Proxy Proxy
+  testIsSomeBounded @PrimitiveLayer.TimetzAsTimeOfDayAndTimeZone @(TimeOfDay, TimeZone) Proxy Proxy
 
 -- | Test lawful conversions for a PostgreSQL type
 testIsMany ::
