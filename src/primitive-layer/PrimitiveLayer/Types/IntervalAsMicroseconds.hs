@@ -1,11 +1,11 @@
 module PrimitiveLayer.Types.IntervalAsMicroseconds (IntervalAsMicroseconds) where
 
 import qualified Data.Time as Time
-import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude hiding (toInteger)
 import PrimitiveLayer.Types.Interval (Interval)
 import PrimitiveLayer.Via
+import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder

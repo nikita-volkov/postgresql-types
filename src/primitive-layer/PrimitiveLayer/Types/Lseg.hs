@@ -2,10 +2,10 @@ module PrimitiveLayer.Types.Lseg (Lseg) where
 
 import Data.Bits
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
-import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import PrimitiveLayer.Via
+import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
@@ -41,10 +41,10 @@ instance Mapping Lseg where
         Write.bWord64 (castDoubleToWord64 y2)
       ]
   binaryDecoder = do
-    x1 <- PeekyBlinders.statically (castWord64ToDouble <$> PeekyBlinders.beUnsignedInt8)
-    y1 <- PeekyBlinders.statically (castWord64ToDouble <$> PeekyBlinders.beUnsignedInt8)
-    x2 <- PeekyBlinders.statically (castWord64ToDouble <$> PeekyBlinders.beUnsignedInt8)
-    y2 <- PeekyBlinders.statically (castWord64ToDouble <$> PeekyBlinders.beUnsignedInt8)
+    x1 <- PtrPeeker.fixed (castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
+    y1 <- PtrPeeker.fixed (castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
+    x2 <- PtrPeeker.fixed (castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
+    y2 <- PtrPeeker.fixed (castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
     pure (Right (Lseg x1 y1 x2 y2))
   textualEncoder (Lseg x1 y1 x2 y2) =
     "[("

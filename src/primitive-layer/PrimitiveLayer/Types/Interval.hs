@@ -1,10 +1,10 @@
 module PrimitiveLayer.Types.Interval (Interval) where
 
 import qualified Data.Time as Time
-import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import PrimitiveLayer.Via
+import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
@@ -51,10 +51,10 @@ instance Mapping Interval where
   arrayOid = Tagged 1187
   binaryEncoder (Interval {..}) =
     mconcat [Write.bInt64 micros, Write.bInt32 days, Write.bInt32 months]
-  binaryDecoder = PeekyBlinders.statically do
-    micros <- PeekyBlinders.beSignedInt8
-    days <- PeekyBlinders.beSignedInt4
-    months <- PeekyBlinders.beSignedInt4
+  binaryDecoder = PtrPeeker.fixed do
+    micros <- PtrPeeker.beSignedInt8
+    days <- PtrPeeker.beSignedInt4
+    months <- PtrPeeker.beSignedInt4
     pure (Right (Interval {..}))
 
   -- Renders in "format with designators" of ISO-8601 as per [the Postgres documentation](https://www.postgresql.org/docs/current/datatype-datetime.html#DATATYPE-INTERVAL-INPUT).

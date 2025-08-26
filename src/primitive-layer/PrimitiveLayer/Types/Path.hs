@@ -3,10 +3,10 @@ module PrimitiveLayer.Types.Path (Path) where
 import Data.Bits
 import qualified Data.Vector.Unboxed as UnboxedVector
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
-import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import PrimitiveLayer.Via
+import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
@@ -57,15 +57,15 @@ instance Mapping Path where
             Write.bWord64 (castDoubleToWord64 y)
           ]
   binaryDecoder = do
-    (closedByte, numPoints) <- PeekyBlinders.statically do
-      (,) <$> PeekyBlinders.unsignedInt1 <*> PeekyBlinders.beSignedInt4
+    (closedByte, numPoints) <- PtrPeeker.fixed do
+      (,) <$> PtrPeeker.unsignedInt1 <*> PtrPeeker.beSignedInt4
     points <- UnboxedVector.replicateM (fromIntegral numPoints) decodePoint
     let closed = closedByte /= 0
     pure (Right (Path closed points))
     where
-      decodePoint = PeekyBlinders.statically do
-        x <- castWord64ToDouble <$> PeekyBlinders.beUnsignedInt8
-        y <- castWord64ToDouble <$> PeekyBlinders.beUnsignedInt8
+      decodePoint = PtrPeeker.fixed do
+        x <- castWord64ToDouble <$> PtrPeeker.beUnsignedInt8
+        y <- castWord64ToDouble <$> PtrPeeker.beUnsignedInt8
         pure (x, y)
   textualEncoder (Path closed points) =
     let openChar = if closed then "(" else "["

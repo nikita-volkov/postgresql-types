@@ -1,10 +1,10 @@
 module PrimitiveLayer.Types.Time (Time) where
 
 import qualified Data.Time as Time
-import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude hiding (Time)
 import PrimitiveLayer.Via
+import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
@@ -28,7 +28,7 @@ instance Mapping Time where
   baseOid = Tagged 1083
   arrayOid = Tagged 1183
   binaryEncoder (Time microseconds) = Write.bInt64 microseconds
-  binaryDecoder = PeekyBlinders.statically (Right . Time <$> PeekyBlinders.beSignedInt8)
+  binaryDecoder = PtrPeeker.fixed (Right . Time <$> PtrPeeker.beSignedInt8)
   textualEncoder (Time microseconds) =
     let diffTime = fromIntegral microseconds / 1_000_000
         timeOfDay = Time.timeToTimeOfDay diffTime

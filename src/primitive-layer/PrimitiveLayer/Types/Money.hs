@@ -1,9 +1,9 @@
 module PrimitiveLayer.Types.Money (Money) where
 
-import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import PrimitiveLayer.Via
+import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
@@ -27,7 +27,7 @@ instance Mapping Money where
   baseOid = Tagged 790
   arrayOid = Tagged 791
   binaryEncoder (Money x) = Write.bInt64 x
-  binaryDecoder = PeekyBlinders.statically (Right . Money <$> PeekyBlinders.beSignedInt8)
+  binaryDecoder = PtrPeeker.fixed (Right . Money <$> PtrPeeker.beSignedInt8)
   textualEncoder (Money x) =
     -- Format as currency with 2 decimal places and $ symbol
     -- PostgreSQL's money type typically displays with currency symbol

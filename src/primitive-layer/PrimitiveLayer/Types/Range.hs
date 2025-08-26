@@ -1,10 +1,10 @@
 module PrimitiveLayer.Types.Range (Range) where
 
-import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import PrimitiveLayer.Via
 import qualified PrimitiveLayer.Writes as Writes
+import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
@@ -56,7 +56,7 @@ instance (RangeMapping a, Ord a) => Mapping (Range a) where
 
   binaryDecoder = runExceptT do
     flags <- lift do
-      PeekyBlinders.statically PeekyBlinders.unsignedInt1
+      PtrPeeker.fixed PtrPeeker.unsignedInt1
     let emptyRange = testBit flags 0
         lowerInclusive = testBit flags 1
         upperInclusive = testBit flags 2
@@ -88,11 +88,11 @@ instance (RangeMapping a, Ord a) => Mapping (Range a) where
           else
             Just <$> do
               size <- lift do
-                PeekyBlinders.statically PeekyBlinders.beSignedInt4
+                PtrPeeker.fixed PtrPeeker.beSignedInt4
               when (size < 0) do
                 throwError (DecodingError ["bound-size"] (InvalidValueDecodingErrorReason "Expecting >= 0" (TextBuilder.toText (TextBuilder.decimal size))))
               ExceptT do
-                PeekyBlinders.forceSize (fromIntegral size) do
+                PtrPeeker.forceSize (fromIntegral size) do
                   binaryDecoder @a
 
   textualEncoder = \case

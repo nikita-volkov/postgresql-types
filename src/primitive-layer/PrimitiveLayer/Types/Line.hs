@@ -2,10 +2,10 @@ module PrimitiveLayer.Types.Line (Line) where
 
 import Data.Bits
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
-import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import PrimitiveLayer.Via
+import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
@@ -50,9 +50,9 @@ instance Mapping Line where
         Write.bWord64 (castDoubleToWord64 c)
       ]
   binaryDecoder = do
-    a <- PeekyBlinders.statically (castWord64ToDouble <$> PeekyBlinders.beUnsignedInt8)
-    b <- PeekyBlinders.statically (castWord64ToDouble <$> PeekyBlinders.beUnsignedInt8)
-    c <- PeekyBlinders.statically (castWord64ToDouble <$> PeekyBlinders.beUnsignedInt8)
+    a <- PtrPeeker.fixed (castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
+    b <- PtrPeeker.fixed (castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
+    c <- PtrPeeker.fixed (castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
     pure (Right (Line a b c))
   textualEncoder (Line a b c) =
     "{"

@@ -1,9 +1,9 @@
 module PrimitiveLayer.Types.Int2 (Int2) where
 
-import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import PrimitiveLayer.Via
+import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
@@ -21,7 +21,7 @@ instance Mapping Int2 where
   baseOid = Tagged 21
   arrayOid = Tagged 1005
   binaryEncoder (Int2 x) = Write.bInt16 x
-  binaryDecoder = PeekyBlinders.statically (Right . Int2 <$> PeekyBlinders.beSignedInt2)
+  binaryDecoder = PtrPeeker.fixed (Right . Int2 <$> PtrPeeker.beSignedInt2)
   textualEncoder (Int2 x) = TextBuilder.decimal x
 
 -- | Direct conversion from 'Int16'.

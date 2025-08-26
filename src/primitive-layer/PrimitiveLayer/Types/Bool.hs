@@ -1,10 +1,10 @@
 module PrimitiveLayer.Types.Bool (Bool) where
 
 import qualified Data.Bool
-import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude hiding (Bool)
 import PrimitiveLayer.Via
+import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
@@ -21,8 +21,8 @@ instance Mapping Bool where
   arrayOid = Tagged 1000
   binaryEncoder (Bool b) = Write.word8 (if b then 1 else 0)
   binaryDecoder =
-    PeekyBlinders.statically do
-      b <- PeekyBlinders.unsignedInt1
+    PtrPeeker.fixed do
+      b <- PtrPeeker.unsignedInt1
       pure (Right (Bool (b /= 0)))
   textualEncoder (Bool b) = if b then "t" else "f"
 

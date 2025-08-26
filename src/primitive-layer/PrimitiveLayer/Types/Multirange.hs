@@ -4,12 +4,12 @@ import qualified BaseExtras.List
 import qualified Data.List as List
 import qualified Data.Set as Set
 import qualified Data.Vector as Vector
-import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import PrimitiveLayer.Types.Range (Range (..))
 import PrimitiveLayer.Via
 import qualified PrimitiveLayer.Writes as Writes
+import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified QuickCheckExtras.Gen
 import qualified Test.QuickCheck as QuickCheck
@@ -53,14 +53,14 @@ instance (MultirangeMapping a, Ord a) => Mapping (Multirange a) where
 
   binaryDecoder = runExceptT do
     numRanges <- lift do
-      PeekyBlinders.statically PeekyBlinders.beUnsignedInt4
+      PtrPeeker.fixed PtrPeeker.beUnsignedInt4
     ranges <- replicateM (fromIntegral numRanges) do
       size <- lift do
-        PeekyBlinders.statically PeekyBlinders.beSignedInt4
+        PtrPeeker.fixed PtrPeeker.beSignedInt4
       when (size < 0) do
         throwError (DecodingError ["range-size"] (InvalidValueDecodingErrorReason "Expecting >= 0" (TextBuilder.toText (TextBuilder.decimal size))))
       ExceptT do
-        PeekyBlinders.forceSize (fromIntegral size) do
+        PtrPeeker.forceSize (fromIntegral size) do
           binaryDecoder @(Range a)
     pure (Multirange (Vector.fromList ranges))
 

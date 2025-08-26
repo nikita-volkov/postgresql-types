@@ -18,10 +18,10 @@ import Data.Typeable
 import Data.Word
 import qualified Database.PostgreSQL.LibPQ as Pq
 import LawfulConversions
-import qualified PeekyBlinders
 import PqProcedures.Algebra
 import PqProcedures.Procedures.RunStatement
 import qualified PrimitiveLayer.Algebra as PrimitiveLayer
+import qualified PtrPeeker
 import qualified PtrPoker.Write
 import Test.Hspec
 import Test.QuickCheck ((===))

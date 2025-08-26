@@ -3,10 +3,10 @@ module PrimitiveLayer.Types.Polygon (Polygon) where
 import Data.Bits
 import qualified Data.Vector.Unboxed as UnboxedVector
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
-import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import PrimitiveLayer.Via
+import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
@@ -52,13 +52,13 @@ instance Mapping Polygon where
             Write.bWord64 (castDoubleToWord64 y)
           ]
   binaryDecoder = do
-    numPoints <- PeekyBlinders.statically PeekyBlinders.beSignedInt4
+    numPoints <- PtrPeeker.fixed PtrPeeker.beSignedInt4
     points <- UnboxedVector.replicateM (fromIntegral numPoints) decodePoint
     pure (Right (Polygon points))
     where
-      decodePoint = PeekyBlinders.statically do
-        x <- castWord64ToDouble <$> PeekyBlinders.beUnsignedInt8
-        y <- castWord64ToDouble <$> PeekyBlinders.beUnsignedInt8
+      decodePoint = PtrPeeker.fixed do
+        x <- castWord64ToDouble <$> PtrPeeker.beUnsignedInt8
+        y <- castWord64ToDouble <$> PtrPeeker.beUnsignedInt8
         pure (x, y)
   textualEncoder (Polygon points) =
     "(" <> TextBuilder.intercalateMap "," encodePoint (UnboxedVector.toList points) <> ")"

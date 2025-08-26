@@ -1,8 +1,8 @@
 module PrimitiveLayer.Algebra where
 
-import qualified PeekyBlinders
 import PrimitiveLayer.Prelude
 import qualified PrimitiveLayer.Writes as Writes
+import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
@@ -20,7 +20,7 @@ class Mapping a where
   binaryEncoder :: a -> Write.Write
 
   -- | Decode the value from PostgreSQL binary format.
-  binaryDecoder :: PeekyBlinders.Dynamic (Either DecodingError a)
+  binaryDecoder :: PtrPeeker.Variable (Either DecodingError a)
 
   -- | Represent the value in PostgreSQL textual format.
   textualEncoder :: a -> TextBuilder.TextBuilder

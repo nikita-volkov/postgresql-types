@@ -2,10 +2,10 @@ module PrimitiveLayer.Types.Circle (Circle) where
 
 import Data.Bits
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
-import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import PrimitiveLayer.Via
+import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
@@ -49,10 +49,10 @@ instance Mapping Circle where
         Write.bWord64 (castDoubleToWord64 y),
         Write.bWord64 (castDoubleToWord64 r)
       ]
-  binaryDecoder = PeekyBlinders.statically do
-    x <- castWord64ToDouble <$> PeekyBlinders.beUnsignedInt8
-    y <- castWord64ToDouble <$> PeekyBlinders.beUnsignedInt8
-    r <- castWord64ToDouble <$> PeekyBlinders.beUnsignedInt8
+  binaryDecoder = PtrPeeker.fixed do
+    x <- castWord64ToDouble <$> PtrPeeker.beUnsignedInt8
+    y <- castWord64ToDouble <$> PtrPeeker.beUnsignedInt8
+    r <- castWord64ToDouble <$> PtrPeeker.beUnsignedInt8
     pure (Right (Circle x y r))
   textualEncoder (Circle x y r) =
     mconcat

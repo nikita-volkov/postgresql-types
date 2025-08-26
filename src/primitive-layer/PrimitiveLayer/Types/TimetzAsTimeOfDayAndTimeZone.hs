@@ -1,13 +1,13 @@
 module PrimitiveLayer.Types.TimetzAsTimeOfDayAndTimeZone (TimetzAsTimeOfDayAndTimeZone) where
 
 import qualified Data.Time as Time
-import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import PrimitiveLayer.Types.Timetz (Timetz)
 import qualified PrimitiveLayer.Types.Timetz.Offset as TimetzOffset
 import qualified PrimitiveLayer.Types.Timetz.Time as TimetzTime
 import PrimitiveLayer.Via
+import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder

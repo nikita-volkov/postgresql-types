@@ -1,9 +1,9 @@
 module PrimitiveLayer.Types.Oid (Oid) where
 
-import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import PrimitiveLayer.Via
+import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
@@ -21,7 +21,7 @@ instance Mapping Oid where
   baseOid = Tagged 26
   arrayOid = Tagged 1028
   binaryEncoder (Oid x) = Write.bWord32 x
-  binaryDecoder = PeekyBlinders.statically (Right . Oid <$> PeekyBlinders.beUnsignedInt4)
+  binaryDecoder = PtrPeeker.fixed (Right . Oid <$> PtrPeeker.beUnsignedInt4)
   textualEncoder (Oid x) = TextBuilder.decimal x
 
 -- | Direct conversion from 'Word32'.

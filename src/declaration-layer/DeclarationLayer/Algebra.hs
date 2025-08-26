@@ -5,9 +5,9 @@ module DeclarationLayer.Algebra where
 import qualified Data.Vector as Vector
 import qualified DeclarationLayer.Algebra.Writes as Writes
 import DeclarationLayer.Prelude
-import qualified PeekyBlinders
 import qualified PrimitiveLayer.Algebra as Primitive
 import qualified PrimitiveLayer.Types as Primitive
+import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
@@ -33,8 +33,8 @@ data DecodingErrorReason
 data Nullability a b = Nullability
   { nullable :: Bool,
     binaryDecoderWrapper ::
-      PeekyBlinders.Dynamic (Either DecodingError a) ->
-      PeekyBlinders.Dynamic (Either DecodingError b),
+      PtrPeeker.Variable (Either DecodingError a) ->
+      PtrPeeker.Variable (Either DecodingError b),
     binaryEncoderWrapper ::
       (a -> Write.Write) ->
       (b -> Write.Write),
@@ -48,7 +48,7 @@ nullable =
   Nullability
     { nullable = True,
       binaryDecoderWrapper = \contentDecoder -> do
-        contentSize <- PeekyBlinders.statically PeekyBlinders.beSignedInt4
+        contentSize <- PtrPeeker.fixed PtrPeeker.beSignedInt4
         case contentSize of
           -1 ->
             pure (Right Nothing)
@@ -70,7 +70,7 @@ nonNullable =
   Nullability
     { nullable = False,
       binaryDecoderWrapper = \contentDecoder -> do
-        contentSize <- PeekyBlinders.statically PeekyBlinders.beSignedInt4
+        contentSize <- PtrPeeker.fixed PtrPeeker.beSignedInt4
         case contentSize of
           -1 ->
             pure
@@ -96,8 +96,8 @@ data Dimensionality scalar vec = Dimensionality
       (vec -> Write.Write),
     binaryDecoder ::
       Word32 ->
-      PeekyBlinders.Dynamic (Either DecodingError scalar) ->
-      PeekyBlinders.Dynamic (Either DecodingError vec),
+      PtrPeeker.Variable (Either DecodingError scalar) ->
+      PtrPeeker.Variable (Either DecodingError vec),
     textualEncoder ::
       (scalar -> TextBuilder.TextBuilder) ->
       (vec -> TextBuilder.TextBuilder)
@@ -131,12 +131,12 @@ d1 elementNullability (Dimension construct1 destruct1 count1) =
       binaryDecoder =
         \expectedBaseOid scalarDecoder -> runExceptT do
           (dimensionCount, hasNulls, baseOid) <- lift do
-            PeekyBlinders.statically do
-              dimensionCount <- PeekyBlinders.beSignedInt4
+            PtrPeeker.fixed do
+              dimensionCount <- PtrPeeker.beSignedInt4
               hasNulls <- do
-                int <- PeekyBlinders.beSignedInt4
+                int <- PtrPeeker.beSignedInt4
                 pure (int == 1)
-              baseOid <- PeekyBlinders.beUnsignedInt4
+              baseOid <- PtrPeeker.beUnsignedInt4
               pure (dimensionCount, hasNulls, baseOid)
 
           -- Interrupt early if baseOid does not match the expected one.
@@ -170,8 +170,8 @@ d1 elementNullability (Dimension construct1 destruct1 count1) =
                 }
 
           (size1, lowerBound1) <- lift do
-            PeekyBlinders.statically do
-              liftA2 (,) PeekyBlinders.beSignedInt4 PeekyBlinders.beSignedInt4
+            PtrPeeker.fixed do
+              liftA2 (,) PtrPeeker.beSignedInt4 PtrPeeker.beSignedInt4
 
           -- Interrupt early if the lower-bound value is not supported.
           when (lowerBound1 /= 1) do
@@ -227,7 +227,7 @@ data Scalar a = Scalar
     -- It may also mean that there may be no array type containing this type, which is the case in attempts to double-nest arrays.
     arrayOid :: Maybe Word32,
     binaryEncoder :: a -> Write.Write,
-    binaryDecoder :: PeekyBlinders.Dynamic (Either DecodingError a),
+    binaryDecoder :: PtrPeeker.Variable (Either DecodingError a),
     -- | Represent in Postgres textual format.
     textualEncoder :: a -> TextBuilder.TextBuilder
   }
@@ -290,8 +290,8 @@ composite schemaName typeName fields =
         runExceptT do
           _ <-
             ExceptT do
-              PeekyBlinders.statically do
-                PeekyBlinders.beSignedInt4
+              PtrPeeker.fixed do
+                PtrPeeker.beSignedInt4
                   <&> \count ->
                     if count == fields.count
                       then Right ()
@@ -332,7 +332,7 @@ macaddr = primitive
 data Fields a b = Fields
   { count :: Int32,
     binaryEncoder :: a -> Write.Write,
-    binaryDecoder :: PeekyBlinders.Dynamic (Either DecodingError b),
+    binaryDecoder :: PtrPeeker.Variable (Either DecodingError b),
     -- | Represent in Postgres textual format.
     textualEncoder :: a -> [TextBuilder.TextBuilder]
   }

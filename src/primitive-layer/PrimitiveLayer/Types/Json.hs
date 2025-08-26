@@ -7,10 +7,10 @@ import qualified Data.Aeson.Text as Aeson.Text
 import qualified Data.Text as Text
 import qualified Jsonifier
 import qualified JsonifierAeson
-import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import PrimitiveLayer.Via
+import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
@@ -38,7 +38,7 @@ instance Mapping Json where
     -- JSON type stores as UTF-8 text without version byte prefix
     Jsonifier.toWrite . JsonifierAeson.aesonValue . toAesonValue
   binaryDecoder = do
-    jsonBytes <- PeekyBlinders.remainderAsByteString
+    jsonBytes <- PtrPeeker.remainderAsByteString
     pure
       ( bimap
           ( \string ->

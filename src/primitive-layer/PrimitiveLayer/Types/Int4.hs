@@ -1,9 +1,9 @@
 module PrimitiveLayer.Types.Int4 (Int4) where
 
-import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import PrimitiveLayer.Via
+import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
@@ -21,7 +21,7 @@ instance Mapping Int4 where
   baseOid = Tagged 23
   arrayOid = Tagged 1007
   binaryEncoder (Int4 x) = Write.bInt32 x
-  binaryDecoder = PeekyBlinders.statically (Right . Int4 <$> PeekyBlinders.beSignedInt4)
+  binaryDecoder = PtrPeeker.fixed (Right . Int4 <$> PtrPeeker.beSignedInt4)
   textualEncoder (Int4 x) = TextBuilder.decimal x
 
 -- | Mapping to @int4range@ type.

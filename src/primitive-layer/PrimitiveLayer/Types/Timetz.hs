@@ -1,12 +1,12 @@
 module PrimitiveLayer.Types.Timetz (Timetz) where
 
 import qualified Data.Time
-import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import qualified PrimitiveLayer.Types.Timetz.Offset as Offset
 import qualified PrimitiveLayer.Types.Timetz.Time as Time
 import PrimitiveLayer.Via
+import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import Text.Printf (printf)
@@ -48,7 +48,7 @@ instance Mapping Timetz where
       ]
 
   binaryDecoder =
-    PeekyBlinders.statically do
+    PtrPeeker.fixed do
       time <- Time.binaryDecoder
       offset <- Offset.binaryDecoder
       pure (Timetz <$> time <*> offset)

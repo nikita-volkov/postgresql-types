@@ -18,10 +18,10 @@ import Data.Typeable
 import Data.Word
 import qualified Database.PostgreSQL.LibPQ as Pq
 import LawfulConversions
-import qualified PeekyBlinders
 import PqProcedures.Algebra
 import PqProcedures.Procedures.RunStatement
 import qualified PrimitiveLayer.Algebra as PrimitiveLayer
+import qualified PtrPeeker
 import qualified PtrPoker.Write
 import Test.Hspec
 import Test.QuickCheck ((===))
@@ -73,8 +73,8 @@ processPqResult result = do
       Pq.getvalue result x y >>= \case
         Nothing -> pure Nothing
         Just bs ->
-          case PeekyBlinders.decodeByteStringDynamically decoder bs of
+          case PtrPeeker.runVariableOnByteString decoder bs of
             Left err -> fail ("Failed to read OID from database, data: " <> show bs)
             Right value -> pure (Just value)
       where
-        decoder = PeekyBlinders.statically PeekyBlinders.beUnsignedInt4
+        decoder = PtrPeeker.fixed PtrPeeker.beUnsignedInt4

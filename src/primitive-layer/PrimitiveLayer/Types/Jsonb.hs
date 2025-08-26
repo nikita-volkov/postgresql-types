@@ -7,10 +7,10 @@ import qualified Data.Aeson.Text as Aeson.Text
 import qualified Data.Text as Text
 import qualified Jsonifier
 import qualified JsonifierAeson
-import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import PrimitiveLayer.Via
+import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
@@ -34,10 +34,10 @@ instance Mapping Jsonb where
   binaryEncoder =
     mappend (Write.word8 1) . Jsonifier.toWrite . JsonifierAeson.aesonValue . toAesonValue
   binaryDecoder = do
-    firstByte <- PeekyBlinders.statically PeekyBlinders.unsignedInt1
+    firstByte <- PtrPeeker.fixed PtrPeeker.unsignedInt1
     case firstByte of
       1 -> do
-        remainingBytes <- PeekyBlinders.remainderAsByteString
+        remainingBytes <- PtrPeeker.remainderAsByteString
         pure
           ( bimap
               ( \string ->

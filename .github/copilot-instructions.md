@@ -50,7 +50,7 @@ The library follows a layered architecture:
 - **`Mapping` typeclass**: Defines PostgreSQL type mappings with OIDs, encoders, and decoders
 - **Tagged types**: Extensive use of `Tagged` types for type-safe OID associations
 - **Binary encoding**: Uses `PtrPoker.Write` for efficient memory operations
-- **Binary decoding**: Uses `PeekyBlinders` for safe parsing with proper error handling
+- **Binary decoding**: Uses `PtrPeeker` for safe parsing with proper error handling
 - **Text encoding**: Uses `TextBuilder` for efficient string construction
 
 ### Code Style
@@ -82,12 +82,12 @@ The library emphasizes type safety through lawful conversions:
 - [libpqtypes library source](https://github.com/pgagarinov/libpqtypes) - Reference C implementations of various type codecs
 - [PostgreSQL source code](https://github.com/postgres/postgres)
   - Focus on [backend](https://github.com/postgres/postgres/tree/master/src/backend) - Contains encoding logic and type structure implementations
-- [peeky-blinders source](https://github.com/nikita-volkov/peeky-blinders) - Binary parsing library
+- [ptr-peeker source](https://github.com/nikita-volkov/ptr-peeker) - Binary parsing library
 - [ptr-poker documentation](https://hackage.haskell.org/package/ptr-poker) - Binary encoding library
 
 ### Core Dependencies
 - **[text-builder](https://hackage.haskell.org/package/text-builder)**: Efficient text construction for encoders
-- **[peeky-blinders](https://hackage.haskell.org/package/peeky-blinders)**: Safe binary parsing for decoders  
+- **[ptr-peeker](https://hackage.haskell.org/package/ptr-peeker)**: Safe binary parsing for decoders  
 - **[ptr-poker](https://hackage.haskell.org/package/ptr-poker)**: Efficient binary encoding
 - **[aeson](https://hackage.haskell.org/package/aeson)**: JSON parsing and generation
 - **[lawful-conversions](https://hackage.haskell.org/package/lawful-conversions)**: Type-safe conversions between related types
@@ -131,25 +131,25 @@ cabal test --test-show-details=direct  # Show detailed test output
 
 ### Codec Implementation Patterns
 - Use `PtrPoker.Write` combinators for binary encoding
-- Use `PeekyBlinders` parsers for binary decoding
-   - Group the `statically` blocks in PeekyBlinders. E.g.,
+- Use `PtrPeeker` parsers for binary decoding
+   - Group the `statically` blocks in PtrPeeker. E.g.,
 
       Instead of
 
       ```haskell
       do
-         micros <- PeekyBlinders.statically PeekyBlinders.beSignedInt8
-         days <- PeekyBlinders.statically PeekyBlinders.beSignedInt4
-         months <- PeekyBlinders.statically PeekyBlinders.beSignedInt4
+         micros <- PtrPeeker.fixed PtrPeeker.beSignedInt8
+         days <- PtrPeeker.fixed PtrPeeker.beSignedInt4
+         months <- PtrPeeker.fixed PtrPeeker.beSignedInt4
       ```
 
       do
 
       ```haskell
-      PeekyBlinders.statically do
-         micros <- PeekyBlinders.beSignedInt8
-         days <- PeekyBlinders.beSignedInt4
-         months <- PeekyBlinders.beSignedInt4
+      PtrPeeker.fixed do
+         micros <- PtrPeeker.beSignedInt8
+         days <- PtrPeeker.beSignedInt4
+         months <- PtrPeeker.beSignedInt4
       ```
 
 - Use `TextBuilder` for text encoding
@@ -185,7 +185,7 @@ The project uses many modern Haskell extensions. Key ones include:
 ### Cabal Configuration
 - Multi-package project with internal libraries
 - Version bounds allow some flexibility while ensuring compatibility
-- Uses source-repository-package for `peeky-blinders` dependency
+- Uses source-repository-package for `ptr-peeker` dependency
 
 ## Contribution Guidelines
 

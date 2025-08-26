@@ -4,10 +4,10 @@ import qualified Data.ByteString as ByteString
 import Data.String
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text.Encoding
-import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude hiding (Text)
 import PrimitiveLayer.Via
+import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
@@ -34,7 +34,7 @@ instance Mapping Text where
   arrayOid = Tagged 1009
   binaryEncoder (Text base) = Write.textUtf8 base
   binaryDecoder = do
-    bytes <- PeekyBlinders.remainderAsByteString
+    bytes <- PtrPeeker.remainderAsByteString
     case Text.Encoding.decodeUtf8' bytes of
       Left e ->
         pure

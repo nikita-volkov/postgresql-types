@@ -2,10 +2,10 @@ module PrimitiveLayer.Types.Point (Point) where
 
 import Data.Bits
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
-import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import PrimitiveLayer.Via
+import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
@@ -36,8 +36,8 @@ instance Mapping Point where
         Write.bWord64 (castDoubleToWord64 y)
       ]
   binaryDecoder = do
-    x <- PeekyBlinders.statically (castWord64ToDouble <$> PeekyBlinders.beUnsignedInt8)
-    y <- PeekyBlinders.statically (castWord64ToDouble <$> PeekyBlinders.beUnsignedInt8)
+    x <- PtrPeeker.fixed (castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
+    y <- PtrPeeker.fixed (castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
     pure (Right (Point x y))
   textualEncoder (Point x y) =
     "(" <> TextBuilder.string (show x) <> "," <> TextBuilder.string (show y) <> ")"

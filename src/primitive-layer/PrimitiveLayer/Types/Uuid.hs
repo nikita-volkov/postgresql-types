@@ -1,10 +1,10 @@
 module PrimitiveLayer.Types.Uuid (Uuid) where
 
 import qualified Data.UUID
-import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import PrimitiveLayer.Via
+import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
@@ -30,14 +30,14 @@ instance Mapping Uuid where
             Write.bWord32 w3,
             Write.bWord32 w4
           ]
-  binaryDecoder = PeekyBlinders.statically do
+  binaryDecoder = PtrPeeker.fixed do
     Right
       . Uuid
       <$> ( Data.UUID.fromWords
-              <$> PeekyBlinders.beUnsignedInt4
-              <*> PeekyBlinders.beUnsignedInt4
-              <*> PeekyBlinders.beUnsignedInt4
-              <*> PeekyBlinders.beUnsignedInt4
+              <$> PtrPeeker.beUnsignedInt4
+              <*> PtrPeeker.beUnsignedInt4
+              <*> PtrPeeker.beUnsignedInt4
+              <*> PtrPeeker.beUnsignedInt4
           )
   textualEncoder = TextBuilder.text . Data.UUID.toText . coerce
 

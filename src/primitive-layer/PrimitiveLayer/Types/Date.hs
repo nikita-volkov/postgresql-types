@@ -1,10 +1,10 @@
 module PrimitiveLayer.Types.Date (Date) where
 
 import qualified Data.Time as Time
-import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import PrimitiveLayer.Via
+import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
@@ -54,7 +54,7 @@ instance Mapping Date where
   arrayOid = Tagged 1182
   binaryEncoder (Date days) = Write.bInt32 days
   binaryDecoder = do
-    days <- PeekyBlinders.statically PeekyBlinders.beSignedInt4
+    days <- PtrPeeker.fixed PtrPeeker.beSignedInt4
     pure (Right (Date days))
   textualEncoder date =
     let day = toDay date

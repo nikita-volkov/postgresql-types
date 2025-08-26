@@ -6,12 +6,12 @@ import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text.Encoding
 import GHC.Records
 import Numeric (showHex)
-import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import PrimitiveLayer.Types.Ip (Ip (..))
 import qualified PrimitiveLayer.Types.Ip as Ip
 import PrimitiveLayer.Via
+import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
@@ -78,12 +78,12 @@ instance Mapping Cidr where
 
   binaryDecoder = do
     (family, netmask, isCidrFlag, addrLen) <-
-      PeekyBlinders.statically do
+      PtrPeeker.fixed do
         (,,,)
-          <$> PeekyBlinders.unsignedInt1
-          <*> PeekyBlinders.unsignedInt1
-          <*> PeekyBlinders.unsignedInt1
-          <*> PeekyBlinders.unsignedInt1
+          <$> PtrPeeker.unsignedInt1
+          <*> PtrPeeker.unsignedInt1
+          <*> PtrPeeker.unsignedInt1
+          <*> PtrPeeker.unsignedInt1
 
     runExceptT do
       when (isCidrFlag /= 1) do
@@ -95,19 +95,19 @@ instance Mapping Cidr where
           when (addrLen /= 4) do
             throwError (DecodingError ["address-length"] (UnexpectedValueDecodingErrorReason "4" (TextBuilder.toText (TextBuilder.decimal addrLen))))
           addr <- lift do
-            PeekyBlinders.statically PeekyBlinders.beUnsignedInt4
+            PtrPeeker.fixed PtrPeeker.beUnsignedInt4
           pure (V4Ip addr)
         3 -> do
           -- IPv6
           when (addrLen /= 16) do
             throwError (DecodingError ["address-length"] (UnexpectedValueDecodingErrorReason "16" (TextBuilder.toText (TextBuilder.decimal addrLen))))
           lift do
-            PeekyBlinders.statically do
+            PtrPeeker.fixed do
               V6Ip
-                <$> PeekyBlinders.beUnsignedInt4
-                <*> PeekyBlinders.beUnsignedInt4
-                <*> PeekyBlinders.beUnsignedInt4
-                <*> PeekyBlinders.beUnsignedInt4
+                <$> PtrPeeker.beUnsignedInt4
+                <*> PtrPeeker.beUnsignedInt4
+                <*> PtrPeeker.beUnsignedInt4
+                <*> PtrPeeker.beUnsignedInt4
         _ -> do
           throwError (DecodingError ["address-family"] (UnexpectedValueDecodingErrorReason "2 or 3" (TextBuilder.toText (TextBuilder.decimal family))))
 

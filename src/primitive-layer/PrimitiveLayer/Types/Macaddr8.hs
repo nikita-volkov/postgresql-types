@@ -2,10 +2,10 @@ module PrimitiveLayer.Types.Macaddr8 (Macaddr8) where
 
 import Control.Monad (replicateM)
 import qualified Data.Text as Text
-import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import PrimitiveLayer.Via
+import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import Text.Printf (printf)
 import qualified TextBuilder
@@ -60,17 +60,17 @@ instance Mapping Macaddr8 where
         Write.word8 h
       ]
   binaryDecoder =
-    PeekyBlinders.statically
+    PtrPeeker.fixed
       ( Right
           <$> ( Macaddr8
-                  <$> PeekyBlinders.unsignedInt1
-                  <*> PeekyBlinders.unsignedInt1
-                  <*> PeekyBlinders.unsignedInt1
-                  <*> PeekyBlinders.unsignedInt1
-                  <*> PeekyBlinders.unsignedInt1
-                  <*> PeekyBlinders.unsignedInt1
-                  <*> PeekyBlinders.unsignedInt1
-                  <*> PeekyBlinders.unsignedInt1
+                  <$> PtrPeeker.unsignedInt1
+                  <*> PtrPeeker.unsignedInt1
+                  <*> PtrPeeker.unsignedInt1
+                  <*> PtrPeeker.unsignedInt1
+                  <*> PtrPeeker.unsignedInt1
+                  <*> PtrPeeker.unsignedInt1
+                  <*> PtrPeeker.unsignedInt1
+                  <*> PtrPeeker.unsignedInt1
               )
       )
   textualEncoder (Macaddr8 a b c d e f g h) =

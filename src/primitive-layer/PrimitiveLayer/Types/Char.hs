@@ -5,10 +5,10 @@ import qualified Data.Char
 import Data.String
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text.Encoding
-import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude hiding (Char)
 import PrimitiveLayer.Via
+import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
@@ -34,7 +34,7 @@ instance Mapping Char where
   binaryEncoder (Char base) =
     Write.word8 base
   binaryDecoder =
-    Right . Char <$> PeekyBlinders.statically PeekyBlinders.unsignedInt1
+    Right . Char <$> PtrPeeker.fixed PtrPeeker.unsignedInt1
   textualEncoder (Char base) =
     TextBuilder.unicodeCodepoint (fromIntegral base)
 

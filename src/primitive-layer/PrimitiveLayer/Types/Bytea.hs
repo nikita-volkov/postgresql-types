@@ -2,10 +2,10 @@ module PrimitiveLayer.Types.Bytea (Bytea) where
 
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Base16 as Base16
-import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import PrimitiveLayer.Via
+import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
@@ -23,7 +23,7 @@ instance Mapping Bytea where
   binaryEncoder (Bytea bs) =
     Write.byteString bs
   binaryDecoder =
-    Right . Bytea <$> PeekyBlinders.remainderAsByteString
+    Right . Bytea <$> PtrPeeker.remainderAsByteString
   textualEncoder (Bytea bs) =
     "\\x" <> foldMap TextBuilder.hexadecimal (ByteString.unpack bs)
 

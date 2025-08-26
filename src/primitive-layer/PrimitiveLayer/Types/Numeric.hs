@@ -9,10 +9,10 @@ import qualified Data.Scientific as Scientific
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
 import qualified Data.Vector as Vector
-import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import PrimitiveLayer.Via
+import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
@@ -88,16 +88,16 @@ instance Mapping Numeric where
         ]
 
   binaryDecoder = do
-    (componentsAmount, pointIndex, signCode, _trimmedExponent) <- PeekyBlinders.statically do
-      componentsAmount <- fromIntegral <$> PeekyBlinders.beSignedInt2
-      pointIndex <- PeekyBlinders.beSignedInt2
-      signCode <- PeekyBlinders.beUnsignedInt2
-      trimmedExponent <- PeekyBlinders.beSignedInt2
+    (componentsAmount, pointIndex, signCode, _trimmedExponent) <- PtrPeeker.fixed do
+      componentsAmount <- fromIntegral <$> PtrPeeker.beSignedInt2
+      pointIndex <- PtrPeeker.beSignedInt2
+      signCode <- PtrPeeker.beUnsignedInt2
+      trimmedExponent <- PtrPeeker.beSignedInt2
       pure (componentsAmount, pointIndex, signCode, trimmedExponent)
 
-    coefficient <- PeekyBlinders.statically do
+    coefficient <- PtrPeeker.fixed do
       foldl' (\l r -> l * 10000 + fromIntegral r) 0
-        <$> replicateM componentsAmount PeekyBlinders.beSignedInt2
+        <$> replicateM componentsAmount PtrPeeker.beSignedInt2
 
     pure
       let byCoefficient coefficient =

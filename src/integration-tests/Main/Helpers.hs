@@ -15,9 +15,9 @@ import Data.Typeable
 import Data.Word
 import qualified Database.PostgreSQL.LibPQ as Pq
 import LawfulConversions
-import qualified PeekyBlinders
 import qualified PqProcedures as Procedures
 import qualified PrimitiveLayer.Algebra as PrimitiveLayer
+import qualified PtrPeeker
 import qualified PtrPoker.Write
 import Test.Hspec
 import Test.QuickCheck ((.&&.), (===))
@@ -101,7 +101,7 @@ mappingSpec _ = describe "Mapping" do
                     paramFormat = Pq.Text,
                     resultFormat = Pq.Binary
                   }
-            let decoding = PeekyBlinders.decodeByteStringDynamically binDec bytes
+            let decoding = PtrPeeker.runVariableOnByteString binDec bytes
             pure (decoding === Right (Right value))
 
   describe "Encoding via binaryEncoder" do
@@ -118,7 +118,7 @@ mappingSpec _ = describe "Mapping" do
                     paramFormat = Pq.Binary,
                     resultFormat = Pq.Binary
                   }
-            let decoding = PeekyBlinders.decodeByteStringDynamically binDec bytes
+            let decoding = PtrPeeker.runVariableOnByteString binDec bytes
             pure (decoding === Right (Right value))
 
     describe "As array" do
@@ -135,19 +135,19 @@ mappingSpec _ = describe "Mapping" do
                 foldMap arrayElementBinEnc value
               ]
           arrayElementBinDec = do
-            size <- PeekyBlinders.statically PeekyBlinders.beSignedInt4
+            size <- PtrPeeker.fixed PtrPeeker.beSignedInt4
             case size of
               -1 -> error "TODO"
-              _ -> PeekyBlinders.forceSize (fromIntegral size) binDec
+              _ -> PtrPeeker.forceSize (fromIntegral size) binDec
           arrayBinDec = do
-            dims <- PeekyBlinders.statically PeekyBlinders.beUnsignedInt4
-            _ <- PeekyBlinders.statically PeekyBlinders.beUnsignedInt4
-            baseOid <- PeekyBlinders.statically PeekyBlinders.beUnsignedInt4
+            dims <- PtrPeeker.fixed PtrPeeker.beUnsignedInt4
+            _ <- PtrPeeker.fixed PtrPeeker.beUnsignedInt4
+            baseOid <- PtrPeeker.fixed PtrPeeker.beUnsignedInt4
             case dims of
               0 -> pure (baseOid, Right [])
               1 -> do
-                length <- PeekyBlinders.statically PeekyBlinders.beUnsignedInt4
-                _ <- PeekyBlinders.statically PeekyBlinders.beUnsignedInt4
+                length <- PtrPeeker.fixed PtrPeeker.beUnsignedInt4
+                _ <- PtrPeeker.fixed PtrPeeker.beUnsignedInt4
                 values <- replicateM (fromIntegral length) arrayElementBinDec
                 pure (baseOid, sequence values)
               _ -> error "Bug"
@@ -164,7 +164,7 @@ mappingSpec _ = describe "Mapping" do
                       paramFormat = Pq.Binary,
                       resultFormat = Pq.Binary
                     }
-              let decoding = PeekyBlinders.decodeByteStringDynamically arrayBinDec bytes
+              let decoding = PtrPeeker.runVariableOnByteString arrayBinDec bytes
               (decodedBaseOid, decoding) <- case decoding of
                 Left bytesNeeded -> fail $ "More input bytes needed: " <> show bytesNeeded
                 Right decoding -> pure decoding

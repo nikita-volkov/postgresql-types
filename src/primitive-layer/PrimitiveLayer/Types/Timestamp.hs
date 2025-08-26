@@ -1,10 +1,10 @@
 module PrimitiveLayer.Types.Timestamp (Timestamp) where
 
 import qualified Data.Time as Time
-import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import PrimitiveLayer.Via
+import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
@@ -34,7 +34,7 @@ instance Mapping Timestamp where
   arrayOid = Tagged 1115
   binaryEncoder (Timestamp micros) = Write.bInt64 micros
   binaryDecoder = do
-    microseconds <- PeekyBlinders.statically PeekyBlinders.beSignedInt8
+    microseconds <- PtrPeeker.fixed PtrPeeker.beSignedInt8
     pure (Right (Timestamp microseconds))
   textualEncoder (toLocalTime -> localTime) =
     formatTimestampForPostgreSQL localTime

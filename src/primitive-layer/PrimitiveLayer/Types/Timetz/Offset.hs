@@ -1,10 +1,10 @@
 module PrimitiveLayer.Types.Timetz.Offset where
 
 import qualified Data.Time as Time
-import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import PrimitiveLayer.Via
+import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
@@ -77,9 +77,9 @@ binaryEncoder :: TimetzOffset -> Write.Write
 binaryEncoder (TimetzOffset seconds) =
   Write.bInt32 seconds
 
-binaryDecoder :: PeekyBlinders.Static (Either DecodingError TimetzOffset)
+binaryDecoder :: PtrPeeker.Fixed (Either DecodingError TimetzOffset)
 binaryDecoder =
-  PeekyBlinders.beSignedInt4 <&> \int ->
+  PtrPeeker.beSignedInt4 <&> \int ->
     if int < toSeconds minBound
       then
         Left

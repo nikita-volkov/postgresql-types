@@ -2,10 +2,10 @@ module PrimitiveLayer.Types.Float8 (Float8) where
 
 import Data.Bits
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
-import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import PrimitiveLayer.Via
+import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
@@ -21,7 +21,7 @@ instance Mapping Float8 where
   baseOid = Tagged 701
   arrayOid = Tagged 1022
   binaryEncoder (Float8 x) = Write.bWord64 (castDoubleToWord64 x)
-  binaryDecoder = PeekyBlinders.statically (Right . Float8 . castWord64ToDouble <$> PeekyBlinders.beUnsignedInt8)
+  binaryDecoder = PtrPeeker.fixed (Right . Float8 . castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
   textualEncoder (Float8 x) = TextBuilder.string (show x)
 
 -- | Direct conversion from 'Double'.

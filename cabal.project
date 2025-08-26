@@ -5,5 +5,5 @@ allow-newer:
 
 source-repository-package
   type: git
-  location: https://github.com/nikita-volkov/peeky-blinders
-  tag: ccd0d5b3555d89c9c58604a2fff0c21ebf33bed2
+  location: https://github.com/nikita-volkov/ptr-peeker
+  tag: dc3697755fc3be407a21431834df8a14ed7d1f86

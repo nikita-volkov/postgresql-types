@@ -12,10 +12,10 @@ import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text.Encoding
 import GHC.Records
 import Numeric (showHex)
-import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import PrimitiveLayer.Via
+import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 

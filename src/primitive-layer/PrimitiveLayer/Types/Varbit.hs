@@ -6,10 +6,10 @@ import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text.Encoding
 import qualified Data.Vector.Unboxed as VU
 import qualified LawfulConversions
-import qualified PeekyBlinders
 import PrimitiveLayer.Algebra
 import PrimitiveLayer.Prelude
 import PrimitiveLayer.Via
+import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
@@ -49,8 +49,8 @@ instance Mapping Varbit where
         Write.byteString bytes
       ]
   binaryDecoder = do
-    len <- PeekyBlinders.statically PeekyBlinders.beSignedInt4
-    bytes <- PeekyBlinders.remainderAsByteString
+    len <- PtrPeeker.fixed PtrPeeker.beSignedInt4
+    bytes <- PtrPeeker.remainderAsByteString
     pure (Right (Varbit len bytes))
   textualEncoder (Varbit len bytes) =
     let bits = concatMap byteToBits (ByteString.unpack bytes)
