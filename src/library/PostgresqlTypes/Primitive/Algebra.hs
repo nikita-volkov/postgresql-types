@@ -1,5 +1,5 @@
 module PostgresqlTypes.Primitive.Algebra
-  ( module PrimitiveLayer.Algebra
+  ( module PrimitiveLayer.Algebra,
   )
 where
 

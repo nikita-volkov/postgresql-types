@@ -1,5 +1,5 @@
 module PostgresqlTypes.Primitive.Types
-  ( module PrimitiveLayer.Types
+  ( module PrimitiveLayer.Types,
   )
 where
 
