@@ -91,13 +91,22 @@ common test
     -threaded
     -with-rtsopts=-N
 
+library
+  import: base
+  hs-source-dirs: src/library
+  exposed-modules:
+    PostgresqlTypes.Primitive.Algebra
+    PostgresqlTypes.Primitive.Types
+
+  build-depends:
+    postgresql-types:primitive-layer
+
 library primitive-layer
   import: base
   hs-source-dirs: src/primitive-layer
   exposed-modules:
     PrimitiveLayer.Algebra
     PrimitiveLayer.Types
-    PrimitiveLayer.Via
 
   other-modules:
     PrimitiveLayer.Prelude
@@ -143,6 +152,7 @@ library primitive-layer
     PrimitiveLayer.Types.Uuid
     PrimitiveLayer.Types.Varbit
     PrimitiveLayer.Types.Varchar
+    PrimitiveLayer.Via
     PrimitiveLayer.Via.IsMany
     PrimitiveLayer.Via.Mapping
     PrimitiveLayer.Writes
