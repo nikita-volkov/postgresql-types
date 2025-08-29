@@ -34,6 +34,7 @@ main = hspec do
   testIs @PrimitiveLayer.Int2 @Int16 Proxy Proxy
   testIs @PrimitiveLayer.Int4 @Int32 Proxy Proxy
   testIs @PrimitiveLayer.Int8 @Int64 Proxy Proxy
+  testIs @PrimitiveLayer.Lseg @(Double, Double, Double, Double) Proxy Proxy
   testIs @PrimitiveLayer.Macaddr @(Word8, Word8, Word8, Word8, Word8, Word8) Proxy Proxy
   testIs @PrimitiveLayer.Macaddr8 @(Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) Proxy Proxy
   testIs @PrimitiveLayer.Money @Int64 Proxy Proxy
@@ -61,7 +62,6 @@ main = hspec do
   testIsMany @PrimitiveLayer.IntervalAsMicroseconds @DiffTime Proxy Proxy
   testIsMany @PrimitiveLayer.Json @Aeson.Value Proxy Proxy
   testIsMany @PrimitiveLayer.Line @(Double, Double, Double) Proxy Proxy
-  testIsMany @PrimitiveLayer.Lseg @(Double, Double, Double, Double) Proxy Proxy
   testIsMany @PrimitiveLayer.Money @Int64 Proxy Proxy
   testIsMany @(PrimitiveLayer.Multirange PrimitiveLayer.Int4) @(Vector (PrimitiveLayer.Range PrimitiveLayer.Int4)) Proxy Proxy
   testIsMany @(PrimitiveLayer.Multirange PrimitiveLayer.Int8) @(Vector (PrimitiveLayer.Range PrimitiveLayer.Int8)) Proxy Proxy
