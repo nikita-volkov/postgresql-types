@@ -29,13 +29,13 @@ instance Arbitrary Tsquery where
     QuickCheck.oneof
       [ -- Single term
         QuickCheck.elements ["hello", "world", "test", "example", "search", "data"] >>= \term ->
-        pure (Tsquery term)
-      , -- Two terms with AND operator
+          pure (Tsquery term),
+        -- Two terms with AND operator
         do
           term1 <- QuickCheck.elements ["hello", "world", "test"]
           term2 <- QuickCheck.elements ["example", "search", "data"]
-          pure (Tsquery (term1 <> " & " <> term2))
-      , -- Two terms with OR operator
+          pure (Tsquery (term1 <> " & " <> term2)),
+        -- Two terms with OR operator
         do
           term1 <- QuickCheck.elements ["hello", "world", "test"]
           term2 <- QuickCheck.elements ["example", "search", "data"]
@@ -51,7 +51,7 @@ instance Mapping Tsquery where
   typeName = Tagged "tsquery"
   baseOid = Tagged 3615
   arrayOid = Tagged 3645
-  binaryEncoder (Tsquery base) = 
+  binaryEncoder (Tsquery base) =
     -- For now, encode as text since tsquery has a complex binary format
     -- This is similar to how JSON is handled in some cases
     Write.textUtf8 base
@@ -72,10 +72,10 @@ instance Mapping Tsquery where
                   }
               )
           )
-      Right base -> 
-        -- Remove binary headers and trailing nulls from PostgreSQL format  
+      Right base ->
+        -- Remove binary headers and trailing nulls from PostgreSQL format
         let cleanText = Text.dropWhileEnd (== '\NUL') $ Text.dropWhile (\c -> c == '\SOH' || c == '\NUL') base
-        in pure (Right (Tsquery cleanText))
+         in pure (Right (Tsquery cleanText))
   textualEncoder (Tsquery base) = TextBuilder.text base
 
 -- | Conversion from Haskell 'Data.Text.Text'.

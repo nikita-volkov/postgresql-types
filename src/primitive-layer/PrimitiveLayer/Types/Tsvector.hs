@@ -35,13 +35,13 @@ instance Arbitrary Tsvector where
     case Text.words base of
       [] -> []
       [_] -> []
-      ws -> [Tsvector (Text.unwords (take n ws)) | n <- [1..length ws - 1]]
+      ws -> [Tsvector (Text.unwords (take n ws)) | n <- [1 .. length ws - 1]]
 
 instance Mapping Tsvector where
   typeName = Tagged "tsvector"
   baseOid = Tagged 3614
   arrayOid = Tagged 3643
-  binaryEncoder (Tsvector base) = 
+  binaryEncoder (Tsvector base) =
     -- For now, encode as text since tsvector has a complex binary format
     -- This is similar to how JSON is handled in some cases
     Write.textUtf8 base
@@ -62,10 +62,10 @@ instance Mapping Tsvector where
                   }
               )
           )
-      Right base -> 
+      Right base ->
         -- Remove binary headers and trailing nulls from PostgreSQL format
         let cleanText = Text.dropWhileEnd (== '\NUL') $ Text.dropWhile (\c -> c == '\SOH' || c == '\NUL') base
-        in pure (Right (Tsvector cleanText))
+         in pure (Right (Tsvector cleanText))
   textualEncoder (Tsvector base) = TextBuilder.text base
 
 -- | Conversion from Haskell 'Data.Text.Text'.
