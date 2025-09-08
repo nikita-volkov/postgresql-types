@@ -269,17 +269,6 @@ library base-extras
   build-depends:
     base >=4.11 && <5
 
-library testcontainers-postgresql
-  import: base
-  hs-source-dirs: src/testcontainers-postgresql
-  exposed-modules:
-    TestcontainersPostgresql
-
-  build-depends:
-    base >=4.11 && <5,
-    testcontainers ^>=0.5.1,
-    text >=1.2 && <3,
-
 library pq-procedures
   import: base
   hs-source-dirs: src/pq-procedures
@@ -301,11 +290,11 @@ library pq-procedures
     lawful-conversions ^>=0.3,
     postgresql-libpq >=0.10 && <0.12,
     postgresql-types:primitive-layer,
-    postgresql-types:testcontainers-postgresql,
     ptr-peeker ^>=0.1,
     ptr-poker ^>=0.1.2.16,
     quickcheck-instances ^>=0.3.33,
     tagged ^>=0.8.9,
+    testcontainers-postgresql >=0.0.1 && <0.1,
     text >=1.2 && <3,
     text-builder ^>=1.0.0.4,
     text-builder-lawful-conversions ^>=0.1.4,
@@ -326,12 +315,12 @@ test-suite unit-tests
     postgresql-libpq >=0.10 && <0.12,
     postgresql-types:primitive-layer,
     postgresql-types:quick-check-extras,
-    postgresql-types:testcontainers-postgresql,
     ptr-peeker ^>=0.1,
     ptr-poker ^>=0.1.2.16,
     quickcheck-instances ^>=0.3.33,
     scientific >=0.3 && <1,
     tagged ^>=0.8.9,
+    testcontainers-postgresql >=0.0.1 && <0.1,
     text >=1.2 && <3,
     text-builder ^>=1.0.0.4,
     time >=1.12 && <2,
@@ -355,11 +344,11 @@ test-suite integration-tests
     postgresql-libpq >=0.10 && <0.12,
     postgresql-types:pq-procedures,
     postgresql-types:primitive-layer,
-    postgresql-types:testcontainers-postgresql,
     ptr-peeker ^>=0.1,
     ptr-poker ^>=0.1.2.16,
     quickcheck-instances ^>=0.3.33,
     tagged ^>=0.8.9,
+    testcontainers-postgresql >=0.0.1 && <0.1,
     text >=1.2 && <3,
     text-builder ^>=1.0.0.4,
     text-builder-lawful-conversions ^>=0.1.4,

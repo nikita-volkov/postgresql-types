@@ -10,7 +10,7 @@ import Prelude
 main :: IO ()
 main =
   hspec do
-    withPqConnection TestcontainersPostgresql.Config {forwardLogs = False, distro = TestcontainersPostgresql.Distro17} do
+    withPqConnection TestcontainersPostgresql.Config {forwardLogs = False, auth = TestcontainersPostgresql.TrustAuth, distro = TestcontainersPostgresql.Distro17} do
       withType @PrimitiveLayer.Bit [mappingSpec]
       withType @PrimitiveLayer.Bool [mappingSpec]
       withType @PrimitiveLayer.Box [mappingSpec]
@@ -60,7 +60,7 @@ main =
       withType @PrimitiveLayer.Varbit [mappingSpec]
       withType @PrimitiveLayer.Varchar [mappingSpec]
 
-    withPqConnection TestcontainersPostgresql.Config {forwardLogs = False, distro = TestcontainersPostgresql.Distro9} do
+    withPqConnection TestcontainersPostgresql.Config {forwardLogs = False, auth = TestcontainersPostgresql.TrustAuth, distro = TestcontainersPostgresql.Distro9} do
       withType @PrimitiveLayer.Bit [mappingSpec]
       withType @PrimitiveLayer.Bool [mappingSpec]
       withType @PrimitiveLayer.Box [mappingSpec]
