@@ -115,7 +115,7 @@ instance (Ord a) => IsSome (Vector (Range a)) (Multirange a) where
           else Nothing
 
 instance (Ord a) => IsMany (Vector (Range a)) (Multirange a) where
-  onfrom ranges = normalizeMultirange (Vector.toList ranges)
+  onfrom = normalizeMultirange . Vector.toList
 
 -- | Create a multirange from a list of ranges.
 -- Performs the same normalization as PostgreSQL:
@@ -123,7 +123,7 @@ instance (Ord a) => IsMany (Vector (Range a)) (Multirange a) where
 -- 2. Sorts ranges by their lower bounds
 -- 3. Merges overlapping and adjacent ranges
 normalizeMultirange :: (Ord a) => [Range a] -> Multirange a
-normalizeMultirange ranges = Multirange (Vector.fromList (mergeRanges (sortRanges (filterNonEmpty ranges))))
+normalizeMultirange = Multirange . Vector.fromList . mergeRanges . sortRanges . filterNonEmpty
   where
     -- Step 1: Remove empty ranges
     filterNonEmpty = filter (not . isEmptyRange)
