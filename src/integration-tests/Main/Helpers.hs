@@ -34,7 +34,7 @@ withPqConnection config =
   describe testName . aroundAll executor
   where
     testName =
-      show config.distro
+      to config.tagName
     executor action = do
       TestcontainersPostgresql.run config \(host, port) -> do
         connection <- Pq.connectdb (connectionString host port)
