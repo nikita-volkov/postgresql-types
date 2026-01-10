@@ -241,9 +241,9 @@ instance Invariant Scalar where
         ..
       }
 
--- | Lift a Mapping (from primitive-layer) into a declaration-layer Scalar.
+-- | Lift a IsPrimitive (from primitive-layer) into a declaration-layer Scalar.
 -- This allows reusing primitive implementations as declaration-layer scalars.
-primitive :: forall a. (Primitive.Mapping a) => Scalar a
+primitive :: forall a. (Primitive.IsPrimitive a) => Scalar a
 primitive =
   let -- Convert decoding errors between layers (they have identical shapes)
       convertError :: Primitive.DecodingError -> DecodingError

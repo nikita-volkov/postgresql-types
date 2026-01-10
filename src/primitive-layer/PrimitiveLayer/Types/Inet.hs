@@ -26,7 +26,7 @@ data Inet = Inet
     netmask :: Word8
   }
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaPrimitive Inet)
+  deriving (Show) via (ViaIsPrimitive Inet)
 
 instance Bounded Inet where
   minBound = Inet minBound 0
@@ -48,7 +48,7 @@ instance Arbitrary Inet where
         V6Ip _ _ _ _ -> netmask' <= 128
     ]
 
-instance Mapping Inet where
+instance IsPrimitive Inet where
   typeName = Tagged "inet"
   baseOid = Tagged 869
   arrayOid = Tagged 1041

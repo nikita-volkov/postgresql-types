@@ -16,7 +16,7 @@ import qualified TextBuilder
 -- The lower bound is inclusive and the upper bound is exclusive with one exception: if the lower bound is infinity then it is treated as exclusive.
 -- There is also another special value: empty.
 --
--- The following standard types are supported via the 'RangeMapping' instances:
+-- The following standard types are supported via the 'IsRangeElement' instances:
 --
 -- - @int4range@ - @Range Int4@
 -- - @int8range@ - @Range Int8@
@@ -32,9 +32,9 @@ data Range a
   = EmptyRange
   | BoundedRange (Maybe a) (Maybe a)
   deriving stock (Eq, Functor)
-  deriving (Show) via (ViaPrimitive (Range a))
+  deriving (Show) via (ViaIsPrimitive (Range a))
 
-instance (RangeMapping a, Ord a) => Mapping (Range a) where
+instance (IsRangeElement a, Ord a) => IsPrimitive (Range a) where
   typeName = retag @a rangeTypeName
   baseOid = retag @a rangeOid
   arrayOid = retag @a rangeArrayOid

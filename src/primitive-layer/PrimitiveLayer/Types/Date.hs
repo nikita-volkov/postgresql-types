@@ -18,7 +18,7 @@ newtype Date
   = -- | Days since PostgreSQL epoch (2000-01-01).
     Date Int32
   deriving newtype (Eq, Ord)
-  deriving (Show) via (ViaPrimitive Date)
+  deriving (Show) via (ViaIsPrimitive Date)
 
 -- | PostgreSQL date range: 4713 BC to 5874897 AD.
 --
@@ -48,7 +48,7 @@ instance Arbitrary Date where
         )
       ]
 
-instance Mapping Date where
+instance IsPrimitive Date where
   typeName = Tagged "date"
   baseOid = Tagged 1082
   arrayOid = Tagged 1182
@@ -75,13 +75,13 @@ instance Mapping Date where
           ]
 
 -- | Mapping to @daterange@ type.
-instance RangeMapping Date where
+instance IsRangeElement Date where
   rangeTypeName = Tagged "daterange"
   rangeOid = Tagged 3912
   rangeArrayOid = Tagged 3913
 
 -- | Mapping to @datemultirange@ type.
-instance MultirangeMapping Date where
+instance IsMultirangeElement Date where
   multirangeTypeName = Tagged "datemultirange"
   multirangeOid = Tagged 4535
   multirangeArrayOid = Tagged 6155

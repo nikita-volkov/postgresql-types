@@ -27,7 +27,7 @@ data Box = Box
     boxY2 :: Double
   }
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaPrimitive Box)
+  deriving (Show) via (ViaIsPrimitive Box)
 
 instance Arbitrary Box where
   arbitrary = do
@@ -43,7 +43,7 @@ instance Arbitrary Box where
     | (x1', y1', x2', y2') <- shrink (x1, y1, x2, y2)
     ]
 
-instance Mapping Box where
+instance IsPrimitive Box where
   typeName = Tagged "box"
   baseOid = Tagged 603
   arrayOid = Tagged 1020

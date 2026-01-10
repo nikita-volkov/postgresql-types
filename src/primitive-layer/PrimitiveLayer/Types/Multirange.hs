@@ -21,7 +21,7 @@ import qualified TextBuilder
 -- PostgreSQL multirange types store multiple ranges as a single value, automatically normalizing them
 -- by combining overlapping and adjacent ranges. The ranges are stored in sorted order.
 --
--- The following standard types are supported via the 'MultirangeMapping' instances:
+-- The following standard types are supported via the 'IsMultirangeElement' instances:
 --
 -- - @int4multirange@ - @Multirange Int4@
 -- - @int8multirange@ - @Multirange Int8@
@@ -35,9 +35,9 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/rangetypes.html#RANGETYPES-MULTIRANGE).
 newtype Multirange a = Multirange (Vector (Range a))
   deriving stock (Eq, Functor)
-  deriving (Show) via (ViaPrimitive (Multirange a))
+  deriving (Show) via (ViaIsPrimitive (Multirange a))
 
-instance (MultirangeMapping a, Ord a) => Mapping (Multirange a) where
+instance (IsMultirangeElement a, Ord a) => IsPrimitive (Multirange a) where
   typeName = retag @a multirangeTypeName
   baseOid = retag @a multirangeOid
   arrayOid = retag @a multirangeArrayOid
@@ -72,7 +72,7 @@ instance (MultirangeMapping a, Ord a) => Mapping (Multirange a) where
           "}"
         ]
 
-instance (RangeMapping a, Arbitrary a, Ord a) => Arbitrary (Multirange a) where
+instance (IsRangeElement a, Arbitrary a, Ord a) => Arbitrary (Multirange a) where
   arbitrary = do
     size <- QuickCheck.getSize
     QuickCheck.frequency

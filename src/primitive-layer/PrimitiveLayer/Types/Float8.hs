@@ -14,9 +14,9 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-numeric.html#DATATYPE-FLOAT).
 newtype Float8 = Float8 Double
   deriving newtype (Eq, Ord, Arbitrary)
-  deriving (Show) via (ViaPrimitive Float8)
+  deriving (Show) via (ViaIsPrimitive Float8)
 
-instance Mapping Float8 where
+instance IsPrimitive Float8 where
   typeName = Tagged "float8"
   baseOid = Tagged 701
   arrayOid = Tagged 1022

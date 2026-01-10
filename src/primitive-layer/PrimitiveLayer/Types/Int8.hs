@@ -14,9 +14,9 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-numeric.html#DATATYPE-INT).
 newtype Int8 = Int8 Int64
   deriving newtype (Eq, Ord, Arbitrary)
-  deriving (Show) via (ViaPrimitive Int8)
+  deriving (Show) via (ViaIsPrimitive Int8)
 
-instance Mapping Int8 where
+instance IsPrimitive Int8 where
   typeName = Tagged "int8"
   baseOid = Tagged 20
   arrayOid = Tagged 1016
@@ -25,13 +25,13 @@ instance Mapping Int8 where
   textualEncoder (Int8 x) = TextBuilder.decimal x
 
 -- | Mapping to @int8range@ type.
-instance RangeMapping Int8 where
+instance IsRangeElement Int8 where
   rangeTypeName = Tagged "int8range"
   rangeOid = Tagged 3926
   rangeArrayOid = Tagged 3927
 
 -- | Mapping to @int8multirange@ type.
-instance MultirangeMapping Int8 where
+instance IsMultirangeElement Int8 where
   multirangeTypeName = Tagged "int8multirange"
   multirangeOid = Tagged 4536
   multirangeArrayOid = Tagged 6157

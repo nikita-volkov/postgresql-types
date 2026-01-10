@@ -14,9 +14,9 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-binary.html).
 newtype Bytea = Bytea ByteString
   deriving newtype (Eq, Ord, Arbitrary)
-  deriving (Show) via (ViaPrimitive Bytea)
+  deriving (Show) via (ViaIsPrimitive Bytea)
 
-instance Mapping Bytea where
+instance IsPrimitive Bytea where
   typeName = Tagged "bytea"
   baseOid = Tagged 17
   arrayOid = Tagged 1001

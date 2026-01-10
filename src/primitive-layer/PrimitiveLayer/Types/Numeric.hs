@@ -31,7 +31,7 @@ data Numeric
   = ScientificNumeric Scientific.Scientific
   | NanNumeric
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaPrimitive Numeric)
+  deriving (Show) via (ViaIsPrimitive Numeric)
 
 instance Arbitrary Numeric where
   arbitrary =
@@ -40,7 +40,7 @@ instance Arbitrary Numeric where
         pure NanNumeric
       ]
 
-instance Mapping Numeric where
+instance IsPrimitive Numeric where
   typeName = Tagged "numeric"
 
   baseOid = Tagged 1700
@@ -124,13 +124,13 @@ instance Mapping Numeric where
       TextBuilder.text "NaN"
 
 -- | Mapping to @numrange@ type.
-instance RangeMapping Numeric where
+instance IsRangeElement Numeric where
   rangeTypeName = Tagged "numrange"
   rangeOid = Tagged 3906
   rangeArrayOid = Tagged 3907
 
 -- | Mapping to @nummultirange@ type.
-instance MultirangeMapping Numeric where
+instance IsMultirangeElement Numeric where
   multirangeTypeName = Tagged "nummultirange"
   multirangeOid = Tagged 4532
   multirangeArrayOid = Tagged 6151

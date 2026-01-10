@@ -154,7 +154,7 @@ library primitive-layer
     PrimitiveLayer.Types.Varchar
     PrimitiveLayer.Via
     PrimitiveLayer.Via.IsMany
-    PrimitiveLayer.Via.Mapping
+    PrimitiveLayer.Via.IsPrimitive
     PrimitiveLayer.Writes
 
   build-depends:

@@ -21,8 +21,8 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-INTERVAL-INPUT).
 newtype IntervalAsMicroseconds = IntervalAsMicroseconds Integer
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaPrimitive IntervalAsMicroseconds)
-  deriving (Mapping) via (ViaIsMany Interval IntervalAsMicroseconds)
+  deriving (Show) via (ViaIsPrimitive IntervalAsMicroseconds)
+  deriving (IsPrimitive) via (ViaIsMany Interval IntervalAsMicroseconds)
 
 instance Bounded IntervalAsMicroseconds where
   minBound = fromInterval minBound

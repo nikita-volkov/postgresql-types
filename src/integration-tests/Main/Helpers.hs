@@ -76,10 +76,10 @@ withType specs = do
 
 mappingSpec ::
   forall a.
-  (QuickCheck.Arbitrary a, Show a, Eq a, PrimitiveLayer.Mapping a) =>
+  (QuickCheck.Arbitrary a, Show a, Eq a, PrimitiveLayer.IsPrimitive a) =>
   Proxy a ->
   SpecWith Pq.Connection
-mappingSpec _ = describe "Mapping" do
+mappingSpec _ = describe "IsPrimitive" do
   let typeName = untag (PrimitiveLayer.typeName @a)
       baseOid = untag (PrimitiveLayer.baseOid @a)
       arrayOid = untag (PrimitiveLayer.arrayOid @a)

@@ -18,12 +18,12 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-TIME).
 newtype Time = Time Int64
   deriving newtype (Eq, Ord)
-  deriving (Show) via (ViaPrimitive Time)
+  deriving (Show) via (ViaIsPrimitive Time)
 
 instance Arbitrary Time where
   arbitrary = Time <$> QuickCheck.choose (toMicroseconds minBound, toMicroseconds maxBound)
 
-instance Mapping Time where
+instance IsPrimitive Time where
   typeName = Tagged "time"
   baseOid = Tagged 1083
   arrayOid = Tagged 1183

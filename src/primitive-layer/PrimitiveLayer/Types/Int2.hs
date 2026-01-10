@@ -14,9 +14,9 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-numeric.html#DATATYPE-INT).
 newtype Int2 = Int2 Int16
   deriving newtype (Eq, Ord, Arbitrary)
-  deriving (Show) via (ViaPrimitive Int2)
+  deriving (Show) via (ViaIsPrimitive Int2)
 
-instance Mapping Int2 where
+instance IsPrimitive Int2 where
   typeName = Tagged "int2"
   baseOid = Tagged 21
   arrayOid = Tagged 1005

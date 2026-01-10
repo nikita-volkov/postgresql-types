@@ -21,7 +21,7 @@ data Path = Path
     points :: UnboxedVector.Vector (Double, Double)
   }
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaPrimitive Path)
+  deriving (Show) via (ViaIsPrimitive Path)
 
 instance Arbitrary Path where
   arbitrary = do
@@ -37,7 +37,7 @@ instance Arbitrary Path where
       UnboxedVector.length points' >= 1
     ]
 
-instance Mapping Path where
+instance IsPrimitive Path where
   typeName = Tagged "path"
   baseOid = Tagged 602
   arrayOid = Tagged 1019

@@ -25,7 +25,7 @@ data Circle = Circle
     circleRadius :: Double
   }
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaPrimitive Circle)
+  deriving (Show) via (ViaIsPrimitive Circle)
 
 instance Arbitrary Circle where
   arbitrary = do
@@ -39,7 +39,7 @@ instance Arbitrary Circle where
     r' <- abs <$> shrink r
     pure (Circle x' y' r')
 
-instance Mapping Circle where
+instance IsPrimitive Circle where
   typeName = Tagged "circle"
   baseOid = Tagged 718
   arrayOid = Tagged 719

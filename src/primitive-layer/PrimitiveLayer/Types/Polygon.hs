@@ -22,7 +22,7 @@ newtype Polygon = Polygon
   { polygonPoints :: UnboxedVector.Vector (Double, Double)
   }
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaPrimitive Polygon)
+  deriving (Show) via (ViaIsPrimitive Polygon)
 
 instance Arbitrary Polygon where
   arbitrary = do
@@ -34,7 +34,7 @@ instance Arbitrary Polygon where
 
   shrink (Polygon points) = [Polygon points' | points' <- shrink points, UnboxedVector.length points' >= 3]
 
-instance Mapping Polygon where
+instance IsPrimitive Polygon where
   typeName = Tagged "polygon"
   baseOid = Tagged 604
   arrayOid = Tagged 1027

@@ -14,9 +14,9 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-numeric.html#DATATYPE-INT).
 newtype Int4 = Int4 Int32
   deriving newtype (Eq, Ord, Arbitrary, Enum, Bounded)
-  deriving (Show) via (ViaPrimitive Int4)
+  deriving (Show) via (ViaIsPrimitive Int4)
 
-instance Mapping Int4 where
+instance IsPrimitive Int4 where
   typeName = Tagged "int4"
   baseOid = Tagged 23
   arrayOid = Tagged 1007
@@ -25,13 +25,13 @@ instance Mapping Int4 where
   textualEncoder (Int4 x) = TextBuilder.decimal x
 
 -- | Mapping to @int4range@ type.
-instance RangeMapping Int4 where
+instance IsRangeElement Int4 where
   rangeTypeName = Tagged "int4range"
   rangeOid = Tagged 3904
   rangeArrayOid = Tagged 3905
 
 -- | Mapping to @int4multirange@ type.
-instance MultirangeMapping Int4 where
+instance IsMultirangeElement Int4 where
   multirangeTypeName = Tagged "int4multirange"
   multirangeOid = Tagged 4451
   multirangeArrayOid = Tagged 6150

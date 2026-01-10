@@ -21,13 +21,13 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-character.html).
 newtype Char = Char Word8
   deriving newtype (Eq, Ord)
-  deriving (Show) via (ViaPrimitive Char)
+  deriving (Show) via (ViaIsPrimitive Char)
 
 instance Arbitrary Char where
   arbitrary =
     Char <$> QuickCheck.choose (0, 127)
 
-instance Mapping Char where
+instance IsPrimitive Char where
   typeName = Tagged "char"
   baseOid = Tagged 18
   arrayOid = Tagged 1002

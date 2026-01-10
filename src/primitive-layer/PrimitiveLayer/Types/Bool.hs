@@ -13,9 +13,9 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-boolean.html).
 newtype Bool = Bool Data.Bool.Bool
   deriving newtype (Eq, Ord, Arbitrary)
-  deriving (Show) via (ViaPrimitive Bool)
+  deriving (Show) via (ViaIsPrimitive Bool)
 
-instance Mapping Bool where
+instance IsPrimitive Bool where
   typeName = Tagged "bool"
   baseOid = Tagged 16
   arrayOid = Tagged 1000

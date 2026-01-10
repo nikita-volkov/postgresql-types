@@ -47,7 +47,7 @@ The library follows a layered architecture:
 - **Correctness**: Property-based testing ensures codec reliability
 
 ### Type Classes and Patterns
-- **`Mapping` typeclass**: Defines PostgreSQL type mappings with OIDs, encoders, and decoders
+- **`IsPrimitive` typeclass**: Defines PostgreSQL type mappings with OIDs, encoders, and decoders
 - **Tagged types**: Extensive use of `Tagged` types for type-safe OID associations
 - **Binary encoding**: Uses `PtrPoker.Write` for efficient memory operations
 - **Binary decoding**: Uses `PtrPeeker` for safe parsing with proper error handling
@@ -120,7 +120,7 @@ cabal test --test-show-details=direct  # Show detailed test output
 
 ### Adding New PostgreSQL Types
 1. Create new module in `src/primitive-layer/PrimitiveLayer/Types/`
-2. Implement `Mapping` instance with:
+2. Implement `IsPrimitive` instance with:
    - `typeName`: PostgreSQL type name
    - `baseOid`: PostgreSQL type OID  
    - `arrayOid`: Array type OID

@@ -18,7 +18,7 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-TIMEZONES).
 newtype Timestamptz = Timestamptz Int64
   deriving newtype (Eq, Ord)
-  deriving (Show) via (ViaPrimitive Timestamptz)
+  deriving (Show) via (ViaIsPrimitive Timestamptz)
 
 instance Arbitrary Timestamptz where
   arbitrary = Timestamptz <$> QuickCheck.choose (pgTimestampMin, pgTimestampMax)
@@ -28,7 +28,7 @@ instance Arbitrary Timestamptz where
       pgTimestampMin = -210866803200000000 -- 4713 BC January 1 00:00:00 UTC
       pgTimestampMax = 9214646400000000000 -- 294276 AD December 31 23:59:59.999999 UTC
 
-instance Mapping Timestamptz where
+instance IsPrimitive Timestamptz where
   typeName = Tagged "timestamptz"
   baseOid = Tagged 1184
   arrayOid = Tagged 1185
@@ -40,13 +40,13 @@ instance Mapping Timestamptz where
     formatTimestamptzForPostgreSQL utcTime
 
 -- | Mapping to @tstzrange@ type.
-instance RangeMapping Timestamptz where
+instance IsRangeElement Timestamptz where
   rangeTypeName = Tagged "tstzrange"
   rangeOid = Tagged 3910
   rangeArrayOid = Tagged 3911
 
 -- | Mapping to @tstzmultirange@ type.
-instance MultirangeMapping Timestamptz where
+instance IsMultirangeElement Timestamptz where
   multirangeTypeName = Tagged "tstzmultirange"
   multirangeOid = Tagged 4534
   multirangeArrayOid = Tagged 6153

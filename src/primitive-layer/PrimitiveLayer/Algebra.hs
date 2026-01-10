@@ -6,7 +6,8 @@ import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
-class Mapping a where
+-- | Evidence that a type maps to a PostgreSQL value.
+class IsPrimitive a where
   -- | PostgreSQL type name.
   typeName :: Tagged a Text
 
@@ -25,7 +26,8 @@ class Mapping a where
   -- | Represent the value in PostgreSQL textual format.
   textualEncoder :: a -> TextBuilder.TextBuilder
 
-class (Mapping a) => RangeMapping a where
+-- | Evidence that a type can be used as an element of a PostgreSQL range type.
+class (IsPrimitive a) => IsRangeElement a where
   -- | PostgreSQL range type name.
   rangeTypeName :: Tagged a Text
 
@@ -35,7 +37,8 @@ class (Mapping a) => RangeMapping a where
   -- | Statically known OID for the range array-type.
   rangeArrayOid :: Tagged a Word32
 
-class (RangeMapping a) => MultirangeMapping a where
+-- | Evidence that a type can be used as an element of a PostgreSQL multirange type.
+class (IsRangeElement a) => IsMultirangeElement a where
   -- | PostgreSQL multirange type name.
   multirangeTypeName :: Tagged a Text
 

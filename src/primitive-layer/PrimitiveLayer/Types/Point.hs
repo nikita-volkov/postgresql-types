@@ -20,13 +20,13 @@ data Point = Point
     pointY :: Double
   }
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaPrimitive Point)
+  deriving (Show) via (ViaIsPrimitive Point)
 
 instance Arbitrary Point where
   arbitrary = Point <$> arbitrary <*> arbitrary
   shrink (Point x y) = [Point x' y' | (x', y') <- shrink (x, y)]
 
-instance Mapping Point where
+instance IsPrimitive Point where
   typeName = Tagged "point"
   baseOid = Tagged 600
   arrayOid = Tagged 1017

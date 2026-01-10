@@ -17,7 +17,7 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-character.html).
 newtype Text = Text Text.Text
   deriving newtype (Eq, Ord)
-  deriving (Show) via (ViaPrimitive Text)
+  deriving (Show) via (ViaIsPrimitive Text)
 
 instance Arbitrary Text where
   arbitrary =
@@ -28,7 +28,7 @@ instance Arbitrary Text where
   shrink (Text base) =
     Text . Text.pack <$> shrink (Text.unpack base)
 
-instance Mapping Text where
+instance IsPrimitive Text where
   typeName = Tagged "text"
   baseOid = Tagged 25
   arrayOid = Tagged 1009

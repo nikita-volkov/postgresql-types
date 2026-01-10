@@ -21,13 +21,13 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-json.html).
 newtype Jsonb = Jsonb Aeson.Value
   deriving newtype (Eq, Ord)
-  deriving (Show) via (ViaPrimitive Jsonb)
+  deriving (Show) via (ViaIsPrimitive Jsonb)
 
 instance Arbitrary Jsonb where
   arbitrary = fromAesonValue <$> arbitrary
   shrink = fmap Jsonb . shrink . toAesonValue
 
-instance Mapping Jsonb where
+instance IsPrimitive Jsonb where
   typeName = Tagged "jsonb"
   baseOid = Tagged 3802
   arrayOid = Tagged 3807
