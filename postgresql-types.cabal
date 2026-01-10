@@ -98,64 +98,54 @@ library
     PostgresqlTypes.Primitive.Algebra
     PostgresqlTypes.Primitive.Types
 
-  build-depends:
-    postgresql-types:primitive-layer
-
-library primitive-layer
-  import: base
-  hs-source-dirs: src/primitive-layer
-  exposed-modules:
-    PrimitiveLayer.Algebra
-    PrimitiveLayer.Types
-
   other-modules:
-    PrimitiveLayer.Prelude
-    PrimitiveLayer.Types.Bit
-    PrimitiveLayer.Types.Bool
-    PrimitiveLayer.Types.Box
-    PrimitiveLayer.Types.Bytea
-    PrimitiveLayer.Types.Char
-    PrimitiveLayer.Types.Cidr
-    PrimitiveLayer.Types.Circle
-    PrimitiveLayer.Types.Date
-    PrimitiveLayer.Types.Float4
-    PrimitiveLayer.Types.Float8
-    PrimitiveLayer.Types.Inet
-    PrimitiveLayer.Types.Int2
-    PrimitiveLayer.Types.Int4
-    PrimitiveLayer.Types.Int8
-    PrimitiveLayer.Types.Interval
-    PrimitiveLayer.Types.IntervalAsMicroseconds
-    PrimitiveLayer.Types.Ip
-    PrimitiveLayer.Types.Json
-    PrimitiveLayer.Types.Jsonb
-    PrimitiveLayer.Types.Line
-    PrimitiveLayer.Types.Lseg
-    PrimitiveLayer.Types.Macaddr
-    PrimitiveLayer.Types.Macaddr8
-    PrimitiveLayer.Types.Money
-    PrimitiveLayer.Types.Multirange
-    PrimitiveLayer.Types.Numeric
-    PrimitiveLayer.Types.Oid
-    PrimitiveLayer.Types.Path
-    PrimitiveLayer.Types.Point
-    PrimitiveLayer.Types.Polygon
-    PrimitiveLayer.Types.Range
-    PrimitiveLayer.Types.Text
-    PrimitiveLayer.Types.Time
-    PrimitiveLayer.Types.Timestamp
-    PrimitiveLayer.Types.Timestamptz
-    PrimitiveLayer.Types.Timetz
-    PrimitiveLayer.Types.Timetz.Offset
-    PrimitiveLayer.Types.Timetz.Time
-    PrimitiveLayer.Types.TimetzAsTimeOfDayAndTimeZone
-    PrimitiveLayer.Types.Uuid
-    PrimitiveLayer.Types.Varbit
-    PrimitiveLayer.Types.Varchar
-    PrimitiveLayer.Via
-    PrimitiveLayer.Via.IsMany
-    PrimitiveLayer.Via.IsPrimitive
-    PrimitiveLayer.Writes
+    PostgresqlTypes.Primitive.Prelude
+    PostgresqlTypes.Primitive.Types.Bit
+    PostgresqlTypes.Primitive.Types.Bool
+    PostgresqlTypes.Primitive.Types.Box
+    PostgresqlTypes.Primitive.Types.Bytea
+    PostgresqlTypes.Primitive.Types.Char
+    PostgresqlTypes.Primitive.Types.Cidr
+    PostgresqlTypes.Primitive.Types.Circle
+    PostgresqlTypes.Primitive.Types.Date
+    PostgresqlTypes.Primitive.Types.Float4
+    PostgresqlTypes.Primitive.Types.Float8
+    PostgresqlTypes.Primitive.Types.Inet
+    PostgresqlTypes.Primitive.Types.Int2
+    PostgresqlTypes.Primitive.Types.Int4
+    PostgresqlTypes.Primitive.Types.Int8
+    PostgresqlTypes.Primitive.Types.Interval
+    PostgresqlTypes.Primitive.Types.IntervalAsMicroseconds
+    PostgresqlTypes.Primitive.Types.Ip
+    PostgresqlTypes.Primitive.Types.Json
+    PostgresqlTypes.Primitive.Types.Jsonb
+    PostgresqlTypes.Primitive.Types.Line
+    PostgresqlTypes.Primitive.Types.Lseg
+    PostgresqlTypes.Primitive.Types.Macaddr
+    PostgresqlTypes.Primitive.Types.Macaddr8
+    PostgresqlTypes.Primitive.Types.Money
+    PostgresqlTypes.Primitive.Types.Multirange
+    PostgresqlTypes.Primitive.Types.Numeric
+    PostgresqlTypes.Primitive.Types.Oid
+    PostgresqlTypes.Primitive.Types.Path
+    PostgresqlTypes.Primitive.Types.Point
+    PostgresqlTypes.Primitive.Types.Polygon
+    PostgresqlTypes.Primitive.Types.Range
+    PostgresqlTypes.Primitive.Types.Text
+    PostgresqlTypes.Primitive.Types.Time
+    PostgresqlTypes.Primitive.Types.Timestamp
+    PostgresqlTypes.Primitive.Types.Timestamptz
+    PostgresqlTypes.Primitive.Types.Timetz
+    PostgresqlTypes.Primitive.Types.Timetz.Offset
+    PostgresqlTypes.Primitive.Types.Timetz.Time
+    PostgresqlTypes.Primitive.Types.TimetzAsTimeOfDayAndTimeZone
+    PostgresqlTypes.Primitive.Types.Uuid
+    PostgresqlTypes.Primitive.Types.Varbit
+    PostgresqlTypes.Primitive.Types.Varchar
+    PostgresqlTypes.Primitive.Via
+    PostgresqlTypes.Primitive.Via.IsMany
+    PostgresqlTypes.Primitive.Via.IsPrimitive
+    PostgresqlTypes.Primitive.Writes
 
   build-depends:
     QuickCheck >=2.14 && <3,
@@ -207,8 +197,8 @@ library declaration-layer
     jsonifier ^>=0.2.1.3,
     lawful-conversions ^>=0.3,
     mtl >=2.2 && <3,
+    postgresql-types,
     postgresql-types:jsonifier-aeson,
-    postgresql-types:primitive-layer,
     profunctors ^>=5.6 && <6,
     ptr-peeker ^>=0.1,
     ptr-poker ^>=0.1.2.16,
@@ -289,7 +279,7 @@ library pq-procedures
     hspec >=2.11 && <3,
     lawful-conversions ^>=0.3,
     postgresql-libpq >=0.10 && <0.12,
-    postgresql-types:primitive-layer,
+    postgresql-types,
     ptr-peeker ^>=0.1,
     ptr-poker ^>=0.1.2.16,
     quickcheck-instances ^>=0.3.33,
@@ -313,7 +303,7 @@ test-suite unit-tests
     lawful-conversions ^>=0.3,
     network >=3.0 && <4,
     postgresql-libpq >=0.10 && <0.12,
-    postgresql-types:primitive-layer,
+    postgresql-types,
     postgresql-types:quick-check-extras,
     ptr-peeker ^>=0.1,
     ptr-poker ^>=0.1.2.16,
@@ -342,8 +332,8 @@ test-suite integration-tests
     hspec >=2.11 && <3,
     lawful-conversions ^>=0.3,
     postgresql-libpq >=0.10 && <0.12,
+    postgresql-types,
     postgresql-types:pq-procedures,
-    postgresql-types:primitive-layer,
     ptr-peeker ^>=0.1,
     ptr-poker ^>=0.1.2.16,
     quickcheck-instances ^>=0.3.33,

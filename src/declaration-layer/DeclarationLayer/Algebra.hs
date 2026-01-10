@@ -5,8 +5,8 @@ module DeclarationLayer.Algebra where
 import qualified Data.Vector as Vector
 import qualified DeclarationLayer.Algebra.Writes as Writes
 import DeclarationLayer.Prelude
-import qualified PrimitiveLayer.Algebra as Primitive
-import qualified PrimitiveLayer.Types as Primitive
+import qualified PostgresqlTypes.Primitive.Algebra as Primitive
+import qualified PostgresqlTypes.Primitive.Types as Primitive
 import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder

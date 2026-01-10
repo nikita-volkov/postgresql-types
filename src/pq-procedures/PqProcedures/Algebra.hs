@@ -14,7 +14,7 @@ import Data.Typeable
 import Data.Word
 import qualified Database.PostgreSQL.LibPQ as Pq
 import LawfulConversions
-import qualified PrimitiveLayer.Algebra as PrimitiveLayer
+import qualified PostgresqlTypes.Primitive.Algebra as PostgresqlTypes.Primitive
 import qualified PtrPeeker
 import qualified PtrPoker.Write
 import Test.Hspec

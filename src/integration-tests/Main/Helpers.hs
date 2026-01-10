@@ -15,8 +15,8 @@ import Data.Typeable
 import Data.Word
 import qualified Database.PostgreSQL.LibPQ as Pq
 import LawfulConversions
+import qualified PostgresqlTypes.Primitive.Algebra as PostgresqlTypes.Primitive
 import qualified PqProcedures as Procedures
-import qualified PrimitiveLayer.Algebra as PrimitiveLayer
 import qualified PtrPeeker
 import qualified PtrPoker.Write
 import Test.Hspec
@@ -76,16 +76,16 @@ withType specs = do
 
 mappingSpec ::
   forall a.
-  (QuickCheck.Arbitrary a, Show a, Eq a, PrimitiveLayer.IsPrimitive a) =>
+  (QuickCheck.Arbitrary a, Show a, Eq a, PostgresqlTypes.Primitive.IsPrimitive a) =>
   Proxy a ->
   SpecWith Pq.Connection
 mappingSpec _ = describe "IsPrimitive" do
-  let typeName = untag (PrimitiveLayer.typeName @a)
-      baseOid = untag (PrimitiveLayer.baseOid @a)
-      arrayOid = untag (PrimitiveLayer.arrayOid @a)
-      binEnc = PrimitiveLayer.binaryEncoder @a
-      binDec = PrimitiveLayer.binaryDecoder @a
-      txtEnc = PrimitiveLayer.textualEncoder @a
+  let typeName = untag (PostgresqlTypes.Primitive.typeName @a)
+      baseOid = untag (PostgresqlTypes.Primitive.baseOid @a)
+      arrayOid = untag (PostgresqlTypes.Primitive.arrayOid @a)
+      binEnc = PostgresqlTypes.Primitive.binaryEncoder @a
+      binDec = PostgresqlTypes.Primitive.binaryDecoder @a
+      txtEnc = PostgresqlTypes.Primitive.textualEncoder @a
 
   describe "Encoding via textualEncoder" do
     describe "And decoding via binaryDecoder" do
