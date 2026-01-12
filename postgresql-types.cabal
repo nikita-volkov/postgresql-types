@@ -151,14 +151,12 @@ library
     QuickCheck >=2.14 && <3,
     aeson >=2.2 && <3,
     base >=4.11 && <5,
-    base16-bytestring >=1.0 && <2,
     bytestring >=0.10 && <0.13,
     containers >=0.6 && <0.9,
     invariant ^>=0.6.4,
     jsonifier ^>=0.2.1.3,
     lawful-conversions ^>=0.3,
     mtl >=2.2 && <3,
-    network >=3.0 && <4,
     postgresql-types:base-extras,
     postgresql-types:jsonifier-aeson,
     postgresql-types:quick-check-extras,
@@ -175,7 +173,6 @@ library
     transformers >=0.5 && <0.7,
     uuid >=1.3 && <2,
     vector ^>=0.13,
-    xml-types ^>=0.3.8,
 
 library declaration-layer
   import: base
@@ -190,15 +187,12 @@ library declaration-layer
 
   build-depends:
     QuickCheck >=2.14 && <3,
-    aeson >=2.2 && <3,
     base >=4.11 && <5,
     bytestring >=0.10 && <0.13,
     invariant ^>=0.6.4,
-    jsonifier ^>=0.2.1.3,
     lawful-conversions ^>=0.3,
     mtl >=2.2 && <3,
     postgresql-types,
-    postgresql-types:jsonifier-aeson,
     profunctors ^>=5.6 && <6,
     ptr-peeker ^>=0.1,
     ptr-poker ^>=0.1.2.16,
@@ -255,10 +249,6 @@ library base-extras
   exposed-modules:
     BaseExtras.List
 
-  other-modules:
-  build-depends:
-    base >=4.11 && <5
-
 library pq-procedures
   import: base
   hs-source-dirs: src/pq-procedures
@@ -301,18 +291,10 @@ test-suite unit-tests
     bytestring >=0.10 && <0.13,
     hspec >=2.11 && <3,
     lawful-conversions ^>=0.3,
-    network >=3.0 && <4,
-    postgresql-libpq >=0.10 && <0.12,
     postgresql-types,
-    postgresql-types:quick-check-extras,
-    ptr-peeker ^>=0.1,
-    ptr-poker ^>=0.1.2.16,
     quickcheck-instances ^>=0.3.33,
     scientific >=0.3 && <1,
-    tagged ^>=0.8.9,
-    testcontainers-postgresql ^>=0.2.0.1,
     text >=1.2 && <3,
-    text-builder ^>=1.0.0.4,
     time >=1.12 && <2,
     uuid >=1.3 && <2,
     vector ^>=0.13,

@@ -1,7 +1,6 @@
 module PostgresqlTypes.Primitive.Types.Bytea (Bytea) where
 
 import qualified Data.ByteString as ByteString
-import qualified Data.ByteString.Base16 as Base16
 import PostgresqlTypes.Primitive.Algebra
 import PostgresqlTypes.Primitive.Prelude
 import PostgresqlTypes.Primitive.Via

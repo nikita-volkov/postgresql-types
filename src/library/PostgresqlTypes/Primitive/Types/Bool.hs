@@ -6,7 +6,6 @@ import PostgresqlTypes.Primitive.Prelude hiding (Bool)
 import PostgresqlTypes.Primitive.Via
 import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
-import qualified TextBuilder
 
 -- | PostgreSQL @boolean@ type. Logical Bool (@true@/@false@).
 --

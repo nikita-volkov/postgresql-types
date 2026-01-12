@@ -155,7 +155,7 @@ testIsSomeBounded ::
     Arbitrary primitive
   ) =>
   Proxy projection -> Proxy primitive -> Spec
-testIsSomeBounded projection primitive =
+testIsSomeBounded _projection _primitive =
   describe (show (typeOf (undefined :: primitive))) do
     describe (show (typeOf (undefined :: projection))) do
       describe "Bounded" do

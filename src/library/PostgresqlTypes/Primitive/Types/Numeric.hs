@@ -4,11 +4,7 @@ module PostgresqlTypes.Primitive.Types.Numeric
   )
 where
 
-import qualified Data.ByteString as ByteString
 import qualified Data.Scientific as Scientific
-import qualified Data.Text as Text
-import qualified Data.Text.Encoding as Text
-import qualified Data.Vector as Vector
 import PostgresqlTypes.Primitive.Algebra
 import PostgresqlTypes.Primitive.Prelude
 import PostgresqlTypes.Primitive.Via

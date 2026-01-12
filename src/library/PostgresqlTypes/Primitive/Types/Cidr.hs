@@ -1,11 +1,6 @@
 module PostgresqlTypes.Primitive.Types.Cidr (Cidr (ip, netmask)) where
 
 import Data.Bits
-import qualified Data.ByteString as ByteString
-import qualified Data.Text as Text
-import qualified Data.Text.Encoding as Text.Encoding
-import GHC.Records
-import Numeric (showHex)
 import PostgresqlTypes.Primitive.Algebra
 import PostgresqlTypes.Primitive.Prelude
 import PostgresqlTypes.Primitive.Types.Ip (Ip (..))
@@ -116,19 +111,21 @@ instance IsPrimitive Cidr where
   textualEncoder (Cidr ipAddr netmask) =
     case ipAddr of
       V4Ip addr ->
-        let a = fromIntegral ((addr `shiftR` 24) .&. 0xFF)
-            b = fromIntegral ((addr `shiftR` 16) .&. 0xFF)
-            c = fromIntegral ((addr `shiftR` 8) .&. 0xFF)
-            d = fromIntegral (addr .&. 0xFF)
-         in TextBuilder.string (show a)
-              <> "."
-              <> TextBuilder.string (show b)
-              <> "."
-              <> TextBuilder.string (show c)
-              <> "."
-              <> TextBuilder.string (show d)
-              <> "/"
-              <> TextBuilder.string (show netmask)
+        let a = ((addr `shiftR` 24) .&. 0xFF)
+            b = ((addr `shiftR` 16) .&. 0xFF)
+            c = ((addr `shiftR` 8) .&. 0xFF)
+            d = (addr .&. 0xFF)
+         in mconcat
+              [ TextBuilder.decimal a,
+                ".",
+                TextBuilder.decimal b,
+                ".",
+                TextBuilder.decimal c,
+                ".",
+                TextBuilder.decimal d,
+                "/",
+                TextBuilder.decimal netmask
+              ]
       V6Ip w1 w2 w3 w4 ->
         -- Convert 32-bit words to proper IPv6 hex representation
         let toHex w =

@@ -1,7 +1,6 @@
 module PostgresqlTypes.Primitive.Algebra where
 
 import PostgresqlTypes.Primitive.Prelude
-import qualified PostgresqlTypes.Primitive.Writes as Writes
 import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder

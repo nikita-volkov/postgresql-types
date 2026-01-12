@@ -53,7 +53,6 @@ import Data.Tuple as Exports
 import Data.UUID as Exports (UUID)
 import Data.Unique as Exports
 import Data.Vector as Exports (Vector)
-import qualified Data.Vector.Unboxed as Exports
 import Data.Version as Exports
 import Data.Word as Exports
 import Debug.Trace as Exports

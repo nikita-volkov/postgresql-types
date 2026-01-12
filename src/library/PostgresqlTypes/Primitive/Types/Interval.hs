@@ -1,6 +1,5 @@
 module PostgresqlTypes.Primitive.Types.Interval (Interval) where
 
-import qualified Data.Time as Time
 import PostgresqlTypes.Primitive.Algebra
 import PostgresqlTypes.Primitive.Prelude
 import PostgresqlTypes.Primitive.Via
@@ -146,13 +145,13 @@ toMicros Interval {..} =
   fromIntegral micros + microsPerDay * (fromIntegral days + daysPerMonth * fromIntegral months)
 
 toPicos :: Interval -> Integer
-toPicos = ((10 ^ 6) *) . toMicros
+toPicos = (1_000_000 *) . toMicros
 
 toDiffTime :: Interval -> DiffTime
 toDiffTime = picosecondsToDiffTime . toPicos
 
 microsPerDay :: (Num a) => a
-microsPerDay = 10 ^ 6 * 60 * 60 * 24
+microsPerDay = 1_000_000 * 60 * 60 * 24
 
 daysPerMonth :: (Num a) => a
 daysPerMonth = 30

@@ -7,17 +7,7 @@ module PostgresqlTypes.Primitive.Types.Ip
 where
 
 import Data.Bits
-import qualified Data.ByteString as ByteString
-import qualified Data.Text as Text
-import qualified Data.Text.Encoding as Text.Encoding
-import GHC.Records
-import Numeric (showHex)
-import PostgresqlTypes.Primitive.Algebra
 import PostgresqlTypes.Primitive.Prelude
-import PostgresqlTypes.Primitive.Via
-import qualified PtrPeeker
-import qualified PtrPoker.Write as Write
-import qualified TextBuilder
 
 -- | IP address type for representing IPv4 and IPv6 addresses.
 --
@@ -42,14 +32,6 @@ instance Arbitrary Ip where
   shrink (V4Ip w) = V4Ip <$> shrink w
   shrink (V6Ip w1 w2 w3 w4) =
     [V6Ip w1' w2' w3' w4' | (w1', w2', w3', w4') <- shrink (w1, w2, w3, w4)]
-
-applyNetmask :: Word8 -> Ip -> Ip
-applyNetmask netmask address =
-  case address of
-    V4Ip w ->
-      maskedV4 (min 32 (fromIntegral netmask)) w
-    V6Ip w1 w2 w3 w4 ->
-      maskedV6 (min 128 (fromIntegral netmask)) w1 w2 w3 w4
 
 maskedV4 :: Int -> Word32 -> Ip
 maskedV4 netmask w =

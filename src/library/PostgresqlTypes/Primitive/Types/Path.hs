@@ -1,6 +1,5 @@
 module PostgresqlTypes.Primitive.Types.Path (Path) where
 
-import Data.Bits
 import qualified Data.Vector.Unboxed as UnboxedVector
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
 import PostgresqlTypes.Primitive.Algebra

@@ -2,7 +2,7 @@ module PostgresqlTypes.Primitive.Types.Time (Time) where
 
 import qualified Data.Time as Time
 import PostgresqlTypes.Primitive.Algebra
-import PostgresqlTypes.Primitive.Prelude hiding (Time)
+import PostgresqlTypes.Primitive.Prelude
 import PostgresqlTypes.Primitive.Via
 import qualified PtrPeeker
 import qualified PtrPoker.Write as Write

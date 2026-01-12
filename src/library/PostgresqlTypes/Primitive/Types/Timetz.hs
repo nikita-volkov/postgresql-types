@@ -1,16 +1,11 @@
 module PostgresqlTypes.Primitive.Types.Timetz (Timetz) where
 
-import qualified Data.Time
 import PostgresqlTypes.Primitive.Algebra
 import PostgresqlTypes.Primitive.Prelude
 import qualified PostgresqlTypes.Primitive.Types.Timetz.Offset as Offset
 import qualified PostgresqlTypes.Primitive.Types.Timetz.Time as Time
 import PostgresqlTypes.Primitive.Via
 import qualified PtrPeeker
-import qualified PtrPoker.Write as Write
-import qualified Test.QuickCheck as QuickCheck
-import Text.Printf (printf)
-import qualified TextBuilder
 
 -- | PostgreSQL @timetz@ type. Time of day with time zone.
 --

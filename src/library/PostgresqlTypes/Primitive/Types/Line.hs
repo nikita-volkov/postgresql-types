@@ -1,6 +1,5 @@
 module PostgresqlTypes.Primitive.Types.Line (Line) where
 
-import Data.Bits
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
 import PostgresqlTypes.Primitive.Algebra
 import PostgresqlTypes.Primitive.Prelude

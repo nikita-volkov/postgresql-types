@@ -1,6 +1,5 @@
 module PostgresqlTypes.Primitive.Types.Float4 (Float4) where
 
-import Data.Bits
 import GHC.Float (castFloatToWord32, castWord32ToFloat)
 import PostgresqlTypes.Primitive.Algebra
 import PostgresqlTypes.Primitive.Prelude

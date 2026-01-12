@@ -3,7 +3,6 @@ module PostgresqlTypes.Primitive.Types.Timetz.Offset where
 import qualified Data.Time as Time
 import PostgresqlTypes.Primitive.Algebra
 import PostgresqlTypes.Primitive.Prelude
-import PostgresqlTypes.Primitive.Via
 import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck

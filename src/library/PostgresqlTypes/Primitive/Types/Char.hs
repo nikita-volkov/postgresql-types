@@ -1,10 +1,6 @@
 module PostgresqlTypes.Primitive.Types.Char (Char) where
 
-import qualified Data.ByteString as ByteString
 import qualified Data.Char
-import Data.String
-import qualified Data.Text as Text
-import qualified Data.Text.Encoding as Text.Encoding
 import PostgresqlTypes.Primitive.Algebra
 import PostgresqlTypes.Primitive.Prelude hiding (Char)
 import PostgresqlTypes.Primitive.Via

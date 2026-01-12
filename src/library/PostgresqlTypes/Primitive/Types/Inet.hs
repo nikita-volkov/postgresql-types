@@ -1,13 +1,9 @@
 module PostgresqlTypes.Primitive.Types.Inet (Inet (ip, netmask)) where
 
 import Data.Bits
-import qualified Data.ByteString as ByteString
-import qualified Data.Text as Text
-import qualified Data.Text.Encoding as Text.Encoding
 import PostgresqlTypes.Primitive.Algebra
 import PostgresqlTypes.Primitive.Prelude
 import PostgresqlTypes.Primitive.Types.Ip (Ip (..))
-import qualified PostgresqlTypes.Primitive.Types.Ip as Ip
 import PostgresqlTypes.Primitive.Via
 import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
@@ -115,29 +111,22 @@ instance IsPrimitive Inet where
   textualEncoder (Inet ipAddr netmask) =
     case ipAddr of
       V4Ip addr ->
-        let a = fromIntegral ((addr `shiftR` 24) .&. 0xFF)
-            b = fromIntegral ((addr `shiftR` 16) .&. 0xFF)
-            c = fromIntegral ((addr `shiftR` 8) .&. 0xFF)
-            d = fromIntegral (addr .&. 0xFF)
-         in if netmask == 32
-              then -- Host address without explicit netmask
-                TextBuilder.string (show a)
-                  <> "."
-                  <> TextBuilder.string (show b)
-                  <> "."
-                  <> TextBuilder.string (show c)
-                  <> "."
-                  <> TextBuilder.string (show d)
-              else -- Host address with netmask
-                TextBuilder.string (show a)
-                  <> "."
-                  <> TextBuilder.string (show b)
-                  <> "."
-                  <> TextBuilder.string (show c)
-                  <> "."
-                  <> TextBuilder.string (show d)
-                  <> "/"
-                  <> TextBuilder.string (show netmask)
+        let a = ((addr `shiftR` 24) .&. 0xFF)
+            b = ((addr `shiftR` 16) .&. 0xFF)
+            c = ((addr `shiftR` 8) .&. 0xFF)
+            d = (addr .&. 0xFF)
+         in mconcat
+              [ TextBuilder.decimal a,
+                ".",
+                TextBuilder.decimal b,
+                ".",
+                TextBuilder.decimal c,
+                ".",
+                TextBuilder.decimal d,
+                if netmask == 32
+                  then mempty
+                  else "/" <> TextBuilder.decimal netmask
+              ]
       V6Ip w1 w2 w3 w4 ->
         -- Convert 32-bit words to proper IPv6 hex representation
         let toHex w =

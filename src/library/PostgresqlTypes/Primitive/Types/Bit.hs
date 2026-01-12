@@ -1,9 +1,8 @@
-module PostgresqlTypes.Primitive.Types.Bit (Bit) where
+module PostgresqlTypes.Primitive.Types.Bit (Bit (..)) where
 
 import qualified Data.Bits as Bits
 import qualified Data.ByteString as ByteString
 import qualified Data.Text as Text
-import qualified Data.Text.Encoding as Text.Encoding
 import qualified Data.Vector.Unboxed as VU
 import qualified LawfulConversions
 import PostgresqlTypes.Primitive.Algebra
@@ -79,7 +78,7 @@ instance IsSome [Bool] Bit where
       boolsToByte :: [Bool] -> Word8
       boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
       chunksOf :: Int -> [a] -> [[a]]
-      chunksOf n [] = []
+      chunksOf _ [] = []
       chunksOf n xs = take n xs : chunksOf n (drop n xs)
 
 -- | Convert from a Bit to a list of Bool.
@@ -95,7 +94,7 @@ instance IsSome Bit [Bool] where
       boolsToByte :: [Bool] -> Word8
       boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
       chunksOf :: Int -> [a] -> [[a]]
-      chunksOf n [] = []
+      chunksOf _ [] = []
       chunksOf n xs = take n xs : chunksOf n (drop n xs)
   maybeFrom (Bit len bytes) =
     let bits = concatMap byteToBits (ByteString.unpack bytes)
@@ -117,7 +116,7 @@ instance IsMany [Bool] Bit where
       boolsToByte :: [Bool] -> Word8
       boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
       chunksOf :: Int -> [a] -> [[a]]
-      chunksOf n [] = []
+      chunksOf _ [] = []
       chunksOf n xs = take n xs : chunksOf n (drop n xs)
 
 -- | Direct conversion from Bit to bit list.
@@ -162,7 +161,7 @@ instance IsSome (VU.Vector Bool) Bit where
       boolsToByte :: [Bool] -> Word8
       boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
       chunksOf :: Int -> [a] -> [[a]]
-      chunksOf n [] = []
+      chunksOf _ [] = []
       chunksOf n xs = take n xs : chunksOf n (drop n xs)
 
 -- | Convert from a Bit to an unboxed vector of Bool.
@@ -184,7 +183,7 @@ instance IsSome Bit (VU.Vector Bool) where
       boolsToByte :: [Bool] -> Word8
       boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
       chunksOf :: Int -> [a] -> [[a]]
-      chunksOf n [] = []
+      chunksOf _ [] = []
       chunksOf n xs = take n xs : chunksOf n (drop n xs)
   maybeFrom (Bit len bytes) =
     let bits = concatMap byteToBits (ByteString.unpack bytes)
@@ -210,7 +209,7 @@ instance IsMany (VU.Vector Bool) Bit where
       boolsToByte :: [Bool] -> Word8
       boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
       chunksOf :: Int -> [a] -> [[a]]
-      chunksOf n [] = []
+      chunksOf _ [] = []
       chunksOf n xs = take n xs : chunksOf n (drop n xs)
 
 -- | Direct conversion from Bit to unboxed bit vector.

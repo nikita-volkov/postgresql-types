@@ -4,13 +4,7 @@ import qualified Data.Time as Time
 import PostgresqlTypes.Primitive.Algebra
 import PostgresqlTypes.Primitive.Prelude
 import PostgresqlTypes.Primitive.Types.Timetz (Timetz)
-import qualified PostgresqlTypes.Primitive.Types.Timetz.Offset as TimetzOffset
-import qualified PostgresqlTypes.Primitive.Types.Timetz.Time as TimetzTime
 import PostgresqlTypes.Primitive.Via
-import qualified PtrPeeker
-import qualified PtrPoker.Write as Write
-import qualified Test.QuickCheck as QuickCheck
-import qualified TextBuilder
 import qualified TimeExtras.TimeOfDay as TimeOfDay
 import qualified TimeExtras.TimeZone as TimeZone
 

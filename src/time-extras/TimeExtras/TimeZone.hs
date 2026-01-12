@@ -1,6 +1,5 @@
 module TimeExtras.TimeZone where
 
-import Data.Fixed
 import Data.Time
 import Prelude
 

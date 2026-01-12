@@ -1,13 +1,10 @@
 module PostgresqlTypes.Primitive.Types.Macaddr8 (Macaddr8) where
 
-import Control.Monad (replicateM)
-import qualified Data.Text as Text
 import PostgresqlTypes.Primitive.Algebra
 import PostgresqlTypes.Primitive.Prelude
 import PostgresqlTypes.Primitive.Via
 import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
-import Text.Printf (printf)
 import qualified TextBuilder
 
 -- | PostgreSQL @macaddr8@ type. 8-byte MAC (Media Access Control) address in EUI-64 format.

@@ -1,6 +1,5 @@
 module PostgresqlTypes.Primitive.Types.Text (Text) where
 
-import qualified Data.ByteString as ByteString
 import Data.String
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text.Encoding

@@ -11,7 +11,6 @@ import PostgresqlTypes.Primitive.Algebra
 import PostgresqlTypes.Primitive.Prelude
 import PostgresqlTypes.Primitive.Via
 import qualified PtrPeeker
-import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
 -- | PostgreSQL @json@ type.
@@ -81,8 +80,3 @@ fromAesonValue = Json . updateValue
     updateObject = Aeson.KeyMap.mapKeyVal updateKey updateValue
     updateArray = fmap updateValue
     updateKey = Aeson.Key.fromText . updateText . Aeson.Key.toText
-
--- | Construct from Aeson Value by filtering out null characters from every string and object key.
--- Always succeeds by transforming the input as needed.
-maybeFromAesonValue :: Aeson.Value -> Maybe Json
-maybeFromAesonValue = Just . fromAesonValue

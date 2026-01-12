@@ -5,10 +5,7 @@ import PostgresqlTypes.Primitive.Algebra
 import PostgresqlTypes.Primitive.Prelude hiding (toInteger)
 import PostgresqlTypes.Primitive.Types.Interval (Interval)
 import PostgresqlTypes.Primitive.Via
-import qualified PtrPeeker
-import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
-import qualified TextBuilder
 
 -- | PostgreSQL @interval@ type normalized to amount of microseconds.
 --
@@ -65,7 +62,7 @@ instance IsMany Integer IntervalAsMicroseconds where
 -- * Constants
 
 microsPerDay :: (Num a) => a
-microsPerDay = 10 ^ 6 * 60 * 60 * 24
+microsPerDay = 1_000_000 * 60 * 60 * 24
 
 daysPerMonth :: (Num a) => a
 daysPerMonth = 30

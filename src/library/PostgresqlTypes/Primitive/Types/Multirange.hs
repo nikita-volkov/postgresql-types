@@ -1,12 +1,11 @@
 module PostgresqlTypes.Primitive.Types.Multirange (Multirange) where
 
 import qualified BaseExtras.List
-import qualified Data.List as List
 import qualified Data.Set as Set
 import qualified Data.Vector as Vector
 import PostgresqlTypes.Primitive.Algebra
 import PostgresqlTypes.Primitive.Prelude
-import PostgresqlTypes.Primitive.Types.Range (Range (..))
+import PostgresqlTypes.Primitive.Types.Range (Range)
 import PostgresqlTypes.Primitive.Via
 import qualified PostgresqlTypes.Primitive.Writes as Writes
 import qualified PtrPeeker

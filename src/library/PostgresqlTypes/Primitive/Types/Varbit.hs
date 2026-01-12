@@ -3,7 +3,6 @@ module PostgresqlTypes.Primitive.Types.Varbit (Varbit) where
 import qualified Data.Bits as Bits
 import qualified Data.ByteString as ByteString
 import qualified Data.Text as Text
-import qualified Data.Text.Encoding as Text.Encoding
 import qualified Data.Vector.Unboxed as VU
 import qualified LawfulConversions
 import PostgresqlTypes.Primitive.Algebra
@@ -81,7 +80,7 @@ instance IsSome [Bool] Varbit where
       boolsToByte :: [Bool] -> Word8
       boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
       chunksOf :: Int -> [a] -> [[a]]
-      chunksOf n [] = []
+      chunksOf _ [] = []
       chunksOf n xs = take n xs : chunksOf n (drop n xs)
 
 -- | Convert from a Varbit to a list of Bool.
@@ -97,7 +96,7 @@ instance IsSome Varbit [Bool] where
       boolsToByte :: [Bool] -> Word8
       boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
       chunksOf :: Int -> [a] -> [[a]]
-      chunksOf n [] = []
+      chunksOf _ [] = []
       chunksOf n xs = take n xs : chunksOf n (drop n xs)
   maybeFrom (Varbit len bytes) =
     let bits = concatMap byteToBits (ByteString.unpack bytes)
@@ -119,7 +118,7 @@ instance IsMany [Bool] Varbit where
       boolsToByte :: [Bool] -> Word8
       boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
       chunksOf :: Int -> [a] -> [[a]]
-      chunksOf n [] = []
+      chunksOf _ [] = []
       chunksOf n xs = take n xs : chunksOf n (drop n xs)
 
 -- | Direct conversion from Varbit to bit list.
@@ -164,7 +163,7 @@ instance IsSome (VU.Vector Bool) Varbit where
       boolsToByte :: [Bool] -> Word8
       boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
       chunksOf :: Int -> [a] -> [[a]]
-      chunksOf n [] = []
+      chunksOf _ [] = []
       chunksOf n xs = take n xs : chunksOf n (drop n xs)
 
 -- | Convert from a Varbit to an unboxed vector of Bool.
@@ -186,7 +185,7 @@ instance IsSome Varbit (VU.Vector Bool) where
       boolsToByte :: [Bool] -> Word8
       boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
       chunksOf :: Int -> [a] -> [[a]]
-      chunksOf n [] = []
+      chunksOf _ [] = []
       chunksOf n xs = take n xs : chunksOf n (drop n xs)
   maybeFrom (Varbit len bytes) =
     let bits = concatMap byteToBits (ByteString.unpack bytes)
@@ -212,7 +211,7 @@ instance IsMany (VU.Vector Bool) Varbit where
       boolsToByte :: [Bool] -> Word8
       boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
       chunksOf :: Int -> [a] -> [[a]]
-      chunksOf n [] = []
+      chunksOf _ [] = []
       chunksOf n xs = take n xs : chunksOf n (drop n xs)
 
 -- | Direct conversion from Varbit to unboxed bit vector.
