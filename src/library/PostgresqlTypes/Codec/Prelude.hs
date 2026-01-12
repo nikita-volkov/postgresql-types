@@ -1,4 +1,4 @@
-module DeclarationLayer.Prelude
+module PostgresqlTypes.Codec.Prelude
   ( module Exports,
   )
 where

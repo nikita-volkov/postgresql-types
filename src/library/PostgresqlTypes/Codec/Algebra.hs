@@ -1,10 +1,10 @@
 {-# OPTIONS_GHC -Wno-unused-binds -Wno-unused-imports -Wno-name-shadowing -Wno-incomplete-patterns -Wno-unused-matches -Wno-missing-methods -Wno-unused-record-wildcards -Wno-redundant-constraints #-}
 
-module DeclarationLayer.Algebra where
+module PostgresqlTypes.Codec.Algebra where
 
 import qualified Data.Vector as Vector
-import qualified DeclarationLayer.Algebra.Writes as Writes
-import DeclarationLayer.Prelude
+import qualified PostgresqlTypes.Codec.Algebra.Writes as Writes
+import PostgresqlTypes.Codec.Prelude
 import qualified PostgresqlTypes.Primitive.Algebra as Primitive
 import qualified PostgresqlTypes.Primitive.Types as Primitive
 import qualified PtrPeeker

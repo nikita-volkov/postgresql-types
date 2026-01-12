@@ -1,7 +1,7 @@
-module DeclarationLayer.Demo where
+module PostgresqlTypes.Codec.Demo where
 
-import DeclarationLayer.Algebra
-import DeclarationLayer.Prelude
+import PostgresqlTypes.Codec.Algebra
+import PostgresqlTypes.Codec.Prelude
 
 data Genre = Rock | Pop | Jazz
 

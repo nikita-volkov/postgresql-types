@@ -1,6 +1,6 @@
-module DeclarationLayer.Algebra.Writes where
+module PostgresqlTypes.Codec.Algebra.Writes where
 
-import DeclarationLayer.Prelude
+import PostgresqlTypes.Codec.Prelude
 import PtrPoker.Write
 
 arrayHeader :: Int32 -> Bool -> Word32 -> [Int32] -> Write
