@@ -241,8 +241,7 @@ instance Invariant Scalar where
         ..
       }
 
--- | Lift a IsPrimitive (from primitive-layer) into a declaration-layer Scalar.
--- This allows reusing primitive implementations as declaration-layer scalars.
+-- | Lift a primitive into Scalar.
 primitive :: forall a. (Primitive.IsPrimitive a) => Scalar a
 primitive =
   let -- Convert decoding errors between layers (they have identical shapes)
@@ -269,65 +268,41 @@ primitive =
           textualEncoder = Primitive.textualEncoder
         }
 
-composite ::
-  -- | Schema name. If empty, the default schema will be used.
-  Text ->
-  -- | Type name.
-  Text ->
-  -- | Combination of field codecs.
-  Fields a a ->
-  Scalar a
-composite schemaName typeName fields =
-  Scalar
-    { schemaName,
-      typeName,
-      baseOid = Nothing,
-      arrayOid = Nothing,
-      binaryEncoder = \value ->
-        Write.lInt32 fields.count
-          <> fields.binaryEncoder value,
-      binaryDecoder =
-        runExceptT do
-          _ <-
-            ExceptT do
-              PtrPeeker.fixed do
-                PtrPeeker.beSignedInt4
-                  <&> \count ->
-                    if count == fields.count
-                      then Right ()
-                      else
-                        Left
-                          DecodingError
-                            { location = ["field-count"],
-                              reason =
-                                UnexpectedValueDecodingErrorReason
-                                  (TextBuilder.toText (TextBuilder.decimal fields.count))
-                                  (TextBuilder.toText (TextBuilder.decimal count))
-                            }
-          ExceptT fields.binaryDecoder,
-      textualEncoder = \_value -> error "TODO"
-    }
+composite :: forall a. (IsComposite a) => Scalar a
+composite =
+  let fields = compositeCodec @a
+   in Scalar
+        { schemaName = untag (compositeSchema @a),
+          typeName = untag (compositeName @a),
+          baseOid = Nothing,
+          arrayOid = Nothing,
+          binaryEncoder = \value ->
+            Write.lInt32 fields.count <> fields.binaryEncoder value,
+          binaryDecoder =
+            runExceptT do
+              _ <-
+                ExceptT do
+                  PtrPeeker.fixed do
+                    PtrPeeker.beSignedInt4
+                      <&> \count ->
+                        if count == fields.count
+                          then Right ()
+                          else
+                            Left
+                              DecodingError
+                                { location = ["field-count"],
+                                  reason =
+                                    UnexpectedValueDecodingErrorReason
+                                      (TextBuilder.toText (TextBuilder.decimal fields.count))
+                                      (TextBuilder.toText (TextBuilder.decimal count))
+                                }
+              ExceptT fields.binaryDecoder,
+          textualEncoder = \_value -> error "TODO"
+        }
 
-enum :: Text -> Text -> [(Text, a)] -> Scalar a
-enum = error "TODO"
-
-int2 :: Scalar Int16
-int2 = error "TODO"
-
-text :: Scalar Text
-text = error "TODO"
-
-timestamptz :: Scalar UTCTime
-timestamptz = error "TODO"
-
-uuid :: Scalar UUID
-uuid = invmap to to (primitive @Primitive.Uuid)
-
-jsonb :: Scalar Primitive.Jsonb
-jsonb = primitive
-
-macaddr :: Scalar Primitive.Macaddr
-macaddr = primitive
+enum :: (IsEnum a) => Scalar a
+enum =
+  error "TODO"
 
 data Fields a b = Fields
   { count :: Int32,
@@ -388,7 +363,63 @@ field scalar dimensionality nullability =
                 (dimensionality.textualEncoder scalar.textualEncoder)
         }
 
-data Column a
+-- | Parameterized query parameters encoder.
+data Params a = Params
+  { count :: Int32,
+    binaryEncoder :: [a -> Maybe Write.Write],
+    textualEncoder :: [a -> TextBuilder.TextBuilder]
+  }
 
-column :: Scalar a -> Dimensionality a b -> Nullability b c -> Column c
+instance Contravariant Params
+
+instance Semigroup (Params a)
+
+instance Monoid (Params a)
+
+param :: Scalar a -> Dimensionality a b -> Nullability b c -> Params c
+param scalar dimensionality nullability = error "TODO"
+
+-- | Result set columns decoder.
+data Columns a = Columns
+  { count :: Int32,
+    binaryDecoder :: [Maybe ByteString] -> Either DecodingError a
+  }
+
+instance Functor Columns
+
+instance Applicative Columns
+
+column :: Scalar a -> Dimensionality a b -> Nullability b c -> Columns c
 column = error "TODO"
+
+-- | Result decoder.
+data Result a
+  = SingleRow (Columns a)
+  | forall row. Multirow (Columns row) (Vector row -> a)
+  | RowsAffected (Int -> a)
+
+single :: Columns row -> Result row
+single = error "TODO"
+
+multirow :: Columns row -> Result (Vector row)
+multirow = error "TODO"
+
+-- | Composite type mapping.
+class IsComposite a where
+  compositeSchema :: Tagged a Text
+  compositeName :: Tagged a Text
+  compositeCodec :: Fields a a
+
+-- | Enumeration type mapping.
+class IsEnum a where
+  enumSchema :: Tagged a Text
+  enumName :: Tagged a Text
+
+  -- | List of Postgres enumeration label to Haskell value associations.
+  enumVariants :: [(Text, a)]
+
+class IsStatement a where
+  type ResultOf a
+  statementSql :: Tagged a Text
+  statementParams :: Params a
+  statementResult :: Tagged a (Result (ResultOf a))

@@ -1,15 +1,15 @@
 module PostgresqlTypes.Codec.Demo where
 
 import PostgresqlTypes.Codec.Algebra
-import PostgresqlTypes.Codec.Prelude
+import PostgresqlTypes.Codec.Prelude hiding (Int8, Text)
+import PostgresqlTypes.Primitive.Types
 
 data Genre = Rock | Pop | Jazz
 
-genre :: Scalar Genre
-genre =
-  enum
-    ""
-    "genre"
+instance IsEnum Genre where
+  enumSchema = Tagged ""
+  enumName = Tagged "genre"
+  enumVariants =
     [ ("rock", Rock),
       ("pop", Pop),
       ("jazz", Jazz)
@@ -20,19 +20,17 @@ data Artist = Artist
     genre :: Genre
   }
 
-artist :: Scalar Artist
-artist =
-  composite
-    ""
-    "artist"
-    ( Artist
-        <$> lmap (.name) (field text d0 nonNullable)
-        <*> lmap (.genre) (field genre d0 nonNullable)
-    )
+instance IsComposite Artist where
+  compositeSchema = Tagged ""
+  compositeName = Tagged "artist"
+  compositeCodec =
+    Artist
+      <$> lmap (.name) (field primitive d0 nonNullable)
+      <*> lmap (.genre) (field enum d0 nonNullable)
 
-columns :: (Column UTCTime, Column (Maybe (Vector Int16)), Column (Vector (Vector (Maybe Artist))))
+columns :: Columns (Timestamptz, Maybe (Vector Int8), Vector (Vector (Maybe Artist)))
 columns =
-  ( column timestamptz d0 nonNullable,
-    column int2 (d1 nonNullable vector) nullable,
-    column artist (d2 nullable vector vector) nonNullable
-  )
+  (,,)
+    <$> column primitive d0 nonNullable
+    <*> column primitive (d1 nonNullable vector) nullable
+    <*> column composite (d2 nullable vector vector) nonNullable
