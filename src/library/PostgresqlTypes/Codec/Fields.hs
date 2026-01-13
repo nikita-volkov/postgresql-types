@@ -67,3 +67,34 @@ field scalar dimensionality nullability =
               . nullability.textualEncoderWrapper
                 (dimensionality.textualEncoder scalar.textualEncoder)
         }
+
+composite :: Text -> Text -> Fields a a -> Scalar a
+composite schemaName typeName fields =
+  Scalar
+    { schemaName,
+      typeName,
+      baseOid = Nothing,
+      arrayOid = Nothing,
+      binaryEncoder = \value ->
+        Write.lInt32 fields.count <> fields.binaryEncoder value,
+      binaryDecoder =
+        runExceptT do
+          _ <-
+            ExceptT do
+              PtrPeeker.fixed do
+                PtrPeeker.beSignedInt4
+                  <&> \count ->
+                    if count == fields.count
+                      then Right ()
+                      else
+                        Left
+                          DecodingError
+                            { location = ["field-count"],
+                              reason =
+                                UnexpectedValueDecodingErrorReason
+                                  (TextBuilder.toText (TextBuilder.decimal fields.count))
+                                  (TextBuilder.toText (TextBuilder.decimal count))
+                            }
+          ExceptT fields.binaryDecoder,
+      textualEncoder = \_value -> error "TODO"
+    }

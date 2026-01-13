@@ -17,7 +17,7 @@ import PostgresqlTypes.Codec.Columns
 import PostgresqlTypes.Codec.DecodingError
 import PostgresqlTypes.Codec.Dimension
 import PostgresqlTypes.Codec.Dimensionality
-import PostgresqlTypes.Codec.Fields
+import PostgresqlTypes.Codec.Fields hiding (composite)
 import PostgresqlTypes.Codec.IsComposite
 import PostgresqlTypes.Codec.IsEnum
 import PostgresqlTypes.Codec.Nullability
