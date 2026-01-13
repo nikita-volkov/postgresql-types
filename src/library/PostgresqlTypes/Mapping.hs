@@ -1,10 +1,56 @@
-module PostgresqlTypes.Mapping where
+module PostgresqlTypes.Mapping
+  ( -- * Mapping classes
+    ParameterizesStatement (..),
+    MapsToScalar (..),
 
-import qualified PostgresqlTypes.Codec as Codec
-import PostgresqlTypes.Codec.Prelude
+    -- * Errors
+    DecodingError (..),
+    DecodingErrorReason (..),
 
-class IsStaticStatement a where
-  type ResultOf a
-  staticStatementSql :: Tagged a Text
-  staticStatementParams :: Codec.Params a
-  staticStatementResult :: Tagged a (Codec.Result (ResultOf a))
+    -- * Parameters
+    Params (..),
+    param,
+
+    -- * Result sets
+    Result (..),
+    single,
+    multirow,
+    rowsAffected,
+
+    -- ** Result set columns
+    Columns (..),
+    column,
+
+    -- * Nullability
+    Nullability,
+    nonNullable,
+    nullable,
+
+    -- * Dimensionality
+    Dimensionality,
+    d0,
+    d1,
+    d2,
+
+    -- ** Dimension
+    Dimension,
+    vector,
+
+    -- * Scalar
+    Scalar,
+    enum,
+    composite,
+
+    -- ** Composite fields
+    Fields,
+    field,
+
+    -- * Primitive types
+    module PostgresqlTypes.Mapping.Primitives,
+  )
+where
+
+import PostgresqlTypes.Codec hiding (column, field, param)
+import PostgresqlTypes.Mapping.MapsToScalar
+import PostgresqlTypes.Mapping.ParameterizesStatement
+import PostgresqlTypes.Mapping.Primitives

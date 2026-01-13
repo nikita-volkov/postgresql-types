@@ -3,7 +3,7 @@
 module Main (main) where
 
 import Data.Tagged
-import PostgresqlTypes.Codec
+import PostgresqlTypes.Mapping
 import PostgresqlTypes.Primitive
 import Prelude hiding (Int8, Text)
 
@@ -13,31 +13,34 @@ main = error "TODO"
 data Genre = Rock | Pop | Jazz
   deriving (Eq, Ord)
 
-instance IsEnum Genre where
-  enumSchema = Tagged ""
-  enumName = Tagged "genre"
-  enumVariants =
-    [ ("rock", Rock),
-      ("pop", Pop),
-      ("jazz", Jazz)
-    ]
+instance MapsToScalar Genre where
+  scalarOf =
+    enum
+      ""
+      "genre"
+      [ ("rock", Rock),
+        ("pop", Pop),
+        ("jazz", Jazz)
+      ]
 
 data Artist = Artist
   { name :: Text,
     genre :: Genre
   }
 
-instance IsComposite Artist where
-  compositeSchema = Tagged ""
-  compositeName = Tagged "artist"
-  compositeFields =
-    Artist
-      <$> lmap (.name) (field primitive d0 nonNullable)
-      <*> lmap (.genre) (field enum d0 nonNullable)
+instance MapsToScalar Artist where
+  scalarOf =
+    composite
+      ""
+      "artist"
+      ( Artist
+          <$> lmap (.name) (field d0 nonNullable)
+          <*> lmap (.genre) (field d0 nonNullable)
+      )
 
 columns :: Columns (Timestamptz, Maybe (Vector Int8), Vector (Vector (Maybe Artist)))
 columns =
   (,,)
-    <$> column primitive d0 nonNullable
-    <*> column primitive (d1 nonNullable vector) nullable
-    <*> column composite (d2 nullable vector vector) nonNullable
+    <$> column d0 nonNullable
+    <*> column (d1 nonNullable vector) nullable
+    <*> column (d2 nullable vector vector) nonNullable

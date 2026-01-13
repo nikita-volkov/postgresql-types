@@ -14,3 +14,6 @@ single = error "TODO"
 
 multirow :: Columns row -> Result (Vector row)
 multirow = error "TODO"
+
+rowsAffected :: Result Int
+rowsAffected = error "TODO"

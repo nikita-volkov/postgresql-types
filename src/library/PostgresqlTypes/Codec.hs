@@ -1,15 +1,46 @@
 module PostgresqlTypes.Codec
-  ( module PostgresqlTypes.Codec.DecodingError,
-    module PostgresqlTypes.Codec.Dimension,
-    module PostgresqlTypes.Codec.Dimensionality,
-    module PostgresqlTypes.Codec.Nullability,
-    module PostgresqlTypes.Codec.Scalar,
-    module PostgresqlTypes.Codec.Columns,
-    module PostgresqlTypes.Codec.Params,
-    module PostgresqlTypes.Codec.Result,
-    module PostgresqlTypes.Codec.Fields,
-    module PostgresqlTypes.Codec.IsComposite,
-    module PostgresqlTypes.Codec.IsEnum,
+  ( -- * Errors
+    DecodingError (..),
+    DecodingErrorReason (..),
+
+    -- * Parameter
+    Params (..),
+    param,
+
+    -- * Result sets
+    Result (..),
+    single,
+    multirow,
+    rowsAffected,
+
+    -- ** Result set columns
+    Columns (..),
+    column,
+
+    -- * Nullability
+    Nullability,
+    nonNullable,
+    nullable,
+
+    -- * Dimensionality
+    Dimensionality,
+    d0,
+    d1,
+    d2,
+
+    -- ** Dimension
+    Dimension,
+    vector,
+
+    -- * Scalar types
+    Scalar,
+    primitive,
+    enum,
+    composite,
+
+    -- * Composite types
+    Fields,
+    field,
   )
 where
 
@@ -17,10 +48,8 @@ import PostgresqlTypes.Codec.Columns
 import PostgresqlTypes.Codec.DecodingError
 import PostgresqlTypes.Codec.Dimension
 import PostgresqlTypes.Codec.Dimensionality
-import PostgresqlTypes.Codec.Fields hiding (composite)
-import PostgresqlTypes.Codec.IsComposite
-import PostgresqlTypes.Codec.IsEnum
+import PostgresqlTypes.Codec.Fields
 import PostgresqlTypes.Codec.Nullability
 import PostgresqlTypes.Codec.Params
 import PostgresqlTypes.Codec.Result
-import PostgresqlTypes.Codec.Scalar hiding (enum)
+import PostgresqlTypes.Codec.Scalar

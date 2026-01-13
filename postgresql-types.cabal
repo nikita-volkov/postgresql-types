@@ -97,6 +97,7 @@ library
   exposed-modules:
     PostgresqlTypes.Codec
     PostgresqlTypes.Mapping
+    PostgresqlTypes.Mapping.Primitives
     PostgresqlTypes.Primitive
 
   other-modules:
@@ -106,13 +107,13 @@ library
     PostgresqlTypes.Codec.Dimensionality
     PostgresqlTypes.Codec.Dimensionality.Writes
     PostgresqlTypes.Codec.Fields
-    PostgresqlTypes.Codec.IsComposite
-    PostgresqlTypes.Codec.IsEnum
     PostgresqlTypes.Codec.Nullability
     PostgresqlTypes.Codec.Params
     PostgresqlTypes.Codec.Prelude
     PostgresqlTypes.Codec.Result
     PostgresqlTypes.Codec.Scalar
+    PostgresqlTypes.Mapping.MapsToScalar
+    PostgresqlTypes.Mapping.ParameterizesStatement
     PostgresqlTypes.Primitive.Algebra
     PostgresqlTypes.Primitive.Prelude
     PostgresqlTypes.Primitive.Types
