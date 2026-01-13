@@ -97,8 +97,10 @@ library
   exposed-modules:
     PostgresqlTypes.Codec.Algebra
     PostgresqlTypes.Codec.Demo
+    PostgresqlTypes.Primitive
     PostgresqlTypes.Primitive.Algebra
     PostgresqlTypes.Primitive.Types
+    PostgresqlTypes.Primitive.Via
 
   other-modules:
     PostgresqlTypes.Codec.Algebra.Writes
@@ -146,7 +148,6 @@ library
     PostgresqlTypes.Primitive.Types.Uuid
     PostgresqlTypes.Primitive.Types.Varbit
     PostgresqlTypes.Primitive.Types.Varchar
-    PostgresqlTypes.Primitive.Via
     PostgresqlTypes.Primitive.Via.IsMany
     PostgresqlTypes.Primitive.Via.IsPrimitive
     PostgresqlTypes.Primitive.Writes
