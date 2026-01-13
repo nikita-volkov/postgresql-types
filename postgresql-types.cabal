@@ -100,8 +100,19 @@ library
     PostgresqlTypes.Primitive
 
   other-modules:
-    PostgresqlTypes.Codec.Algebra.Writes
+    PostgresqlTypes.Codec.Columns
+    PostgresqlTypes.Codec.DecodingError
+    PostgresqlTypes.Codec.Dimension
+    PostgresqlTypes.Codec.Dimensionality
+    PostgresqlTypes.Codec.Dimensionality.Writes
+    PostgresqlTypes.Codec.Fields
+    PostgresqlTypes.Codec.IsComposite
+    PostgresqlTypes.Codec.IsEnum
+    PostgresqlTypes.Codec.Nullability
+    PostgresqlTypes.Codec.Params
     PostgresqlTypes.Codec.Prelude
+    PostgresqlTypes.Codec.Result
+    PostgresqlTypes.Codec.Scalar
     PostgresqlTypes.Primitive.Algebra
     PostgresqlTypes.Primitive.Prelude
     PostgresqlTypes.Primitive.Types

@@ -1,4 +1,4 @@
-module PostgresqlTypes.Codec.Algebra.Writes where
+module PostgresqlTypes.Codec.Dimensionality.Writes where
 
 import PostgresqlTypes.Codec.Prelude
 import PtrPoker.Write
