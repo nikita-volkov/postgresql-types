@@ -1,6 +1,6 @@
 module PostgresqlTypes.Mapping where
 
-import qualified PostgresqlTypes.Codec.Algebra as Codec
+import qualified PostgresqlTypes.Codec as Codec
 import PostgresqlTypes.Codec.Prelude
 
 class IsStaticStatement a where

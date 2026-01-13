@@ -1,8 +1,14 @@
-module PostgresqlTypes.Codec.Demo where
+{-# OPTIONS_GHC -Wno-unused-binds -Wno-unused-imports -Wno-name-shadowing -Wno-incomplete-patterns -Wno-unused-matches -Wno-missing-methods -Wno-unused-record-wildcards -Wno-redundant-constraints -Wno-deprecations -Wno-missing-signatures #-}
 
-import PostgresqlTypes.Codec.Algebra
-import PostgresqlTypes.Codec.Prelude hiding (Int8, Text)
-import PostgresqlTypes.Primitive.Types
+module Main (main) where
+
+import Data.Tagged
+import PostgresqlTypes.Codec
+import PostgresqlTypes.Primitive
+import Prelude hiding (Int8, Text)
+
+main :: IO ()
+main = error "TODO"
 
 data Genre = Rock | Pop | Jazz
 

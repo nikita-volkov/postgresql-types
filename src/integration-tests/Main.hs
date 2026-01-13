@@ -1,7 +1,7 @@
 module Main (main) where
 
 import Main.Helpers
-import qualified PostgresqlTypes.Primitive.Types as PostgresqlTypes.Primitive
+import qualified PostgresqlTypes.Primitive as PostgresqlTypes.Primitive
 import Test.Hspec
 import Test.QuickCheck.Instances ()
 import qualified TestcontainersPostgresql

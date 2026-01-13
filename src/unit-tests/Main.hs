@@ -15,7 +15,7 @@ import qualified Data.Vector.Unboxed
 import qualified Data.Vector.Unboxed as VU
 import Data.Word
 import qualified LawfulConversions
-import qualified PostgresqlTypes.Primitive.Types as PostgresqlTypes.Primitive
+import qualified PostgresqlTypes.Primitive as PostgresqlTypes.Primitive
 import Test.Hspec
 import Test.Hspec.QuickCheck
 import Test.QuickCheck (Arbitrary)

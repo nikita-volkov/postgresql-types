@@ -11,7 +11,7 @@ import qualified Data.Text.Encoding as Text.Encoding
 import Data.Typeable
 import qualified Database.PostgreSQL.LibPQ as Pq
 import LawfulConversions
-import qualified PostgresqlTypes.Primitive.Algebra as PostgresqlTypes.Primitive
+import qualified PostgresqlTypes.Primitive as PostgresqlTypes.Primitive
 import qualified PqProcedures as Procedures
 import qualified PtrPeeker
 import qualified PtrPoker.Write

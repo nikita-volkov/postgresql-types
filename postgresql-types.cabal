@@ -95,18 +95,16 @@ library
   import: base
   hs-source-dirs: src/library
   exposed-modules:
-    PostgresqlTypes.Codec.Algebra
-    PostgresqlTypes.Codec.Demo
+    PostgresqlTypes.Codec
     PostgresqlTypes.Mapping
     PostgresqlTypes.Primitive
-    PostgresqlTypes.Primitive.Algebra
-    PostgresqlTypes.Primitive.Types
-    PostgresqlTypes.Primitive.Via
 
   other-modules:
     PostgresqlTypes.Codec.Algebra.Writes
     PostgresqlTypes.Codec.Prelude
+    PostgresqlTypes.Primitive.Algebra
     PostgresqlTypes.Primitive.Prelude
+    PostgresqlTypes.Primitive.Types
     PostgresqlTypes.Primitive.Types.Bit
     PostgresqlTypes.Primitive.Types.Bool
     PostgresqlTypes.Primitive.Types.Box
@@ -149,6 +147,7 @@ library
     PostgresqlTypes.Primitive.Types.Uuid
     PostgresqlTypes.Primitive.Types.Varbit
     PostgresqlTypes.Primitive.Types.Varchar
+    PostgresqlTypes.Primitive.Via
     PostgresqlTypes.Primitive.Via.IsMany
     PostgresqlTypes.Primitive.Via.IsPrimitive
     PostgresqlTypes.Primitive.Writes
@@ -292,3 +291,13 @@ test-suite integration-tests
     testcontainers-postgresql ^>=0.2.0.1,
     text >=1.2 && <3,
     text-builder ^>=1.0.0.4,
+
+test-suite demo
+  import: test
+  type: exitcode-stdio-1.0
+  hs-source-dirs: src/demo
+  main-is: Main.hs
+  build-depends:
+    postgresql-types,
+    rerebase ^>=1.22,
+    tagged ^>=0.8.9,
