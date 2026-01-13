@@ -97,6 +97,7 @@ library
   exposed-modules:
     PostgresqlTypes.Codec.Algebra
     PostgresqlTypes.Codec.Demo
+    PostgresqlTypes.Mapping
     PostgresqlTypes.Primitive
     PostgresqlTypes.Primitive.Algebra
     PostgresqlTypes.Primitive.Types

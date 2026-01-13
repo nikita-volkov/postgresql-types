@@ -416,9 +416,3 @@ class IsEnum a where
 
   -- | List of Postgres enumeration label to Haskell value associations.
   enumVariants :: [(Text, a)]
-
-class IsStatement a where
-  type ResultOf a
-  statementSql :: Tagged a Text
-  statementParams :: Params a
-  statementResult :: Tagged a (Result (ResultOf a))
