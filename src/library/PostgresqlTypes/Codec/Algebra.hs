@@ -269,7 +269,7 @@ primitive =
 
 composite :: forall a. (IsComposite a) => Scalar a
 composite =
-  let fields = compositeCodec @a
+  let fields = compositeFields @a
    in Scalar
         { schemaName = untag (compositeSchema @a),
           typeName = untag (compositeName @a),
@@ -407,7 +407,7 @@ multirow = error "TODO"
 class IsComposite a where
   compositeSchema :: Tagged a Text
   compositeName :: Tagged a Text
-  compositeCodec :: Fields a a
+  compositeFields :: Fields a a
 
 -- | Enumeration type mapping.
 class IsEnum a where

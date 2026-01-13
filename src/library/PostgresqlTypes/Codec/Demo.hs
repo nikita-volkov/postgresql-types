@@ -23,7 +23,7 @@ data Artist = Artist
 instance IsComposite Artist where
   compositeSchema = Tagged ""
   compositeName = Tagged "artist"
-  compositeCodec =
+  compositeFields =
     Artist
       <$> lmap (.name) (field primitive d0 nonNullable)
       <*> lmap (.genre) (field enum d0 nonNullable)
