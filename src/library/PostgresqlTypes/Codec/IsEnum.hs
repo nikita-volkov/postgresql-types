@@ -1,14 +1,17 @@
 module PostgresqlTypes.Codec.IsEnum where
 
 import PostgresqlTypes.Codec.Prelude
-import PostgresqlTypes.Codec.Scalar
+import PostgresqlTypes.Codec.Scalar as Scalar
 
-enum :: (IsEnum a) => Scalar a
+enum :: forall a. (IsEnum a) => Scalar a
 enum =
-  error "TODO"
+  Scalar.enum
+    (untag (enumSchema @a))
+    (untag (enumName @a))
+    (enumVariants @a)
 
 -- | Enumeration type mapping.
-class IsEnum a where
+class (Ord a) => IsEnum a where
   enumSchema :: Tagged a Text
   enumName :: Tagged a Text
 

@@ -23,4 +23,4 @@ import PostgresqlTypes.Codec.IsEnum
 import PostgresqlTypes.Codec.Nullability
 import PostgresqlTypes.Codec.Params
 import PostgresqlTypes.Codec.Result
-import PostgresqlTypes.Codec.Scalar
+import PostgresqlTypes.Codec.Scalar hiding (enum)

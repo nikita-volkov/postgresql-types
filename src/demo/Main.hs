@@ -11,6 +11,7 @@ main :: IO ()
 main = error "TODO"
 
 data Genre = Rock | Pop | Jazz
+  deriving (Eq, Ord)
 
 instance IsEnum Genre where
   enumSchema = Tagged ""

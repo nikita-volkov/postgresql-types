@@ -2,6 +2,9 @@
 
 module PostgresqlTypes.Codec.Scalar where
 
+import qualified Data.Map.Strict as Map
+import qualified Data.Text as Text
+import qualified Data.Text.Encoding as Text.Encoding
 import PostgresqlTypes.Codec.DecodingError
 import PostgresqlTypes.Codec.Prelude
 import qualified PostgresqlTypes.Primitive as Primitive
@@ -65,4 +68,61 @@ primitive =
           binaryEncoder = Primitive.binaryEncoder,
           binaryDecoder = fmap (first convertError) (Primitive.binaryDecoder @a),
           textualEncoder = Primitive.textualEncoder
+        }
+
+enum :: (Ord a) => Text -> Text -> [(Text, a)] -> Scalar a
+enum schema tName variants =
+  let byValue = Map.fromList (map (\(l, v) -> (v, l)) variants)
+
+      -- Binary encoder: encode as text (enums are text in PostgreSQL wire protocol)
+      encoder val =
+        case Map.lookup val byValue of
+          Just label -> Write.textUtf8 label
+          Nothing -> error ("Invalid enum value for type: " <> show tName)
+
+      -- Binary decoder: decode from text and look up in variants map
+      decoder = do
+        bytes <- PtrPeeker.remainderAsByteString
+        case Text.Encoding.decodeUtf8' bytes of
+          Left e ->
+            pure
+              ( Left
+                  ( DecodingError
+                      { location = [],
+                        reason =
+                          ParsingDecodingErrorReason
+                            (fromString (show e))
+                            bytes
+                      }
+                  )
+              )
+          Right label ->
+            case lookup label variants of
+              Just val -> pure (Right val)
+              Nothing ->
+                pure
+                  ( Left
+                      ( DecodingError
+                          { location = [],
+                            reason =
+                              UnexpectedValueDecodingErrorReason
+                                ("One of: " <> Text.intercalate ", " (map fst variants))
+                                label
+                          }
+                      )
+                  )
+
+      -- Textual encoder: just output the label
+      textEncoder val =
+        case lookup val (map (\(l, v) -> (v, l)) variants) of
+          Just label -> TextBuilder.text label
+          Nothing -> error ("Invalid enum value for type: " <> show tName)
+   in Scalar
+        { schemaName = schema,
+          typeName = tName,
+          baseOid = Nothing,
+          arrayOid = Nothing,
+          binaryEncoder = encoder,
+          binaryDecoder = decoder,
+          textualEncoder = textEncoder
         }
