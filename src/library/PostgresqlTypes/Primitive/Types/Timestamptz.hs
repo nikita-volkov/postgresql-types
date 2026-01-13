@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wno-unused-binds -Wno-unused-imports -Wno-name-shadowing -Wno-incomplete-patterns -Wno-unused-matches -Wno-missing-methods -Wno-unused-record-wildcards -Wno-redundant-constraints -Wno-deprecations -Wno-missing-signatures #-}
+
 module PostgresqlTypes.Primitive.Types.Timestamptz (Timestamptz) where
 
 import qualified Data.Time as Time
@@ -74,7 +76,7 @@ instance IsSome Time.UTCTime Timestamptz where
     let diffTime = Time.diffUTCTime utcTime postgresUtcEpoch
         picoSeconds = Time.nominalDiffTimeToSeconds diffTime
         -- Convert Pico to Integer picoseconds (Pico has 10^12 precision)
-        picosecondsInteger = round (toRational picoSeconds * 1_000_000_000_000)
+        picosecondsInteger = round @_ @Integer (toRational picoSeconds * 1_000_000_000_000)
         (microseconds, remainder) = divMod picosecondsInteger 1_000_000
      in if remainder == 0
           then Just (Timestamptz (fromIntegral microseconds))

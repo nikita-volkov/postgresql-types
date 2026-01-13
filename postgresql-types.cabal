@@ -239,18 +239,11 @@ library pq-procedures
     PqProcedures.Procedures.RunStatement
 
   build-depends:
-    QuickCheck >=2.14 && <3,
     base >=4.11 && <5,
     bytestring >=0.10 && <0.13,
-    hspec >=2.11 && <3,
     lawful-conversions ^>=0.3,
     postgresql-libpq >=0.10 && <0.12,
-    postgresql-types,
     ptr-peeker ^>=0.1,
-    ptr-poker ^>=0.1.2.16,
-    quickcheck-instances ^>=0.3.33,
-    tagged ^>=0.8.9,
-    testcontainers-postgresql ^>=0.2.0.1,
     text >=1.2 && <3,
     text-builder ^>=1.0.0.4,
     text-builder-lawful-conversions ^>=0.1.4,
@@ -299,4 +292,3 @@ test-suite integration-tests
     testcontainers-postgresql ^>=0.2.0.1,
     text >=1.2 && <3,
     text-builder ^>=1.0.0.4,
-    text-builder-lawful-conversions ^>=0.1.4,

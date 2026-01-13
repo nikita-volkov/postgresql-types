@@ -156,7 +156,7 @@ d1 elementNullability (Dimension construct1 destruct1 count1) =
                 { location = ["dimension-count"],
                   reason =
                     UnexpectedValueDecodingErrorReason
-                      (TextBuilder.toText (TextBuilder.decimal 1))
+                      "1"
                       (TextBuilder.toText (TextBuilder.decimal dimensionCount))
                 }
 
@@ -179,7 +179,7 @@ d1 elementNullability (Dimension construct1 destruct1 count1) =
                 { location = ["lower-bound"],
                   reason =
                     UnexpectedValueDecodingErrorReason
-                      (TextBuilder.toText (TextBuilder.decimal 1))
+                      "1"
                       (TextBuilder.toText (TextBuilder.decimal lowerBound1))
                 }
 
