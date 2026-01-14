@@ -1,10 +1,7 @@
 -- |
 -- Haskell representations of PostgreSQL data structures in their canonical forms that directly correspond to their PostgreSQL definitions. No data loss.
 --
--- These types do not necessarily have direct mappings to the common Haskell types. E.g., the @text@ type in PostgreSQL maps to 'Text' in Haskell, but the 'Text' type in this library ensures that it does not contain NUL-bytes, because PostgreSQL does not allow NUL-bytes in text fields. In case of dates
--- These types do not necessarily have direct mappings to the common Haskell types, but they provide partial conversions to and from them via the 'IsSome', 'IsMany' and 'Is' typeclasses of the "lawful-conversions" library.
---
--- Type-safe wrappers compatible with PostgreSQL's binary wire protocol.
+-- These types do not necessarily have direct mappings to the common Haskell types. E.g., any @text@ value from PostgreSQL makes valid 'Data.Text.Text' values in Haskell, but not every Haskell 'Data.Text.Text` value makes valid PostgreSQL @text@, because PostgreSQL does not allow NUL-bytes in text fields, but Haskell's 'Data.Text.Text' does. In case of dates the supported date ranges may differ between PostgreSQL and Haskell's \"time\" library. Therefore, conversions between these types and common Haskell types may be partial and may fail if the data cannot be represented in the target type.
 --
 -- = Type Categories
 --
