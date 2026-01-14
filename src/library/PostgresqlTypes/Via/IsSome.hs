@@ -28,24 +28,25 @@ instance (IsSome a b) => IsSome a (ViaIsSome a b) where
   maybeFrom = fmap ViaIsSome . maybeFrom @a
 
 instance (IsStandardType a, IsSome a b) => IsStandardType (ViaIsSome a b) where
-  typeName = retag @a typeName
-  baseOid = retag @a baseOid
-  arrayOid = retag @a arrayOid
-  binaryEncoder = binaryEncoder . to @a
+  typeName = retag (typeName @a)
+  baseOid = retag (baseOid @a)
+  arrayOid = retag (arrayOid @a)
+  binaryEncoder = binaryEncoder @a . to
   binaryDecoder =
-    binaryDecoder <&> \result -> do
-      value <- result
-      tryFrom @a
-        ( DecodingError
-            { location = ["ViaIsSome"],
-              reason =
-                UnsupportedValueDecodingErrorReason
-                  ""
-                  (to @Text (textualEncoder value))
-            }
-        )
-        value
-  textualEncoder = textualEncoder . to @a
+    binaryDecoder @a <&> \case
+      Left err -> Left err
+      Right value ->
+        tryFrom
+          ( DecodingError
+              { location = ["ViaIsSome"],
+                reason =
+                  UnsupportedValueDecodingErrorReason
+                    ""
+                    (to @Text (textualEncoder @a value))
+              }
+          )
+          value
+  textualEncoder = textualEncoder @a . to
 
 instance (Arbitrary a, IsSome a b) => Arbitrary (ViaIsSome a b) where
   arbitrary =
