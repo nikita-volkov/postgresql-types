@@ -98,7 +98,6 @@ library
     PostgresqlTypes
     PostgresqlTypes.Algebra
     PostgresqlTypes.Types
-    PostgresqlTypes.Via
 
   other-modules:
     PostgresqlTypes.Prelude
@@ -144,6 +143,7 @@ library
     PostgresqlTypes.Types.Uuid
     PostgresqlTypes.Types.Varbit
     PostgresqlTypes.Types.Varchar
+    PostgresqlTypes.Via
     PostgresqlTypes.Via.IsMany
     PostgresqlTypes.Via.IsStandardType
     PostgresqlTypes.Writes
