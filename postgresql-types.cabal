@@ -96,10 +96,10 @@ library
   hs-source-dirs: src/library
   exposed-modules:
     PostgresqlTypes
-    PostgresqlTypes.Algebra
     PostgresqlTypes.Types
 
   other-modules:
+    PostgresqlTypes.Algebra
     PostgresqlTypes.Prelude
     PostgresqlTypes.Types.Bit
     PostgresqlTypes.Types.Bool
