@@ -21,8 +21,8 @@ This is a multi-package Cabal project with the following components:
 ### File Organization
 ```
 src/
-├── primitive-layer/           # Core type definitions and codecs
-│   ├── PostgresqlTypes.Primitive/
+├── library/                   # Core type definitions and codecs
+│   ├── PostgresqlTypes/
 │   │   ├── Algebra.hs        # Core algebraic structures
 │   │   ├── Types/            # Individual type implementations
 │   │   └── Prelude.hs        # Common imports and utilities
@@ -119,14 +119,14 @@ cabal test --test-show-details=direct  # Show detailed test output
 ```
 
 ### Adding New PostgreSQL Types
-1. Create new module in `src/primitive-layer/PostgresqlTypes.Primitive/Types/`
+1. Create new module in `src/library/PostgresqlTypes/Types/`
 2. Implement `IsPrimitive` instance with:
    - `typeName`: PostgreSQL type name
    - `baseOid`: PostgreSQL type OID  
    - `arrayOid`: Array type OID
    - `binaryEncoder`/`binaryDecoder`: Binary format codecs
    - `textualEncoder`: Text format encoder
-3. Add module to `PostgresqlTypes.Primitive.Types` exports
+3. Add module to `PostgresqlTypes.Types` exports
 4. Add integration test in `src/integration-tests/Main.hs`
 
 ### Codec Implementation Patterns

@@ -15,7 +15,7 @@ import qualified Data.Vector.Unboxed
 import qualified Data.Vector.Unboxed as VU
 import Data.Word
 import qualified LawfulConversions
-import qualified PostgresqlTypes.Primitive as PostgresqlTypes.Primitive
+import qualified PostgresqlTypes as PostgresqlTypes
 import Test.Hspec
 import Test.Hspec.QuickCheck
 import Test.QuickCheck (Arbitrary)
@@ -24,74 +24,74 @@ import Prelude
 
 main :: IO ()
 main = hspec do
-  testIs @PostgresqlTypes.Primitive.Inet @(PostgresqlTypes.Primitive.Ip, Word8) Proxy Proxy
-  testIs @PostgresqlTypes.Primitive.Bit @[Bool] Proxy Proxy
-  testIs @PostgresqlTypes.Primitive.Bit @(VU.Vector Bool) Proxy Proxy
-  testIs @PostgresqlTypes.Primitive.Bool @Bool Proxy Proxy
-  testIs @PostgresqlTypes.Primitive.Bytea @ByteString Proxy Proxy
-  testIs @PostgresqlTypes.Primitive.Float4 @Float Proxy Proxy
-  testIs @PostgresqlTypes.Primitive.Float8 @Double Proxy Proxy
-  testIs @PostgresqlTypes.Primitive.Int2 @Int16 Proxy Proxy
-  testIs @PostgresqlTypes.Primitive.Int4 @Int32 Proxy Proxy
-  testIs @PostgresqlTypes.Primitive.Int8 @Int64 Proxy Proxy
-  testIs @PostgresqlTypes.Primitive.Lseg @(Double, Double, Double, Double) Proxy Proxy
-  testIs @PostgresqlTypes.Primitive.Macaddr @(Word8, Word8, Word8, Word8, Word8, Word8) Proxy Proxy
-  testIs @PostgresqlTypes.Primitive.Macaddr8 @(Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) Proxy Proxy
-  testIs @PostgresqlTypes.Primitive.Money @Int64 Proxy Proxy
-  testIs @PostgresqlTypes.Primitive.Numeric @(Maybe Scientific.Scientific) Proxy Proxy
-  testIs @PostgresqlTypes.Primitive.Oid @Word32 Proxy Proxy
-  testIs @PostgresqlTypes.Primitive.Point @(Double, Double) Proxy Proxy
-  testIs @PostgresqlTypes.Primitive.Uuid @UUID.UUID Proxy Proxy
-  testIs @PostgresqlTypes.Primitive.Varbit @[Bool] Proxy Proxy
-  testIs @PostgresqlTypes.Primitive.Varbit @(VU.Vector Bool) Proxy Proxy
-  testIsMany @PostgresqlTypes.Primitive.Bool @Bool Proxy Proxy
-  testIsMany @PostgresqlTypes.Primitive.Box @(Double, Double, Double, Double) Proxy Proxy
-  testIsMany @PostgresqlTypes.Primitive.Bytea @ByteString Proxy Proxy
-  testIsMany @PostgresqlTypes.Primitive.Char @Word8 Proxy Proxy
-  testIsMany @PostgresqlTypes.Primitive.Char @Char Proxy Proxy
-  testIsMany @PostgresqlTypes.Primitive.Cidr @(PostgresqlTypes.Primitive.Ip, Word8) Proxy Proxy
-  testIsMany @PostgresqlTypes.Primitive.Circle @(Double, Double, Double) Proxy Proxy
-  testIsMany @PostgresqlTypes.Primitive.Date @Day Proxy Proxy
-  testIsMany @PostgresqlTypes.Primitive.Float4 @Float Proxy Proxy
-  testIsMany @PostgresqlTypes.Primitive.Float8 @Double Proxy Proxy
-  testIsMany @PostgresqlTypes.Primitive.Int2 @Int16 Proxy Proxy
-  testIsMany @PostgresqlTypes.Primitive.Int4 @Int32 Proxy Proxy
-  testIsMany @PostgresqlTypes.Primitive.Int8 @Int64 Proxy Proxy
-  testIsMany @PostgresqlTypes.Primitive.Interval @(Int32, Int32, Int64) Proxy Proxy
-  testIsMany @PostgresqlTypes.Primitive.IntervalAsMicroseconds @PostgresqlTypes.Primitive.Interval Proxy Proxy
-  testIsMany @PostgresqlTypes.Primitive.IntervalAsMicroseconds @DiffTime Proxy Proxy
-  testIsMany @PostgresqlTypes.Primitive.Json @Aeson.Value Proxy Proxy
-  testIsMany @PostgresqlTypes.Primitive.Line @(Double, Double, Double) Proxy Proxy
-  testIsMany @PostgresqlTypes.Primitive.Money @Int64 Proxy Proxy
-  testIsMany @(PostgresqlTypes.Primitive.Multirange PostgresqlTypes.Primitive.Int4) @(Vector (PostgresqlTypes.Primitive.Range PostgresqlTypes.Primitive.Int4)) Proxy Proxy
-  testIsMany @(PostgresqlTypes.Primitive.Multirange PostgresqlTypes.Primitive.Int8) @(Vector (PostgresqlTypes.Primitive.Range PostgresqlTypes.Primitive.Int8)) Proxy Proxy
-  testIsMany @(PostgresqlTypes.Primitive.Multirange PostgresqlTypes.Primitive.Numeric) @(Vector (PostgresqlTypes.Primitive.Range PostgresqlTypes.Primitive.Numeric)) Proxy Proxy
-  testIsMany @(PostgresqlTypes.Primitive.Multirange PostgresqlTypes.Primitive.Timestamp) @(Vector (PostgresqlTypes.Primitive.Range PostgresqlTypes.Primitive.Timestamp)) Proxy Proxy
-  testIsMany @(PostgresqlTypes.Primitive.Multirange PostgresqlTypes.Primitive.Timestamptz) @(Vector (PostgresqlTypes.Primitive.Range PostgresqlTypes.Primitive.Timestamptz)) Proxy Proxy
-  testIsMany @(PostgresqlTypes.Primitive.Multirange PostgresqlTypes.Primitive.Date) @(Vector (PostgresqlTypes.Primitive.Range PostgresqlTypes.Primitive.Date)) Proxy Proxy
-  testIsMany @PostgresqlTypes.Primitive.Oid @Word32 Proxy Proxy
-  testIsMany @PostgresqlTypes.Primitive.Point @(Double, Double) Proxy Proxy
-  testIsMany @(PostgresqlTypes.Primitive.Range PostgresqlTypes.Primitive.Int4) @(Maybe (Maybe PostgresqlTypes.Primitive.Int4, Maybe PostgresqlTypes.Primitive.Int4)) Proxy Proxy
-  testIsMany @(PostgresqlTypes.Primitive.Range PostgresqlTypes.Primitive.Int8) @(Maybe (Maybe PostgresqlTypes.Primitive.Int8, Maybe PostgresqlTypes.Primitive.Int8)) Proxy Proxy
-  testIsMany @(PostgresqlTypes.Primitive.Range PostgresqlTypes.Primitive.Numeric) @(Maybe (Maybe PostgresqlTypes.Primitive.Numeric, Maybe PostgresqlTypes.Primitive.Numeric)) Proxy Proxy
-  testIsMany @(PostgresqlTypes.Primitive.Range PostgresqlTypes.Primitive.Timestamp) @(Maybe (Maybe PostgresqlTypes.Primitive.Timestamp, Maybe PostgresqlTypes.Primitive.Timestamp)) Proxy Proxy
-  testIsMany @(PostgresqlTypes.Primitive.Range PostgresqlTypes.Primitive.Timestamptz) @(Maybe (Maybe PostgresqlTypes.Primitive.Timestamptz, Maybe PostgresqlTypes.Primitive.Timestamptz)) Proxy Proxy
-  testIsMany @(PostgresqlTypes.Primitive.Range PostgresqlTypes.Primitive.Date) @(Maybe (Maybe PostgresqlTypes.Primitive.Date, Maybe PostgresqlTypes.Primitive.Date)) Proxy Proxy
-  testIsMany @PostgresqlTypes.Primitive.Text @Text.Text Proxy Proxy
-  testIsMany @PostgresqlTypes.Primitive.Time @TimeOfDay Proxy Proxy
-  testIsMany @PostgresqlTypes.Primitive.Timestamp @LocalTime Proxy Proxy
-  testIsMany @PostgresqlTypes.Primitive.Timestamptz @UTCTime Proxy Proxy
-  testIsMany @PostgresqlTypes.Primitive.TimetzAsTimeOfDayAndTimeZone @PostgresqlTypes.Primitive.Timetz Proxy Proxy
-  testIsMany @PostgresqlTypes.Primitive.TimetzAsTimeOfDayAndTimeZone @(TimeOfDay, TimeZone) Proxy Proxy
-  testIsMany @PostgresqlTypes.Primitive.Uuid @UUID.UUID Proxy Proxy
-  testIsMany @PostgresqlTypes.Primitive.Varchar @Text.Text Proxy Proxy
-  testIsMany @Scientific.Scientific @PostgresqlTypes.Primitive.Numeric Proxy Proxy
-  testIsSome @PostgresqlTypes.Primitive.Path @(Bool, [(Double, Double)]) Proxy Proxy
-  testIsSome @PostgresqlTypes.Primitive.Path @(Bool, (Data.Vector.Unboxed.Vector (Double, Double))) Proxy Proxy
-  testIsSome @PostgresqlTypes.Primitive.Polygon @(Data.Vector.Unboxed.Vector (Double, Double)) Proxy Proxy
-  testIsSome @PostgresqlTypes.Primitive.Polygon @[(Double, Double)] Proxy Proxy
-  testIsSomeBounded @PostgresqlTypes.Primitive.Time @TimeOfDay Proxy Proxy
-  testIsSomeBounded @PostgresqlTypes.Primitive.TimetzAsTimeOfDayAndTimeZone @(TimeOfDay, TimeZone) Proxy Proxy
+  testIs @PostgresqlTypes.Inet @(PostgresqlTypes.Ip, Word8) Proxy Proxy
+  testIs @PostgresqlTypes.Bit @[Bool] Proxy Proxy
+  testIs @PostgresqlTypes.Bit @(VU.Vector Bool) Proxy Proxy
+  testIs @PostgresqlTypes.Bool @Bool Proxy Proxy
+  testIs @PostgresqlTypes.Bytea @ByteString Proxy Proxy
+  testIs @PostgresqlTypes.Float4 @Float Proxy Proxy
+  testIs @PostgresqlTypes.Float8 @Double Proxy Proxy
+  testIs @PostgresqlTypes.Int2 @Int16 Proxy Proxy
+  testIs @PostgresqlTypes.Int4 @Int32 Proxy Proxy
+  testIs @PostgresqlTypes.Int8 @Int64 Proxy Proxy
+  testIs @PostgresqlTypes.Lseg @(Double, Double, Double, Double) Proxy Proxy
+  testIs @PostgresqlTypes.Macaddr @(Word8, Word8, Word8, Word8, Word8, Word8) Proxy Proxy
+  testIs @PostgresqlTypes.Macaddr8 @(Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) Proxy Proxy
+  testIs @PostgresqlTypes.Money @Int64 Proxy Proxy
+  testIs @PostgresqlTypes.Numeric @(Maybe Scientific.Scientific) Proxy Proxy
+  testIs @PostgresqlTypes.Oid @Word32 Proxy Proxy
+  testIs @PostgresqlTypes.Point @(Double, Double) Proxy Proxy
+  testIs @PostgresqlTypes.Uuid @UUID.UUID Proxy Proxy
+  testIs @PostgresqlTypes.Varbit @[Bool] Proxy Proxy
+  testIs @PostgresqlTypes.Varbit @(VU.Vector Bool) Proxy Proxy
+  testIsMany @PostgresqlTypes.Bool @Bool Proxy Proxy
+  testIsMany @PostgresqlTypes.Box @(Double, Double, Double, Double) Proxy Proxy
+  testIsMany @PostgresqlTypes.Bytea @ByteString Proxy Proxy
+  testIsMany @PostgresqlTypes.Char @Word8 Proxy Proxy
+  testIsMany @PostgresqlTypes.Char @Char Proxy Proxy
+  testIsMany @PostgresqlTypes.Cidr @(PostgresqlTypes.Ip, Word8) Proxy Proxy
+  testIsMany @PostgresqlTypes.Circle @(Double, Double, Double) Proxy Proxy
+  testIsMany @PostgresqlTypes.Date @Day Proxy Proxy
+  testIsMany @PostgresqlTypes.Float4 @Float Proxy Proxy
+  testIsMany @PostgresqlTypes.Float8 @Double Proxy Proxy
+  testIsMany @PostgresqlTypes.Int2 @Int16 Proxy Proxy
+  testIsMany @PostgresqlTypes.Int4 @Int32 Proxy Proxy
+  testIsMany @PostgresqlTypes.Int8 @Int64 Proxy Proxy
+  testIsMany @PostgresqlTypes.Interval @(Int32, Int32, Int64) Proxy Proxy
+  testIsMany @PostgresqlTypes.IntervalAsMicroseconds @PostgresqlTypes.Interval Proxy Proxy
+  testIsMany @PostgresqlTypes.IntervalAsMicroseconds @DiffTime Proxy Proxy
+  testIsMany @PostgresqlTypes.Json @Aeson.Value Proxy Proxy
+  testIsMany @PostgresqlTypes.Line @(Double, Double, Double) Proxy Proxy
+  testIsMany @PostgresqlTypes.Money @Int64 Proxy Proxy
+  testIsMany @(PostgresqlTypes.Multirange PostgresqlTypes.Int4) @(Vector (PostgresqlTypes.Range PostgresqlTypes.Int4)) Proxy Proxy
+  testIsMany @(PostgresqlTypes.Multirange PostgresqlTypes.Int8) @(Vector (PostgresqlTypes.Range PostgresqlTypes.Int8)) Proxy Proxy
+  testIsMany @(PostgresqlTypes.Multirange PostgresqlTypes.Numeric) @(Vector (PostgresqlTypes.Range PostgresqlTypes.Numeric)) Proxy Proxy
+  testIsMany @(PostgresqlTypes.Multirange PostgresqlTypes.Timestamp) @(Vector (PostgresqlTypes.Range PostgresqlTypes.Timestamp)) Proxy Proxy
+  testIsMany @(PostgresqlTypes.Multirange PostgresqlTypes.Timestamptz) @(Vector (PostgresqlTypes.Range PostgresqlTypes.Timestamptz)) Proxy Proxy
+  testIsMany @(PostgresqlTypes.Multirange PostgresqlTypes.Date) @(Vector (PostgresqlTypes.Range PostgresqlTypes.Date)) Proxy Proxy
+  testIsMany @PostgresqlTypes.Oid @Word32 Proxy Proxy
+  testIsMany @PostgresqlTypes.Point @(Double, Double) Proxy Proxy
+  testIsMany @(PostgresqlTypes.Range PostgresqlTypes.Int4) @(Maybe (Maybe PostgresqlTypes.Int4, Maybe PostgresqlTypes.Int4)) Proxy Proxy
+  testIsMany @(PostgresqlTypes.Range PostgresqlTypes.Int8) @(Maybe (Maybe PostgresqlTypes.Int8, Maybe PostgresqlTypes.Int8)) Proxy Proxy
+  testIsMany @(PostgresqlTypes.Range PostgresqlTypes.Numeric) @(Maybe (Maybe PostgresqlTypes.Numeric, Maybe PostgresqlTypes.Numeric)) Proxy Proxy
+  testIsMany @(PostgresqlTypes.Range PostgresqlTypes.Timestamp) @(Maybe (Maybe PostgresqlTypes.Timestamp, Maybe PostgresqlTypes.Timestamp)) Proxy Proxy
+  testIsMany @(PostgresqlTypes.Range PostgresqlTypes.Timestamptz) @(Maybe (Maybe PostgresqlTypes.Timestamptz, Maybe PostgresqlTypes.Timestamptz)) Proxy Proxy
+  testIsMany @(PostgresqlTypes.Range PostgresqlTypes.Date) @(Maybe (Maybe PostgresqlTypes.Date, Maybe PostgresqlTypes.Date)) Proxy Proxy
+  testIsMany @PostgresqlTypes.Text @Text.Text Proxy Proxy
+  testIsMany @PostgresqlTypes.Time @TimeOfDay Proxy Proxy
+  testIsMany @PostgresqlTypes.Timestamp @LocalTime Proxy Proxy
+  testIsMany @PostgresqlTypes.Timestamptz @UTCTime Proxy Proxy
+  testIsMany @PostgresqlTypes.TimetzAsTimeOfDayAndTimeZone @PostgresqlTypes.Timetz Proxy Proxy
+  testIsMany @PostgresqlTypes.TimetzAsTimeOfDayAndTimeZone @(TimeOfDay, TimeZone) Proxy Proxy
+  testIsMany @PostgresqlTypes.Uuid @UUID.UUID Proxy Proxy
+  testIsMany @PostgresqlTypes.Varchar @Text.Text Proxy Proxy
+  testIsMany @Scientific.Scientific @PostgresqlTypes.Numeric Proxy Proxy
+  testIsSome @PostgresqlTypes.Path @(Bool, [(Double, Double)]) Proxy Proxy
+  testIsSome @PostgresqlTypes.Path @(Bool, (Data.Vector.Unboxed.Vector (Double, Double))) Proxy Proxy
+  testIsSome @PostgresqlTypes.Polygon @(Data.Vector.Unboxed.Vector (Double, Double)) Proxy Proxy
+  testIsSome @PostgresqlTypes.Polygon @[(Double, Double)] Proxy Proxy
+  testIsSomeBounded @PostgresqlTypes.Time @TimeOfDay Proxy Proxy
+  testIsSomeBounded @PostgresqlTypes.TimetzAsTimeOfDayAndTimeZone @(TimeOfDay, TimeZone) Proxy Proxy
 
 -- | Test lawful conversions for a PostgreSQL type
 testIsMany ::
