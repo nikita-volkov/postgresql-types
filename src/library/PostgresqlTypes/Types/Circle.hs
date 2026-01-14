@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -Wno-unused-binds -Wno-unused-imports -Wno-name-shadowing -Wno-incomplete-patterns -Wno-unused-matches -Wno-missing-methods -Wno-unused-record-wildcards -Wno-redundant-constraints -Wno-deprecations -Wno-missing-signatures #-}
+{-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
 module PostgresqlTypes.Types.Circle (Circle) where
 
@@ -19,11 +19,11 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-geometric.html#DATATYPE-CIRCLE).
 data Circle = Circle
   { -- | Center x coordinate
-    circleCenterX :: Double,
+    centerX :: Double,
     -- | Center y coordinate
-    circleCenterY :: Double,
+    centerY :: Double,
     -- | Circle radius (must be non-negative)
-    circleRadius :: Double
+    radius :: Double
   }
   deriving stock (Eq, Ord)
   deriving (Show) via (ViaIsStandardType Circle)

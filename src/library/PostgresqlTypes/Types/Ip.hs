@@ -6,7 +6,6 @@ module PostgresqlTypes.Types.Ip
   )
 where
 
-import Data.Bits
 import PostgresqlTypes.Prelude
 
 -- | IP address type for representing IPv4 and IPv6 addresses.

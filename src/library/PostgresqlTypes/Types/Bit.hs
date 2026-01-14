@@ -1,4 +1,6 @@
-module PostgresqlTypes.Types.Bit (Bit (..)) where
+{-# OPTIONS_GHC -Wno-unused-top-binds #-}
+
+module PostgresqlTypes.Types.Bit (Bit) where
 
 import qualified Data.Bits as Bits
 import qualified Data.ByteString as ByteString
@@ -18,9 +20,9 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-bit.html).
 data Bit = Bit
   { -- | Number of bits
-    bitLength :: Int32,
+    length :: Int32,
     -- | Bit data (packed into bytes)
-    bitData :: ByteString
+    bytes :: ByteString
   }
   deriving stock (Eq, Ord)
   deriving (Show) via (ViaIsStandardType Bit)
