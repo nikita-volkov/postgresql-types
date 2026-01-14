@@ -304,12 +304,18 @@ test-suite integration-tests
     text >=1.2 && <3,
     text-builder ^>=1.0.0.4,
 
-test-suite demo
-  import: test
-  type: exitcode-stdio-1.0
+library demo
+  import: base
   hs-source-dirs: src/demo
-  main-is: Main.hs
+  exposed-modules:
+    Demo.Statements
+    Demo.Types
+
+  other-modules:
+    Demo.Statements.SelectArtistById
+    Demo.Types.Artist
+    Demo.Types.Genre
+
   build-depends:
     postgresql-types,
     rerebase ^>=1.22,
-    tagged ^>=0.8.9,
