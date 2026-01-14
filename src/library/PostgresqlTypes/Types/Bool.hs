@@ -1,5 +1,6 @@
 module PostgresqlTypes.Types.Bool (Bool) where
 
+import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.Bool
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude hiding (Bool)
@@ -24,6 +25,11 @@ instance IsStandardType Bool where
       b <- PtrPeeker.unsignedInt1
       pure (Right (Bool (b /= 0)))
   textualEncoder (Bool b) = if b then "t" else "f"
+  textualDecoder =
+    (Bool True <$ Attoparsec.char 't')
+      <|> (Bool False <$ Attoparsec.char 'f')
+      <|> (Bool True <$ Attoparsec.string "true")
+      <|> (Bool False <$ Attoparsec.string "false")
 
 -- | Direct conversion from Haskell 'Data.Bool.Bool'.
 -- This is always safe since both types represent the same values.

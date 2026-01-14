@@ -1,5 +1,6 @@
 module PostgresqlTypes.Types.Date (Date) where
 
+import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.Time as Time
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
@@ -73,6 +74,24 @@ instance IsStandardType Date where
             TextBuilder.fixedLengthDecimal 2 d,
             if bc then " BC" else ""
           ]
+  textualDecoder = do
+    -- Parse year (may have more than 4 digits for extreme dates)
+    y <- Attoparsec.decimal
+    _ <- Attoparsec.char '-'
+    m <- twoDigits
+    _ <- Attoparsec.char '-'
+    d <- twoDigits
+    -- Check for BC suffix
+    bc <- Attoparsec.option False (True <$ (Attoparsec.skipSpace *> Attoparsec.string "BC"))
+    let year = if bc then negate y + 1 else y
+    case Time.fromGregorianValid year m d of
+      Nothing -> fail "Invalid date"
+      Just day -> pure (unsafeFromDay day)
+    where
+      twoDigits = do
+        a <- Attoparsec.digit
+        b <- Attoparsec.digit
+        pure (digitToInt a * 10 + digitToInt b)
 
 -- | Mapping to @daterange@ type.
 instance IsRangeElement Date where

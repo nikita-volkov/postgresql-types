@@ -1,5 +1,6 @@
 module PostgresqlTypes.Types.Int2 (Int2) where
 
+import qualified Data.Attoparsec.Text as Attoparsec
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
 import PostgresqlTypes.Via
@@ -23,6 +24,7 @@ instance IsStandardType Int2 where
   binaryEncoder (Int2 x) = Write.bInt16 x
   binaryDecoder = PtrPeeker.fixed (Right . Int2 <$> PtrPeeker.beSignedInt2)
   textualEncoder (Int2 x) = TextBuilder.decimal x
+  textualDecoder = Int2 <$> Attoparsec.signed Attoparsec.decimal
 
 -- | Direct conversion from 'Int16'.
 -- This is always safe since both types represent 16-bit signed integers identically.

@@ -2,6 +2,7 @@
 
 module PostgresqlTypes.Types.Box (Box) where
 
+import qualified Data.Attoparsec.Text as Attoparsec
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
@@ -73,6 +74,19 @@ instance IsStandardType Box where
         TextBuilder.string (show y2),
         ")"
       ]
+  textualDecoder = do
+    _ <- Attoparsec.char '('
+    x1 <- Attoparsec.double
+    _ <- Attoparsec.char ','
+    y1 <- Attoparsec.double
+    _ <- Attoparsec.char ')'
+    _ <- Attoparsec.char ','
+    _ <- Attoparsec.char '('
+    x2 <- Attoparsec.double
+    _ <- Attoparsec.char ','
+    y2 <- Attoparsec.double
+    _ <- Attoparsec.char ')'
+    pure (Box x1 y1 x2 y2)
 
 -- | Mapping to a tuple of coordinates of lower-left and upper-right corners represented as @(lowerX, lowerY, upperX, upperY)@.
 --

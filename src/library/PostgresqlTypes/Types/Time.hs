@@ -1,5 +1,7 @@
 module PostgresqlTypes.Types.Time (Time) where
 
+import qualified Data.Attoparsec.Text as Attoparsec
+import qualified Data.Text as Text
 import qualified Data.Time as Time
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
@@ -33,6 +35,33 @@ instance IsStandardType Time where
     let diffTime = fromIntegral microseconds / 1_000_000
         timeOfDay = Time.timeToTimeOfDay diffTime
      in TextBuilder.string (Time.formatTime Time.defaultTimeLocale "%H:%M:%S%Q" timeOfDay)
+  textualDecoder = do
+    h <- twoDigits
+    _ <- Attoparsec.char ':'
+    m <- twoDigits
+    -- Seconds are optional
+    s <- Attoparsec.option 0 (Attoparsec.char ':' *> parseSeconds)
+    if h < 25 && m < 60 && s < 61
+      then
+        let microseconds = fromIntegral h * 3600_000_000 + fromIntegral m * 60_000_000 + s
+         in pure (Time microseconds)
+      else fail "Invalid time"
+    where
+      twoDigits = do
+        a <- Attoparsec.digit
+        b <- Attoparsec.digit
+        pure (digitToInt a * 10 + digitToInt b)
+      parseSeconds = do
+        secs <- twoDigits
+        micros <- Attoparsec.option 0 parseFraction
+        pure (fromIntegral secs * 1_000_000 + micros)
+      parseFraction = do
+        _ <- Attoparsec.char '.'
+        digits <- Attoparsec.takeWhile1 isDigit
+        -- Pad or truncate to 6 digits for microseconds
+        let paddedDigits = take 6 (Text.unpack digits ++ repeat '0')
+            micros = foldl' (\acc c -> acc * 10 + fromIntegral (digitToInt c)) 0 paddedDigits
+        pure micros
 
 instance Bounded Time where
   minBound = Time 0

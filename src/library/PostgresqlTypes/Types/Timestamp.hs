@@ -1,5 +1,7 @@
 module PostgresqlTypes.Types.Timestamp (Timestamp) where
 
+import qualified Data.Attoparsec.Text as Attoparsec
+import qualified Data.Text as Text
 import qualified Data.Time as Time
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
@@ -38,6 +40,42 @@ instance IsStandardType Timestamp where
     pure (Right (Timestamp microseconds))
   textualEncoder (toLocalTime -> localTime) =
     formatTimestampForPostgreSQL localTime
+  textualDecoder = do
+    -- Parse date part
+    y <- Attoparsec.decimal
+    _ <- Attoparsec.char '-'
+    m <- twoDigits
+    _ <- Attoparsec.char '-'
+    d <- twoDigits
+    -- Space or T separator
+    _ <- Attoparsec.satisfy (\c -> c == ' ' || c == 'T')
+    -- Parse time part
+    h <- twoDigits
+    _ <- Attoparsec.char ':'
+    mi <- twoDigits
+    _ <- Attoparsec.char ':'
+    s <- twoDigits
+    micros <- Attoparsec.option 0 parseFraction
+    -- Check for BC suffix
+    bc <- Attoparsec.option False (True <$ (Attoparsec.skipSpace *> Attoparsec.string "BC"))
+    let year = if bc then negate y + 1 else y
+    case Time.fromGregorianValid year m d of
+      Nothing -> fail "Invalid date in timestamp"
+      Just day ->
+        let timeOfDay = Time.TimeOfDay h mi (fromIntegral s + fromIntegral micros / 1_000_000)
+            localTime = Time.LocalTime day timeOfDay
+         in pure (fromLocalTime localTime)
+    where
+      twoDigits = do
+        a <- Attoparsec.digit
+        b <- Attoparsec.digit
+        pure (digitToInt a * 10 + digitToInt b)
+      parseFraction = do
+        _ <- Attoparsec.char '.'
+        digits <- Attoparsec.takeWhile1 isDigit
+        let paddedDigits = take 6 (Text.unpack digits ++ repeat '0')
+            micros = foldl' (\acc c -> acc * 10 + digitToInt c) 0 paddedDigits
+        pure micros
 
 -- | Mapping to @tsrange@ type.
 instance IsRangeElement Timestamp where

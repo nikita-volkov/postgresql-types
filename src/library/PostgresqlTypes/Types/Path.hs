@@ -2,6 +2,7 @@
 
 module PostgresqlTypes.Types.Path (Path) where
 
+import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.Vector.Unboxed as UnboxedVector
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
 import PostgresqlTypes.Algebra
@@ -76,6 +77,23 @@ instance IsStandardType Path where
     where
       encodePoint (x, y) =
         "(" <> TextBuilder.string (show x) <> "," <> TextBuilder.string (show y) <> ")"
+  textualDecoder = do
+    closed <-
+      True
+        <$ Attoparsec.char '('
+        <|> False
+        <$ Attoparsec.char '['
+    points <- parsePoint `Attoparsec.sepBy1` Attoparsec.char ','
+    _ <- Attoparsec.char (if closed then ')' else ']')
+    pure (Path closed (UnboxedVector.fromList points))
+    where
+      parsePoint = do
+        _ <- Attoparsec.char '('
+        x <- Attoparsec.double
+        _ <- Attoparsec.char ','
+        y <- Attoparsec.double
+        _ <- Attoparsec.char ')'
+        pure (x, y)
 
 -- | Convert from a tuple of Bool and list of points to a Path.
 -- This is always safe since both represent the same data.

@@ -1,5 +1,6 @@
 module PostgresqlTypes.Types.Money (Money) where
 
+import qualified Data.Attoparsec.Text as Attoparsec
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
 import PostgresqlTypes.Via
@@ -41,6 +42,14 @@ instance IsStandardType Money where
             else TextBuilder.decimal cents
         signPrefix = if isNegative then "-" else ""
      in signPrefix <> "$" <> TextBuilder.decimal dollars <> "." <> centsText
+  textualDecoder = do
+    isNegative <- (True <$ Attoparsec.char '-') <|> pure False
+    _ <- Attoparsec.char '$'
+    dollars <- Attoparsec.decimal @Int64
+    _ <- Attoparsec.char '.'
+    cents <- Attoparsec.decimal @Int64
+    let value = dollars * 100 + cents
+    pure (Money (if isNegative then negate value else value))
 
 -- | Direct conversion from 'Int64'.
 -- This represents the raw monetary value in the smallest currency unit

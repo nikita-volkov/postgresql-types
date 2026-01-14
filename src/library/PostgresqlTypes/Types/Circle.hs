@@ -2,6 +2,7 @@
 
 module PostgresqlTypes.Types.Circle (Circle) where
 
+import qualified Data.Attoparsec.Text as Attoparsec
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
@@ -65,6 +66,17 @@ instance IsStandardType Circle where
         TextBuilder.string (show r),
         ">"
       ]
+  textualDecoder = do
+    _ <- Attoparsec.char '<'
+    _ <- Attoparsec.char '('
+    x <- Attoparsec.double
+    _ <- Attoparsec.char ','
+    y <- Attoparsec.double
+    _ <- Attoparsec.char ')'
+    _ <- Attoparsec.char ','
+    r <- Attoparsec.double
+    _ <- Attoparsec.char '>'
+    pure (Circle x y r)
 
 -- | Conversion from (x, y, radius) to Circle.
 -- The radius is validated to be non-negative.

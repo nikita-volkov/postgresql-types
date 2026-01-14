@@ -1,5 +1,6 @@
 module PostgresqlTypes.Types.Oid (Oid) where
 
+import qualified Data.Attoparsec.Text as Attoparsec
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
 import PostgresqlTypes.Via
@@ -23,6 +24,7 @@ instance IsStandardType Oid where
   binaryEncoder (Oid x) = Write.bWord32 x
   binaryDecoder = PtrPeeker.fixed (Right . Oid <$> PtrPeeker.beUnsignedInt4)
   textualEncoder (Oid x) = TextBuilder.decimal x
+  textualDecoder = Oid <$> Attoparsec.decimal
 
 -- | Direct conversion from 'Word32'.
 -- This is always safe since both types represent 32-bit unsigned integers identically.

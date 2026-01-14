@@ -2,6 +2,7 @@
 
 module PostgresqlTypes.Types.Bit (Bit) where
 
+import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.Bits as Bits
 import qualified Data.ByteString as ByteString
 import qualified Data.Text as Text
@@ -59,6 +60,20 @@ instance IsStandardType Bit where
     where
       byteToBits :: Word8 -> [Bool]
       byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
+  textualDecoder = do
+    bitChars <- Attoparsec.takeText
+    let bits = map (== '1') (Text.unpack bitChars)
+        len = fromIntegral (length bits)
+        numBytes = (len + 7) `div` 8
+        paddedBits = bits ++ replicate (numBytes * 8 - len) False
+        bytes = map boolsToByte (chunksOf 8 paddedBits)
+    pure (Bit (fromIntegral len) (ByteString.pack bytes))
+    where
+      boolsToByte :: [Bool] -> Word8
+      boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
+      chunksOf :: Int -> [a] -> [[a]]
+      chunksOf _ [] = []
+      chunksOf n xs = take n xs : chunksOf n (drop n xs)
 
 -- | Convert from a bit string (as a list of Bool) to a Bit.
 -- The bit string is packed into bytes.

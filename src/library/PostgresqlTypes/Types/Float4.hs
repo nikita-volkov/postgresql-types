@@ -1,5 +1,6 @@
 module PostgresqlTypes.Types.Float4 (Float4) where
 
+import qualified Data.Attoparsec.Text as Attoparsec
 import GHC.Float (castFloatToWord32, castWord32ToFloat)
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
@@ -22,6 +23,11 @@ instance IsStandardType Float4 where
   binaryEncoder (Float4 x) = Write.bWord32 (castFloatToWord32 x)
   binaryDecoder = PtrPeeker.fixed (Right . Float4 . castWord32ToFloat <$> PtrPeeker.beUnsignedInt4)
   textualEncoder (Float4 x) = TextBuilder.string (show x)
+  textualDecoder =
+    (Float4 (0 / 0) <$ Attoparsec.string "NaN")
+      <|> (Float4 (1 / 0) <$ Attoparsec.string "Infinity")
+      <|> (Float4 (-1 / 0) <$ Attoparsec.string "-Infinity")
+      <|> (Float4 . realToFrac <$> Attoparsec.double)
 
 -- | Direct conversion from 'Float'.
 -- This is always safe since both types represent 32-bit floating point numbers identically.

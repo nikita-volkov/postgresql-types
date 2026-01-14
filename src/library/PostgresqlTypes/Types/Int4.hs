@@ -1,5 +1,6 @@
 module PostgresqlTypes.Types.Int4 (Int4) where
 
+import qualified Data.Attoparsec.Text as Attoparsec
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
 import PostgresqlTypes.Via
@@ -23,6 +24,7 @@ instance IsStandardType Int4 where
   binaryEncoder (Int4 x) = Write.bInt32 x
   binaryDecoder = PtrPeeker.fixed (Right . Int4 <$> PtrPeeker.beSignedInt4)
   textualEncoder (Int4 x) = TextBuilder.decimal x
+  textualDecoder = Int4 <$> Attoparsec.signed Attoparsec.decimal
 
 -- | Mapping to @int4range@ type.
 instance IsRangeElement Int4 where

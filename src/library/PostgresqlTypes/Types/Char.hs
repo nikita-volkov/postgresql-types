@@ -1,5 +1,6 @@
 module PostgresqlTypes.Types.Char (Char) where
 
+import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.Char
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude hiding (Char)
@@ -33,6 +34,12 @@ instance IsStandardType Char where
     Right . Char <$> PtrPeeker.fixed PtrPeeker.unsignedInt1
   textualEncoder (Char base) =
     TextBuilder.unicodeCodepoint (fromIntegral base)
+  textualDecoder = do
+    c <- Attoparsec.anyChar
+    let ord = Data.Char.ord c
+    if ord > 127
+      then fail "Invalid char: value > 127"
+      else pure (Char (fromIntegral ord))
 
 instance IsSome Word8 Char where
   to = coerce

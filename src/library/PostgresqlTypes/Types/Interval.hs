@@ -2,6 +2,8 @@
 
 module PostgresqlTypes.Types.Interval (Interval) where
 
+import qualified Data.Attoparsec.Text as Attoparsec
+import qualified Data.Text as Text
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
 import PostgresqlTypes.Via
@@ -113,6 +115,61 @@ instance IsStandardType Interval where
      in if datePart == mempty && timePart == mempty
           then "PT0S"
           else "P" <> datePart <> tPrefix <> timePart
+
+  -- Parse ISO-8601 duration format: P[n]Y[n]M[n]DT[n]H[n]M[n]S
+  textualDecoder = do
+    _ <- Attoparsec.char 'P'
+    -- Parse date part
+    (years, monthsPart, daysPart) <- parseDatePart (0 :: Int) (0 :: Int) (0 :: Int)
+    -- Parse time part (optional)
+    (hours, mins, secs, microsPart) <-
+      Attoparsec.option (0, 0, 0, 0) (Attoparsec.char 'T' *> parseTimePart 0 0 0 0)
+    let totalMonths = fromIntegral (years * 12 + monthsPart)
+        totalDays = fromIntegral daysPart
+        totalMicros = hours * 3600_000_000 + mins * 60_000_000 + secs * 1_000_000 + microsPart
+    pure (Interval totalMonths totalDays totalMicros)
+    where
+      parseDatePart years months days = do
+        mc <- Attoparsec.peekChar
+        case mc of
+          Just 'T' -> pure (years, months, days)
+          Nothing -> pure (years, months, days)
+          Just c | isDigit c || c == '-' -> do
+            (sign, n) <- parseSignedNumber
+            designator <- Attoparsec.satisfy (`elem` ['Y', 'M', 'D'])
+            case designator of
+              'Y' -> parseDatePart (sign * n) months days
+              'M' -> parseDatePart years (sign * n) days
+              'D' -> parseDatePart years months (sign * n)
+              _ -> fail "Unexpected designator"
+          _ -> pure (years, months, days)
+      parseTimePart hours mins secs micros = do
+        mc <- Attoparsec.peekChar
+        case mc of
+          Nothing -> pure (hours, mins, secs, micros)
+          Just c | isDigit c || c == '-' -> do
+            (sign, n) <- parseSignedNumber
+            -- Check for fractional seconds
+            hasFraction <- Attoparsec.option False (True <$ Attoparsec.char '.')
+            if hasFraction
+              then do
+                fracDigits <- Attoparsec.takeWhile1 isDigit
+                _ <- Attoparsec.char 'S'
+                let paddedDigits = take 6 (Text.unpack fracDigits ++ repeat '0')
+                    microsFrac = foldl' (\acc d -> acc * 10 + fromIntegral (digitToInt d)) 0 paddedDigits
+                pure (hours, mins, fromIntegral (sign * n), sign * microsFrac)
+              else do
+                designator <- Attoparsec.satisfy (`elem` ['H', 'M', 'S'])
+                case designator of
+                  'H' -> parseTimePart (fromIntegral (sign * n)) mins secs micros
+                  'M' -> parseTimePart hours (fromIntegral (sign * n)) secs micros
+                  'S' -> parseTimePart hours mins (fromIntegral (sign * n)) micros
+                  _ -> fail "Unexpected time designator"
+          _ -> pure (hours, mins, secs, micros)
+      parseSignedNumber = do
+        sign <- Attoparsec.option 1 ((-1) <$ Attoparsec.char '-')
+        n <- Attoparsec.decimal
+        pure (sign, n)
 
 -- | Safe conversion from tuple representation (months, days, microseconds) to Interval.
 -- Validates that the input values are within PostgreSQL's valid range for intervals.

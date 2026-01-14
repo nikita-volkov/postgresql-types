@@ -2,6 +2,8 @@
 
 module PostgresqlTypes.Types.Timetz (Timetz) where
 
+import qualified Data.Attoparsec.Text as Attoparsec
+import qualified Data.Text as Text
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
 import qualified PostgresqlTypes.Types.Timetz.Offset as Offset
@@ -56,6 +58,38 @@ instance IsStandardType Timetz where
   -- 00:00:00+15:59:59
   textualEncoder (Timetz time offset) =
     Time.renderInTextFormat time <> Offset.renderInTextFormat offset
+  textualDecoder = do
+    -- Parse time part: HH:MM:SS[.microseconds]
+    h <- twoDigits
+    _ <- Attoparsec.char ':'
+    m <- twoDigits
+    _ <- Attoparsec.char ':'
+    s <- twoDigits
+    micros <- Attoparsec.option 0 parseFraction
+    -- Parse timezone offset: [+-]HH:MM:SS
+    sign <- (1 <$ Attoparsec.char '+') <|> ((-1) <$ Attoparsec.char '-')
+    tzH <- twoDigits
+    _ <- Attoparsec.char ':'
+    tzM <- twoDigits
+    tzS <- Attoparsec.option 0 (Attoparsec.char ':' *> twoDigits)
+    -- Build time and offset
+    let timeMicros = fromIntegral h * 3600_000_000 + fromIntegral m * 60_000_000 + fromIntegral s * 1_000_000 + micros
+        -- Note: PostgreSQL stores offset with inverted sign (positive means west of UTC)
+        offsetSeconds = negate sign * (fromIntegral tzH * 3600 + fromIntegral tzM * 60 + fromIntegral tzS)
+    case (Time.compileFromMicroseconds timeMicros, Offset.compileFromSeconds offsetSeconds) of
+      (Just time, Just offset) -> pure (Timetz time offset)
+      _ -> fail "Invalid timetz value"
+    where
+      twoDigits = do
+        a <- Attoparsec.digit
+        b <- Attoparsec.digit
+        pure (digitToInt a * 10 + digitToInt b)
+      parseFraction = do
+        _ <- Attoparsec.char '.'
+        digits <- Attoparsec.takeWhile1 isDigit
+        let paddedDigits = take 6 (Text.unpack digits ++ repeat '0')
+            micros = foldl' (\acc c -> acc * 10 + fromIntegral (digitToInt c)) 0 paddedDigits
+        pure micros
 
 -- | Convert from a tuple of time in microseconds and timezone offset in seconds to Timetz.
 instance IsSome (Int64, Int32) Timetz where

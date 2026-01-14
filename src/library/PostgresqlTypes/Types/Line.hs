@@ -2,6 +2,7 @@
 
 module PostgresqlTypes.Types.Line (Line) where
 
+import qualified Data.Attoparsec.Text as Attoparsec
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
@@ -63,6 +64,15 @@ instance IsStandardType Line where
       <> ","
       <> TextBuilder.string (show c)
       <> "}"
+  textualDecoder = do
+    _ <- Attoparsec.char '{'
+    a <- Attoparsec.double
+    _ <- Attoparsec.char ','
+    b <- Attoparsec.double
+    _ <- Attoparsec.char ','
+    c <- Attoparsec.double
+    _ <- Attoparsec.char '}'
+    pure (Line a b c)
 
 -- | Convert from a tuple of three doubles to a Line.
 -- This is always safe since both represent the same data.

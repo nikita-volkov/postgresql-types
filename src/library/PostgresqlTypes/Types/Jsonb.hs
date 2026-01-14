@@ -4,7 +4,9 @@ import qualified Data.Aeson as Aeson
 import qualified Data.Aeson.Key as Aeson.Key
 import qualified Data.Aeson.KeyMap as Aeson.KeyMap
 import qualified Data.Aeson.Text as Aeson.Text
+import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.Text as Text
+import qualified Data.Text.Encoding as Text.Encoding
 import qualified Jsonifier
 import qualified JsonifierAeson
 import PostgresqlTypes.Algebra
@@ -66,6 +68,11 @@ instance IsStandardType Jsonb where
           )
   textualEncoder =
     TextBuilder.lazyText . Aeson.Text.encodeToLazyText . toAesonValue
+  textualDecoder = do
+    jsonText <- Attoparsec.takeText
+    case Aeson.eitherDecodeStrict (Text.Encoding.encodeUtf8 jsonText) of
+      Left err -> fail err
+      Right value -> pure (Jsonb value)
 
 instance IsSome Aeson.Value Jsonb where
   to = toAesonValue

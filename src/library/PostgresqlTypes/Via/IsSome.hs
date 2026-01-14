@@ -47,6 +47,11 @@ instance (IsStandardType a, IsSome a b) => IsStandardType (ViaIsSome a b) where
           )
           value
   textualEncoder = textualEncoder @a . to
+  textualDecoder = do
+    value <- textualDecoder @a
+    case maybeFrom value of
+      Just b -> pure (ViaIsSome b)
+      Nothing -> fail "ViaIsSome: value out of range"
 
 instance (Arbitrary a, IsSome a b) => Arbitrary (ViaIsSome a b) where
   arbitrary =

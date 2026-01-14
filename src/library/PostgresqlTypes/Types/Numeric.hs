@@ -1,9 +1,9 @@
--- The constructors are hidden to keep us more flexible in the representation.
 module PostgresqlTypes.Types.Numeric
   ( Numeric,
   )
 where
 
+import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.Scientific as Scientific
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
@@ -118,6 +118,9 @@ instance IsStandardType Numeric where
       TextBuilder.text (fromString (Scientific.formatScientific Scientific.Fixed Nothing scientific))
     NanNumeric ->
       TextBuilder.text "NaN"
+  textualDecoder =
+    (NanNumeric <$ Attoparsec.string "NaN")
+      <|> (ScientificNumeric <$> Attoparsec.scientific)
 
 -- | Mapping to @numrange@ type.
 instance IsRangeElement Numeric where

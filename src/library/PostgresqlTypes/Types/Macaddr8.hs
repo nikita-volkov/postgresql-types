@@ -2,6 +2,7 @@
 
 module PostgresqlTypes.Types.Macaddr8 (Macaddr8) where
 
+import qualified Data.Attoparsec.Text as Attoparsec
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
 import PostgresqlTypes.Via
@@ -86,6 +87,35 @@ instance IsStandardType Macaddr8 where
     where
       formatByte :: Word8 -> TextBuilder.TextBuilder
       formatByte x = TextBuilder.string (printf "%02x" x)
+  textualDecoder = do
+    a <- hexByte
+    _ <- Attoparsec.char ':'
+    b <- hexByte
+    _ <- Attoparsec.char ':'
+    c <- hexByte
+    _ <- Attoparsec.char ':'
+    d <- hexByte
+    _ <- Attoparsec.char ':'
+    e <- hexByte
+    _ <- Attoparsec.char ':'
+    f <- hexByte
+    _ <- Attoparsec.char ':'
+    g <- hexByte
+    _ <- Attoparsec.char ':'
+    h <- hexByte
+    pure (Macaddr8 a b c d e f g h)
+    where
+      hexByte = do
+        h1 <- hexDigit
+        h2 <- hexDigit
+        pure (h1 * 16 + h2)
+      hexDigit =
+        (\c -> fromIntegral (ord c - ord '0'))
+          <$> Attoparsec.satisfy (\c -> c >= '0' && c <= '9')
+          <|> (\c -> fromIntegral (ord c - ord 'a' + 10))
+          <$> Attoparsec.satisfy (\c -> c >= 'a' && c <= 'f')
+          <|> (\c -> fromIntegral (ord c - ord 'A' + 10))
+          <$> Attoparsec.satisfy (\c -> c >= 'A' && c <= 'F')
 
 -- | Convert from a tuple of 8 Word8s to Macaddr8.
 instance IsSome (Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) Macaddr8 where
