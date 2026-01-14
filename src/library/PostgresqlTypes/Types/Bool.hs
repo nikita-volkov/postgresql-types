@@ -12,9 +12,9 @@ import qualified PtrPoker.Write as Write
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-boolean.html).
 newtype Bool = Bool Data.Bool.Bool
   deriving newtype (Eq, Ord, Arbitrary)
-  deriving (Show) via (ViaIsPrimitive Bool)
+  deriving (Show) via (ViaIsStandardType Bool)
 
-instance IsPrimitive Bool where
+instance IsStandardType Bool where
   typeName = Tagged "bool"
   baseOid = Tagged 16
   arrayOid = Tagged 1000

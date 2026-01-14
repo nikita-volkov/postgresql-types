@@ -23,7 +23,7 @@ data Timetz = Timetz
     offset :: Offset.TimetzOffset
   }
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsPrimitive Timetz)
+  deriving (Show) via (ViaIsStandardType Timetz)
 
 instance Arbitrary Timetz where
   arbitrary = do
@@ -31,7 +31,7 @@ instance Arbitrary Timetz where
     offset <- arbitrary
     pure (Timetz time offset)
 
-instance IsPrimitive Timetz where
+instance IsStandardType Timetz where
   typeName = Tagged "timetz"
 
   baseOid = Tagged 1266

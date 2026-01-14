@@ -34,9 +34,9 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/rangetypes.html#RANGETYPES-MULTIRANGE).
 newtype Multirange a = Multirange (Vector (Range a))
   deriving stock (Eq, Functor)
-  deriving (Show) via (ViaIsPrimitive (Multirange a))
+  deriving (Show) via (ViaIsStandardType (Multirange a))
 
-instance (IsMultirangeElement a, Ord a) => IsPrimitive (Multirange a) where
+instance (IsMultirangeElement a, Ord a) => IsStandardType (Multirange a) where
   typeName = retag @a multirangeTypeName
   baseOid = retag @a multirangeOid
   arrayOid = retag @a multirangeArrayOid

@@ -145,7 +145,7 @@ library
     PostgresqlTypes.Types.Varbit
     PostgresqlTypes.Types.Varchar
     PostgresqlTypes.Via.IsMany
-    PostgresqlTypes.Via.IsPrimitive
+    PostgresqlTypes.Via.IsStandardType
     PostgresqlTypes.Writes
 
   build-depends:

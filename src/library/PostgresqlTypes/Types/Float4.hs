@@ -13,9 +13,9 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-numeric.html#DATATYPE-FLOAT).
 newtype Float4 = Float4 Float
   deriving newtype (Eq, Ord, Arbitrary)
-  deriving (Show) via (ViaIsPrimitive Float4)
+  deriving (Show) via (ViaIsStandardType Float4)
 
-instance IsPrimitive Float4 where
+instance IsStandardType Float4 where
   typeName = Tagged "float4"
   baseOid = Tagged 700
   arrayOid = Tagged 1021

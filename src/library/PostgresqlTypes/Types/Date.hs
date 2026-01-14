@@ -18,7 +18,7 @@ newtype Date
   = -- | Days since PostgreSQL epoch (2000-01-01).
     Date Int32
   deriving newtype (Eq, Ord)
-  deriving (Show) via (ViaIsPrimitive Date)
+  deriving (Show) via (ViaIsStandardType Date)
 
 -- | PostgreSQL date range: 4713 BC to 5874897 AD.
 --
@@ -48,7 +48,7 @@ instance Arbitrary Date where
         )
       ]
 
-instance IsPrimitive Date where
+instance IsStandardType Date where
   typeName = Tagged "date"
   baseOid = Tagged 1082
   arrayOid = Tagged 1182

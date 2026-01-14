@@ -15,9 +15,9 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-uuid.html).
 newtype Uuid = Uuid Data.UUID.UUID
   deriving newtype (Eq, Ord, Arbitrary)
-  deriving (Show) via (ViaIsPrimitive Uuid)
+  deriving (Show) via (ViaIsStandardType Uuid)
 
-instance IsPrimitive Uuid where
+instance IsStandardType Uuid where
   typeName = Tagged "uuid"
   baseOid = Tagged 2950
   arrayOid = Tagged 2951

@@ -1,8 +1,8 @@
 module PostgresqlTypes.Via
-  ( module PostgresqlTypes.Via.IsPrimitive,
+  ( module PostgresqlTypes.Via.IsStandardType,
     module PostgresqlTypes.Via.IsMany,
   )
 where
 
 import PostgresqlTypes.Via.IsMany
-import PostgresqlTypes.Via.IsPrimitive
+import PostgresqlTypes.Via.IsStandardType

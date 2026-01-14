@@ -32,9 +32,9 @@ data Range a
   = EmptyRange
   | BoundedRange (Maybe a) (Maybe a)
   deriving stock (Eq, Functor)
-  deriving (Show) via (ViaIsPrimitive (Range a))
+  deriving (Show) via (ViaIsStandardType (Range a))
 
-instance (IsRangeElement a, Ord a) => IsPrimitive (Range a) where
+instance (IsRangeElement a, Ord a) => IsStandardType (Range a) where
   typeName = retag @a rangeTypeName
   baseOid = retag @a rangeOid
   arrayOid = retag @a rangeArrayOid

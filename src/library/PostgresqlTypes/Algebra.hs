@@ -6,7 +6,7 @@ import qualified PtrPoker.Write as Write
 import qualified TextBuilder
 
 -- | Evidence that a type maps to a PostgreSQL value.
-class IsPrimitive a where
+class IsStandardType a where
   -- | PostgreSQL type name.
   typeName :: Tagged a Text
 
@@ -26,7 +26,7 @@ class IsPrimitive a where
   textualEncoder :: a -> TextBuilder.TextBuilder
 
 -- | Evidence that a type can be used as an element of a PostgreSQL range type.
-class (IsPrimitive a) => IsRangeElement a where
+class (IsStandardType a) => IsRangeElement a where
   -- | PostgreSQL range type name.
   rangeTypeName :: Tagged a Text
 

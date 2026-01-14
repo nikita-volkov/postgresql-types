@@ -20,7 +20,7 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-TIMEZONES).
 newtype Timestamptz = Timestamptz Int64
   deriving newtype (Eq, Ord)
-  deriving (Show) via (ViaIsPrimitive Timestamptz)
+  deriving (Show) via (ViaIsStandardType Timestamptz)
 
 instance Arbitrary Timestamptz where
   arbitrary = Timestamptz <$> QuickCheck.choose (pgTimestampMin, pgTimestampMax)
@@ -30,7 +30,7 @@ instance Arbitrary Timestamptz where
       pgTimestampMin = -210866803200000000 -- 4713 BC January 1 00:00:00 UTC
       pgTimestampMax = 9214646400000000000 -- 294276 AD December 31 23:59:59.999999 UTC
 
-instance IsPrimitive Timestamptz where
+instance IsStandardType Timestamptz where
   typeName = Tagged "timestamptz"
   baseOid = Tagged 1184
   arrayOid = Tagged 1185

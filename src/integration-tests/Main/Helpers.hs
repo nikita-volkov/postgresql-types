@@ -69,10 +69,10 @@ withType specs = do
 
 mappingSpec ::
   forall a.
-  (QuickCheck.Arbitrary a, Show a, Eq a, PostgresqlTypes.IsPrimitive a) =>
+  (QuickCheck.Arbitrary a, Show a, Eq a, PostgresqlTypes.IsStandardType a) =>
   Proxy a ->
   SpecWith Pq.Connection
-mappingSpec _ = describe "IsPrimitive" do
+mappingSpec _ = describe "IsStandardType" do
   let typeName = untag (PostgresqlTypes.typeName @a)
       baseOid = untag (PostgresqlTypes.baseOid @a)
       arrayOid = untag (PostgresqlTypes.arrayOid @a)

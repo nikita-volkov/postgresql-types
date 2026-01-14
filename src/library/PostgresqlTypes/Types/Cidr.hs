@@ -23,7 +23,7 @@ data Cidr = Cidr
     netmask :: Word8
   }
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsPrimitive Cidr)
+  deriving (Show) via (ViaIsStandardType Cidr)
 
 instance Bounded Cidr where
   minBound = Cidr minBound 0
@@ -45,7 +45,7 @@ instance Arbitrary Cidr where
         V6Ip _ _ _ _ -> netmask' <= 128
     ]
 
-instance IsPrimitive Cidr where
+instance IsStandardType Cidr where
   typeName = Tagged "cidr"
   baseOid = Tagged 650
   arrayOid = Tagged 651

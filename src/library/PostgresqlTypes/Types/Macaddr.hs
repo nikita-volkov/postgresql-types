@@ -23,7 +23,7 @@ data Macaddr
       Word8
       Word8
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsPrimitive Macaddr)
+  deriving (Show) via (ViaIsStandardType Macaddr)
 
 instance Arbitrary Macaddr where
   arbitrary = do
@@ -44,7 +44,7 @@ instance Arbitrary Macaddr where
       f' <- shrink f
     ]
 
-instance IsPrimitive Macaddr where
+instance IsStandardType Macaddr where
   typeName = Tagged "macaddr"
   baseOid = Tagged 829
   arrayOid = Tagged 1040

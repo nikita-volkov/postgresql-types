@@ -23,7 +23,7 @@ data Line = Line
     lineC :: Double
   }
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsPrimitive Line)
+  deriving (Show) via (ViaIsStandardType Line)
 
 instance Arbitrary Line where
   arbitrary = do
@@ -40,7 +40,7 @@ instance Arbitrary Line where
       not (a' == 0 && b' == 0) -- Ensure shrunk values are also valid
     ]
 
-instance IsPrimitive Line where
+instance IsStandardType Line where
   typeName = Tagged "line"
   baseOid = Tagged 628
   arrayOid = Tagged 629

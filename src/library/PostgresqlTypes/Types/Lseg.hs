@@ -23,14 +23,14 @@ data Lseg = Lseg
     lsegY2 :: Double
   }
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsPrimitive Lseg)
+  deriving (Show) via (ViaIsStandardType Lseg)
 
 instance Arbitrary Lseg where
   arbitrary = Lseg <$> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary
   shrink (Lseg x1 y1 x2 y2) =
     [Lseg x1' y1' x2' y2' | (x1', y1', x2', y2') <- shrink (x1, y1, x2, y2)]
 
-instance IsPrimitive Lseg where
+instance IsStandardType Lseg where
   typeName = Tagged "lseg"
   baseOid = Tagged 601
   arrayOid = Tagged 1018

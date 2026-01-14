@@ -16,7 +16,7 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-character.html).
 newtype Varchar = Varchar Text.Text
   deriving newtype (Eq, Ord)
-  deriving (Show) via (ViaIsPrimitive Varchar)
+  deriving (Show) via (ViaIsStandardType Varchar)
 
 instance Arbitrary Varchar where
   arbitrary =
@@ -27,7 +27,7 @@ instance Arbitrary Varchar where
   shrink (Varchar base) =
     Varchar . Text.pack <$> shrink (Text.unpack base)
 
-instance IsPrimitive Varchar where
+instance IsStandardType Varchar where
   typeName = Tagged "varchar"
   baseOid = Tagged 1043
   arrayOid = Tagged 1015

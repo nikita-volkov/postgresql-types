@@ -20,9 +20,9 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-money.html).
 newtype Money = Money Int64
   deriving newtype (Eq, Ord, Arbitrary)
-  deriving (Show) via (ViaIsPrimitive Money)
+  deriving (Show) via (ViaIsStandardType Money)
 
-instance IsPrimitive Money where
+instance IsStandardType Money where
   typeName = Tagged "money"
   baseOid = Tagged 790
   arrayOid = Tagged 791

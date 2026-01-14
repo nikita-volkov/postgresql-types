@@ -14,9 +14,9 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-oid.html).
 newtype Oid = Oid Word32
   deriving newtype (Eq, Ord, Arbitrary)
-  deriving (Show) via (ViaIsPrimitive Oid)
+  deriving (Show) via (ViaIsStandardType Oid)
 
-instance IsPrimitive Oid where
+instance IsStandardType Oid where
   typeName = Tagged "oid"
   baseOid = Tagged 26
   arrayOid = Tagged 1028

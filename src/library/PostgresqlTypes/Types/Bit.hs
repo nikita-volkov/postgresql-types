@@ -23,7 +23,7 @@ data Bit = Bit
     bitData :: ByteString
   }
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsPrimitive Bit)
+  deriving (Show) via (ViaIsStandardType Bit)
 
 instance Arbitrary Bit where
   arbitrary = do
@@ -36,7 +36,7 @@ instance Arbitrary Bit where
         shrunkBitsList = shrink bits
      in map LawfulConversions.from shrunkBitsList
 
-instance IsPrimitive Bit where
+instance IsStandardType Bit where
   typeName = Tagged "bit"
   baseOid = Tagged 1560
   arrayOid = Tagged 1561
