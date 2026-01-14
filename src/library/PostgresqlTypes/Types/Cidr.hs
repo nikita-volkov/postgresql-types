@@ -1,4 +1,6 @@
-module PostgresqlTypes.Types.Cidr (Cidr (ip, netmask)) where
+{-# OPTIONS_GHC -Wno-unused-top-binds #-}
+
+module PostgresqlTypes.Types.Cidr (Cidr) where
 
 import Data.Bits
 import PostgresqlTypes.Algebra

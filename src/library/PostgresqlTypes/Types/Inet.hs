@@ -1,4 +1,6 @@
-module PostgresqlTypes.Types.Inet (Inet (ip, netmask)) where
+{-# OPTIONS_GHC -Wno-unused-top-binds #-}
+
+module PostgresqlTypes.Types.Inet (Inet) where
 
 import Data.Bits
 import PostgresqlTypes.Algebra
