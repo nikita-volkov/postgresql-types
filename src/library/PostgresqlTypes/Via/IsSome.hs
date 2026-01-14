@@ -35,17 +35,16 @@ instance (IsStandardType a, IsSome a b) => IsStandardType (ViaIsSome a b) where
   binaryDecoder =
     binaryDecoder <&> \result -> do
       value <- result
-      tryFrom (errByValue value) value
-    where
-      errByValue :: a -> DecodingError
-      errByValue value =
-        DecodingError
-          { location = ["ViaIsSome"],
-            reason =
-              UnsupportedValueDecodingErrorReason
-                ""
-                (to @Text (textualEncoder value))
-          }
+      tryFrom @a
+        ( DecodingError
+            { location = ["ViaIsSome"],
+              reason =
+                UnsupportedValueDecodingErrorReason
+                  ""
+                  (to @Text (textualEncoder value))
+            }
+        )
+        value
   textualEncoder = textualEncoder . to @a
 
 instance (Arbitrary a, IsSome a b) => Arbitrary (ViaIsSome a b) where
