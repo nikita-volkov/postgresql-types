@@ -57,7 +57,7 @@ instance (IsMultirangeElement a, Ord a) => IsStandardType (Multirange a) where
       size <- lift do
         PtrPeeker.fixed PtrPeeker.beSignedInt4
       when (size < 0) do
-        throwError (DecodingError ["range-size"] (InvalidValueDecodingErrorReason "Expecting >= 0" (TextBuilder.toText (TextBuilder.decimal size))))
+        throwError (DecodingError ["range-size"] (UnsupportedValueDecodingErrorReason "Expecting >= 0" (TextBuilder.toText (TextBuilder.decimal size))))
       ExceptT do
         PtrPeeker.forceSize (fromIntegral size) do
           binaryDecoder @(Range a)

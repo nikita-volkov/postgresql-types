@@ -69,15 +69,15 @@ instance (IsRangeElement a, Ord a) => IsStandardType (Range a) where
         upperValue <- decodeBound upperInfinite
 
         when (isJust lowerValue && not lowerInclusive) do
-          throwError (DecodingError ["lower-value"] (InvalidValueDecodingErrorReason "Lower bound cannot be exclusive when it is not infinite" (TextBuilder.toText (TextBuilder.decimal flags))))
+          throwError (DecodingError ["lower-value"] (UnsupportedValueDecodingErrorReason "Lower bound cannot be exclusive when it is not infinite" (TextBuilder.toText (TextBuilder.decimal flags))))
 
         when (isJust upperValue && upperInclusive) do
-          throwError (DecodingError ["upper-value"] (InvalidValueDecodingErrorReason "Upper bound cannot be inclusive" (TextBuilder.toText (TextBuilder.decimal flags))))
+          throwError (DecodingError ["upper-value"] (UnsupportedValueDecodingErrorReason "Upper bound cannot be inclusive" (TextBuilder.toText (TextBuilder.decimal flags))))
 
         case (lowerValue, upperValue) of
           (Just lv, Just uv) ->
             when (lv >= uv) do
-              throwError (DecodingError ["upper-value"] (InvalidValueDecodingErrorReason "Upper value is smaller than the lower one" (TextBuilder.toText (TextBuilder.decimal flags))))
+              throwError (DecodingError ["upper-value"] (UnsupportedValueDecodingErrorReason "Upper value is smaller than the lower one" (TextBuilder.toText (TextBuilder.decimal flags))))
           _ -> pure ()
 
         pure (BoundedRange lowerValue upperValue)
@@ -90,7 +90,7 @@ instance (IsRangeElement a, Ord a) => IsStandardType (Range a) where
               size <- lift do
                 PtrPeeker.fixed PtrPeeker.beSignedInt4
               when (size < 0) do
-                throwError (DecodingError ["bound-size"] (InvalidValueDecodingErrorReason "Expecting >= 0" (TextBuilder.toText (TextBuilder.decimal size))))
+                throwError (DecodingError ["bound-size"] (UnsupportedValueDecodingErrorReason "Expecting >= 0" (TextBuilder.toText (TextBuilder.decimal size))))
               ExceptT do
                 PtrPeeker.forceSize (fromIntegral size) do
                   binaryDecoder @a

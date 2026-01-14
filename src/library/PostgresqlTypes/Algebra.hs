@@ -64,7 +64,8 @@ data DecodingErrorReason
       Text
       -- | Actual.
       Text
-  | InvalidValueDecodingErrorReason
+  | -- | Unsupported server-side value.
+    UnsupportedValueDecodingErrorReason
       -- | Details.
       Text
       -- | Value.

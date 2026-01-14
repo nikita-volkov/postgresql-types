@@ -85,7 +85,7 @@ binaryDecoder =
           DecodingError
             { location = [],
               reason =
-                InvalidValueDecodingErrorReason
+                UnsupportedValueDecodingErrorReason
                   "Value is less than minimum bound"
                   (TextBuilder.toText (TextBuilder.decimal int))
             }
@@ -96,7 +96,7 @@ binaryDecoder =
               DecodingError
                 { location = [],
                   reason =
-                    InvalidValueDecodingErrorReason
+                    UnsupportedValueDecodingErrorReason
                       "Value is greater than maximum bound"
                       (TextBuilder.toText (TextBuilder.decimal int))
                 }
