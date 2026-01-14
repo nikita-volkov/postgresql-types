@@ -15,7 +15,7 @@ module PostgresqlTypes.Types
     Int8,
     Interval,
     IntervalAsMicroseconds,
-    Ip,
+    Ip (..),
     Json,
     Jsonb,
     Line,
