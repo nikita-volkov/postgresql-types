@@ -34,20 +34,7 @@ instance (IsStandardType a, IsMany a b) => IsStandardType (ViaIsMany a b) where
   baseOid = retag @a baseOid
   arrayOid = retag @a arrayOid
   binaryEncoder = binaryEncoder . to @a
-  binaryDecoder =
-    binaryDecoder <&> \result -> do
-      value <- result
-      tryFrom (errByValue value) value
-    where
-      errByValue :: a -> DecodingError
-      errByValue value =
-        DecodingError
-          { location = ["ViaIsMany"],
-            reason =
-              let renderedValue =
-                    to @Text (textualEncoder value)
-               in UnsupportedValueDecodingErrorReason "" renderedValue
-          }
+  binaryDecoder = fmap (fmap (onfrom @a)) binaryDecoder
   textualEncoder = textualEncoder . to @a
 
 instance (Arbitrary a, IsMany a b) => Arbitrary (ViaIsMany a b) where

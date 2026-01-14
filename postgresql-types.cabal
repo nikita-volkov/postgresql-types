@@ -146,6 +146,7 @@ library
     PostgresqlTypes.Types.Varchar
     PostgresqlTypes.Via
     PostgresqlTypes.Via.IsMany
+    PostgresqlTypes.Via.IsSome
     PostgresqlTypes.Via.IsStandardType
     PostgresqlTypes.Writes
 
