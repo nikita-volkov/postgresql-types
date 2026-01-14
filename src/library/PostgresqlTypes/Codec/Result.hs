@@ -9,11 +9,14 @@ data Result a
   | forall row. Multirow (Columns row) (Vector row -> a)
   | RowsAffected (Int -> a)
 
-single :: Columns row -> Result row
-single = error "TODO"
+oneRow :: Columns row -> Result row
+oneRow = error "TODO"
 
-multirow :: Columns row -> Result (Vector row)
-multirow = error "TODO"
+someRow :: Columns row -> Result (Maybe row)
+someRow = error "TODO"
+
+manyRows :: Columns row -> Result (Vector row)
+manyRows = error "TODO"
 
 rowsAffected :: Result Int
 rowsAffected = error "TODO"

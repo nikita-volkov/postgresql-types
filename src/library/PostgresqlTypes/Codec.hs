@@ -9,8 +9,9 @@ module PostgresqlTypes.Codec
 
     -- * Result sets
     Result (..),
-    single,
-    multirow,
+    oneRow,
+    someRow,
+    manyRows,
     rowsAffected,
 
     -- ** Result set columns

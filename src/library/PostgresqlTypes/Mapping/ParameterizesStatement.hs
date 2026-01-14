@@ -5,6 +5,10 @@ import PostgresqlTypes.Codec.Prelude
 
 class ParameterizesStatement a where
   type ResultOf a
-  statementSql :: Tagged a Text
-  statementParams :: Codec.Params a
-  statementResult :: Tagged a (Codec.Result (ResultOf a))
+  statementOf :: StatementOf a
+
+data StatementOf a = StatementOf
+  { sql :: Text,
+    params :: Codec.Params a,
+    result :: Codec.Result (ResultOf a)
+  }

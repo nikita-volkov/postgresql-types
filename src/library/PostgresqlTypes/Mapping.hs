@@ -1,6 +1,9 @@
 module PostgresqlTypes.Mapping
-  ( -- * Mapping classes
+  ( -- * Statement mapping
     ParameterizesStatement (..),
+    StatementOf (..),
+
+    -- * Scalar mapping
     MapsToScalar (..),
 
     -- * Errors
@@ -13,8 +16,9 @@ module PostgresqlTypes.Mapping
 
     -- * Result sets
     Result (..),
-    single,
-    multirow,
+    oneRow,
+    someRow,
+    manyRows,
     rowsAffected,
 
     -- ** Result set columns
