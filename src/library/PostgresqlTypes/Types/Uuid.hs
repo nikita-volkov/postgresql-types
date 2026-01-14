@@ -31,8 +31,7 @@ instance IsStandardType Uuid where
             Write.bWord32 w4
           ]
   binaryDecoder = PtrPeeker.fixed do
-    Right
-      . Uuid
+    (Right . Uuid)
       <$> ( Data.UUID.fromWords
               <$> PtrPeeker.beUnsignedInt4
               <*> PtrPeeker.beUnsignedInt4
