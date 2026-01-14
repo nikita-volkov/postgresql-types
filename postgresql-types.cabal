@@ -96,11 +96,12 @@ library
   hs-source-dirs: src/library
   exposed-modules:
     PostgresqlTypes.Primitive
+    PostgresqlTypes.Primitive.Algebra
+    PostgresqlTypes.Primitive.Types
+    PostgresqlTypes.Primitive.Via
 
   other-modules:
-    PostgresqlTypes.Primitive.Algebra
     PostgresqlTypes.Primitive.Prelude
-    PostgresqlTypes.Primitive.Types
     PostgresqlTypes.Primitive.Types.Bit
     PostgresqlTypes.Primitive.Types.Bool
     PostgresqlTypes.Primitive.Types.Box
@@ -143,7 +144,6 @@ library
     PostgresqlTypes.Primitive.Types.Uuid
     PostgresqlTypes.Primitive.Types.Varbit
     PostgresqlTypes.Primitive.Types.Varchar
-    PostgresqlTypes.Primitive.Via
     PostgresqlTypes.Primitive.Via.IsMany
     PostgresqlTypes.Primitive.Via.IsPrimitive
     PostgresqlTypes.Primitive.Writes
