@@ -4,6 +4,7 @@ import PostgresqlTypes.Prelude
 import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
+import qualified Data.Attoparsec.Text as Attoparsec
 
 -- | Evidence that a type maps to a PostgreSQL value.
 class IsStandardType a where
@@ -24,6 +25,9 @@ class IsStandardType a where
 
   -- | Represent the value in PostgreSQL textual format.
   textualEncoder :: a -> TextBuilder.TextBuilder
+
+  -- | Decode the value from PostgreSQL textual format.
+  textualDecoder :: Attoparsec.Parser a
 
 -- | Evidence that a type can be used as an element of a PostgreSQL range type.
 class (IsStandardType a) => IsRangeElement a where
