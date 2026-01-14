@@ -1,11 +1,13 @@
 module Main (main) where
 
 import qualified Data.Aeson as Aeson
+import qualified Data.Attoparsec.Text
 import Data.ByteString (ByteString)
 import Data.Foldable
 import Data.Int
 import Data.Proxy
 import qualified Data.Scientific as Scientific
+import Data.Tagged
 import qualified Data.Text as Text
 import Data.Time
 import Data.Typeable
@@ -16,14 +18,66 @@ import qualified Data.Vector.Unboxed as VU
 import Data.Word
 import qualified LawfulConversions
 import qualified PostgresqlTypes as PostgresqlTypes
+import qualified PtrPeeker
+import qualified PtrPoker.Write
 import Test.Hspec
 import Test.Hspec.QuickCheck
-import Test.QuickCheck (Arbitrary)
+import Test.QuickCheck (Arbitrary, (===))
+import qualified Test.QuickCheck as QuickCheck
 import Test.QuickCheck.Instances ()
+import qualified TextBuilder
 import Prelude
 
 main :: IO ()
 main = hspec do
+  testIsStandardType @PostgresqlTypes.Bit Proxy
+  testIsStandardType @PostgresqlTypes.Bool Proxy
+  testIsStandardType @PostgresqlTypes.Box Proxy
+  testIsStandardType @PostgresqlTypes.Bytea Proxy
+  testIsStandardType @PostgresqlTypes.Char Proxy
+  testIsStandardType @PostgresqlTypes.Cidr Proxy
+  testIsStandardType @PostgresqlTypes.Circle Proxy
+  testIsStandardType @PostgresqlTypes.Date Proxy
+  testIsStandardType @PostgresqlTypes.Float4 Proxy
+  testIsStandardType @PostgresqlTypes.Float8 Proxy
+  testIsStandardType @PostgresqlTypes.Inet Proxy
+  testIsStandardType @PostgresqlTypes.Int2 Proxy
+  testIsStandardType @PostgresqlTypes.Int4 Proxy
+  testIsStandardType @PostgresqlTypes.Int8 Proxy
+  testIsStandardType @PostgresqlTypes.Interval Proxy
+  testIsStandardType @PostgresqlTypes.IntervalAsMicroseconds Proxy
+  testIsStandardType @PostgresqlTypes.Json Proxy
+  testIsStandardType @PostgresqlTypes.Jsonb Proxy
+  testIsStandardType @PostgresqlTypes.Line Proxy
+  testIsStandardType @PostgresqlTypes.Lseg Proxy
+  testIsStandardType @PostgresqlTypes.Macaddr Proxy
+  testIsStandardType @PostgresqlTypes.Macaddr8 Proxy
+  testIsStandardType @PostgresqlTypes.Money Proxy
+  testIsStandardType @PostgresqlTypes.Numeric Proxy
+  testIsStandardType @PostgresqlTypes.Oid Proxy
+  testIsStandardType @PostgresqlTypes.Path Proxy
+  testIsStandardType @PostgresqlTypes.Point Proxy
+  testIsStandardType @PostgresqlTypes.Polygon Proxy
+  testIsStandardType @(PostgresqlTypes.Range PostgresqlTypes.Int4) Proxy
+  testIsStandardType @(PostgresqlTypes.Range PostgresqlTypes.Int8) Proxy
+  testIsStandardType @(PostgresqlTypes.Range PostgresqlTypes.Numeric) Proxy
+  testIsStandardType @(PostgresqlTypes.Range PostgresqlTypes.Timestamp) Proxy
+  testIsStandardType @(PostgresqlTypes.Range PostgresqlTypes.Timestamptz) Proxy
+  testIsStandardType @(PostgresqlTypes.Range PostgresqlTypes.Date) Proxy
+  testIsStandardType @(PostgresqlTypes.Multirange PostgresqlTypes.Int4) Proxy
+  testIsStandardType @(PostgresqlTypes.Multirange PostgresqlTypes.Int8) Proxy
+  testIsStandardType @(PostgresqlTypes.Multirange PostgresqlTypes.Numeric) Proxy
+  testIsStandardType @(PostgresqlTypes.Multirange PostgresqlTypes.Timestamp) Proxy
+  testIsStandardType @(PostgresqlTypes.Multirange PostgresqlTypes.Timestamptz) Proxy
+  testIsStandardType @(PostgresqlTypes.Multirange PostgresqlTypes.Date) Proxy
+  testIsStandardType @PostgresqlTypes.Text Proxy
+  testIsStandardType @PostgresqlTypes.Time Proxy
+  testIsStandardType @PostgresqlTypes.Timestamp Proxy
+  testIsStandardType @PostgresqlTypes.Timestamptz Proxy
+  testIsStandardType @PostgresqlTypes.Timetz Proxy
+  testIsStandardType @PostgresqlTypes.Uuid Proxy
+  testIsStandardType @PostgresqlTypes.Varbit Proxy
+  testIsStandardType @PostgresqlTypes.Varchar Proxy
   testIs @PostgresqlTypes.Inet @(PostgresqlTypes.Ip, Word8) Proxy Proxy
   testIs @PostgresqlTypes.Bit @[Bool] Proxy Proxy
   testIs @PostgresqlTypes.Bit @(VU.Vector Bool) Proxy Proxy
@@ -197,3 +251,39 @@ testIs projection primitive =
         traverse_
           (uncurry prop)
           (LawfulConversions.isProperties primitive projection)
+
+-- | Test textual encoder/decoder roundtrip
+testIsStandardType ::
+  forall a.
+  ( QuickCheck.Arbitrary a,
+    Show a,
+    Eq a,
+    PostgresqlTypes.IsStandardType a,
+    Typeable a
+  ) =>
+  Proxy a ->
+  Spec
+testIsStandardType _ =
+  let typeName = untag (PostgresqlTypes.typeName @a)
+      binEnc = PostgresqlTypes.binaryEncoder @a
+      binDec = PostgresqlTypes.binaryDecoder @a
+      txtEnc = PostgresqlTypes.textualEncoder @a
+      txtDec = PostgresqlTypes.textualDecoder @a
+   in describe (show (typeOf (undefined :: a))) do
+        describe (Text.unpack typeName) do
+          describe "IsStandardType" do
+            describe "Encoding via textualEncoder" do
+              describe "And decoding via textualDecoder" do
+                it "Should produce the original value" $
+                  QuickCheck.property \(value :: a) ->
+                    let encoded = TextBuilder.toText (txtEnc value)
+                        decoding = Data.Attoparsec.Text.parseOnly txtDec encoded
+                     in decoding === Right value
+
+            describe "Encoding via binaryEncoder" do
+              describe "And decoding via binaryDecoder" do
+                it "Should produce the original value" $
+                  QuickCheck.property \(value :: a) ->
+                    let encoded = PtrPoker.Write.writeToByteString (binEnc value)
+                        decoding = PtrPeeker.runVariableOnByteString binDec encoded
+                     in decoding === Right (Right value)
