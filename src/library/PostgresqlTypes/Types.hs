@@ -1,3 +1,7 @@
+-- |
+-- Haskell representations of PostgreSQL data structures in their canonical forms, that is in forms that directly correspond to their PostgreSQL definitions.
+-- 
+-- These types do not necessarily have direct mappings to the common Haskell types, but they provide partial conversions to and from them via the 'IsSome' and 'IsMany' typeclasses.
 module PostgresqlTypes.Types
   ( Bit,
     Bool,
