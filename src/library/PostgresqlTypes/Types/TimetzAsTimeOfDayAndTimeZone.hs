@@ -1,4 +1,4 @@
-module PostgresqlTypes.Types.TimetzAsTimeOfDayAndTimeZone (TimetzAsTimeOfDayAndTimeZone) where
+module PostgresqlTypes.Types.TimetzAsTimeOfDayAndTimeZone (TimetzAsTimeOfDayAndTimeZone (..)) where
 
 import qualified Data.Time as Time
 import PostgresqlTypes.Algebra
