@@ -68,6 +68,7 @@ import GHC.IO.Exception as Exports
 import LawfulConversions as Exports
 import Numeric as Exports
 import Numeric.Natural as Exports (Natural)
+import PostgresqlTypes.Prelude.LawfulConversions as Exports
 import System.Environment as Exports
 import System.Exit as Exports
 import System.IO as Exports
@@ -81,5 +82,6 @@ import Test.QuickCheck.Instances ()
 import Text.Printf as Exports (hPrintf, printf)
 import Text.Read as Exports (Read (..), readEither, readMaybe)
 import TextBuilder as Exports (TextBuilder)
+import TextBuilderLawfulConversions as Exports ()
 import Unsafe.Coerce as Exports
 import Prelude as Exports hiding (all, and, any, concat, concatMap, elem, foldl, foldl1, foldr, foldr1, id, mapM, mapM_, maximum, minimum, notElem, or, product, sequence, sequence_, sum, (.))

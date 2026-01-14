@@ -101,6 +101,7 @@ library
   other-modules:
     PostgresqlTypes.Algebra
     PostgresqlTypes.Prelude
+    PostgresqlTypes.Prelude.LawfulConversions
     PostgresqlTypes.Types.Bit
     PostgresqlTypes.Types.Bool
     PostgresqlTypes.Types.Box
@@ -170,6 +171,7 @@ library
     tagged ^>=0.8.9,
     text >=1.2 && <3,
     text-builder ^>=1.0.0.4,
+    text-builder-lawful-conversions ^>=0.1.4,
     time >=1.12 && <2,
     transformers >=0.5 && <0.7,
     uuid >=1.3 && <2,
