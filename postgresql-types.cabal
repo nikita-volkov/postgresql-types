@@ -284,6 +284,7 @@ test-suite integration-tests
     ptr-peeker ^>=0.1,
     ptr-poker ^>=0.1.2.16,
     quickcheck-instances ^>=0.3.33,
+    stm >=2.5 && <3,
     tagged ^>=0.8.9,
     testcontainers-postgresql ^>=0.2.0.1,
     text >=1.2 && <3,
