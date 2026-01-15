@@ -43,7 +43,8 @@ withPqConnection config =
             connection
             "SET client_min_messages TO WARNING;\n\
             \SET client_encoding = 'UTF8';\n\
-            \SET intervalstyle = 'iso_8601';"
+            \SET intervalstyle = 'iso_8601';\n\
+            \SET extra_float_digits = 3;"
         result <- action connection
         Pq.finish connection
         pure result
