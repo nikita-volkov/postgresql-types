@@ -75,6 +75,11 @@
 -- * 'Json' - JSON data (@json@)
 -- * 'Jsonb' - Binary JSON data (@jsonb@)
 --
+-- == Text Search Types
+--
+-- * 'Tsvector' - Text search document (@tsvector@)
+-- * 'Tsquery' - Text search query (@tsquery@)
+--
 -- == Range Types
 --
 -- * 'Range' - Generic range type (@int4range@, @int8range@, @numrange@, @tsrange@, @tstzrange@, @daterange@)
@@ -168,6 +173,8 @@ module PostgresqlTypes.Types
     Timestamptz,
     Timetz,
     TimetzAsTimeOfDayAndTimeZone,
+    Tsquery,
+    Tsvector,
     Uuid,
     Varbit,
     Varchar,
@@ -211,6 +218,8 @@ import PostgresqlTypes.Types.Timestamp
 import PostgresqlTypes.Types.Timestamptz
 import PostgresqlTypes.Types.Timetz
 import PostgresqlTypes.Types.TimetzAsTimeOfDayAndTimeZone
+import PostgresqlTypes.Types.Tsquery
+import PostgresqlTypes.Types.Tsvector
 import PostgresqlTypes.Types.Uuid
 import PostgresqlTypes.Types.Varbit
 import PostgresqlTypes.Types.Varchar

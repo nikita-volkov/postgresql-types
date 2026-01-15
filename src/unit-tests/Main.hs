@@ -75,6 +75,8 @@ main = hspec do
   testIsStandardType @PostgresqlTypes.Timestamp Proxy
   testIsStandardType @PostgresqlTypes.Timestamptz Proxy
   testIsStandardType @PostgresqlTypes.Timetz Proxy
+  testIsStandardType @PostgresqlTypes.Tsquery Proxy
+  testIsStandardType @PostgresqlTypes.Tsvector Proxy
   testIsStandardType @PostgresqlTypes.Uuid Proxy
   testIsStandardType @PostgresqlTypes.Varbit Proxy
   testIsStandardType @PostgresqlTypes.Varchar Proxy
@@ -137,6 +139,8 @@ main = hspec do
   testIsMany @PostgresqlTypes.Timestamptz @UTCTime Proxy Proxy
   testIsMany @PostgresqlTypes.TimetzAsTimeOfDayAndTimeZone @PostgresqlTypes.Timetz Proxy Proxy
   testIsMany @PostgresqlTypes.TimetzAsTimeOfDayAndTimeZone @(TimeOfDay, TimeZone) Proxy Proxy
+  testIsMany @PostgresqlTypes.Tsquery @Text.Text Proxy Proxy
+  testIsMany @PostgresqlTypes.Tsvector @Text.Text Proxy Proxy
   testIsMany @PostgresqlTypes.Uuid @UUID.UUID Proxy Proxy
   testIsMany @PostgresqlTypes.Varchar @Text.Text Proxy Proxy
   testIsMany @Scientific.Scientific @PostgresqlTypes.Numeric Proxy Proxy
