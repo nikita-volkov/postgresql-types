@@ -122,15 +122,15 @@ instance IsStandardType Interval where
     where
       -- Shared parser for signed numbers
       parseSignedNumber = do
-        sign <- Attoparsec.option 1 ((-1) <$ Attoparsec.char '-')
-        n <- Attoparsec.decimal
+        sign <- Attoparsec.option 1 (((-1) <$ Attoparsec.char '-') <|> (1 <$ Attoparsec.char '+'))
+        n <- Attoparsec.decimal :: Attoparsec.Parser Integer
         pure (sign, n)
 
       -- Parse PostgreSQL's native format like "130331443 years 4 mons 4 days 00:00:00.334796"
       -- or simpler forms like "00:00:00" or "1 day"
       parsePostgresFormat = do
         -- Try to parse date components first
-        (years, months, days) <- parsePostgresDatePart (0 :: Int) (0 :: Int) (0 :: Int)
+        (years, months, days) <- parsePostgresDatePart (0 :: Integer) (0 :: Integer) (0 :: Integer)
         -- Parse time part HH:MM:SS.micros (optional)
         micros <- Attoparsec.option 0 parsePostgresTime
         let totalMonths = fromIntegral (years * 12 + months)
@@ -142,11 +142,23 @@ instance IsStandardType Interval where
         mc <- Attoparsec.peekChar
         case mc of
           Nothing -> pure (years, months, days)
-          Just '-' -> parseUnitValue years months days -- Negative number
+          Just '-' -> do
+            -- Check if this is a negative date component or the start of negative time
+            -- Try to parse as a date component, if it fails, treat as time
+            result <- optional $ Attoparsec.try parseUnitValue'
+            case result of
+              Just (y', m', d') -> parsePostgresDatePart (years + y') (months + m') (days + d')
+              Nothing -> pure (years, months, days) -- Not a date component, must be time
+          Just '+' -> do
+            -- Explicit positive sign - parse as date component
+            result <- optional $ Attoparsec.try parseUnitValue'
+            case result of
+              Just (y', m', d') -> parsePostgresDatePart (years + y') (months + m') (days + d')
+              Nothing -> pure (years, months, days)
           Just c | isDigit c -> do
             -- Use try so that if this isn't a date component, we backtrack
             result <- optional $ Attoparsec.try $ do
-              n <- Attoparsec.decimal :: Attoparsec.Parser Int
+              n <- Attoparsec.decimal :: Attoparsec.Parser Integer
               mc2 <- Attoparsec.peekChar
               case mc2 of
                 Just ' ' -> do
@@ -167,22 +179,22 @@ instance IsStandardType Interval where
                   _ -> fail ("Unknown interval unit: " ++ Text.unpack unit)
               Nothing -> pure (years, months, days) -- Not a date component, probably time
           Just _ -> pure (years, months, days) -- Something else, stop
-      parseUnitValue years months days = do
+      parseUnitValue' = do
         (sign, n) <- parseSignedNumber
         Attoparsec.skipSpace
         unit <- Attoparsec.takeWhile1 isAlpha
         Attoparsec.skipSpace
         case unit of
-          "year" -> parsePostgresDatePart (years + sign * n) months days
-          "years" -> parsePostgresDatePart (years + sign * n) months days
-          "mon" -> parsePostgresDatePart years (months + sign * n) days
-          "mons" -> parsePostgresDatePart years (months + sign * n) days
-          "day" -> parsePostgresDatePart years months (days + sign * n)
-          "days" -> parsePostgresDatePart years months (days + sign * n)
+          "year" -> pure (sign * n, 0, 0)
+          "years" -> pure (sign * n, 0, 0)
+          "mon" -> pure (0, sign * n, 0)
+          "mons" -> pure (0, sign * n, 0)
+          "day" -> pure (0, 0, sign * n)
+          "days" -> pure (0, 0, sign * n)
           _ -> fail ("Unknown interval unit: " ++ Text.unpack unit)
 
       parsePostgresTime = do
-        negative <- Attoparsec.option False (True <$ Attoparsec.char '-')
+        sign <- Attoparsec.option 1 (((-1) <$ Attoparsec.char '-') <|> (1 <$ Attoparsec.char '+'))
         hours <- Attoparsec.decimal
         _ <- Attoparsec.char ':'
         mins <- Attoparsec.decimal
@@ -199,18 +211,18 @@ instance IsStandardType Interval where
                 pure microsVal
             )
         let totalMicros = hours * 3600_000_000 + mins * 60_000_000 + secs * 1_000_000 + micros
-        pure (if negative then negate totalMicros else totalMicros)
+        pure (sign * totalMicros)
 
       parseISO8601Format = do
         _ <- Attoparsec.char 'P'
         -- Parse date part
-        (years, monthsPart, daysPart) <- parseDatePart (0 :: Int) (0 :: Int) (0 :: Int)
+        (years, monthsPart, daysPart) <- parseDatePart (0 :: Integer) (0 :: Integer) (0 :: Integer)
         -- Parse time part (optional)
         (hours, mins, secs, microsPart) <-
           Attoparsec.option (0, 0, 0, 0) (Attoparsec.char 'T' *> parseTimePart 0 0 0 0)
         let totalMonths = fromIntegral (years * 12 + monthsPart)
             totalDays = fromIntegral daysPart
-            totalMicros = hours * 3600_000_000 + mins * 60_000_000 + secs * 1_000_000 + microsPart
+            totalMicros = fromIntegral $ hours * 3600_000_000 + mins * 60_000_000 + secs * 1_000_000 + microsPart
         pure (Interval totalMonths totalDays totalMicros)
 
       parseDatePart years months days = do
@@ -240,15 +252,15 @@ instance IsStandardType Interval where
                 fracDigits <- Attoparsec.takeWhile1 isDigit
                 _ <- Attoparsec.char 'S'
                 let paddedDigits = take 6 (Text.unpack fracDigits ++ repeat '0')
-                    microsFrac = foldl' (\acc d -> acc * 10 + fromIntegral (digitToInt d)) 0 paddedDigits
-                    totalMicrosForSecs = fromIntegral (sign * n) * 1_000_000 + sign * microsFrac
+                    microsFrac = foldl' (\acc d -> acc * 10 + fromIntegral (digitToInt d)) 0 paddedDigits :: Integer
+                    totalMicrosForSecs = (sign * n) * 1_000_000 + sign * microsFrac
                 parseTimePart hours mins secs (micros + totalMicrosForSecs)
               else do
                 designator <- Attoparsec.satisfy (`elem` ['H', 'M', 'S'])
                 case designator of
-                  'H' -> parseTimePart (hours + fromIntegral (sign * n)) mins secs micros
-                  'M' -> parseTimePart hours (mins + fromIntegral (sign * n)) secs micros
-                  'S' -> parseTimePart hours mins (secs + fromIntegral (sign * n)) micros
+                  'H' -> parseTimePart (hours + (sign * n)) mins secs micros
+                  'M' -> parseTimePart hours (mins + (sign * n)) secs micros
+                  'S' -> parseTimePart hours mins (secs + (sign * n)) micros
                   _ -> fail "Unexpected time designator"
           _ -> pure (hours, mins, secs, micros)
 
