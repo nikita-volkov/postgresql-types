@@ -273,6 +273,7 @@ test-suite integration-tests
 
   build-depends:
     QuickCheck >=2.14 && <3,
+    async >=2.2.6 && <2.3,
     attoparsec >=0.14 && <0.15,
     base >=4.11 && <5,
     bytestring >=0.10 && <0.13,
@@ -284,6 +285,7 @@ test-suite integration-tests
     ptr-peeker ^>=0.1,
     ptr-poker ^>=0.1.2.16,
     quickcheck-instances ^>=0.3.33,
+    stm >=2.5 && <3,
     tagged ^>=0.8.9,
     testcontainers-postgresql ^>=0.2.0.1,
     text >=1.2 && <3,
