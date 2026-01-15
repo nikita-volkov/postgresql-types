@@ -41,8 +41,8 @@ instance Arbitrary Hstore where
 
 instance IsStandardType Hstore where
   typeName = Tagged "hstore"
-  baseOid = Tagged 16385
-  arrayOid = Tagged 16390
+  baseOid = Tagged Nothing
+  arrayOid = Tagged Nothing
   binaryEncoder (Hstore m) = do
     -- Binary format:
     -- 4 bytes: number of key-value pairs (int32)

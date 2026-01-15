@@ -43,8 +43,8 @@ instance Arbitrary Varbit where
 
 instance IsStandardType Varbit where
   typeName = Tagged "varbit"
-  baseOid = Tagged 1562
-  arrayOid = Tagged 1563
+  baseOid = Tagged (Just 1562)
+  arrayOid = Tagged (Just 1563)
   binaryEncoder (Varbit len bytes) =
     mconcat
       [ Write.bInt32 len,

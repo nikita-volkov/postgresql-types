@@ -32,7 +32,7 @@ jobs:
       skip-doctest: true
       skip-benchmarks: true
       test-options: >
-        --qc-max-success=10000
+        --qc-max-success=${{ github.event_name == 'pull_request' && '1000' || '10000' }}
   
   build-with-latest:
     uses: nikita-volkov/haskell-hackage-lib-github-actions-workflows/.github/workflows/build.yaml@v4
@@ -40,4 +40,4 @@ jobs:
     with:
       skip-doctest: true
       test-options: >
-        --qc-max-success=10000
+        --qc-max-success=${{ github.event_name == 'pull_request' && '1000' || '10000' }}

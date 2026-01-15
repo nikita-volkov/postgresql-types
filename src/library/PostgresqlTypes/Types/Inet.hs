@@ -49,8 +49,8 @@ instance Arbitrary Inet where
 
 instance IsStandardType Inet where
   typeName = Tagged "inet"
-  baseOid = Tagged 869
-  arrayOid = Tagged 1041
+  baseOid = Tagged (Just 869)
+  arrayOid = Tagged (Just 1041)
 
   binaryEncoder (Inet ipAddr netmask) =
     case ipAddr of

@@ -11,11 +11,11 @@ class IsStandardType a where
   -- | PostgreSQL type name.
   typeName :: Tagged a Text
 
-  -- | Statically known OID for the base type.
-  baseOid :: Tagged a Word32
+  -- | PostgreSQL type OID, if known at compile time.
+  baseOid :: Tagged a (Maybe Word32)
 
-  -- | Statically known OID for the array type.
-  arrayOid :: Tagged a Word32
+  -- | PostgreSQL array type OID, if known at compile time.
+  arrayOid :: Tagged a (Maybe Word32)
 
   -- | Encode the value in PostgreSQL binary format.
   binaryEncoder :: a -> Write.Write
@@ -30,15 +30,15 @@ class IsStandardType a where
   textualDecoder :: Attoparsec.Parser a
 
 -- | Evidence that a type can be used as an element of a PostgreSQL range type.
-class (IsStandardType a) => IsRangeElement a where
+class (IsStandardType a, Ord a) => IsRangeElement a where
   -- | PostgreSQL range type name.
   rangeTypeName :: Tagged a Text
 
   -- | Statically known OID for the range type.
-  rangeOid :: Tagged a Word32
+  rangeBaseOid :: Tagged a (Maybe Word32)
 
   -- | Statically known OID for the range array-type.
-  rangeArrayOid :: Tagged a Word32
+  rangeArrayOid :: Tagged a (Maybe Word32)
 
 -- | Evidence that a type can be used as an element of a PostgreSQL multirange type.
 class (IsRangeElement a) => IsMultirangeElement a where
@@ -46,10 +46,10 @@ class (IsRangeElement a) => IsMultirangeElement a where
   multirangeTypeName :: Tagged a Text
 
   -- | Statically known OID for the multirange type.
-  multirangeOid :: Tagged a Word32
+  multirangeBaseOid :: Tagged a (Maybe Word32)
 
   -- | Statically known OID for the multirange array-type.
-  multirangeArrayOid :: Tagged a Word32
+  multirangeArrayOid :: Tagged a (Maybe Word32)
 
 data DecodingError = DecodingError
   { location :: [Text],

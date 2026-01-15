@@ -46,8 +46,8 @@ instance Arbitrary Macaddr8 where
 
 instance IsStandardType Macaddr8 where
   typeName = Tagged "macaddr8"
-  baseOid = Tagged 774
-  arrayOid = Tagged 775
+  baseOid = Tagged (Just 774)
+  arrayOid = Tagged (Just 775)
   binaryEncoder (Macaddr8 a b c d e f g h) =
     mconcat
       [ Write.word8 a,

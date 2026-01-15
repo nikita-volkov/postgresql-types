@@ -26,8 +26,8 @@ instance Arbitrary Char where
 
 instance IsStandardType Char where
   typeName = Tagged "char"
-  baseOid = Tagged 18
-  arrayOid = Tagged 1002
+  baseOid = Tagged (Just 18)
+  arrayOid = Tagged (Just 1002)
   binaryEncoder (Char base) =
     Write.word8 base
   binaryDecoder =

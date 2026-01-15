@@ -34,8 +34,8 @@ instance Arbitrary Timestamptz where
 
 instance IsStandardType Timestamptz where
   typeName = Tagged "timestamptz"
-  baseOid = Tagged 1184
-  arrayOid = Tagged 1185
+  baseOid = Tagged (Just 1184)
+  arrayOid = Tagged (Just 1185)
   binaryEncoder (Timestamptz micros) = Write.bInt64 micros
   binaryDecoder = do
     microseconds <- PtrPeeker.fixed PtrPeeker.beSignedInt8
@@ -118,14 +118,14 @@ instance IsStandardType Timestamptz where
 -- | Mapping to @tstzrange@ type.
 instance IsRangeElement Timestamptz where
   rangeTypeName = Tagged "tstzrange"
-  rangeOid = Tagged 3910
-  rangeArrayOid = Tagged 3911
+  rangeBaseOid = Tagged (Just 3910)
+  rangeArrayOid = Tagged (Just 3911)
 
 -- | Mapping to @tstzmultirange@ type.
 instance IsMultirangeElement Timestamptz where
   multirangeTypeName = Tagged "tstzmultirange"
-  multirangeOid = Tagged 4534
-  multirangeArrayOid = Tagged 6153
+  multirangeBaseOid = Tagged (Just 4534)
+  multirangeArrayOid = Tagged (Just 6153)
 
 -- PostgreSQL timestamptz epoch is 2000-01-01 00:00:00 UTC
 postgresUtcEpoch :: Time.UTCTime

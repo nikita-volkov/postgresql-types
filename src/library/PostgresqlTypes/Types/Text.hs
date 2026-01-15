@@ -30,8 +30,8 @@ instance Arbitrary Text where
 
 instance IsStandardType Text where
   typeName = Tagged "text"
-  baseOid = Tagged 25
-  arrayOid = Tagged 1009
+  baseOid = Tagged (Just 25)
+  arrayOid = Tagged (Just 1009)
   binaryEncoder (Text base) = Write.textUtf8 base
   binaryDecoder = do
     bytes <- PtrPeeker.remainderAsByteString

@@ -31,8 +31,8 @@ instance Arbitrary Jsonb where
 
 instance IsStandardType Jsonb where
   typeName = Tagged "jsonb"
-  baseOid = Tagged 3802
-  arrayOid = Tagged 3807
+  baseOid = Tagged (Just 3802)
+  arrayOid = Tagged (Just 3807)
   binaryEncoder =
     mappend (Write.word8 1) . Jsonifier.toWrite . JsonifierAeson.aesonValue . toAesonValue
   binaryDecoder = do

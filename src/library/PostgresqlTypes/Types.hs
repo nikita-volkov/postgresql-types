@@ -92,7 +92,7 @@
 --
 -- The library provides several conversion typeclasses:
 --
--- * 'IsSome' - Partial conversion that may fail (like @Text -> PostgresqlTypes.Text@)
+-- * 'IsSome' - Partial conversion that may fail (like @Text -> Maybe PostgresqlTypes.Text@)
 -- * 'IsMany' - Total conversion that always succeeds (like @Int32 -> PostgresqlTypes.Int4@)
 -- * 'Is' - Bidirectional conversion combining both directions
 --

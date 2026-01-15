@@ -50,8 +50,8 @@ instance Arbitrary Interval where
 
 instance IsStandardType Interval where
   typeName = Tagged "interval"
-  baseOid = Tagged 1186
-  arrayOid = Tagged 1187
+  baseOid = Tagged (Just 1186)
+  arrayOid = Tagged (Just 1187)
   binaryEncoder (Interval {..}) =
     mconcat [Write.bInt64 micros, Write.bInt32 days, Write.bInt32 months]
   binaryDecoder = PtrPeeker.fixed do

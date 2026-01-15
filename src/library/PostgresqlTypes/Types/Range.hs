@@ -35,10 +35,10 @@ data Range a
   deriving stock (Eq, Functor)
   deriving (Show) via (ViaIsStandardType (Range a))
 
-instance (IsRangeElement a, Ord a) => IsStandardType (Range a) where
-  typeName = retag @a rangeTypeName
-  baseOid = retag @a rangeOid
-  arrayOid = retag @a rangeArrayOid
+instance (IsRangeElement a) => IsStandardType (Range a) where
+  typeName = retag (rangeTypeName @a)
+  baseOid = retag (rangeBaseOid @a)
+  arrayOid = retag (rangeArrayOid @a)
   binaryEncoder = \case
     EmptyRange ->
       Write.word8 0b00000001

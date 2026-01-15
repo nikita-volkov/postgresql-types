@@ -33,8 +33,8 @@ instance Arbitrary Lseg where
 
 instance IsStandardType Lseg where
   typeName = Tagged "lseg"
-  baseOid = Tagged 601
-  arrayOid = Tagged 1018
+  baseOid = Tagged (Just 601)
+  arrayOid = Tagged (Just 1018)
   binaryEncoder (Lseg x1 y1 x2 y2) =
     mconcat
       [ Write.bWord64 (castDoubleToWord64 x1),
