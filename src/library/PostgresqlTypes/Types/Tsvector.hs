@@ -40,7 +40,7 @@ instance Arbitrary Tsvector where
       genLexeme = do
         -- Generate a simple word (lowercase letters)
         len <- QuickCheck.chooseInt (1, 10)
-        word <- QuickCheck.vectorOf len (QuickCheck.elements ['a'..'z'])
+        word <- QuickCheck.vectorOf len (QuickCheck.elements ['a' .. 'z'])
         pure ("'" <> Text.pack word <> "'")
   shrink (Tsvector base) =
     if Text.null base

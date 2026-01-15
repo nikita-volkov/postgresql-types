@@ -41,7 +41,7 @@ instance Arbitrary Tsquery where
       genTerm = do
         -- Generate a simple word (lowercase letters)
         len <- QuickCheck.chooseInt (1, 10)
-        word <- QuickCheck.vectorOf len (QuickCheck.elements ['a'..'z'])
+        word <- QuickCheck.vectorOf len (QuickCheck.elements ['a' .. 'z'])
         pure ("'" <> Text.pack word <> "'")
   shrink (Tsquery base) =
     if Text.null base
