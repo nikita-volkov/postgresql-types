@@ -46,12 +46,9 @@ instance Arbitrary Box where
     ]
 
 instance IsStandardType Box where
-  typeIdsOf =
-    TypeIdsOf
-      { name = "box",
-        stableBaseOid = Just 603,
-        stableArrayOid = Just 1020
-      }
+  typeName = Tagged "box"
+  baseOid = Tagged (Just 603)
+  arrayOid = Tagged (Just 1020)
   binaryEncoder (Box x1 y1 x2 y2) =
     mconcat
       [ Write.bWord64 (castDoubleToWord64 x2),

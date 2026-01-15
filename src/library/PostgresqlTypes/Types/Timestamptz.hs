@@ -33,12 +33,9 @@ instance Arbitrary Timestamptz where
       pgTimestampMax = 9214646400000000000 -- 294276 AD December 31 23:59:59.999999 UTC
 
 instance IsStandardType Timestamptz where
-  typeIdsOf =
-    TypeIdsOf
-      { name = "timestamptz",
-        stableBaseOid = Just 1184,
-        stableArrayOid = Just 1185
-      }
+  typeName = Tagged "timestamptz"
+  baseOid = Tagged (Just 1184)
+  arrayOid = Tagged (Just 1185)
   binaryEncoder (Timestamptz micros) = Write.bInt64 micros
   binaryDecoder = do
     microseconds <- PtrPeeker.fixed PtrPeeker.beSignedInt8
@@ -120,21 +117,15 @@ instance IsStandardType Timestamptz where
 
 -- | Mapping to @tstzrange@ type.
 instance IsRangeElement Timestamptz where
-  rangeTypeIdsOf =
-    TypeIdsOf
-      { name = "tstzrange",
-        stableBaseOid = Just 3910,
-        stableArrayOid = Just 3911
-      }
+  rangeTypeName = Tagged "tstzrange"
+  rangeBaseOid = Tagged (Just 3910)
+  rangeArrayOid = Tagged (Just 3911)
 
 -- | Mapping to @tstzmultirange@ type.
 instance IsMultirangeElement Timestamptz where
-  multirangeTypeIdsOf =
-    TypeIdsOf
-      { name = "tstzmultirange",
-        stableBaseOid = Just 4534,
-        stableArrayOid = Just 6153
-      }
+  multirangeTypeName = Tagged "tstzmultirange"
+  multirangeBaseOid = Tagged (Just 4534)
+  multirangeArrayOid = Tagged (Just 6153)
 
 -- PostgreSQL timestamptz epoch is 2000-01-01 00:00:00 UTC
 postgresUtcEpoch :: Time.UTCTime

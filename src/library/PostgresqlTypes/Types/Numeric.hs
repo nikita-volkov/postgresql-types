@@ -37,12 +37,9 @@ instance Arbitrary Numeric where
       ]
 
 instance IsStandardType Numeric where
-  typeIdsOf =
-    TypeIdsOf
-      { name = "numeric",
-        stableBaseOid = Just 1700,
-        stableArrayOid = Just 1231
-      }
+  typeName = Tagged "numeric"
+  baseOid = Tagged (Just 1700)
+  arrayOid = Tagged (Just 1231)
 
   binaryEncoder = \case
     ScientificNumeric x ->
@@ -125,21 +122,15 @@ instance IsStandardType Numeric where
 
 -- | Mapping to @numrange@ type.
 instance IsRangeElement Numeric where
-  rangeTypeIdsOf =
-    TypeIdsOf
-      { name = "numrange",
-        stableBaseOid = Just 3906,
-        stableArrayOid = Just 3907
-      }
+  rangeTypeName = Tagged "numrange"
+  rangeBaseOid = Tagged (Just 3906)
+  rangeArrayOid = Tagged (Just 3907)
 
 -- | Mapping to @nummultirange@ type.
 instance IsMultirangeElement Numeric where
-  multirangeTypeIdsOf =
-    TypeIdsOf
-      { name = "nummultirange",
-        stableBaseOid = Just 4532,
-        stableArrayOid = Just 6151
-      }
+  multirangeTypeName = Tagged "nummultirange"
+  multirangeBaseOid = Tagged (Just 4532)
+  multirangeArrayOid = Tagged (Just 6151)
 
 -- |
 -- In 'maybeFrom' produces 'Nothing' for 'NanNumeric' values.

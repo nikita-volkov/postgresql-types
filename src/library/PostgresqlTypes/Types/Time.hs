@@ -26,12 +26,9 @@ instance Arbitrary Time where
   arbitrary = Time <$> QuickCheck.choose (toMicroseconds minBound, toMicroseconds maxBound)
 
 instance IsStandardType Time where
-  typeIdsOf =
-    TypeIdsOf
-      { name = "time",
-        stableBaseOid = Just 1083,
-        stableArrayOid = Just 1183
-      }
+  typeName = Tagged "time"
+  baseOid = Tagged (Just 1083)
+  arrayOid = Tagged (Just 1183)
   binaryEncoder (Time microseconds) = Write.bInt64 microseconds
   binaryDecoder = PtrPeeker.fixed (Right . Time <$> PtrPeeker.beSignedInt8)
   textualEncoder (Time microseconds) =

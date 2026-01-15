@@ -49,12 +49,9 @@ instance Arbitrary Interval where
     pure (max minBound (min maxBound (Interval {..})))
 
 instance IsStandardType Interval where
-  typeIdsOf =
-    TypeIdsOf
-      { name = "interval",
-        stableBaseOid = Just 1186,
-        stableArrayOid = Just 1187
-      }
+  typeName = Tagged "interval"
+  baseOid = Tagged (Just 1186)
+  arrayOid = Tagged (Just 1187)
   binaryEncoder (Interval {..}) =
     mconcat [Write.bInt64 micros, Write.bInt32 days, Write.bInt32 months]
   binaryDecoder = PtrPeeker.fixed do

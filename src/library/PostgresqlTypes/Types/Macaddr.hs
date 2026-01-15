@@ -46,12 +46,9 @@ instance Arbitrary Macaddr where
     ]
 
 instance IsStandardType Macaddr where
-  typeIdsOf =
-    TypeIdsOf
-      { name = "macaddr",
-        stableBaseOid = Just 829,
-        stableArrayOid = Just 1040
-      }
+  typeName = Tagged "macaddr"
+  baseOid = Tagged (Just 829)
+  arrayOid = Tagged (Just 1040)
   binaryEncoder (Macaddr a b c d e f) =
     mconcat
       [ Write.word8 a,

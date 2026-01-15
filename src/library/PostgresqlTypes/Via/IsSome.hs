@@ -28,7 +28,9 @@ instance (IsSome a b) => IsSome a (ViaIsSome a b) where
   maybeFrom = fmap ViaIsSome . maybeFrom @a
 
 instance (IsStandardType a, IsSome a b) => IsStandardType (ViaIsSome a b) where
-  typeIdsOf = coerce (typeIdsOf @a)
+  typeName = retag (typeName @a)
+  baseOid = retag (baseOid @a)
+  arrayOid = retag (arrayOid @a)
   binaryEncoder = binaryEncoder @a . to
   binaryDecoder =
     binaryDecoder @a <&> \case

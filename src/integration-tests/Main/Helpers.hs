@@ -7,6 +7,7 @@ import Data.Function
 import Data.Maybe
 import Data.Proxy
 import Data.String
+import Data.Tagged
 import qualified Data.Text.Encoding as Text.Encoding
 import Data.Typeable
 import qualified Database.PostgreSQL.LibPQ as Pq
@@ -83,10 +84,9 @@ mappingSpec ::
   Proxy a ->
   SpecWith Pq.Connection
 mappingSpec _ =
-  let typeIds = PostgresqlTypes.typeIdsOf @a
-      typeName = typeIds.name
-      maybeBaseOid = typeIds.stableBaseOid
-      maybeArrayOid = typeIds.stableArrayOid
+  let typeName = untag (PostgresqlTypes.typeName @a)
+      maybeBaseOid = untag (PostgresqlTypes.baseOid @a)
+      maybeArrayOid = untag (PostgresqlTypes.arrayOid @a)
       binEnc = PostgresqlTypes.binaryEncoder @a
       binDec = PostgresqlTypes.binaryDecoder @a
       txtEnc = PostgresqlTypes.textualEncoder @a

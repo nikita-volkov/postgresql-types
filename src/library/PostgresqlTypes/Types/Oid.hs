@@ -18,12 +18,9 @@ newtype Oid = Oid Word32
   deriving (Show) via (ViaIsStandardType Oid)
 
 instance IsStandardType Oid where
-  typeIdsOf =
-    TypeIdsOf
-      { name = "oid",
-        stableBaseOid = Just 26,
-        stableArrayOid = Just 1028
-      }
+  typeName = Tagged "oid"
+  baseOid = Tagged (Just 26)
+  arrayOid = Tagged (Just 1028)
   binaryEncoder (Oid x) = Write.bWord32 x
   binaryDecoder = PtrPeeker.fixed (Right . Oid <$> PtrPeeker.beUnsignedInt4)
   textualEncoder (Oid x) = TextBuilder.decimal x

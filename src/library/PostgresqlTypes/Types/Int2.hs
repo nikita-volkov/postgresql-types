@@ -18,12 +18,9 @@ newtype Int2 = Int2 Int16
   deriving (Show) via (ViaIsStandardType Int2)
 
 instance IsStandardType Int2 where
-  typeIdsOf =
-    TypeIdsOf
-      { name = "int2",
-        stableBaseOid = Just 21,
-        stableArrayOid = Just 1005
-      }
+  typeName = Tagged "int2"
+  baseOid = Tagged (Just 21)
+  arrayOid = Tagged (Just 1005)
   binaryEncoder (Int2 x) = Write.bInt16 x
   binaryDecoder = PtrPeeker.fixed (Right . Int2 <$> PtrPeeker.beSignedInt2)
   textualEncoder (Int2 x) = TextBuilder.decimal x

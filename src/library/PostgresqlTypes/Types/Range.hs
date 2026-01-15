@@ -36,7 +36,9 @@ data Range a
   deriving (Show) via (ViaIsStandardType (Range a))
 
 instance (IsRangeElement a) => IsStandardType (Range a) where
-  typeIdsOf = coerce (rangeTypeIdsOf @a)
+  typeName = retag (rangeTypeName @a)
+  baseOid = retag (rangeBaseOid @a)
+  arrayOid = retag (rangeArrayOid @a)
   binaryEncoder = \case
     EmptyRange ->
       Write.word8 0b00000001

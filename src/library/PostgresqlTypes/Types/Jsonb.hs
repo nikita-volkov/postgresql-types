@@ -30,12 +30,9 @@ instance Arbitrary Jsonb where
   shrink = fmap Jsonb . shrink . toAesonValue
 
 instance IsStandardType Jsonb where
-  typeIdsOf =
-    TypeIdsOf
-      { name = "jsonb",
-        stableBaseOid = Just 3802,
-        stableArrayOid = Just 3807
-      }
+  typeName = Tagged "jsonb"
+  baseOid = Tagged (Just 3802)
+  arrayOid = Tagged (Just 3807)
   binaryEncoder =
     mappend (Write.word8 1) . Jsonifier.toWrite . JsonifierAeson.aesonValue . toAesonValue
   binaryDecoder = do

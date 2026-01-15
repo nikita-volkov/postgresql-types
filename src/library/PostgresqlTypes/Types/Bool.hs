@@ -16,12 +16,9 @@ newtype Bool = Bool Data.Bool.Bool
   deriving (Show) via (ViaIsStandardType Bool)
 
 instance IsStandardType Bool where
-  typeIdsOf =
-    TypeIdsOf
-      { name = "bool",
-        stableBaseOid = Just 16,
-        stableArrayOid = Just 1000
-      }
+  typeName = Tagged "bool"
+  baseOid = Tagged (Just 16)
+  arrayOid = Tagged (Just 1000)
   binaryEncoder (Bool b) = Write.word8 (if b then 1 else 0)
   binaryDecoder =
     PtrPeeker.fixed do

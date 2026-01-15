@@ -25,12 +25,9 @@ newtype Money = Money Int64
   deriving (Show) via (ViaIsStandardType Money)
 
 instance IsStandardType Money where
-  typeIdsOf =
-    TypeIdsOf
-      { name = "money",
-        stableBaseOid = Just 790,
-        stableArrayOid = Just 791
-      }
+  typeName = Tagged "money"
+  baseOid = Tagged (Just 790)
+  arrayOid = Tagged (Just 791)
   binaryEncoder (Money x) = Write.bInt64 x
   binaryDecoder = PtrPeeker.fixed (Right . Money <$> PtrPeeker.beSignedInt8)
   textualEncoder (Money x) =

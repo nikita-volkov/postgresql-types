@@ -40,12 +40,9 @@ instance Arbitrary Bit where
      in map LawfulConversions.from shrunkBitsList
 
 instance IsStandardType Bit where
-  typeIdsOf =
-    TypeIdsOf
-      { name = "bit",
-        stableBaseOid = Just 1560,
-        stableArrayOid = Just 1561
-      }
+  typeName = Tagged "bit"
+  baseOid = Tagged (Just 1560)
+  arrayOid = Tagged (Just 1561)
   binaryEncoder (Bit len bytes) =
     mconcat
       [ Write.bInt32 len,

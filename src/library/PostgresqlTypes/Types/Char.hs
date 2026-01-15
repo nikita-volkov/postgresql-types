@@ -25,12 +25,9 @@ instance Arbitrary Char where
     Char <$> QuickCheck.choose (0, 127)
 
 instance IsStandardType Char where
-  typeIdsOf =
-    TypeIdsOf
-      { name = "char",
-        stableBaseOid = Just 18,
-        stableArrayOid = Just 1002
-      }
+  typeName = Tagged "char"
+  baseOid = Tagged (Just 18)
+  arrayOid = Tagged (Just 1002)
   binaryEncoder (Char base) =
     Write.word8 base
   binaryDecoder =

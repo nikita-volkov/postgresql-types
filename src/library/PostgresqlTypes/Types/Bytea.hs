@@ -18,12 +18,9 @@ newtype Bytea = Bytea ByteString
   deriving (Show) via (ViaIsStandardType Bytea)
 
 instance IsStandardType Bytea where
-  typeIdsOf =
-    TypeIdsOf
-      { name = "bytea",
-        stableBaseOid = Just 17,
-        stableArrayOid = Just 1001
-      }
+  typeName = Tagged "bytea"
+  baseOid = Tagged (Just 17)
+  arrayOid = Tagged (Just 1001)
   binaryEncoder (Bytea bs) =
     Write.byteString bs
   binaryDecoder =

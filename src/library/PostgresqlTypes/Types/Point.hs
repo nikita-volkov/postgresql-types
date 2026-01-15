@@ -29,12 +29,9 @@ instance Arbitrary Point where
   shrink (Point x y) = [Point x' y' | (x', y') <- shrink (x, y)]
 
 instance IsStandardType Point where
-  typeIdsOf =
-    TypeIdsOf
-      { name = "point",
-        stableBaseOid = Just 600,
-        stableArrayOid = Just 1017
-      }
+  typeName = Tagged "point"
+  baseOid = Tagged (Just 600)
+  arrayOid = Tagged (Just 1017)
   binaryEncoder (Point x y) =
     mconcat
       [ Write.bWord64 (castDoubleToWord64 x),

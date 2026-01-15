@@ -50,12 +50,9 @@ instance Arbitrary Date where
       ]
 
 instance IsStandardType Date where
-  typeIdsOf =
-    TypeIdsOf
-      { name = "date",
-        stableBaseOid = Just 1082,
-        stableArrayOid = Just 1182
-      }
+  typeName = Tagged "date"
+  baseOid = Tagged (Just 1082)
+  arrayOid = Tagged (Just 1182)
   binaryEncoder (Date days) = Write.bInt32 days
   binaryDecoder = do
     days <- PtrPeeker.fixed PtrPeeker.beSignedInt4
@@ -122,21 +119,15 @@ instance IsStandardType Date where
 
 -- | Mapping to @daterange@ type.
 instance IsRangeElement Date where
-  rangeTypeIdsOf =
-    TypeIdsOf
-      { name = "daterange",
-        stableBaseOid = Just 3912,
-        stableArrayOid = Just 3913
-      }
+  rangeTypeName = Tagged "daterange"
+  rangeBaseOid = Tagged (Just 3912)
+  rangeArrayOid = Tagged (Just 3913)
 
 -- | Mapping to @datemultirange@ type.
 instance IsMultirangeElement Date where
-  multirangeTypeIdsOf =
-    TypeIdsOf
-      { name = "datemultirange",
-        stableBaseOid = Just 4535,
-        stableArrayOid = Just 6155
-      }
+  multirangeTypeName = Tagged "datemultirange"
+  multirangeBaseOid = Tagged (Just 4535)
+  multirangeArrayOid = Tagged (Just 6155)
 
 -- | Conversion to 'Data.Time.Day'.
 instance IsSome Time.Day Date where

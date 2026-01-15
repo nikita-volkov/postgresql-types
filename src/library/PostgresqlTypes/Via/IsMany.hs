@@ -30,7 +30,9 @@ instance (IsMany a b) => IsMany a (ViaIsMany a b) where
   onfrom = ViaIsMany . onfrom
 
 instance (IsStandardType a, IsMany a b) => IsStandardType (ViaIsMany a b) where
-  typeIdsOf = coerce (typeIdsOf @a)
+  typeName = retag (typeName @a)
+  baseOid = retag (baseOid @a)
+  arrayOid = retag (arrayOid @a)
   binaryEncoder = binaryEncoder . to @a
   binaryDecoder = fmap (fmap (onfrom @a)) binaryDecoder
   textualEncoder = textualEncoder . to @a

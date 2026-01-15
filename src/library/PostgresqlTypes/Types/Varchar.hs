@@ -29,12 +29,9 @@ instance Arbitrary Varchar where
     Varchar . Text.pack <$> shrink (Text.unpack base)
 
 instance IsStandardType Varchar where
-  typeIdsOf =
-    TypeIdsOf
-      { name = "varchar",
-        stableBaseOid = Just 1043,
-        stableArrayOid = Just 1015
-      }
+  typeName = Tagged "varchar"
+  baseOid = Tagged (Just 1043)
+  arrayOid = Tagged (Just 1015)
   binaryEncoder (Varchar base) = Write.textUtf8 base
   binaryDecoder = do
     bytes <- PtrPeeker.remainderAsByteString

@@ -17,12 +17,9 @@ newtype Float4 = Float4 Float
   deriving (Show) via (ViaIsStandardType Float4)
 
 instance IsStandardType Float4 where
-  typeIdsOf =
-    TypeIdsOf
-      { name = "float4",
-        stableBaseOid = Just 700,
-        stableArrayOid = Just 1021
-      }
+  typeName = Tagged "float4"
+  baseOid = Tagged (Just 700)
+  arrayOid = Tagged (Just 1021)
   binaryEncoder (Float4 x) = Write.bWord32 (castFloatToWord32 x)
   binaryDecoder = PtrPeeker.fixed (Right . Float4 . castWord32ToFloat <$> PtrPeeker.beUnsignedInt4)
   textualEncoder (Float4 x) = TextBuilder.string (printf "%g" x)

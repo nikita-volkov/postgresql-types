@@ -17,12 +17,9 @@ newtype Float8 = Float8 Double
   deriving (Show) via (ViaIsStandardType Float8)
 
 instance IsStandardType Float8 where
-  typeIdsOf =
-    TypeIdsOf
-      { name = "float8",
-        stableBaseOid = Just 701,
-        stableArrayOid = Just 1022
-      }
+  typeName = Tagged "float8"
+  baseOid = Tagged (Just 701)
+  arrayOid = Tagged (Just 1022)
   binaryEncoder (Float8 x) = Write.bWord64 (castDoubleToWord64 x)
   binaryDecoder = PtrPeeker.fixed (Right . Float8 . castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
   textualEncoder (Float8 x) = TextBuilder.string (printf "%g" x)

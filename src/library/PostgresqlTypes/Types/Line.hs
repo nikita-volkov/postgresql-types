@@ -42,12 +42,9 @@ instance Arbitrary Line where
     ]
 
 instance IsStandardType Line where
-  typeIdsOf =
-    TypeIdsOf
-      { name = "line",
-        stableBaseOid = Just 628,
-        stableArrayOid = Just 629
-      }
+  typeName = Tagged "line"
+  baseOid = Tagged (Just 628)
+  arrayOid = Tagged (Just 629)
   binaryEncoder (Line a b c) =
     mconcat
       [ Write.bWord64 (castDoubleToWord64 a),

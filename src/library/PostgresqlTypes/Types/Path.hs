@@ -40,12 +40,9 @@ instance Arbitrary Path where
     ]
 
 instance IsStandardType Path where
-  typeIdsOf =
-    TypeIdsOf
-      { name = "path",
-        stableBaseOid = Just 602,
-        stableArrayOid = Just 1019
-      }
+  typeName = Tagged "path"
+  baseOid = Tagged (Just 602)
+  arrayOid = Tagged (Just 1019)
   binaryEncoder (Path closed points) =
     let closedByte = if closed then 1 else 0 :: Word8
         numPoints = fromIntegral (UnboxedVector.length points) :: Int32

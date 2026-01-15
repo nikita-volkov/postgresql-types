@@ -18,12 +18,9 @@ newtype Int8 = Int8 Int64
   deriving (Show) via (ViaIsStandardType Int8)
 
 instance IsStandardType Int8 where
-  typeIdsOf =
-    TypeIdsOf
-      { name = "int8",
-        stableBaseOid = Just 20,
-        stableArrayOid = Just 1016
-      }
+  typeName = Tagged "int8"
+  baseOid = Tagged (Just 20)
+  arrayOid = Tagged (Just 1016)
   binaryEncoder (Int8 x) = Write.bInt64 x
   binaryDecoder = PtrPeeker.fixed (Right . Int8 <$> PtrPeeker.beSignedInt8)
   textualEncoder (Int8 x) = TextBuilder.decimal x
@@ -31,21 +28,15 @@ instance IsStandardType Int8 where
 
 -- | Mapping to @int8range@ type.
 instance IsRangeElement Int8 where
-  rangeTypeIdsOf =
-    TypeIdsOf
-      { name = "int8range",
-        stableBaseOid = Just 3926,
-        stableArrayOid = Just 3927
-      }
+  rangeTypeName = Tagged "int8range"
+  rangeBaseOid = Tagged (Just 3926)
+  rangeArrayOid = Tagged (Just 3927)
 
 -- | Mapping to @int8multirange@ type.
 instance IsMultirangeElement Int8 where
-  multirangeTypeIdsOf =
-    TypeIdsOf
-      { name = "int8multirange",
-        stableBaseOid = Just 4536,
-        stableArrayOid = Just 6157
-      }
+  multirangeTypeName = Tagged "int8multirange"
+  multirangeBaseOid = Tagged (Just 4536)
+  multirangeArrayOid = Tagged (Just 6157)
 
 -- | Direct conversion from 'Int64'.
 -- This is always safe since both types represent 64-bit signed integers identically.
