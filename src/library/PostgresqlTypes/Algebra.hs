@@ -30,7 +30,7 @@ class IsStandardType a where
   textualDecoder :: Attoparsec.Parser a
 
 -- | Evidence that a type can be used as an element of a PostgreSQL range type.
-class (IsStandardType a) => IsRangeElement a where
+class (IsStandardType a, Ord a) => IsRangeElement a where
   -- | PostgreSQL range type name.
   rangeTypeName :: Tagged a Text
 

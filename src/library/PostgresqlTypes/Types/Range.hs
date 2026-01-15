@@ -35,7 +35,7 @@ data Range a
   deriving stock (Eq, Functor)
   deriving (Show) via (ViaIsStandardType (Range a))
 
-instance (IsRangeElement a, Ord a) => IsStandardType (Range a) where
+instance (IsRangeElement a) => IsStandardType (Range a) where
   typeName = retag @a rangeTypeName
   baseOid = retag @a rangeOid
   arrayOid = retag @a rangeArrayOid
