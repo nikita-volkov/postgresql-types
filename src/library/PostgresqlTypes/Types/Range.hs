@@ -116,12 +116,18 @@ instance (IsRangeElement a, Ord a) => IsStandardType (Range a) where
         lowerBracket <- Attoparsec.satisfy (\c -> c == '[' || c == '(')
         lowerValue <-
           if lowerBracket == '['
-            then Just <$> textualDecoder
+            then Just <$> parseElement
             else pure Nothing
         _ <- Attoparsec.char ','
-        upperValue <- optional textualDecoder
+        upperValue <- optional parseElement
         _ <- Attoparsec.char ')'
         pure (BoundedRange lowerValue upperValue)
+
+      -- Parse element that might be quoted by PostgreSQL (for extreme dates)
+      parseElement =
+        quotedElement <|> textualDecoder @a
+        where
+          quotedElement = Attoparsec.char '"' *> textualDecoder @a <* Attoparsec.char '"'
 
 instance (Arbitrary a, Ord a) => Arbitrary (Range a) where
   arbitrary =
