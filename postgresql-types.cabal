@@ -273,6 +273,7 @@ test-suite integration-tests
 
   build-depends:
     QuickCheck >=2.14 && <3,
+    async >=2.2.6 && <2.3,
     attoparsec >=0.14 && <0.15,
     base >=4.11 && <5,
     bytestring >=0.10 && <0.13,

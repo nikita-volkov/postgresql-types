@@ -1,5 +1,6 @@
 module Main.Helpers where
 
+import Control.Concurrent.Async
 import Control.Concurrent.STM
 import Control.Exception
 import Control.Monad
@@ -118,13 +119,13 @@ withPool poolSize acquire release =
     bracket
       ( do
           queue <- newTQueueIO
-          replicateM_ poolSize do
+          replicateConcurrently_ poolSize do
             element <- acquire b
             atomically $ writeTQueue queue element
           pure queue
       )
       ( \queue -> do
-          replicateM_ poolSize do
+          replicateConcurrently_ poolSize do
             element <- atomically $ readTQueue queue
             release element
       )
