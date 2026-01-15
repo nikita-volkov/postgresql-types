@@ -4,13 +4,12 @@ import Main.Helpers
 import qualified PostgresqlTypes as PostgresqlTypes
 import Test.Hspec
 import Test.QuickCheck.Instances ()
-import qualified TestcontainersPostgresql
 import Prelude
 
 main :: IO ()
 main =
   hspec do
-    withPqConnection TestcontainersPostgresql.Config {forwardLogs = False, auth = TestcontainersPostgresql.TrustAuth, tagName = "postgres:17"} Nothing do
+    withPqConnection "postgres:17" Nothing do
       withType @PostgresqlTypes.Bit [mappingSpec]
       withType @PostgresqlTypes.Bool [mappingSpec]
       withType @PostgresqlTypes.Box [mappingSpec]
@@ -60,7 +59,7 @@ main =
       withType @PostgresqlTypes.Varbit [mappingSpec]
       withType @PostgresqlTypes.Varchar [mappingSpec]
 
-    withPqConnection TestcontainersPostgresql.Config {forwardLogs = False, auth = TestcontainersPostgresql.TrustAuth, tagName = "postgres:9"} (Just 3) do
+    withPqConnection "postgres:9" (Just 3) do
       withType @PostgresqlTypes.Bit [mappingSpec]
       withType @PostgresqlTypes.Bool [mappingSpec]
       withType @PostgresqlTypes.Box [mappingSpec]

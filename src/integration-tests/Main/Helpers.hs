@@ -8,6 +8,7 @@ import Data.Maybe
 import Data.Proxy
 import Data.String
 import Data.Tagged
+import Data.Text (Text)
 import qualified Data.Text.Encoding as Text.Encoding
 import Data.Typeable
 import qualified Database.PostgreSQL.LibPQ as Pq
@@ -23,12 +24,12 @@ import qualified TestcontainersPostgresql
 import qualified TextBuilder
 import Prelude
 
-withPqConnection :: TestcontainersPostgresql.Config -> Maybe Int -> SpecWith Pq.Connection -> Spec
-withPqConnection config extraFloatDigits =
+withPqConnection :: Text -> Maybe Int -> SpecWith Pq.Connection -> Spec
+withPqConnection tagName extraFloatDigits =
   describe testName . aroundAll executor
   where
     testName =
-      to config.tagName
+      to tagName
     executor action = do
       TestcontainersPostgresql.run config \(host, port) -> do
         connection <- Pq.connectdb (connectionString host port)
@@ -58,6 +59,12 @@ withPqConnection config extraFloatDigits =
         Pq.finish connection
         pure result
       where
+        config =
+          TestcontainersPostgresql.Config
+            { forwardLogs = False,
+              auth = TestcontainersPostgresql.TrustAuth,
+              tagName
+            }
         connectionString host port =
           ByteString.intercalate " " components
           where
