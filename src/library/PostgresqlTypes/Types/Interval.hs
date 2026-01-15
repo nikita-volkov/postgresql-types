@@ -122,7 +122,7 @@ instance IsStandardType Interval where
     where
       -- Shared parser for signed numbers
       parseSignedNumber = do
-        sign <- Attoparsec.option 1 ((-1) <$ Attoparsec.char '-')
+        sign <- Attoparsec.option 1 (((-1) <$ Attoparsec.char '-') <|> (1 <$ Attoparsec.char '+'))
         n <- Attoparsec.decimal :: Attoparsec.Parser Integer
         pure (sign, n)
 
@@ -149,6 +149,12 @@ instance IsStandardType Interval where
             case result of
               Just (y', m', d') -> parsePostgresDatePart (years + y') (months + m') (days + d')
               Nothing -> pure (years, months, days) -- Not a date component, must be time
+          Just '+' -> do
+            -- Explicit positive sign - parse as date component
+            result <- optional $ Attoparsec.try parseUnitValue'
+            case result of
+              Just (y', m', d') -> parsePostgresDatePart (years + y') (months + m') (days + d')
+              Nothing -> pure (years, months, days)
           Just c | isDigit c -> do
             -- Use try so that if this isn't a date component, we backtrack
             result <- optional $ Attoparsec.try $ do
@@ -188,7 +194,7 @@ instance IsStandardType Interval where
           _ -> fail ("Unknown interval unit: " ++ Text.unpack unit)
 
       parsePostgresTime = do
-        negative <- Attoparsec.option False (True <$ Attoparsec.char '-')
+        sign <- Attoparsec.option 1 (((-1) <$ Attoparsec.char '-') <|> (1 <$ Attoparsec.char '+'))
         hours <- Attoparsec.decimal
         _ <- Attoparsec.char ':'
         mins <- Attoparsec.decimal
@@ -205,7 +211,7 @@ instance IsStandardType Interval where
                 pure microsVal
             )
         let totalMicros = hours * 3600_000_000 + mins * 60_000_000 + secs * 1_000_000 + micros
-        pure (if negative then negate totalMicros else totalMicros)
+        pure (sign * totalMicros)
 
       parseISO8601Format = do
         _ <- Attoparsec.char 'P'
