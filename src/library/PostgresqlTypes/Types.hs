@@ -75,6 +75,10 @@
 -- * 'Json' - JSON data (@json@)
 -- * 'Jsonb' - Binary JSON data (@jsonb@)
 --
+-- == Key-Value Types
+--
+-- * 'Hstore' - Key-value store (@hstore@)
+--
 -- == Range Types
 --
 -- * 'Range' - Generic range type (@int4range@, @int8range@, @numrange@, @tsrange@, @tstzrange@, @daterange@)
@@ -141,6 +145,7 @@ module PostgresqlTypes.Types
     Date,
     Float4,
     Float8,
+    Hstore,
     Inet,
     Int2,
     Int4,
@@ -184,6 +189,7 @@ import PostgresqlTypes.Types.Circle
 import PostgresqlTypes.Types.Date
 import PostgresqlTypes.Types.Float4
 import PostgresqlTypes.Types.Float8
+import PostgresqlTypes.Types.Hstore
 import PostgresqlTypes.Types.Inet
 import PostgresqlTypes.Types.Int2
 import PostgresqlTypes.Types.Int4

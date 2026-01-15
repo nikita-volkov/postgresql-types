@@ -5,6 +5,7 @@ import qualified Data.Attoparsec.Text
 import Data.ByteString (ByteString)
 import Data.Foldable
 import Data.Int
+import qualified Data.Map.Strict as Map
 import Data.Proxy
 import qualified Data.Scientific as Scientific
 import Data.Tagged
@@ -40,6 +41,7 @@ main = hspec do
   testIsStandardType @PostgresqlTypes.Date Proxy
   testIsStandardType @PostgresqlTypes.Float4 Proxy
   testIsStandardType @PostgresqlTypes.Float8 Proxy
+  testIsStandardType @PostgresqlTypes.Hstore Proxy
   testIsStandardType @PostgresqlTypes.Inet Proxy
   testIsStandardType @PostgresqlTypes.Int2 Proxy
   testIsStandardType @PostgresqlTypes.Int4 Proxy
@@ -131,6 +133,7 @@ main = hspec do
   testIsMany @(PostgresqlTypes.Range PostgresqlTypes.Timestamp) @(Maybe (Maybe PostgresqlTypes.Timestamp, Maybe PostgresqlTypes.Timestamp)) Proxy Proxy
   testIsMany @(PostgresqlTypes.Range PostgresqlTypes.Timestamptz) @(Maybe (Maybe PostgresqlTypes.Timestamptz, Maybe PostgresqlTypes.Timestamptz)) Proxy Proxy
   testIsMany @(PostgresqlTypes.Range PostgresqlTypes.Date) @(Maybe (Maybe PostgresqlTypes.Date, Maybe PostgresqlTypes.Date)) Proxy Proxy
+  testIsMany @PostgresqlTypes.Hstore @(Map.Map Text.Text (Maybe Text.Text)) Proxy Proxy
   testIsMany @PostgresqlTypes.Text @Text.Text Proxy Proxy
   testIsMany @PostgresqlTypes.Time @TimeOfDay Proxy Proxy
   testIsMany @PostgresqlTypes.Timestamp @LocalTime Proxy Proxy
