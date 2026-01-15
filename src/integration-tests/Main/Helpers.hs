@@ -23,8 +23,8 @@ import qualified TestcontainersPostgresql
 import qualified TextBuilder
 import Prelude
 
-withPqConnection :: TestcontainersPostgresql.Config -> SpecWith Pq.Connection -> Spec
-withPqConnection config =
+withPqConnection :: TestcontainersPostgresql.Config -> Maybe Int -> SpecWith Pq.Connection -> Spec
+withPqConnection config extraFloatDigits =
   describe testName . aroundAll executor
   where
     testName =
@@ -41,10 +41,19 @@ withPqConnection config =
         _ <-
           Pq.exec
             connection
-            "SET client_min_messages TO WARNING;\n\
-            \SET client_encoding = 'UTF8';\n\
-            \SET intervalstyle = 'iso_8601';\n\
-            \SET extra_float_digits = 3;"
+            ( [ Just "SET client_min_messages TO WARNING",
+                Just "SET client_encoding = 'UTF8'",
+                Just "SET intervalstyle = 'iso_8601'",
+                fmap
+                  (\digits -> "SET extra_float_digits = " <> TextBuilder.decimal digits)
+                  extraFloatDigits
+              ]
+                & catMaybes
+                & fmap (<> ";")
+                & TextBuilder.intercalate "\n"
+                & TextBuilder.toText
+                & Text.Encoding.encodeUtf8
+            )
         result <- action connection
         Pq.finish connection
         pure result

@@ -10,7 +10,7 @@ import Prelude
 main :: IO ()
 main =
   hspec do
-    withPqConnection TestcontainersPostgresql.Config {forwardLogs = False, auth = TestcontainersPostgresql.TrustAuth, tagName = "postgres:17"} do
+    withPqConnection TestcontainersPostgresql.Config {forwardLogs = False, auth = TestcontainersPostgresql.TrustAuth, tagName = "postgres:17"} Nothing do
       withType @PostgresqlTypes.Bit [mappingSpec]
       withType @PostgresqlTypes.Bool [mappingSpec]
       withType @PostgresqlTypes.Box [mappingSpec]
@@ -60,7 +60,7 @@ main =
       withType @PostgresqlTypes.Varbit [mappingSpec]
       withType @PostgresqlTypes.Varchar [mappingSpec]
 
-    withPqConnection TestcontainersPostgresql.Config {forwardLogs = False, auth = TestcontainersPostgresql.TrustAuth, tagName = "postgres:9"} do
+    withPqConnection TestcontainersPostgresql.Config {forwardLogs = False, auth = TestcontainersPostgresql.TrustAuth, tagName = "postgres:9"} (Just 3) do
       withType @PostgresqlTypes.Bit [mappingSpec]
       withType @PostgresqlTypes.Bool [mappingSpec]
       withType @PostgresqlTypes.Box [mappingSpec]
