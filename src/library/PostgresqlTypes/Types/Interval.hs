@@ -173,7 +173,6 @@ instance IsStandardType Interval where
                   _ -> fail ("Unknown interval unit: " ++ Text.unpack unit)
               Nothing -> pure (years, months, days) -- Not a date component, probably time
           Just _ -> pure (years, months, days) -- Something else, stop
-
       parseUnitValue' = do
         (sign, n) <- parseSignedNumber
         Attoparsec.skipSpace
