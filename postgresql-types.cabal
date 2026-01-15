@@ -290,3 +290,24 @@ test-suite integration-tests
     testcontainers-postgresql ^>=0.2.0.1,
     text >=1.2 && <3,
     text-builder ^>=1.0.0.4,
+
+library postgresql-simple-postgresql-types
+  import: base
+  hs-source-dirs: src/postgresql-simple-postgresql-types
+  exposed-modules:
+    PostgresqlSimple.PostgresqlTypes
+
+  other-modules:
+    PostgresqlSimple.PostgresqlTypes.Prelude
+
+  build-depends:
+    attoparsec >=0.14 && <0.19,
+    base >=4.11 && <5,
+    bytestring >=0.10 && <0.13,
+    lawful-conversions ^>=0.3,
+    postgresql-simple >=0.6 && <0.8,
+    postgresql-types,
+    tagged ^>=0.8.9,
+    text >=1.2 && <3,
+    text-builder ^>=1.0.0.4,
+    text-builder-lawful-conversions ^>=0.1.4,
