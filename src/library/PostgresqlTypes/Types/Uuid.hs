@@ -19,9 +19,12 @@ newtype Uuid = Uuid Data.UUID.UUID
   deriving (Show) via (ViaIsStandardType Uuid)
 
 instance IsStandardType Uuid where
-  typeName = Tagged "uuid"
-  baseOid = Tagged 2950
-  arrayOid = Tagged 2951
+  typeIdsOf =
+    TypeIdsOf
+      { name = "uuid",
+        stableBaseOid = Just 2950,
+        stableArrayOid = Just 2951
+      }
   binaryEncoder (Uuid uuid) =
     case Data.UUID.toWords uuid of
       (w1, w2, w3, w4) ->

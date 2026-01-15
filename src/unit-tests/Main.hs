@@ -264,7 +264,8 @@ testIsStandardType ::
   Proxy a ->
   Spec
 testIsStandardType _ =
-  let typeName = untag (PostgresqlTypes.typeName @a)
+  let typeIds = PostgresqlTypes.typeIdsOf @a
+      typeName = typeIds.name
       binEnc = PostgresqlTypes.binaryEncoder @a
       binDec = PostgresqlTypes.binaryDecoder @a
       txtEnc = PostgresqlTypes.textualEncoder @a

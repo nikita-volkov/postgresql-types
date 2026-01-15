@@ -29,9 +29,12 @@ instance Arbitrary Text where
     Text . Text.pack <$> shrink (Text.unpack base)
 
 instance IsStandardType Text where
-  typeName = Tagged "text"
-  baseOid = Tagged 25
-  arrayOid = Tagged 1009
+  typeIdsOf =
+    TypeIdsOf
+      { name = "text",
+        stableBaseOid = Just 25,
+        stableArrayOid = Just 1009
+      }
   binaryEncoder (Text base) = Write.textUtf8 base
   binaryDecoder = do
     bytes <- PtrPeeker.remainderAsByteString

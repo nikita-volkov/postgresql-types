@@ -31,9 +31,12 @@ instance Arbitrary Timestamp where
       pgTimestampMax = 9214646400000000000 -- 294276 AD December 31 23:59:59.999999
 
 instance IsStandardType Timestamp where
-  typeName = Tagged "timestamp"
-  baseOid = Tagged 1114
-  arrayOid = Tagged 1115
+  typeIdsOf =
+    TypeIdsOf
+      { name = "timestamp",
+        stableBaseOid = Just 1114,
+        stableArrayOid = Just 1115
+      }
   binaryEncoder (Timestamp micros) = Write.bInt64 micros
   binaryDecoder = do
     microseconds <- PtrPeeker.fixed PtrPeeker.beSignedInt8
@@ -104,15 +107,21 @@ instance IsStandardType Timestamp where
 
 -- | Mapping to @tsrange@ type.
 instance IsRangeElement Timestamp where
-  rangeTypeName = Tagged "tsrange"
-  rangeOid = Tagged 3908
-  rangeArrayOid = Tagged 3909
+  rangeTypeIdsOf =
+    TypeIdsOf
+      { name = "tsrange",
+        stableBaseOid = Just 3908,
+        stableArrayOid = Just 3909
+      }
 
 -- | Mapping to @tsmultirange@ type.
 instance IsMultirangeElement Timestamp where
-  multirangeTypeName = Tagged "tsmultirange"
-  multirangeOid = Tagged 4533
-  multirangeArrayOid = Tagged 6152
+  multirangeTypeIdsOf =
+    TypeIdsOf
+      { name = "tsmultirange",
+        stableBaseOid = Just 4533,
+        stableArrayOid = Just 6152
+      }
 
 -- PostgreSQL timestamp epoch is 2000-01-01 00:00:00
 postgresTimestampEpoch :: Time.LocalTime

@@ -42,9 +42,12 @@ instance Arbitrary Varbit where
      in map LawfulConversions.from shrunkBitsList
 
 instance IsStandardType Varbit where
-  typeName = Tagged "varbit"
-  baseOid = Tagged 1562
-  arrayOid = Tagged 1563
+  typeIdsOf =
+    TypeIdsOf
+      { name = "varbit",
+        stableBaseOid = Just 1562,
+        stableArrayOid = Just 1563
+      }
   binaryEncoder (Varbit len bytes) =
     mconcat
       [ Write.bInt32 len,

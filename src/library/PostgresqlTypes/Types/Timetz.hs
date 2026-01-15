@@ -34,11 +34,12 @@ instance Arbitrary Timetz where
     pure (Timetz time offset)
 
 instance IsStandardType Timetz where
-  typeName = Tagged "timetz"
-
-  baseOid = Tagged 1266
-
-  arrayOid = Tagged 1270
+  typeIdsOf =
+    TypeIdsOf
+      { name = "timetz",
+        stableBaseOid = Just 1266,
+        stableArrayOid = Just 1270
+      }
 
   binaryEncoder (Timetz time offset) =
     mconcat

@@ -42,9 +42,12 @@ instance Arbitrary Circle where
     pure (Circle x' y' r')
 
 instance IsStandardType Circle where
-  typeName = Tagged "circle"
-  baseOid = Tagged 718
-  arrayOid = Tagged 719
+  typeIdsOf =
+    TypeIdsOf
+      { name = "circle",
+        stableBaseOid = Just 718,
+        stableArrayOid = Just 719
+      }
   binaryEncoder (Circle x y r) =
     mconcat
       [ Write.bWord64 (castDoubleToWord64 x),

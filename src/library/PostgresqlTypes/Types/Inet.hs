@@ -48,9 +48,12 @@ instance Arbitrary Inet where
     ]
 
 instance IsStandardType Inet where
-  typeName = Tagged "inet"
-  baseOid = Tagged 869
-  arrayOid = Tagged 1041
+  typeIdsOf =
+    TypeIdsOf
+      { name = "inet",
+        stableBaseOid = Just 869,
+        stableArrayOid = Just 1041
+      }
 
   binaryEncoder (Inet ipAddr netmask) =
     case ipAddr of

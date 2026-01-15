@@ -37,9 +37,12 @@ instance Arbitrary Polygon where
   shrink (Polygon points) = [Polygon points' | points' <- shrink points, UnboxedVector.length points' >= 3]
 
 instance IsStandardType Polygon where
-  typeName = Tagged "polygon"
-  baseOid = Tagged 604
-  arrayOid = Tagged 1027
+  typeIdsOf =
+    TypeIdsOf
+      { name = "polygon",
+        stableBaseOid = Just 604,
+        stableArrayOid = Just 1027
+      }
   binaryEncoder (Polygon points) =
     let numPoints = fromIntegral (UnboxedVector.length points) :: Int32
         pointsEncoded = UnboxedVector.foldMap encodePoint points

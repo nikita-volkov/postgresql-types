@@ -32,9 +32,12 @@ instance Arbitrary Lseg where
     [Lseg x1' y1' x2' y2' | (x1', y1', x2', y2') <- shrink (x1, y1, x2, y2)]
 
 instance IsStandardType Lseg where
-  typeName = Tagged "lseg"
-  baseOid = Tagged 601
-  arrayOid = Tagged 1018
+  typeIdsOf =
+    TypeIdsOf
+      { name = "lseg",
+        stableBaseOid = Just 601,
+        stableArrayOid = Just 1018
+      }
   binaryEncoder (Lseg x1 y1 x2 y2) =
     mconcat
       [ Write.bWord64 (castDoubleToWord64 x1),

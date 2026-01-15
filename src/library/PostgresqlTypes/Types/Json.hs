@@ -32,9 +32,12 @@ instance Arbitrary Json where
   shrink = fmap Json . shrink . toAesonValue
 
 instance IsStandardType Json where
-  typeName = Tagged "json"
-  baseOid = Tagged 114
-  arrayOid = Tagged 199
+  typeIdsOf =
+    TypeIdsOf
+      { name = "json",
+        stableBaseOid = Just 114,
+        stableArrayOid = Just 199
+      }
   binaryEncoder =
     -- JSON type stores as UTF-8 text without version byte prefix
     Jsonifier.toWrite . JsonifierAeson.aesonValue . toAesonValue

@@ -8,14 +8,8 @@ import qualified TextBuilder
 
 -- | Evidence that a type maps to a PostgreSQL value.
 class IsStandardType a where
-  -- | PostgreSQL type name.
-  typeName :: Tagged a Text
-
-  -- | Statically known OID for the base type.
-  baseOid :: Tagged a Word32
-
-  -- | Statically known OID for the array type.
-  arrayOid :: Tagged a Word32
+  -- | PostgreSQL type identifiers.
+  typeIdsOf :: TypeIdsOf a
 
   -- | Encode the value in PostgreSQL binary format.
   binaryEncoder :: a -> Write.Write
@@ -31,25 +25,18 @@ class IsStandardType a where
 
 -- | Evidence that a type can be used as an element of a PostgreSQL range type.
 class (IsStandardType a, Ord a) => IsRangeElement a where
-  -- | PostgreSQL range type name.
-  rangeTypeName :: Tagged a Text
-
-  -- | Statically known OID for the range type.
-  rangeOid :: Tagged a Word32
-
-  -- | Statically known OID for the range array-type.
-  rangeArrayOid :: Tagged a Word32
+  rangeTypeIdsOf :: TypeIdsOf a
 
 -- | Evidence that a type can be used as an element of a PostgreSQL multirange type.
 class (IsRangeElement a) => IsMultirangeElement a where
-  -- | PostgreSQL multirange type name.
-  multirangeTypeName :: Tagged a Text
+  multirangeTypeIdsOf :: TypeIdsOf a
 
-  -- | Statically known OID for the multirange type.
-  multirangeOid :: Tagged a Word32
-
-  -- | Statically known OID for the multirange array-type.
-  multirangeArrayOid :: Tagged a Word32
+data TypeIdsOf a = TypeIdsOf
+  { name :: Text,
+    stableBaseOid :: Maybe Word32,
+    stableArrayOid :: Maybe Word32
+  }
+  deriving stock (Show, Eq)
 
 data DecodingError = DecodingError
   { location :: [Text],

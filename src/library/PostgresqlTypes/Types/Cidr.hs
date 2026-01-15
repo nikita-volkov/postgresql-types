@@ -49,9 +49,12 @@ instance Arbitrary Cidr where
     ]
 
 instance IsStandardType Cidr where
-  typeName = Tagged "cidr"
-  baseOid = Tagged 650
-  arrayOid = Tagged 651
+  typeIdsOf =
+    TypeIdsOf
+      { name = "cidr",
+        stableBaseOid = Just 650,
+        stableArrayOid = Just 651
+      }
   binaryEncoder (Cidr ipAddr netmask) =
     case ipAddr of
       V4Ip addr ->
