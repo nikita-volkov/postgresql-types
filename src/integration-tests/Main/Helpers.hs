@@ -44,6 +44,7 @@ withPqConnection config extraFloatDigits =
             ( [ Just "SET client_min_messages TO WARNING",
                 Just "SET client_encoding = 'UTF8'",
                 Just "SET intervalstyle = 'iso_8601'",
+                Just "CREATE EXTENSION IF NOT EXISTS hstore",
                 fmap
                   (\digits -> "SET extra_float_digits = " <> TextBuilder.decimal digits)
                   extraFloatDigits
