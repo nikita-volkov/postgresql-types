@@ -114,12 +114,16 @@ instance (IsRangeElement a, Ord a) => IsStandardType (Range a) where
       parseEmpty = EmptyRange <$ Attoparsec.string "empty"
       parseBounded = do
         lowerBracket <- Attoparsec.satisfy (\c -> c == '[' || c == '(')
+        Attoparsec.skipSpace
         lowerValue <-
           if lowerBracket == '['
             then Just <$> textualDecoder
             else pure Nothing
+        Attoparsec.skipSpace
         _ <- Attoparsec.char ','
+        Attoparsec.skipSpace
         upperValue <- optional textualDecoder
+        Attoparsec.skipSpace
         _ <- Attoparsec.char ')'
         pure (BoundedRange lowerValue upperValue)
 

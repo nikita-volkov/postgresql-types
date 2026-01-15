@@ -73,7 +73,9 @@ instance (IsMultirangeElement a, Ord a) => IsStandardType (Multirange a) where
         ]
   textualDecoder = do
     _ <- Attoparsec.char '{'
-    ranges <- (textualDecoder @(Range a)) `Attoparsec.sepBy` Attoparsec.char ','
+    Attoparsec.skipSpace
+    ranges <- (textualDecoder @(Range a)) `Attoparsec.sepBy` (Attoparsec.char ',' >> Attoparsec.skipSpace)
+    Attoparsec.skipSpace
     _ <- Attoparsec.char '}'
     pure (Multirange (Vector.fromList ranges))
 
