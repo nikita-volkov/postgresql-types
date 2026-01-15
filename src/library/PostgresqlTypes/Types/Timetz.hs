@@ -66,11 +66,11 @@ instance IsStandardType Timetz where
     _ <- Attoparsec.char ':'
     s <- twoDigits
     micros <- Attoparsec.option 0 parseFraction
-    -- Parse timezone offset: [+-]HH:MM:SS
+    -- Parse timezone offset: [+-]HH[:MM[:SS]]
+    -- PostgreSQL omits minutes and seconds when they are zero
     sign <- (1 <$ Attoparsec.char '+') <|> ((-1) <$ Attoparsec.char '-')
     tzH <- twoDigits
-    _ <- Attoparsec.char ':'
-    tzM <- twoDigits
+    tzM <- Attoparsec.option 0 (Attoparsec.char ':' *> twoDigits)
     tzS <- Attoparsec.option 0 (Attoparsec.char ':' *> twoDigits)
     -- Build time and offset
     let timeMicros = fromIntegral h * 3600_000_000 + fromIntegral m * 60_000_000 + fromIntegral s * 1_000_000 + micros
