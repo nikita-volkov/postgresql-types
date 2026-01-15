@@ -116,6 +116,7 @@ library
     PostgresqlTypes.Types.Date
     PostgresqlTypes.Types.Float4
     PostgresqlTypes.Types.Float8
+    PostgresqlTypes.Types.Hstore
     PostgresqlTypes.Types.Inet
     PostgresqlTypes.Types.Int2
     PostgresqlTypes.Types.Int4
@@ -247,6 +248,7 @@ test-suite unit-tests
     attoparsec >=0.14 && <0.15,
     base >=4.11 && <5,
     bytestring >=0.10 && <0.13,
+    containers >=0.6 && <0.9,
     hspec >=2.11 && <3,
     lawful-conversions ^>=0.3,
     postgresql-types,

@@ -22,6 +22,7 @@ In active development, but already working and exhaustively tested.
 - Bit string types: `Bit`, `Varbit`
 - UUID type: `Uuid`
 - JSON types: `Json`, `Jsonb`
+- Key-value types: `Hstore`
 - Range types: `Int4Range`, `Int8Range`, `NumRange`, `TsRange`, `TstzRange`, `DateRange`
 - Multirange types: `Int4Multirange`, `Int8Multirange`, `NumMultirange`, `TsMultirange`, `TstzMultirange`, `DateMultirange`
 - Array types for all of the above

@@ -21,6 +21,7 @@ main =
       withType @PostgresqlTypes.Date [mappingSpec]
       withType @PostgresqlTypes.Float4 [mappingSpec]
       withType @PostgresqlTypes.Float8 [mappingSpec]
+      withType @PostgresqlTypes.Hstore [mappingSpec]
       withType @PostgresqlTypes.Inet [mappingSpec]
       withType @PostgresqlTypes.Int2 [mappingSpec]
       withType @PostgresqlTypes.Int4 [mappingSpec]
