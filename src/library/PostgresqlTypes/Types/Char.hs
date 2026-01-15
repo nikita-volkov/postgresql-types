@@ -35,11 +35,15 @@ instance IsStandardType Char where
   textualEncoder (Char base) =
     TextBuilder.unicodeCodepoint (fromIntegral base)
   textualDecoder = do
-    c <- Attoparsec.anyChar
-    let ord = Data.Char.ord c
-    if ord > 127
-      then fail "Invalid char: value > 127"
-      else pure (Char (fromIntegral ord))
+    -- PostgreSQL may return empty string for \NUL or stripped spaces
+    maybeC <- Attoparsec.option Nothing (Just <$> Attoparsec.anyChar)
+    case maybeC of
+      Nothing -> pure (Char 0) -- Empty input means \NUL
+      Just c -> do
+        let charOrd = ord c
+        if charOrd > 127
+          then fail "Invalid char: value > 127"
+          else pure (Char (fromIntegral charOrd))
 
 instance IsSome Word8 Char where
   to = coerce

@@ -50,14 +50,14 @@ instance IsStandardType Lseg where
     pure (Right (Lseg x1 y1 x2 y2))
   textualEncoder (Lseg x1 y1 x2 y2) =
     "[("
-      <> TextBuilder.string (show x1)
+      <> TextBuilder.string (printf "%g" x1)
       <> ","
-      <> TextBuilder.string (show y1)
+      <> TextBuilder.string (printf "%g" y1)
       <> "),"
       <> "("
-      <> TextBuilder.string (show x2)
+      <> TextBuilder.string (printf "%g" x2)
       <> ","
-      <> TextBuilder.string (show y2)
+      <> TextBuilder.string (printf "%g" y2)
       <> ")]"
   textualDecoder = do
     _ <- Attoparsec.char '['

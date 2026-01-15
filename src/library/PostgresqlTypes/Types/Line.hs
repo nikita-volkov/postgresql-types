@@ -58,11 +58,11 @@ instance IsStandardType Line where
     pure (Right (Line a b c))
   textualEncoder (Line a b c) =
     "{"
-      <> TextBuilder.string (show a)
+      <> TextBuilder.string (printf "%g" a)
       <> ","
-      <> TextBuilder.string (show b)
+      <> TextBuilder.string (printf "%g" b)
       <> ","
-      <> TextBuilder.string (show c)
+      <> TextBuilder.string (printf "%g" c)
       <> "}"
   textualDecoder = do
     _ <- Attoparsec.char '{'

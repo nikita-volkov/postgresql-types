@@ -76,7 +76,7 @@ instance IsStandardType Path where
      in openChar <> pointsStr <> closeChar
     where
       encodePoint (x, y) =
-        "(" <> TextBuilder.string (show x) <> "," <> TextBuilder.string (show y) <> ")"
+        "(" <> TextBuilder.string (printf "%g" x) <> "," <> TextBuilder.string (printf "%g" y) <> ")"
   textualDecoder = do
     closed <-
       True

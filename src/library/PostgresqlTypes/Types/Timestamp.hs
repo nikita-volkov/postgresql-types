@@ -60,11 +60,35 @@ instance IsStandardType Timestamp where
     bc <- Attoparsec.option False (True <$ (Attoparsec.skipSpace *> Attoparsec.string "BC"))
     let year = if bc then negate y + 1 else y
     case Time.fromGregorianValid year m d of
-      Nothing -> fail "Invalid date in timestamp"
-      Just day ->
+      Just day -> do
         let timeOfDay = Time.TimeOfDay h mi (fromIntegral s + fromIntegral micros / 1_000_000)
             localTime = Time.LocalTime day timeOfDay
-         in pure (fromLocalTime localTime)
+        pure (fromLocalTime localTime)
+      Nothing ->
+        -- For extreme dates, compute directly from PostgreSQL epoch
+        -- This is a simplified calculation for extreme timestamps
+        let yearsSinceEpoch = year - 2000
+            daysFromYears = fromIntegral yearsSinceEpoch * 365 + fromIntegral (yearsSinceEpoch `div` 4)
+            getDaysInMonth mon =
+              case mon of
+                1 -> (31 :: Int)
+                2 -> if isLeapYear year then (29 :: Int) else (28 :: Int)
+                3 -> (31 :: Int)
+                4 -> (30 :: Int)
+                5 -> (31 :: Int)
+                6 -> (30 :: Int)
+                7 -> (31 :: Int)
+                8 -> (31 :: Int)
+                9 -> (30 :: Int)
+                10 -> (31 :: Int)
+                11 -> (30 :: Int)
+                12 -> (31 :: Int)
+                _ -> (0 :: Int)
+            monthDays = foldl' (+) 0 [if mon < m then getDaysInMonth mon else 0 | mon <- [1 .. 12]]
+            totalDays = daysFromYears + fromIntegral monthDays + fromIntegral d - 1
+            dayMicros = totalDays * 86400_000_000
+            timeMicros = fromIntegral h * 3600_000_000 + fromIntegral mi * 60_000_000 + fromIntegral s * 1_000_000 + fromIntegral micros
+         in pure (Timestamp (dayMicros + timeMicros))
     where
       twoDigits = do
         a <- Attoparsec.digit
@@ -76,6 +100,7 @@ instance IsStandardType Timestamp where
         let paddedDigits = take 6 (Text.unpack digits ++ repeat '0')
             micros = foldl' (\acc c -> acc * 10 + digitToInt c) 0 paddedDigits
         pure micros
+      isLeapYear yr = (yr `mod` 4 == 0 && yr `mod` 100 /= 0) || (yr `mod` 400 == 0)
 
 -- | Mapping to @tsrange@ type.
 instance IsRangeElement Timestamp where

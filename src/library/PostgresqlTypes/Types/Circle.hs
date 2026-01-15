@@ -59,11 +59,11 @@ instance IsStandardType Circle where
   textualEncoder (Circle x y r) =
     mconcat
       [ "<(",
-        TextBuilder.string (show x),
+        TextBuilder.string (printf "%g" x),
         ",",
-        TextBuilder.string (show y),
+        TextBuilder.string (printf "%g" y),
         "),",
-        TextBuilder.string (show r),
+        TextBuilder.string (printf "%g" r),
         ">"
       ]
   textualDecoder = do

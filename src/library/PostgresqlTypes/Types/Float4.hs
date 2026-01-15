@@ -22,7 +22,7 @@ instance IsStandardType Float4 where
   arrayOid = Tagged 1021
   binaryEncoder (Float4 x) = Write.bWord32 (castFloatToWord32 x)
   binaryDecoder = PtrPeeker.fixed (Right . Float4 . castWord32ToFloat <$> PtrPeeker.beUnsignedInt4)
-  textualEncoder (Float4 x) = TextBuilder.string (show x)
+  textualEncoder (Float4 x) = TextBuilder.string (printf "%g" x)
   textualDecoder =
     (Float4 (0 / 0) <$ Attoparsec.string "NaN")
       <|> (Float4 (1 / 0) <$ Attoparsec.string "Infinity")

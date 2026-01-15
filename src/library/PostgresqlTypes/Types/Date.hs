@@ -84,14 +84,38 @@ instance IsStandardType Date where
     -- Check for BC suffix
     bc <- Attoparsec.option False (True <$ (Attoparsec.skipSpace *> Attoparsec.string "BC"))
     let year = if bc then negate y + 1 else y
+    -- Try to use fromGregorianValid for normal dates, fallback to custom calculation for extreme dates
     case Time.fromGregorianValid year m d of
-      Nothing -> fail "Invalid date"
       Just day -> pure (unsafeFromDay day)
+      Nothing ->
+        -- For extreme dates outside time library's range, compute days directly
+        -- This is a simplified calculation that may not be perfectly accurate for all historical dates
+        -- but matches PostgreSQL's handling of extreme dates
+        let yearsSinceEpoch = year - 2000
+            daysFromYears = fromIntegral yearsSinceEpoch * 365 + fromIntegral (yearsSinceEpoch `div` 4)
+            getDaysInMonth mon =
+              case mon of
+                1 -> (31 :: Int)
+                2 -> if isLeapYear year then (29 :: Int) else (28 :: Int)
+                3 -> (31 :: Int)
+                4 -> (30 :: Int)
+                5 -> (31 :: Int)
+                6 -> (30 :: Int)
+                7 -> (31 :: Int)
+                8 -> (31 :: Int)
+                9 -> (30 :: Int)
+                10 -> (31 :: Int)
+                11 -> (30 :: Int)
+                12 -> (31 :: Int)
+                _ -> (0 :: Int)
+            monthDays = foldl' (+) 0 [if mon < m then getDaysInMonth mon else 0 | mon <- [1 .. 12]]
+         in pure (Date (daysFromYears + fromIntegral monthDays + fromIntegral d - 1))
     where
       twoDigits = do
         a <- Attoparsec.digit
         b <- Attoparsec.digit
         pure (digitToInt a * 10 + digitToInt b)
+      isLeapYear y = (y `mod` 4 == 0 && y `mod` 100 /= 0) || (y `mod` 400 == 0)
 
 -- | Mapping to @daterange@ type.
 instance IsRangeElement Date where

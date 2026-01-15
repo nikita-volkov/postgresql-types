@@ -63,15 +63,17 @@ instance IsStandardType Box where
     y1 <- PtrPeeker.fixed (castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
     pure (Right (Box x1 y1 x2 y2))
   textualEncoder (Box x1 y1 x2 y2) =
+    -- PostgreSQL returns coordinates as (upper-right),(lower-left)
+    -- So we output (x2,y2),(x1,y1)
     mconcat
       [ "(",
-        TextBuilder.string (show x1),
+        TextBuilder.string (printf "%g" x2),
         ",",
-        TextBuilder.string (show y1),
+        TextBuilder.string (printf "%g" y2),
         "),(",
-        TextBuilder.string (show x2),
+        TextBuilder.string (printf "%g" x1),
         ",",
-        TextBuilder.string (show y2),
+        TextBuilder.string (printf "%g" y1),
         ")"
       ]
   textualDecoder = do
@@ -86,7 +88,8 @@ instance IsStandardType Box where
     _ <- Attoparsec.char ','
     y2 <- Attoparsec.double
     _ <- Attoparsec.char ')'
-    pure (Box x1 y1 x2 y2)
+    -- PostgreSQL may return coordinates in any order, normalize to ensure x1 <= x2 and y1 <= y2
+    pure (Box (min x1 x2) (min y1 y2) (max x1 x2) (max y1 y2))
 
 -- | Mapping to a tuple of coordinates of lower-left and upper-right corners represented as @(lowerX, lowerY, upperX, upperY)@.
 --

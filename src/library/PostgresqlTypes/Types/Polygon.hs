@@ -66,7 +66,7 @@ instance IsStandardType Polygon where
     "(" <> TextBuilder.intercalateMap "," encodePoint (UnboxedVector.toList points) <> ")"
     where
       encodePoint (x, y) =
-        "(" <> TextBuilder.string (show x) <> "," <> TextBuilder.string (show y) <> ")"
+        "(" <> TextBuilder.string (printf "%g" x) <> "," <> TextBuilder.string (printf "%g" y) <> ")"
   textualDecoder = do
     _ <- Attoparsec.char '('
     points <- parsePoint `Attoparsec.sepBy1` Attoparsec.char ','

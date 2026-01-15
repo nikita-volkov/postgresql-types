@@ -1,6 +1,8 @@
 module PostgresqlTypes.Types.Money (Money) where
 
 import qualified Data.Attoparsec.Text as Attoparsec
+import Data.Char (digitToInt, isDigit)
+import qualified Data.Text as Text
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
 import PostgresqlTypes.Via
@@ -45,10 +47,18 @@ instance IsStandardType Money where
   textualDecoder = do
     isNegative <- (True <$ Attoparsec.char '-') <|> pure False
     _ <- Attoparsec.char '$'
-    dollars <- Attoparsec.decimal @Int64
+    -- Parse dollars (may include commas as thousands separators)
+    dollarsText <- Attoparsec.takeWhile1 (\c -> isDigit c || c == ',')
+    let dollarsStr = filter (/= ',') (Text.unpack dollarsText)
+    dollars <- case readMaybe dollarsStr of
+      Just n -> pure (n :: Int64)
+      Nothing -> fail "Invalid dollar amount"
     _ <- Attoparsec.char '.'
-    cents <- Attoparsec.decimal @Int64
-    let value = dollars * 100 + cents
+    -- Parse exactly 2 cents digits
+    centsDigit1 <- Attoparsec.digit
+    centsDigit2 <- Attoparsec.digit
+    let cents = fromIntegral (digitToInt centsDigit1 * 10 + digitToInt centsDigit2) :: Int64
+        value = dollars * 100 + cents
     pure (Money (if isNegative then negate value else value))
 
 -- | Direct conversion from 'Int64'.
