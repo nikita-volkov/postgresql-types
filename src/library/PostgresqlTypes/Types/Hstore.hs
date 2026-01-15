@@ -29,10 +29,11 @@ instance Arbitrary Hstore where
     -- Generate a list of key-value pairs
     pairs <- QuickCheck.listOf do
       key <- Text.pack <$> QuickCheck.listOf1 (QuickCheck.suchThat arbitrary (\c -> c /= '\NUL' && c /= '=' && c /= '>' && c /= '"' && c /= '\\' && c /= ' ' && c /= ',' && c /= '\n' && c /= '\r' && c /= '\t'))
-      value <- QuickCheck.oneof
-        [ pure Nothing,
-          Just . Text.pack <$> QuickCheck.listOf (QuickCheck.suchThat arbitrary (\c -> c /= '\NUL'))
-        ]
+      value <-
+        QuickCheck.oneof
+          [ pure Nothing,
+            Just . Text.pack <$> QuickCheck.listOf (QuickCheck.suchThat arbitrary (\c -> c /= '\NUL'))
+          ]
       pure (key, value)
     pure (Hstore (Map.fromList pairs))
   shrink (Hstore base) =
@@ -162,7 +163,7 @@ instance IsMany (Map.Map Text (Maybe Text)) Hstore where
     Hstore
       ( Map.fromList
           [ (stripNul k, fmap stripNul v)
-            | (k, v) <- Map.toList m
+          | (k, v) <- Map.toList m
           ]
       )
     where
