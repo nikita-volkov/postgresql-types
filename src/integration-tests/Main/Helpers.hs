@@ -84,7 +84,7 @@ mappingSpec _ =
    in describe "IsStandardType" do
         describe (to typeName) do
           describe "Encoding via textualEncoder" do
-            describe "And decoding via textualDecoder (via server)" do
+            describe "And decoding via textualDecoder" do
               it "Should produce the original value" \(connection :: Pq.Connection) ->
                 QuickCheck.property \(value :: a) -> do
                   QuickCheck.idempotentIOProperty do
@@ -97,9 +97,13 @@ mappingSpec _ =
                             paramFormat = Pq.Text,
                             resultFormat = Pq.Text
                           }
-                    let textResult = Text.Encoding.decodeUtf8 bytes
-                        decoding = Data.Attoparsec.Text.parseOnly txtDec textResult
-                    pure (decoding === Right value)
+                    let serverProducedText = Text.Encoding.decodeUtf8 bytes
+                        decoding = Data.Attoparsec.Text.parseOnly txtDec serverProducedText
+                    pure
+                      ( QuickCheck.counterexample
+                          ("serverProducedText: " <> show serverProducedText)
+                          (decoding === Right value)
+                      )
 
             describe "And decoding via binaryDecoder" do
               it "Should produce the original value" \(connection :: Pq.Connection) ->
@@ -131,9 +135,13 @@ mappingSpec _ =
                             paramFormat = Pq.Binary,
                             resultFormat = Pq.Text
                           }
-                    let textResult = Text.Encoding.decodeUtf8 bytes
-                        decoding = Data.Attoparsec.Text.parseOnly txtDec textResult
-                    pure (decoding === Right value)
+                    let serverProducedText = Text.Encoding.decodeUtf8 bytes
+                        decoding = Data.Attoparsec.Text.parseOnly txtDec serverProducedText
+                    pure
+                      ( QuickCheck.counterexample
+                          ("serverProducedText: " <> show serverProducedText)
+                          (decoding === Right value)
+                      )
 
             describe "And decoding via binaryDecoder" do
               it "Should produce the original value" \(connection :: Pq.Connection) ->
