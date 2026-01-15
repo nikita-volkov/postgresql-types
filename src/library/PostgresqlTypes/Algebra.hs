@@ -1,10 +1,10 @@
 module PostgresqlTypes.Algebra where
 
+import qualified Data.Attoparsec.Text as Attoparsec
 import PostgresqlTypes.Prelude
 import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified TextBuilder
-import qualified Data.Attoparsec.Text as Attoparsec
 
 -- | Evidence that a type maps to a PostgreSQL value.
 class IsStandardType a where
