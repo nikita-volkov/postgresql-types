@@ -19,8 +19,8 @@ newtype Bytea = Bytea ByteString
 
 instance IsStandardType Bytea where
   typeName = Tagged "bytea"
-  baseOid = Tagged 17
-  arrayOid = Tagged 1001
+  baseOid = Tagged (Just 17)
+  arrayOid = Tagged (Just 1001)
   binaryEncoder (Bytea bs) =
     Write.byteString bs
   binaryDecoder =

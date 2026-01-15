@@ -27,8 +27,8 @@ instance Arbitrary Time where
 
 instance IsStandardType Time where
   typeName = Tagged "time"
-  baseOid = Tagged 1083
-  arrayOid = Tagged 1183
+  baseOid = Tagged (Just 1083)
+  arrayOid = Tagged (Just 1183)
   binaryEncoder (Time microseconds) = Write.bInt64 microseconds
   binaryDecoder = PtrPeeker.fixed (Right . Time <$> PtrPeeker.beSignedInt8)
   textualEncoder (Time microseconds) =

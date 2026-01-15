@@ -17,8 +17,8 @@ newtype Bool = Bool Data.Bool.Bool
 
 instance IsStandardType Bool where
   typeName = Tagged "bool"
-  baseOid = Tagged 16
-  arrayOid = Tagged 1000
+  baseOid = Tagged (Just 16)
+  arrayOid = Tagged (Just 1000)
   binaryEncoder (Bool b) = Write.word8 (if b then 1 else 0)
   binaryDecoder =
     PtrPeeker.fixed do

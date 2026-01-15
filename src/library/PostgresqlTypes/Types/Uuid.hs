@@ -20,8 +20,8 @@ newtype Uuid = Uuid Data.UUID.UUID
 
 instance IsStandardType Uuid where
   typeName = Tagged "uuid"
-  baseOid = Tagged 2950
-  arrayOid = Tagged 2951
+  baseOid = Tagged (Just 2950)
+  arrayOid = Tagged (Just 2951)
   binaryEncoder (Uuid uuid) =
     case Data.UUID.toWords uuid of
       (w1, w2, w3, w4) ->

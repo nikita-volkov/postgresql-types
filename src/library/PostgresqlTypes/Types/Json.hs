@@ -33,8 +33,8 @@ instance Arbitrary Json where
 
 instance IsStandardType Json where
   typeName = Tagged "json"
-  baseOid = Tagged 114
-  arrayOid = Tagged 199
+  baseOid = Tagged (Just 114)
+  arrayOid = Tagged (Just 199)
   binaryEncoder =
     -- JSON type stores as UTF-8 text without version byte prefix
     Jsonifier.toWrite . JsonifierAeson.aesonValue . toAesonValue

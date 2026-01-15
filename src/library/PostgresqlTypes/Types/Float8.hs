@@ -18,8 +18,8 @@ newtype Float8 = Float8 Double
 
 instance IsStandardType Float8 where
   typeName = Tagged "float8"
-  baseOid = Tagged 701
-  arrayOid = Tagged 1022
+  baseOid = Tagged (Just 701)
+  arrayOid = Tagged (Just 1022)
   binaryEncoder (Float8 x) = Write.bWord64 (castDoubleToWord64 x)
   binaryDecoder = PtrPeeker.fixed (Right . Float8 . castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
   textualEncoder (Float8 x) = TextBuilder.string (printf "%g" x)

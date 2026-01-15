@@ -19,8 +19,8 @@ newtype Oid = Oid Word32
 
 instance IsStandardType Oid where
   typeName = Tagged "oid"
-  baseOid = Tagged 26
-  arrayOid = Tagged 1028
+  baseOid = Tagged (Just 26)
+  arrayOid = Tagged (Just 1028)
   binaryEncoder (Oid x) = Write.bWord32 x
   binaryDecoder = PtrPeeker.fixed (Right . Oid <$> PtrPeeker.beUnsignedInt4)
   textualEncoder (Oid x) = TextBuilder.decimal x

@@ -43,8 +43,8 @@ instance Arbitrary Circle where
 
 instance IsStandardType Circle where
   typeName = Tagged "circle"
-  baseOid = Tagged 718
-  arrayOid = Tagged 719
+  baseOid = Tagged (Just 718)
+  arrayOid = Tagged (Just 719)
   binaryEncoder (Circle x y r) =
     mconcat
       [ Write.bWord64 (castDoubleToWord64 x),

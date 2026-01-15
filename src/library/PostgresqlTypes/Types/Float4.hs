@@ -18,8 +18,8 @@ newtype Float4 = Float4 Float
 
 instance IsStandardType Float4 where
   typeName = Tagged "float4"
-  baseOid = Tagged 700
-  arrayOid = Tagged 1021
+  baseOid = Tagged (Just 700)
+  arrayOid = Tagged (Just 1021)
   binaryEncoder (Float4 x) = Write.bWord32 (castFloatToWord32 x)
   binaryDecoder = PtrPeeker.fixed (Right . Float4 . castWord32ToFloat <$> PtrPeeker.beUnsignedInt4)
   textualEncoder (Float4 x) = TextBuilder.string (printf "%g" x)

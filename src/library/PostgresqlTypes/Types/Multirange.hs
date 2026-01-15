@@ -38,9 +38,9 @@ newtype Multirange a = Multirange (Vector (Range a))
   deriving (Show) via (ViaIsStandardType (Multirange a))
 
 instance (IsMultirangeElement a) => IsStandardType (Multirange a) where
-  typeName = retag @a multirangeTypeName
-  baseOid = retag @a multirangeOid
-  arrayOid = retag @a multirangeArrayOid
+  typeName = retag (multirangeTypeName @a)
+  baseOid = retag (multirangeBaseOid @a)
+  arrayOid = retag (multirangeArrayOid @a)
   binaryEncoder = \case
     Multirange ranges ->
       mconcat

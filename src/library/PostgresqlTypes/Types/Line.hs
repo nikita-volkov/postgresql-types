@@ -43,8 +43,8 @@ instance Arbitrary Line where
 
 instance IsStandardType Line where
   typeName = Tagged "line"
-  baseOid = Tagged 628
-  arrayOid = Tagged 629
+  baseOid = Tagged (Just 628)
+  arrayOid = Tagged (Just 629)
   binaryEncoder (Line a b c) =
     mconcat
       [ Write.bWord64 (castDoubleToWord64 a),

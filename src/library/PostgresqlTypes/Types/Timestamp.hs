@@ -32,8 +32,8 @@ instance Arbitrary Timestamp where
 
 instance IsStandardType Timestamp where
   typeName = Tagged "timestamp"
-  baseOid = Tagged 1114
-  arrayOid = Tagged 1115
+  baseOid = Tagged (Just 1114)
+  arrayOid = Tagged (Just 1115)
   binaryEncoder (Timestamp micros) = Write.bInt64 micros
   binaryDecoder = do
     microseconds <- PtrPeeker.fixed PtrPeeker.beSignedInt8
@@ -105,14 +105,14 @@ instance IsStandardType Timestamp where
 -- | Mapping to @tsrange@ type.
 instance IsRangeElement Timestamp where
   rangeTypeName = Tagged "tsrange"
-  rangeOid = Tagged 3908
-  rangeArrayOid = Tagged 3909
+  rangeBaseOid = Tagged (Just 3908)
+  rangeArrayOid = Tagged (Just 3909)
 
 -- | Mapping to @tsmultirange@ type.
 instance IsMultirangeElement Timestamp where
   multirangeTypeName = Tagged "tsmultirange"
-  multirangeOid = Tagged 4533
-  multirangeArrayOid = Tagged 6152
+  multirangeBaseOid = Tagged (Just 4533)
+  multirangeArrayOid = Tagged (Just 6152)
 
 -- PostgreSQL timestamp epoch is 2000-01-01 00:00:00
 postgresTimestampEpoch :: Time.LocalTime

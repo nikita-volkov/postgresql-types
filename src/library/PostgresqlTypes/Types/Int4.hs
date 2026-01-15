@@ -19,8 +19,8 @@ newtype Int4 = Int4 Int32
 
 instance IsStandardType Int4 where
   typeName = Tagged "int4"
-  baseOid = Tagged 23
-  arrayOid = Tagged 1007
+  baseOid = Tagged (Just 23)
+  arrayOid = Tagged (Just 1007)
   binaryEncoder (Int4 x) = Write.bInt32 x
   binaryDecoder = PtrPeeker.fixed (Right . Int4 <$> PtrPeeker.beSignedInt4)
   textualEncoder (Int4 x) = TextBuilder.decimal x
@@ -29,14 +29,14 @@ instance IsStandardType Int4 where
 -- | Mapping to @int4range@ type.
 instance IsRangeElement Int4 where
   rangeTypeName = Tagged "int4range"
-  rangeOid = Tagged 3904
-  rangeArrayOid = Tagged 3905
+  rangeBaseOid = Tagged (Just 3904)
+  rangeArrayOid = Tagged (Just 3905)
 
 -- | Mapping to @int4multirange@ type.
 instance IsMultirangeElement Int4 where
   multirangeTypeName = Tagged "int4multirange"
-  multirangeOid = Tagged 4451
-  multirangeArrayOid = Tagged 6150
+  multirangeBaseOid = Tagged (Just 4451)
+  multirangeArrayOid = Tagged (Just 6150)
 
 -- | Direct conversion from 'Int32'.
 -- This is always safe since both types represent 32-bit signed integers identically.

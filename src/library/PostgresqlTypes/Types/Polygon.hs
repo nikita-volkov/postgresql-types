@@ -38,8 +38,8 @@ instance Arbitrary Polygon where
 
 instance IsStandardType Polygon where
   typeName = Tagged "polygon"
-  baseOid = Tagged 604
-  arrayOid = Tagged 1027
+  baseOid = Tagged (Just 604)
+  arrayOid = Tagged (Just 1027)
   binaryEncoder (Polygon points) =
     let numPoints = fromIntegral (UnboxedVector.length points) :: Int32
         pointsEncoded = UnboxedVector.foldMap encodePoint points

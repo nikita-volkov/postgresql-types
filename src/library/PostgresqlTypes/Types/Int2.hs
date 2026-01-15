@@ -19,8 +19,8 @@ newtype Int2 = Int2 Int16
 
 instance IsStandardType Int2 where
   typeName = Tagged "int2"
-  baseOid = Tagged 21
-  arrayOid = Tagged 1005
+  baseOid = Tagged (Just 21)
+  arrayOid = Tagged (Just 1005)
   binaryEncoder (Int2 x) = Write.bInt16 x
   binaryDecoder = PtrPeeker.fixed (Right . Int2 <$> PtrPeeker.beSignedInt2)
   textualEncoder (Int2 x) = TextBuilder.decimal x
