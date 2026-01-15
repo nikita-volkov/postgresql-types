@@ -43,7 +43,7 @@ withPqConnection config =
             connection
             "SET client_min_messages TO WARNING;\n\
             \SET client_encoding = 'UTF8';\n\
-            \SET intervalstyle = 'postgres';"
+            \SET intervalstyle = 'iso_8601';"
         result <- action connection
         Pq.finish connection
         pure result
