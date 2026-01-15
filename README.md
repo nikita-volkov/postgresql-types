@@ -37,7 +37,7 @@ Values can only be created through lawful conversions, guaranteeing adherence to
 The library uses the [lawful-conversions](https://hackage.haskell.org/package/lawful-conversions) library to provide safe, well-defined transformations between Haskell and PostgreSQL types:
 
 - **`IsMany`** - Total conversions that always succeed (e.g., `Int32 → Int4`)
-- **`IsSome`** - Partial conversions that may fail (e.g., `Text → PostgreSQL.Text` fails if input contains NUL bytes)
+- **`IsSome`** - Partial conversions that may fail (e.g., `Text → Maybe PostgreSQL.Text` fails if input contains NUL bytes)
 - **`Is`** - Bidirectional isomorphisms combining both directions
 
 This approach ensures that:
