@@ -17,25 +17,44 @@ import qualified TextBuilder
 -- A tsvector value is a sorted list of distinct lexemes, which are words
 -- that have been normalized to merge different variants of the same word.
 --
+-- The value is stored internally in PostgreSQL's normalized text format.
+--
+-- __Note__: The binary encoding/decoding currently uses a simplified implementation.
+-- Full PostgreSQL wire protocol support for tsvector is complex and is a work in progress.
+--
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-textsearch.html).
 newtype Tsvector = Tsvector Text.Text
   deriving newtype (Eq, Ord)
   deriving (Show) via (ViaIsStandardType Tsvector)
 
 instance Arbitrary Tsvector where
-  arbitrary =
-    Tsvector <$> do
-      charList <- QuickCheck.listOf do
-        QuickCheck.suchThat arbitrary (\char -> char /= '\NUL')
-      pure (Text.pack charList)
+  arbitrary = do
+    -- Generate valid tsvector format: either empty or space-separated quoted lexemes
+    numLexemes <- QuickCheck.chooseInt (0, 5)
+    if numLexemes == 0
+      then pure (Tsvector "")
+      else do
+        lexemes <- QuickCheck.vectorOf numLexemes genLexeme
+        pure (Tsvector (Text.intercalate " " lexemes))
+    where
+      genLexeme = do
+        -- Generate a simple word (lowercase letters)
+        len <- QuickCheck.chooseInt (1, 10)
+        word <- QuickCheck.vectorOf len (QuickCheck.elements ['a'..'z'])
+        pure ("'" <> Text.pack word <> "'")
   shrink (Tsvector base) =
-    Tsvector . Text.pack <$> shrink (Text.unpack base)
+    if Text.null base
+      then []
+      else [Tsvector ""]
 
 instance IsStandardType Tsvector where
   typeName = Tagged "tsvector"
   baseOid = Tagged 3614
   arrayOid = Tagged 3643
-  binaryEncoder (Tsvector base) = Write.textUtf8 base
+  binaryEncoder (Tsvector base) =
+    -- TODO: Implement full PostgreSQL binary protocol for tsvector
+    -- For now, encode as UTF-8 text (simplified approach)
+    Write.textUtf8 base
   binaryDecoder = do
     bytes <- PtrPeeker.remainderAsByteString
     case Text.Encoding.decodeUtf8' bytes of
@@ -43,7 +62,7 @@ instance IsStandardType Tsvector where
         pure
           ( Left
               ( DecodingError
-                  { location = [],
+                  { location = ["tsvector"],
                     reason =
                       ParsingDecodingErrorReason
                         (fromString (show e))

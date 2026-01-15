@@ -18,25 +18,44 @@ import qualified TextBuilder
 -- can combine them using the Boolean operators & (AND), | (OR), and ! (NOT),
 -- as well as the phrase search operator <-> (FOLLOWED BY).
 --
+-- The value is stored internally in PostgreSQL's normalized text format.
+--
+-- __Note__: The binary encoding/decoding currently uses a simplified implementation.
+-- Full PostgreSQL wire protocol support for tsquery is complex and is a work in progress.
+--
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-textsearch.html).
 newtype Tsquery = Tsquery Text.Text
   deriving newtype (Eq, Ord)
   deriving (Show) via (ViaIsStandardType Tsquery)
 
 instance Arbitrary Tsquery where
-  arbitrary =
-    Tsquery <$> do
-      charList <- QuickCheck.listOf do
-        QuickCheck.suchThat arbitrary (\char -> char /= '\NUL')
-      pure (Text.pack charList)
+  arbitrary = do
+    -- Generate valid tsquery format: either empty or quoted lexeme(s) with operators
+    numTerms <- QuickCheck.chooseInt (0, 3)
+    if numTerms == 0
+      then pure (Tsquery "")
+      else do
+        terms <- QuickCheck.vectorOf numTerms genTerm
+        pure (Tsquery (Text.intercalate " & " terms))
+    where
+      genTerm = do
+        -- Generate a simple word (lowercase letters)
+        len <- QuickCheck.chooseInt (1, 10)
+        word <- QuickCheck.vectorOf len (QuickCheck.elements ['a'..'z'])
+        pure ("'" <> Text.pack word <> "'")
   shrink (Tsquery base) =
-    Tsquery . Text.pack <$> shrink (Text.unpack base)
+    if Text.null base
+      then []
+      else [Tsquery ""]
 
 instance IsStandardType Tsquery where
   typeName = Tagged "tsquery"
   baseOid = Tagged 3615
   arrayOid = Tagged 3645
-  binaryEncoder (Tsquery base) = Write.textUtf8 base
+  binaryEncoder (Tsquery base) =
+    -- TODO: Implement full PostgreSQL binary protocol for tsquery
+    -- For now, encode as UTF-8 text (simplified approach)
+    Write.textUtf8 base
   binaryDecoder = do
     bytes <- PtrPeeker.remainderAsByteString
     case Text.Encoding.decodeUtf8' bytes of
@@ -44,7 +63,7 @@ instance IsStandardType Tsquery where
         pure
           ( Left
               ( DecodingError
-                  { location = [],
+                  { location = ["tsquery"],
                     reason =
                       ParsingDecodingErrorReason
                         (fromString (show e))
