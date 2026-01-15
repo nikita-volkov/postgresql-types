@@ -1,5 +1,6 @@
 module PostgresqlTypes.Types.Float8 (Float8) where
 
+import qualified Data.Attoparsec.Text as Attoparsec
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
@@ -21,7 +22,12 @@ instance IsStandardType Float8 where
   arrayOid = Tagged 1022
   binaryEncoder (Float8 x) = Write.bWord64 (castDoubleToWord64 x)
   binaryDecoder = PtrPeeker.fixed (Right . Float8 . castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
-  textualEncoder (Float8 x) = TextBuilder.string (show x)
+  textualEncoder (Float8 x) = TextBuilder.string (printf "%g" x)
+  textualDecoder =
+    (Float8 (0 / 0) <$ Attoparsec.string "NaN")
+      <|> (Float8 (1 / 0) <$ Attoparsec.string "Infinity")
+      <|> (Float8 (-1 / 0) <$ Attoparsec.string "-Infinity")
+      <|> (Float8 <$> Attoparsec.double)
 
 -- | Direct conversion from 'Double'.
 -- This is always safe since both types represent 64-bit floating point numbers identically.

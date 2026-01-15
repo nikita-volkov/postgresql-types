@@ -2,6 +2,7 @@
 
 module PostgresqlTypes.Types.Inet (Inet) where
 
+import qualified Data.Attoparsec.Text as Attoparsec
 import Data.Bits
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
@@ -146,6 +147,77 @@ instance IsStandardType Inet where
          in if netmask == 128
               then ipStr -- Host address without explicit netmask
               else ipStr <> "/" <> TextBuilder.decimal netmask -- Host address with netmask
+  textualDecoder = do
+    ipAddr <- parseIp
+    netmask <- optional (Attoparsec.char '/' *> (Attoparsec.decimal :: Attoparsec.Parser Word8))
+    let defaultNetmask = case ipAddr of
+          V4Ip _ -> 32
+          V6Ip {} -> 128
+    pure (Inet ipAddr (fromMaybe defaultNetmask netmask))
+    where
+      parseIp = parseV6 <|> parseV4
+      parseV4 = do
+        a <- Attoparsec.decimal @Word32
+        _ <- Attoparsec.char '.'
+        b <- Attoparsec.decimal @Word32
+        _ <- Attoparsec.char '.'
+        c <- Attoparsec.decimal @Word32
+        _ <- Attoparsec.char '.'
+        d <- Attoparsec.decimal @Word32
+        pure (V4Ip ((a `shiftL` 24) .|. (b `shiftL` 16) .|. (c `shiftL` 8) .|. d))
+      parseV6 = do
+        -- Try to parse compressed IPv6 (with ::)
+        parseCompressedV6 <|> parseFullV6
+
+      parseFullV6 = do
+        groups <- parseHexGroup `Attoparsec.sepBy1` Attoparsec.char ':'
+        when (length groups /= 8) (fail "Expected 8 groups")
+        case groups of
+          [h1, h2, h3, h4, h5, h6, h7, h8] ->
+            pure
+              ( V6Ip
+                  (fromIntegral h1 `shiftL` 16 .|. fromIntegral h2)
+                  (fromIntegral h3 `shiftL` 16 .|. fromIntegral h4)
+                  (fromIntegral h5 `shiftL` 16 .|. fromIntegral h6)
+                  (fromIntegral h7 `shiftL` 16 .|. fromIntegral h8)
+              )
+          _ -> fail "Expected 8 groups"
+
+      parseCompressedV6 = do
+        -- Check if starts with ::
+        startsWithDoubleColon <- Attoparsec.option False (True <$ Attoparsec.string "::")
+        before <-
+          if startsWithDoubleColon
+            then pure []
+            else parseHexGroup `Attoparsec.sepBy1` Attoparsec.char ':'
+        -- Check for :: in the middle or if we already found it at start
+        hasDoubleColon <-
+          if startsWithDoubleColon
+            then pure True
+            else Attoparsec.option False (True <$ Attoparsec.string "::")
+        after <-
+          if hasDoubleColon
+            then parseHexGroup `Attoparsec.sepBy` Attoparsec.char ':'
+            else pure []
+        -- If no :: was found, this isn't compressed format
+        when (not hasDoubleColon) (fail "Not a compressed IPv6 address")
+        -- Expand to 8 groups, filling middle with zeros
+        let totalGroups = length before + length after
+        when (totalGroups > 7) (fail "Too many groups in compressed IPv6")
+        let zeros = replicate (8 - totalGroups) 0
+            allGroups = before ++ zeros ++ after
+        case allGroups of
+          [h1, h2, h3, h4, h5, h6, h7, h8] ->
+            pure
+              ( V6Ip
+                  (fromIntegral h1 `shiftL` 16 .|. fromIntegral h2)
+                  (fromIntegral h3 `shiftL` 16 .|. fromIntegral h4)
+                  (fromIntegral h5 `shiftL` 16 .|. fromIntegral h6)
+                  (fromIntegral h7 `shiftL` 16 .|. fromIntegral h8)
+              )
+          _ -> fail "Expected 8 groups after expansion"
+
+      parseHexGroup = Attoparsec.hexadecimal @Word16
 
 instance IsSome (Ip, Word8) Inet where
   to (Inet addr netmask) = (addr, netmask)

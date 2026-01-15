@@ -1,5 +1,6 @@
 module PostgresqlTypes.Types.Uuid (Uuid) where
 
+import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.UUID
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
@@ -39,6 +40,11 @@ instance IsStandardType Uuid where
               <*> PtrPeeker.beUnsignedInt4
           )
   textualEncoder = TextBuilder.text . Data.UUID.toText . coerce
+  textualDecoder = do
+    uuidText <- Attoparsec.takeText
+    case Data.UUID.fromText uuidText of
+      Nothing -> fail "Invalid UUID format"
+      Just uuid -> pure (Uuid uuid)
 
 -- | Direct conversion from 'Data.UUID.UUID'.
 -- This is always safe since both types represent UUIDs identically.

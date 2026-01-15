@@ -1,5 +1,6 @@
 module PostgresqlTypes.Types.Varchar (Varchar) where
 
+import qualified Data.Attoparsec.Text as Attoparsec
 import Data.String
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text.Encoding
@@ -48,6 +49,7 @@ instance IsStandardType Varchar where
       Right base ->
         Right (Varchar base)
   textualEncoder (Varchar base) = TextBuilder.text base
+  textualDecoder = Varchar <$> Attoparsec.takeText
 
 instance IsSome Text.Text Varchar where
   to = coerce

@@ -1,6 +1,7 @@
 module PostgresqlTypes.Types.Multirange (Multirange) where
 
 import qualified BaseExtras.List
+import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.Set as Set
 import qualified Data.Vector as Vector
 import PostgresqlTypes.Algebra
@@ -70,6 +71,13 @@ instance (IsMultirangeElement a, Ord a) => IsStandardType (Multirange a) where
           TextBuilder.intercalate "," (Vector.toList (Vector.map (textualEncoder @(Range a)) ranges)),
           "}"
         ]
+  textualDecoder = do
+    _ <- Attoparsec.char '{'
+    Attoparsec.skipSpace
+    ranges <- (textualDecoder @(Range a)) `Attoparsec.sepBy` (Attoparsec.char ',' >> Attoparsec.skipSpace)
+    Attoparsec.skipSpace
+    _ <- Attoparsec.char '}'
+    pure (Multirange (Vector.fromList ranges))
 
 instance (IsRangeElement a, Arbitrary a, Ord a) => Arbitrary (Multirange a) where
   arbitrary = do

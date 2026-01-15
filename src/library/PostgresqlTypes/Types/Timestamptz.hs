@@ -2,6 +2,8 @@
 
 module PostgresqlTypes.Types.Timestamptz (Timestamptz) where
 
+import qualified Data.Attoparsec.Text as Attoparsec
+import qualified Data.Text as Text
 import qualified Data.Time as Time
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
@@ -40,6 +42,78 @@ instance IsStandardType Timestamptz where
     pure (Right (Timestamptz microseconds))
   textualEncoder (toUtcTime -> utcTime) =
     formatTimestamptzForPostgreSQL utcTime
+  textualDecoder = do
+    -- Parse date part
+    y <- Attoparsec.decimal
+    _ <- Attoparsec.char '-'
+    m <- twoDigits
+    _ <- Attoparsec.char '-'
+    d <- twoDigits
+    -- Space or T separator
+    _ <- Attoparsec.satisfy (\c -> c == ' ' || c == 'T')
+    -- Parse time part
+    h <- twoDigits
+    _ <- Attoparsec.char ':'
+    mi <- twoDigits
+    _ <- Attoparsec.char ':'
+    s <- twoDigits
+    micros <- Attoparsec.option 0 parseFraction
+    -- Parse timezone offset
+    tzOffsetMinutes <- parseTimezone
+    -- Check for BC suffix
+    bc <- Attoparsec.option False (True <$ (Attoparsec.skipSpace *> Attoparsec.string "BC"))
+    let year = if bc then negate y + 1 else y
+    case Time.fromGregorianValid year m d of
+      Just day -> do
+        let timeOfDay = Time.TimeOfDay h mi (fromIntegral s + fromIntegral micros / 1_000_000)
+            localTime = Time.LocalTime day timeOfDay
+            timeZone = Time.minutesToTimeZone tzOffsetMinutes
+            utcTime = Time.localTimeToUTC timeZone localTime
+        pure (fromUtcTime utcTime)
+      Nothing ->
+        -- For extreme dates, compute directly from PostgreSQL epoch
+        let yearsSinceEpoch = year - 2000
+            daysFromYears = fromIntegral yearsSinceEpoch * 365 + fromIntegral (yearsSinceEpoch `div` 4)
+            getDaysInMonth mon =
+              case mon of
+                1 -> (31 :: Int)
+                2 -> if isLeapYear year then (29 :: Int) else (28 :: Int)
+                3 -> (31 :: Int)
+                4 -> (30 :: Int)
+                5 -> (31 :: Int)
+                6 -> (30 :: Int)
+                7 -> (31 :: Int)
+                8 -> (31 :: Int)
+                9 -> (30 :: Int)
+                10 -> (31 :: Int)
+                11 -> (30 :: Int)
+                12 -> (31 :: Int)
+                _ -> (0 :: Int)
+            monthDays = foldl' (+) 0 [if mon < m then getDaysInMonth mon else 0 | mon <- [1 .. 12]]
+            totalDays = daysFromYears + fromIntegral monthDays + fromIntegral d - 1
+            dayMicros = totalDays * 86400_000_000
+            timeMicros = fromIntegral h * 3600_000_000 + fromIntegral mi * 60_000_000 + fromIntegral s * 1_000_000 + fromIntegral micros
+            tzAdjustment = fromIntegral tzOffsetMinutes * (-60_000_000) -- Subtract offset to get UTC
+         in pure (Timestamptz (dayMicros + timeMicros + tzAdjustment))
+    where
+      twoDigits = do
+        a <- Attoparsec.digit
+        b <- Attoparsec.digit
+        pure (digitToInt a * 10 + digitToInt b)
+      parseFraction = do
+        _ <- Attoparsec.char '.'
+        digits <- Attoparsec.takeWhile1 isDigit
+        let paddedDigits = take 6 (Text.unpack digits ++ repeat '0')
+            micros = foldl' (\acc c -> acc * 10 + digitToInt c) 0 paddedDigits
+        pure micros
+      parseTimezone =
+        (0 <$ Attoparsec.char 'Z')
+          <|> do
+            sign <- (1 <$ Attoparsec.char '+') <|> ((-1) <$ Attoparsec.char '-')
+            h <- twoDigits
+            mi <- Attoparsec.option 0 (Attoparsec.option ':' (Attoparsec.char ':') *> twoDigits)
+            pure (sign * (h * 60 + mi))
+      isLeapYear yr = (yr `mod` 4 == 0 && yr `mod` 100 /= 0) || (yr `mod` 400 == 0)
 
 -- | Mapping to @tstzrange@ type.
 instance IsRangeElement Timestamptz where

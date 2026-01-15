@@ -36,6 +36,7 @@ instance (IsStandardType a, IsMany a b) => IsStandardType (ViaIsMany a b) where
   binaryEncoder = binaryEncoder . to @a
   binaryDecoder = fmap (fmap (onfrom @a)) binaryDecoder
   textualEncoder = textualEncoder . to @a
+  textualDecoder = onfrom @a <$> textualDecoder
 
 instance (Arbitrary a, IsMany a b) => Arbitrary (ViaIsMany a b) where
   arbitrary = onfrom <$> arbitrary @a

@@ -1,5 +1,6 @@
 module PostgresqlTypes.Types.Range (Range) where
 
+import qualified Data.Attoparsec.Text as Attoparsec
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
 import PostgresqlTypes.Via
@@ -107,6 +108,28 @@ instance (IsRangeElement a, Ord a) => IsStandardType (Range a) where
             Nothing -> ")"
             Just upperValue -> textualEncoder upperValue <> ")"
         ]
+  textualDecoder =
+    parseEmpty <|> parseBounded
+    where
+      parseEmpty = EmptyRange <$ Attoparsec.string "empty"
+      parseBounded = do
+        lowerBracket <- Attoparsec.satisfy (\c -> c == '[' || c == '(')
+        Attoparsec.skipSpace
+        lowerValue <-
+          if lowerBracket == '['
+            then Just <$> parseElement
+            else pure Nothing
+        Attoparsec.skipSpace
+        _ <- Attoparsec.char ','
+        upperValue <- optional parseElement
+        _ <- Attoparsec.char ')'
+        pure (BoundedRange lowerValue upperValue)
+
+      -- Parse element that might be quoted by PostgreSQL (for extreme dates)
+      parseElement =
+        quotedElement <|> textualDecoder @a
+        where
+          quotedElement = Attoparsec.char '"' *> textualDecoder @a <* Attoparsec.char '"'
 
 instance (Arbitrary a, Ord a) => Arbitrary (Range a) where
   arbitrary =

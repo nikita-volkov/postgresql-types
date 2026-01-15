@@ -1,5 +1,6 @@
 module PostgresqlTypes.Types.Int8 (Int8) where
 
+import qualified Data.Attoparsec.Text as Attoparsec
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude hiding (Int8)
 import PostgresqlTypes.Via
@@ -23,6 +24,7 @@ instance IsStandardType Int8 where
   binaryEncoder (Int8 x) = Write.bInt64 x
   binaryDecoder = PtrPeeker.fixed (Right . Int8 <$> PtrPeeker.beSignedInt8)
   textualEncoder (Int8 x) = TextBuilder.decimal x
+  textualDecoder = Int8 <$> Attoparsec.signed Attoparsec.decimal
 
 -- | Mapping to @int8range@ type.
 instance IsRangeElement Int8 where

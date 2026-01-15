@@ -2,6 +2,7 @@
 
 module PostgresqlTypes.Types.Polygon (Polygon) where
 
+import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.Vector.Unboxed as UnboxedVector
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
 import PostgresqlTypes.Algebra
@@ -65,7 +66,20 @@ instance IsStandardType Polygon where
     "(" <> TextBuilder.intercalateMap "," encodePoint (UnboxedVector.toList points) <> ")"
     where
       encodePoint (x, y) =
-        "(" <> TextBuilder.string (show x) <> "," <> TextBuilder.string (show y) <> ")"
+        "(" <> TextBuilder.string (printf "%g" x) <> "," <> TextBuilder.string (printf "%g" y) <> ")"
+  textualDecoder = do
+    _ <- Attoparsec.char '('
+    points <- parsePoint `Attoparsec.sepBy1` Attoparsec.char ','
+    _ <- Attoparsec.char ')'
+    pure (Polygon (UnboxedVector.fromList points))
+    where
+      parsePoint = do
+        _ <- Attoparsec.char '('
+        x <- Attoparsec.double
+        _ <- Attoparsec.char ','
+        y <- Attoparsec.double
+        _ <- Attoparsec.char ')'
+        pure (x, y)
 
 -- | Conversion to a list of points. At least 3 points are required to form a valid polygon.
 instance IsSome (UnboxedVector.Vector (Double, Double)) Polygon where

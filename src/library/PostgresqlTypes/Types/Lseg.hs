@@ -2,6 +2,7 @@
 
 module PostgresqlTypes.Types.Lseg (Lseg) where
 
+import qualified Data.Attoparsec.Text as Attoparsec
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
@@ -49,15 +50,30 @@ instance IsStandardType Lseg where
     pure (Right (Lseg x1 y1 x2 y2))
   textualEncoder (Lseg x1 y1 x2 y2) =
     "[("
-      <> TextBuilder.string (show x1)
+      <> TextBuilder.string (printf "%g" x1)
       <> ","
-      <> TextBuilder.string (show y1)
+      <> TextBuilder.string (printf "%g" y1)
       <> "),"
       <> "("
-      <> TextBuilder.string (show x2)
+      <> TextBuilder.string (printf "%g" x2)
       <> ","
-      <> TextBuilder.string (show y2)
+      <> TextBuilder.string (printf "%g" y2)
       <> ")]"
+  textualDecoder = do
+    _ <- Attoparsec.char '['
+    _ <- Attoparsec.char '('
+    x1 <- Attoparsec.double
+    _ <- Attoparsec.char ','
+    y1 <- Attoparsec.double
+    _ <- Attoparsec.char ')'
+    _ <- Attoparsec.char ','
+    _ <- Attoparsec.char '('
+    x2 <- Attoparsec.double
+    _ <- Attoparsec.char ','
+    y2 <- Attoparsec.double
+    _ <- Attoparsec.char ')'
+    _ <- Attoparsec.char ']'
+    pure (Lseg x1 y1 x2 y2)
 
 -- | Convert from a 4-tuple to an Lseg.
 -- This is always safe since both represent the same data.

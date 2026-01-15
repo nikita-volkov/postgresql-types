@@ -2,6 +2,7 @@
 
 module PostgresqlTypes.Types.Point (Point) where
 
+import qualified Data.Attoparsec.Text as Attoparsec
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
@@ -41,7 +42,14 @@ instance IsStandardType Point where
     y <- PtrPeeker.fixed (castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
     pure (Right (Point x y))
   textualEncoder (Point x y) =
-    "(" <> TextBuilder.string (show x) <> "," <> TextBuilder.string (show y) <> ")"
+    "(" <> TextBuilder.string (printf "%g" x) <> "," <> TextBuilder.string (printf "%g" y) <> ")"
+  textualDecoder = do
+    _ <- Attoparsec.char '('
+    x <- Attoparsec.double
+    _ <- Attoparsec.char ','
+    y <- Attoparsec.double
+    _ <- Attoparsec.char ')'
+    pure (Point x y)
 
 -- | Convert from a tuple of doubles to a Point.
 -- This is always safe since both represent the same data.
