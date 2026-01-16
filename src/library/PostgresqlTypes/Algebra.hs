@@ -80,3 +80,18 @@ data DecodingErrorReason
       -- | Value.
       Text
   deriving stock (Show, Eq)
+
+toTypeSignature :: forall a. (IsStandardType a) => a -> Text
+toTypeSignature value =
+  let params = runtimeTypeParams value
+   in if null params
+        then untag (typeName @a)
+        else
+          TextBuilder.toText
+            ( mconcat
+                [ TextBuilder.text (untag (typeName @a)),
+                  "(",
+                  TextBuilder.intercalateMap ", " (TextBuilder.text) params,
+                  ")"
+                ]
+            )
