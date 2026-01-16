@@ -7,7 +7,7 @@ on:
         description: 'Maximum number of successful tests for QuickCheck'
         required: false
         type: number
-        default: 10000 
+        default: 10000
 
 permissions:
   contents: read
