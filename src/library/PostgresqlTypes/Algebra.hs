@@ -82,8 +82,8 @@ data DecodingErrorReason
       Text
   deriving stock (Show, Eq)
 
-typeSignatureOf :: forall a. (IsStandardType a) => Tagged a Text
-typeSignatureOf =
+typeSignature :: forall a. (IsStandardType a) => Tagged a Text
+typeSignature =
   let params = untag (typeParams @a)
       name = untag (typeName @a)
    in Tagged
