@@ -20,7 +20,7 @@ import qualified TextBuilder
 -- | PostgreSQL @bit@ type. Fixed-length bit string.
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-bit.html).
--- 
+--
 -- - * numBits: The static length of the bit string.
 data Bit (numBits :: Nat) = Bit
   { -- | Bit data (packed into bytes)
