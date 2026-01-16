@@ -41,6 +41,8 @@ instance (IsMultirangeElement a) => IsStandardType (Multirange a) where
   typeName = retag (multirangeTypeName @a)
   baseOid = retag (multirangeBaseOid @a)
   arrayOid = retag (multirangeArrayOid @a)
+  runtimeTypeParams (Multirange ranges) =
+    Vector.toList ranges >>= runtimeTypeParams @(Range a)
   binaryEncoder = \case
     Multirange ranges ->
       mconcat

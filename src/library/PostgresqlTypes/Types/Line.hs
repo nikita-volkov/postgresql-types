@@ -45,6 +45,7 @@ instance IsStandardType Line where
   typeName = Tagged "line"
   baseOid = Tagged (Just 628)
   arrayOid = Tagged (Just 629)
+  runtimeTypeParams _ = []
   binaryEncoder (Line a b c) =
     mconcat
       [ Write.bWord64 (castDoubleToWord64 a),

@@ -31,6 +31,7 @@ instance (IsStandardType a, IsSome a b) => IsStandardType (ViaIsSome a b) where
   typeName = retag (typeName @a)
   baseOid = retag (baseOid @a)
   arrayOid = retag (arrayOid @a)
+  runtimeTypeParams = runtimeTypeParams @a . to
   binaryEncoder = binaryEncoder @a . to
   binaryDecoder =
     binaryDecoder @a <&> \case

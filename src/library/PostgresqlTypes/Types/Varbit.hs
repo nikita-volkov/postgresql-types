@@ -45,6 +45,7 @@ instance IsStandardType Varbit where
   typeName = Tagged "varbit"
   baseOid = Tagged (Just 1562)
   arrayOid = Tagged (Just 1563)
+  runtimeTypeParams _ = []
   binaryEncoder (Varbit len bytes) =
     mconcat
       [ Write.bInt32 len,

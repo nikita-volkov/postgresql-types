@@ -39,6 +39,11 @@ instance (IsRangeElement a) => IsStandardType (Range a) where
   typeName = retag (rangeTypeName @a)
   baseOid = retag (rangeBaseOid @a)
   arrayOid = retag (rangeArrayOid @a)
+  runtimeTypeParams = \case
+    EmptyRange -> []
+    BoundedRange lowerValue upperValue ->
+      maybe [] (runtimeTypeParams @a) lowerValue
+        <> maybe [] (runtimeTypeParams @a) upperValue
   binaryEncoder = \case
     EmptyRange ->
       Write.word8 0b00000001

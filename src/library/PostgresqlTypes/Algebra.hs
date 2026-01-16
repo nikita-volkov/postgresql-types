@@ -17,6 +17,11 @@ class IsStandardType a where
   -- | PostgreSQL array type OID, if known at compile time.
   arrayOid :: Tagged a (Maybe Word32)
 
+  -- | Extract the type parameters from a particular value at runtime.
+  --
+  -- E.g., in case of the @bit@ type, this can be use to translate the length parameter (the @n@ in @bit(n)@).
+  runtimeTypeParams :: a -> [Text]
+
   -- | Encode the value in PostgreSQL binary format.
   binaryEncoder :: a -> Write.Write
 

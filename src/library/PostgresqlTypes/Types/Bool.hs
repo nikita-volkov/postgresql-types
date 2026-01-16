@@ -19,6 +19,7 @@ instance IsStandardType Bool where
   typeName = Tagged "bool"
   baseOid = Tagged (Just 16)
   arrayOid = Tagged (Just 1000)
+  runtimeTypeParams _ = []
   binaryEncoder (Bool b) = Write.word8 (if b then 1 else 0)
   binaryDecoder =
     PtrPeeker.fixed do

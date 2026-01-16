@@ -32,6 +32,7 @@ instance IsStandardType Text where
   typeName = Tagged "text"
   baseOid = Tagged (Just 25)
   arrayOid = Tagged (Just 1009)
+  runtimeTypeParams _ = []
   binaryEncoder (Text base) = Write.textUtf8 base
   binaryDecoder = do
     bytes <- PtrPeeker.remainderAsByteString

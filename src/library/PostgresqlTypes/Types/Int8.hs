@@ -21,6 +21,7 @@ instance IsStandardType Int8 where
   typeName = Tagged "int8"
   baseOid = Tagged (Just 20)
   arrayOid = Tagged (Just 1016)
+  runtimeTypeParams _ = []
   binaryEncoder (Int8 x) = Write.bInt64 x
   binaryDecoder = PtrPeeker.fixed (Right . Int8 <$> PtrPeeker.beSignedInt8)
   textualEncoder (Int8 x) = TextBuilder.decimal x

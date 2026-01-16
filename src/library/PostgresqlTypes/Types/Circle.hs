@@ -45,6 +45,7 @@ instance IsStandardType Circle where
   typeName = Tagged "circle"
   baseOid = Tagged (Just 718)
   arrayOid = Tagged (Just 719)
+  runtimeTypeParams _ = []
   binaryEncoder (Circle x y r) =
     mconcat
       [ Write.bWord64 (castDoubleToWord64 x),

@@ -21,6 +21,7 @@ instance IsStandardType Int2 where
   typeName = Tagged "int2"
   baseOid = Tagged (Just 21)
   arrayOid = Tagged (Just 1005)
+  runtimeTypeParams _ = []
   binaryEncoder (Int2 x) = Write.bInt16 x
   binaryDecoder = PtrPeeker.fixed (Right . Int2 <$> PtrPeeker.beSignedInt2)
   textualEncoder (Int2 x) = TextBuilder.decimal x

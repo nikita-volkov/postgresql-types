@@ -43,6 +43,7 @@ instance IsStandardType Bit where
   typeName = Tagged "bit"
   baseOid = Tagged (Just 1560)
   arrayOid = Tagged (Just 1561)
+  runtimeTypeParams (Bit len _) = [Text.pack (show len)]
   binaryEncoder (Bit len bytes) =
     mconcat
       [ Write.bInt32 len,

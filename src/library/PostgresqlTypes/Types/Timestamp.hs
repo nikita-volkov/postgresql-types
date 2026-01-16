@@ -34,6 +34,7 @@ instance IsStandardType Timestamp where
   typeName = Tagged "timestamp"
   baseOid = Tagged (Just 1114)
   arrayOid = Tagged (Just 1115)
+  runtimeTypeParams _ = []
   binaryEncoder (Timestamp micros) = Write.bInt64 micros
   binaryDecoder = do
     microseconds <- PtrPeeker.fixed PtrPeeker.beSignedInt8

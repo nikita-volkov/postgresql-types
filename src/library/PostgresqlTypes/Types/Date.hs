@@ -53,6 +53,7 @@ instance IsStandardType Date where
   typeName = Tagged "date"
   baseOid = Tagged (Just 1082)
   arrayOid = Tagged (Just 1182)
+  runtimeTypeParams _ = []
   binaryEncoder (Date days) = Write.bInt32 days
   binaryDecoder = do
     days <- PtrPeeker.fixed PtrPeeker.beSignedInt4
