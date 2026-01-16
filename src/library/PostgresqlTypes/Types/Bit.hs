@@ -125,18 +125,18 @@ instance (TypeLits.KnownNat numBits) => IsSome [Bool] (Bit numBits) where
       chunksOf n xs = take n xs : chunksOf n (drop n xs)
 
 -- | Convert from a Bit to a list of Bool.
--- Only returns the actual bits (not padding).
+-- Required as superclass of IsMany.
 instance (TypeLits.KnownNat numBits) => IsSome (Bit numBits) [Bool] where
   to bits =
     let len = length bits
         expectedLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
-    in if len == expectedLen
-      then
+    in if len /= expectedLen
+      then error ("IsSome (Bit numBits) [Bool].to: length mismatch, expected " <> show expectedLen <> " but got " <> show len)
+      else
         let numBytes = (len + 7) `div` 8
             paddedBits = bits ++ replicate (numBytes * 8 - len) False
             bytes = map boolsToByte (chunksOf 8 paddedBits)
          in Bit (ByteString.pack bytes)
-      else Bit ByteString.empty -- Invalid, but needed for type signature
     where
       boolsToByte :: [Bool] -> Word8
       boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
@@ -220,24 +220,19 @@ instance (TypeLits.KnownNat numBits) => IsSome (VU.Vector Bool) (Bit numBits) wh
       chunksOf n xs = take n xs : chunksOf n (drop n xs)
 
 -- | Convert from a Bit to an unboxed vector of Bool.
---
--- This provides an efficient conversion from PostgreSQL @bit@ type to
--- 'Data.Vector.Unboxed.Vector' 'Bool'. Only returns the actual bits,
--- excluding any padding bits used for byte alignment.
---
--- This is the inverse of the 'IsSome' instance for @(VU.Vector Bool) (Bit numBits)@.
+-- Required as superclass of IsMany.
 instance (TypeLits.KnownNat numBits) => IsSome (Bit numBits) (VU.Vector Bool) where
   to bitVector =
     let len = VU.length bitVector
         expectedLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
-    in if len == expectedLen
-      then
+    in if len /= expectedLen
+      then error ("IsSome (Bit numBits) (VU.Vector Bool).to: length mismatch, expected " <> show expectedLen <> " but got " <> show len)
+      else
         let bits = VU.toList bitVector
             numBytes = (len + 7) `div` 8
             paddedBits = bits ++ replicate (numBytes * 8 - len) False
             bytes = map boolsToByte (chunksOf 8 paddedBits)
          in Bit (ByteString.pack bytes)
-      else Bit ByteString.empty -- Invalid, but needed for type signature
     where
       boolsToByte :: [Bool] -> Word8
       boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
