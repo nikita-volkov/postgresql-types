@@ -36,6 +36,7 @@ main = hspec do
   testIsStandardType @PostgresqlTypes.Box Proxy
   testIsStandardType @PostgresqlTypes.Bytea Proxy
   testIsStandardType @(PostgresqlTypes.Char 1) Proxy
+  testIsStandardType @(PostgresqlTypes.Bpchar 1) Proxy
   testIsStandardType @PostgresqlTypes.Cidr Proxy
   testIsStandardType @PostgresqlTypes.Circle Proxy
   testIsStandardType @PostgresqlTypes.Date Proxy
@@ -103,6 +104,8 @@ main = hspec do
   testIsMany @PostgresqlTypes.Bytea @ByteString Proxy Proxy
   testIsMany @(PostgresqlTypes.Char 1) @Word8 Proxy Proxy
   testIsMany @(PostgresqlTypes.Char 1) @Char Proxy Proxy
+  testIsMany @(PostgresqlTypes.Bpchar 1) @Word8 Proxy Proxy
+  testIsMany @(PostgresqlTypes.Bpchar 1) @Bpchar Proxy Proxy
   testIsMany @PostgresqlTypes.Cidr @(PostgresqlTypes.Ip, Word8) Proxy Proxy
   testIsMany @PostgresqlTypes.Circle @(Double, Double, Double) Proxy Proxy
   testIsMany @PostgresqlTypes.Date @Day Proxy Proxy

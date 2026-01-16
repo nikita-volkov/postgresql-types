@@ -111,6 +111,7 @@ library
     PostgresqlTypes.Types.Bit
     PostgresqlTypes.Types.Bool
     PostgresqlTypes.Types.Box
+    PostgresqlTypes.Types.Bpchar
     PostgresqlTypes.Types.Bytea
     PostgresqlTypes.Types.Char
     PostgresqlTypes.Types.Cidr

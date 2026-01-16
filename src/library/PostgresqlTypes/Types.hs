@@ -23,6 +23,7 @@
 -- * 'Text' - Variable-length character string (@text@)
 -- * 'Varchar' - Variable-length with limit (@varchar@)
 -- * 'Char' - Fixed-length character string (@char@)
+-- * 'Bpchar' - Fixed-length character string (@char@)
 --
 -- == Boolean Type
 --
@@ -140,6 +141,7 @@ module PostgresqlTypes.Types
     Box,
     Bytea,
     Char,
+    Bpchar,
     Cidr,
     Circle,
     Date,
@@ -182,6 +184,7 @@ where
 import PostgresqlTypes.Types.Bit
 import PostgresqlTypes.Types.Bool
 import PostgresqlTypes.Types.Box
+import PostgresqlTypes.Types.Bpchar
 import PostgresqlTypes.Types.Bytea
 import PostgresqlTypes.Types.Char
 import PostgresqlTypes.Types.Cidr
