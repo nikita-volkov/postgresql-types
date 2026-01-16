@@ -8,7 +8,6 @@ import qualified Data.ByteString as ByteString
 import qualified Data.Text as Text
 import qualified Data.Vector.Unboxed as VU
 import qualified GHC.TypeLits as TypeLits
-import qualified LawfulConversions
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
 import PostgresqlTypes.Via
@@ -21,8 +20,9 @@ import qualified TextBuilder
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-bit.html).
 --
--- - * numBits: The static length of the bit string.
-data Bit (numBits :: Nat) = Bit
+-- The type parameter @numBits@ specifies the static length of the bit string.
+-- Only bit strings with exactly this length can be represented by this type.
+data Bit (numBits :: TypeLits.Nat) = Bit
   { -- | Bit data (packed into bytes)
     bytes :: ByteString
   }
@@ -31,32 +31,48 @@ data Bit (numBits :: Nat) = Bit
 
 instance (TypeLits.KnownNat numBits) => Arbitrary (Bit numBits) where
   arbitrary = do
-    len <- QuickCheck.chooseInt (0, 64) -- Reasonable bit length for tests
-    bits <- QuickCheck.vectorOf len (arbitrary :: QuickCheck.Gen Bool) -- Generate the actual bits
-    -- Convert through IsMany to ensure proper padding
-    pure $ LawfulConversions.from bits
-  shrink (Bit len bytes) =
-    let bits = LawfulConversions.from (Bit len bytes) :: [Bool]
-        shrunkBitsList = shrink bits
-     in map LawfulConversions.from shrunkBitsList
+    let len = fromIntegral (TypeLits.natVal (Proxy @numBits))
+    boolList <- QuickCheck.vectorOf len (arbitrary @Bool)
+    case maybeFrom boolList of
+      Nothing -> error "Arbitrary Bit: Generated bit string has incorrect length"
+      Just bit -> pure bit
 
-instance IsStandardType Bit where
+instance (TypeLits.KnownNat numBits) => IsStandardType (Bit numBits) where
   typeName = Tagged "bit"
   baseOid = Tagged (Just 1560)
   arrayOid = Tagged (Just 1561)
-  runtimeTypeParams (Bit len _) = [Text.pack (show len)]
-  binaryEncoder (Bit len bytes) =
-    mconcat
-      [ Write.bInt32 len,
-        Write.byteString bytes
+  typeParams =
+    Tagged
+      [ Text.pack (show (TypeLits.natVal (Proxy @numBits)))
       ]
+  binaryEncoder (Bit bytes) =
+    let len = fromIntegral (TypeLits.natVal (Proxy @numBits))
+     in mconcat
+          [ Write.bInt32 len,
+            Write.byteString bytes
+          ]
   binaryDecoder = do
     len <- PtrPeeker.fixed PtrPeeker.beSignedInt4
     bytes <- PtrPeeker.remainderAsByteString
-    pure (Right (Bit len bytes))
-  textualEncoder (Bit len bytes) =
-    let bits = concatMap byteToBits (ByteString.unpack bytes)
-        trimmedBits = take (fromIntegral len) bits
+    let expectedLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
+    if len == expectedLen
+      then pure (Right (Bit bytes))
+      else
+        pure
+          ( Left
+              ( DecodingError
+                  { location = ["Bit"],
+                    reason =
+                      UnsupportedValueDecodingErrorReason
+                        ("Expected bit string of length " <> Text.pack (show expectedLen) <> " but got " <> Text.pack (show len))
+                        (TextBuilder.toText (TextBuilder.decimal len))
+                  }
+              )
+          )
+  textualEncoder (Bit bytes) =
+    let len = fromIntegral (TypeLits.natVal (Proxy @numBits))
+        bits = concatMap byteToBits (ByteString.unpack bytes)
+        trimmedBits = take len bits
         bitString = map (\b -> if b then '1' else '0') trimmedBits
      in TextBuilder.text (Text.pack bitString)
     where
@@ -65,11 +81,15 @@ instance IsStandardType Bit where
   textualDecoder = do
     bitChars <- Attoparsec.takeText
     let bits = map (== '1') (Text.unpack bitChars)
-        len = fromIntegral (length bits)
-        numBytes = (len + 7) `div` 8
-        paddedBits = bits ++ replicate (numBytes * 8 - len) False
-        bytes = map boolsToByte (chunksOf 8 paddedBits)
-    pure (Bit (fromIntegral len) (ByteString.pack bytes))
+        len = length bits
+        expectedLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
+    if len /= expectedLen
+      then fail ("Expected bit string of length " <> show expectedLen <> " but got " <> show len)
+      else do
+        let numBytes = (len + 7) `div` 8
+            paddedBits = bits ++ replicate (numBytes * 8 - len) False
+            bytes = map boolsToByte (chunksOf 8 paddedBits)
+        pure (Bit (ByteString.pack bytes))
     where
       boolsToByte :: [Bool] -> Word8
       boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
@@ -78,177 +98,105 @@ instance IsStandardType Bit where
       chunksOf n xs = take n xs : chunksOf n (drop n xs)
 
 -- | Convert from a bit string (as a list of Bool) to a Bit.
+-- The bit string must have exactly the length specified by the type parameter.
 -- The bit string is packed into bytes.
-instance IsSome [Bool] Bit where
-  to (Bit len bytes) =
-    let bits = concatMap byteToBits (ByteString.unpack bytes)
-        trimmedBits = take (fromIntegral len) bits
+instance (TypeLits.KnownNat numBits) => IsSome [Bool] (Bit numBits) where
+  to (Bit bytes) =
+    let len = fromIntegral (TypeLits.natVal (Proxy @numBits))
+        bits = concatMap byteToBits (ByteString.unpack bytes)
+        trimmedBits = take len bits
      in trimmedBits
     where
       byteToBits :: Word8 -> [Bool]
       byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
   maybeFrom bits =
-    let len = fromIntegral (length bits)
-        numBytes = (len + 7) `div` 8
-        paddedBits = bits ++ replicate (numBytes * 8 - len) False
-        bytes = map boolsToByte (chunksOf 8 paddedBits)
-     in Just (Bit (fromIntegral len) (ByteString.pack bytes))
+    let len = length bits
+        expectedLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
+     in if len == expectedLen
+          then
+            let numBytes = (len + 7) `div` 8
+                paddedBits = bits ++ replicate (numBytes * 8 - len) False
+                bytes = map boolsToByte (chunksOf 8 paddedBits)
+             in Just (Bit (ByteString.pack bytes))
+          else Nothing
     where
       boolsToByte :: [Bool] -> Word8
       boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
       chunksOf :: Int -> [a] -> [[a]]
       chunksOf _ [] = []
       chunksOf n xs = take n xs : chunksOf n (drop n xs)
-
--- | Convert from a Bit to a list of Bool.
--- Only returns the actual bits (not padding).
-instance IsSome Bit [Bool] where
-  to bits =
-    let len = fromIntegral (length bits)
-        numBytes = (len + 7) `div` 8
-        paddedBits = bits ++ replicate (numBytes * 8 - len) False
-        bytes = map boolsToByte (chunksOf 8 paddedBits)
-     in Bit (fromIntegral len) (ByteString.pack bytes)
-    where
-      boolsToByte :: [Bool] -> Word8
-      boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
-      chunksOf :: Int -> [a] -> [[a]]
-      chunksOf _ [] = []
-      chunksOf n xs = take n xs : chunksOf n (drop n xs)
-  maybeFrom (Bit len bytes) =
-    let bits = concatMap byteToBits (ByteString.unpack bytes)
-        trimmedBits = take (fromIntegral len) bits
-     in Just trimmedBits
-    where
-      byteToBits :: Word8 -> [Bool]
-      byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
 
 -- | Direct conversion from bit list to Bit.
-instance IsMany [Bool] Bit where
+-- Truncates or pads to match the type-level length.
+instance (TypeLits.KnownNat numBits) => IsMany [Bool] (Bit numBits) where
   onfrom bits =
-    let len = fromIntegral (length bits)
-        numBytes = (len + 7) `div` 8
-        paddedBits = bits ++ replicate (numBytes * 8 - len) False
+    let expectedLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
+        -- Truncate or pad to the expected length
+        adjustedBits = take expectedLen (bits ++ repeat False)
+        numBytes = (expectedLen + 7) `div` 8
+        paddedBits = adjustedBits ++ replicate (numBytes * 8 - expectedLen) False
         bytes = map boolsToByte (chunksOf 8 paddedBits)
-     in Bit (fromIntegral len) (ByteString.pack bytes)
+     in Bit (ByteString.pack bytes)
     where
       boolsToByte :: [Bool] -> Word8
       boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
       chunksOf :: Int -> [a] -> [[a]]
       chunksOf _ [] = []
       chunksOf n xs = take n xs : chunksOf n (drop n xs)
-
--- | Direct conversion from Bit to bit list.
-instance IsMany Bit [Bool] where
-  onfrom (Bit len bytes) =
-    let bits = concatMap byteToBits (ByteString.unpack bytes)
-        trimmedBits = take (fromIntegral len) bits
-     in trimmedBits
-    where
-      byteToBits :: Word8 -> [Bool]
-      byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
-
--- | Bidirectional conversion between bit list and Bit.
-instance Is [Bool] Bit
-
-instance Is Bit [Bool]
 
 -- | Convert from an unboxed vector of Bool to a Bit.
 --
 -- This provides an efficient conversion from 'Data.Vector.Unboxed.Vector' 'Bool'
--- to PostgreSQL @bit@ type. The boolean vector is packed into bytes with proper
+-- to PostgreSQL @bit@ type. The boolean vector must have exactly the length specified
+-- by the type parameter. The boolean vector is packed into bytes with proper
 -- padding to align to byte boundaries.
 --
 -- This instance allows using unboxed vectors for high-performance bit operations
 -- while maintaining compatibility with PostgreSQL's bit string format.
-instance IsSome (VU.Vector Bool) Bit where
-  to (Bit len bytes) =
-    let bits = concatMap byteToBits (ByteString.unpack bytes)
-        trimmedBits = take (fromIntegral len) bits
+instance (TypeLits.KnownNat numBits) => IsSome (VU.Vector Bool) (Bit numBits) where
+  to (Bit bytes) =
+    let len = fromIntegral (TypeLits.natVal (Proxy @numBits))
+        bits = concatMap byteToBits (ByteString.unpack bytes)
+        trimmedBits = take len bits
      in VU.fromList trimmedBits
     where
       byteToBits :: Word8 -> [Bool]
       byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
   maybeFrom bitVector =
-    let bits = VU.toList bitVector
-        len = fromIntegral (VU.length bitVector)
-        numBytes = (len + 7) `div` 8
-        paddedBits = bits ++ replicate (numBytes * 8 - len) False
-        bytes = map boolsToByte (chunksOf 8 paddedBits)
-     in Just (Bit (fromIntegral len) (ByteString.pack bytes))
+    let len = VU.length bitVector
+        expectedLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
+     in if len == expectedLen
+          then
+            let bits = VU.toList bitVector
+                numBytes = (len + 7) `div` 8
+                paddedBits = bits ++ replicate (numBytes * 8 - len) False
+                bytes = map boolsToByte (chunksOf 8 paddedBits)
+             in Just (Bit (ByteString.pack bytes))
+          else Nothing
     where
       boolsToByte :: [Bool] -> Word8
       boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
       chunksOf :: Int -> [a] -> [[a]]
       chunksOf _ [] = []
       chunksOf n xs = take n xs : chunksOf n (drop n xs)
-
--- | Convert from a Bit to an unboxed vector of Bool.
---
--- This provides an efficient conversion from PostgreSQL @bit@ type to
--- 'Data.Vector.Unboxed.Vector' 'Bool'. Only returns the actual bits,
--- excluding any padding bits used for byte alignment.
---
--- This is the inverse of the 'IsSome' instance for @(VU.Vector Bool) Bit@.
-instance IsSome Bit (VU.Vector Bool) where
-  to bitVector =
-    let bits = VU.toList bitVector
-        len = fromIntegral (VU.length bitVector)
-        numBytes = (len + 7) `div` 8
-        paddedBits = bits ++ replicate (numBytes * 8 - len) False
-        bytes = map boolsToByte (chunksOf 8 paddedBits)
-     in Bit (fromIntegral len) (ByteString.pack bytes)
-    where
-      boolsToByte :: [Bool] -> Word8
-      boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
-      chunksOf :: Int -> [a] -> [[a]]
-      chunksOf _ [] = []
-      chunksOf n xs = take n xs : chunksOf n (drop n xs)
-  maybeFrom (Bit len bytes) =
-    let bits = concatMap byteToBits (ByteString.unpack bytes)
-        trimmedBits = take (fromIntegral len) bits
-     in Just (VU.fromList trimmedBits)
-    where
-      byteToBits :: Word8 -> [Bool]
-      byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
 
 -- | Direct conversion from unboxed bit vector to Bit.
 --
--- This is a total conversion that always succeeds. The boolean vector
--- is efficiently packed into the PostgreSQL @bit@ format.
-instance IsMany (VU.Vector Bool) Bit where
+-- This is a total conversion that truncates or pads to match the type-level length.
+-- The boolean vector is efficiently packed into the PostgreSQL @bit@ format.
+instance (TypeLits.KnownNat numBits) => IsMany (VU.Vector Bool) (Bit numBits) where
   onfrom bitVector =
-    let bits = VU.toList bitVector
-        len = fromIntegral (VU.length bitVector)
-        numBytes = (len + 7) `div` 8
-        paddedBits = bits ++ replicate (numBytes * 8 - len) False
+    let expectedLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
+        bits = VU.toList bitVector
+        -- Truncate or pad to the expected length
+        adjustedBits = take expectedLen (bits ++ repeat False)
+        numBytes = (expectedLen + 7) `div` 8
+        paddedBits = adjustedBits ++ replicate (numBytes * 8 - expectedLen) False
         bytes = map boolsToByte (chunksOf 8 paddedBits)
-     in Bit (fromIntegral len) (ByteString.pack bytes)
+     in Bit (ByteString.pack bytes)
     where
       boolsToByte :: [Bool] -> Word8
       boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
       chunksOf :: Int -> [a] -> [[a]]
       chunksOf _ [] = []
       chunksOf n xs = take n xs : chunksOf n (drop n xs)
-
--- | Direct conversion from Bit to unboxed bit vector.
---
--- This is a total conversion that always succeeds. Efficiently extracts
--- the bit data from PostgreSQL @bit@ format into an unboxed vector.
-instance IsMany Bit (VU.Vector Bool) where
-  onfrom (Bit len bytes) =
-    let bits = concatMap byteToBits (ByteString.unpack bytes)
-        trimmedBits = take (fromIntegral len) bits
-     in VU.fromList trimmedBits
-    where
-      byteToBits :: Word8 -> [Bool]
-      byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
-
--- | Bidirectional conversion between unboxed bit vector and Bit.
---
--- This provides isomorphic conversion between 'Data.Vector.Unboxed.Vector' 'Bool'
--- and PostgreSQL @bit@ type. These instances enable seamless use of unboxed vectors
--- for efficient bit manipulation while maintaining PostgreSQL compatibility.
-instance Is (VU.Vector Bool) Bit
-
-instance Is Bit (VU.Vector Bool)

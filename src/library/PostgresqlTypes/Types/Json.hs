@@ -35,7 +35,7 @@ instance IsStandardType Json where
   typeName = Tagged "json"
   baseOid = Tagged (Just 114)
   arrayOid = Tagged (Just 199)
-  runtimeTypeParams _ = []
+  typeParams = Tagged []
   binaryEncoder =
     -- JSON type stores as UTF-8 text without version byte prefix
     Jsonifier.toWrite . JsonifierAeson.aesonValue . toAesonValue

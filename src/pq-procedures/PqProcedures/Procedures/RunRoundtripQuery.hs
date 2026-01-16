@@ -6,6 +6,7 @@ where
 
 import qualified Data.ByteString as ByteString
 import Data.Maybe
+import qualified Data.Text as Text
 import Data.Word
 import qualified Database.PostgreSQL.LibPQ as Pq
 import PqProcedures.Algebra
@@ -16,18 +17,22 @@ data RunRoundtripQueryParams = RunRoundtripQueryParams
   { paramOid :: Word32,
     paramEncoding :: ByteString.ByteString,
     paramFormat :: Pq.Format,
-    resultFormat :: Pq.Format
+    resultFormat :: Pq.Format,
+    typeSignature :: Maybe Text.Text
   }
 
 type RunRoundtripQueryResult = ByteString.ByteString
 
 instance Procedure RunRoundtripQueryParams RunRoundtripQueryResult where
   run connection (RunRoundtripQueryParams {..}) = do
+    let sql = case typeSignature of
+          Nothing -> "SELECT $1"
+          Just sig -> "SELECT $1::" <> sig
     pqResult <-
       run
         connection
         RunStatementParams
-          { sql = "SELECT $1",
+          { sql = sql,
             params =
               [ Just (paramOid, paramEncoding, paramFormat)
               ],

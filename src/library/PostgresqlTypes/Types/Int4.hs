@@ -21,7 +21,7 @@ instance IsStandardType Int4 where
   typeName = Tagged "int4"
   baseOid = Tagged (Just 23)
   arrayOid = Tagged (Just 1007)
-  runtimeTypeParams _ = []
+  typeParams = Tagged []
   binaryEncoder (Int4 x) = Write.bInt32 x
   binaryDecoder = PtrPeeker.fixed (Right . Int4 <$> PtrPeeker.beSignedInt4)
   textualEncoder (Int4 x) = TextBuilder.decimal x

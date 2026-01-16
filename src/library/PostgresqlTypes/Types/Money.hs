@@ -28,7 +28,7 @@ instance IsStandardType Money where
   typeName = Tagged "money"
   baseOid = Tagged (Just 790)
   arrayOid = Tagged (Just 791)
-  runtimeTypeParams _ = []
+  typeParams = Tagged []
   binaryEncoder (Money x) = Write.bInt64 x
   binaryDecoder = PtrPeeker.fixed (Right . Money <$> PtrPeeker.beSignedInt8)
   textualEncoder (Money x) =
