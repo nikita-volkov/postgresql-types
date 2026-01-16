@@ -50,12 +50,10 @@ instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsStandardTyp
     Tagged
       ( let prec = TypeLits.natVal (Proxy @precision)
             sc = TypeLits.natVal (Proxy @scale)
-         in if prec == 0 && sc == 0
-              then [] -- No type modifiers for arbitrary precision numeric
-              else
-                if sc == 0
-                  then [Text.pack (show prec)] -- numeric(precision)
-                  else [Text.pack (show prec), Text.pack (show sc)] -- numeric(precision, scale)
+         in case (prec, sc) of
+              (0, 0) -> [] -- No type modifiers for arbitrary precision numeric
+              (p, 0) -> [Text.pack (show p)] -- numeric(precision)
+              (p, s) -> [Text.pack (show p), Text.pack (show s)] -- numeric(precision, scale)
       )
 
   binaryEncoder = \case
