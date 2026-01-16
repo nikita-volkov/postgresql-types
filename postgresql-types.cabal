@@ -272,7 +272,8 @@ test-suite integration-tests
   hs-source-dirs: src/integration-tests
   main-is: Main.hs
   other-modules:
-    Main.Helpers
+    Main.Scopes
+    Main.Scripts
 
   build-depends:
     QuickCheck >=2.14 && <3,
