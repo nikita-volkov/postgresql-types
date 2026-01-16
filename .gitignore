@@ -13,6 +13,7 @@
 !/CHANGELOG.md
 !/*.cabal
 !/cabal.project
+!/.ormolu
 
 # Unignore subtrees:
 !/.github/

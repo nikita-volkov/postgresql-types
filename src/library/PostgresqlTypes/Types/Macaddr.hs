@@ -102,9 +102,9 @@ instance IsStandardType Macaddr where
         (\c -> fromIntegral (ord c - ord '0'))
           <$> Attoparsec.satisfy (\c -> c >= '0' && c <= '9')
           <|> (\c -> fromIntegral (ord c - ord 'a' + 10))
-          <$> Attoparsec.satisfy (\c -> c >= 'a' && c <= 'f')
+            <$> Attoparsec.satisfy (\c -> c >= 'a' && c <= 'f')
           <|> (\c -> fromIntegral (ord c - ord 'A' + 10))
-          <$> Attoparsec.satisfy (\c -> c >= 'A' && c <= 'F')
+            <$> Attoparsec.satisfy (\c -> c >= 'A' && c <= 'F')
 
 -- | Direct conversion from 6-tuple of Word8 to Macaddr.
 -- This is always safe since both represent the same MAC address.

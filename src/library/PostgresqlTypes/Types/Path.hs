@@ -83,7 +83,7 @@ instance IsStandardType Path where
       True
         <$ Attoparsec.char '('
         <|> False
-        <$ Attoparsec.char '['
+          <$ Attoparsec.char '['
     points <- parsePoint `Attoparsec.sepBy1` Attoparsec.char ','
     _ <- Attoparsec.char (if closed then ')' else ']')
     pure (Path closed (UnboxedVector.fromList points))

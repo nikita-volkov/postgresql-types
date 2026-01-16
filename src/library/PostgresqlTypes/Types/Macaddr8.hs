@@ -75,16 +75,16 @@ instance IsStandardType Macaddr8 where
               )
       )
   textualEncoder (Macaddr8 a b c d e f g h) =
-    TextBuilder.intercalate ":"
-      $ [ formatByte a,
-          formatByte b,
-          formatByte c,
-          formatByte d,
-          formatByte e,
-          formatByte f,
-          formatByte g,
-          formatByte h
-        ]
+    TextBuilder.intercalate ":" $
+      [ formatByte a,
+        formatByte b,
+        formatByte c,
+        formatByte d,
+        formatByte e,
+        formatByte f,
+        formatByte g,
+        formatByte h
+      ]
     where
       formatByte :: Word8 -> TextBuilder.TextBuilder
       formatByte x = TextBuilder.string (printf "%02x" x)
@@ -114,9 +114,9 @@ instance IsStandardType Macaddr8 where
         (\c -> fromIntegral (ord c - ord '0'))
           <$> Attoparsec.satisfy (\c -> c >= '0' && c <= '9')
           <|> (\c -> fromIntegral (ord c - ord 'a' + 10))
-          <$> Attoparsec.satisfy (\c -> c >= 'a' && c <= 'f')
+            <$> Attoparsec.satisfy (\c -> c >= 'a' && c <= 'f')
           <|> (\c -> fromIntegral (ord c - ord 'A' + 10))
-          <$> Attoparsec.satisfy (\c -> c >= 'A' && c <= 'F')
+            <$> Attoparsec.satisfy (\c -> c >= 'A' && c <= 'F')
 
 -- | Convert from a tuple of 8 Word8s to Macaddr8.
 instance IsSome (Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) Macaddr8 where
