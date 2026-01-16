@@ -158,7 +158,6 @@ mappingSpec ::
   SpecWith Pq.Connection
 mappingSpec _ =
   let typeName = untag (PostgresqlTypes.typeName @a)
-      typeSignature = untag (PostgresqlTypes.typeSignatureOf @a)
       maybeBaseOid = untag (PostgresqlTypes.baseOid @a)
       maybeArrayOid = untag (PostgresqlTypes.arrayOid @a)
       binEnc = PostgresqlTypes.binaryEncoder @a
@@ -195,7 +194,7 @@ mappingSpec _ =
                             paramEncoding = Text.Encoding.encodeUtf8 (TextBuilder.toText (txtEnc value)),
                             paramFormat = Pq.Text,
                             resultFormat = Pq.Text,
-                            typeSignature = Just typeSignature
+                            typeSignature = Nothing
                           }
                     let serverProducedText = Text.Encoding.decodeUtf8 bytes
                         decoding = Data.Attoparsec.Text.parseOnly txtDec serverProducedText
@@ -218,7 +217,7 @@ mappingSpec _ =
                             paramEncoding = Text.Encoding.encodeUtf8 (TextBuilder.toText (txtEnc value)),
                             paramFormat = Pq.Text,
                             resultFormat = Pq.Binary,
-                            typeSignature = Just typeSignature
+                            typeSignature = Nothing
                           }
                     let decoding = PtrPeeker.runVariableOnByteString binDec bytes
                     pure (decoding === Right (Right value))
@@ -237,7 +236,7 @@ mappingSpec _ =
                             paramEncoding = PtrPoker.Write.writeToByteString (binEnc value),
                             paramFormat = Pq.Binary,
                             resultFormat = Pq.Text,
-                            typeSignature = Just typeSignature
+                            typeSignature = Nothing
                           }
                     let serverProducedText = Text.Encoding.decodeUtf8 bytes
                         decoding = Data.Attoparsec.Text.parseOnly txtDec serverProducedText
@@ -260,7 +259,7 @@ mappingSpec _ =
                             paramEncoding = PtrPoker.Write.writeToByteString (binEnc value),
                             paramFormat = Pq.Binary,
                             resultFormat = Pq.Binary,
-                            typeSignature = Just typeSignature
+                            typeSignature = Nothing
                           }
                     let decoding = PtrPeeker.runVariableOnByteString binDec bytes
                     pure (decoding === Right (Right value))
@@ -307,7 +306,7 @@ mappingSpec _ =
                             paramEncoding = PtrPoker.Write.writeToByteString (arrayBinEnc value),
                             paramFormat = Pq.Binary,
                             resultFormat = Pq.Binary,
-                            typeSignature = Just (typeSignature <> "[]")
+                            typeSignature = Nothing
                           }
                     let decoding = PtrPeeker.runVariableOnByteString arrayBinDec bytes
                     (decodedBaseOid, decoding) <- case decoding of
