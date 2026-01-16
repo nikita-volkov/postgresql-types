@@ -10,12 +10,23 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
--- | PostgreSQL @char@ type. Fixed-length character string.
--- @7@-bit value, occupying @1@ byte in the DB typically used for storing an ASCII character.
+-- | PostgreSQL @\"char\"@ type (note the quotes). Single-byte internal PostgreSQL type.
 --
--- Not to confuse with @character(n)@ or @char(n)@.
+-- This is a special PostgreSQL type that uses only 1 byte of storage and can store
+-- a single ASCII character (values 0-127). It is primarily used in PostgreSQL system
+-- catalogs as a simplistic enumeration type and is not intended for general-purpose use.
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-character.html).
+--
+-- __Important distinction:__ This type represents the quoted @\"char\"@ type in PostgreSQL,
+-- which is completely different from @char(n)@, @character(n)@, or @bpchar(n)@:
+--
+-- * @\"char\"@ (this type) — single-byte internal type, 1 byte storage, used in system catalogs
+-- * @char(n)@, @character(n)@, @bpchar(n)@ — fixed-length blank-padded strings, represented by 'PostgresqlTypes.Types.Bpchar.Bpchar'
+--
+-- For example, @\"char\"@ in SQL is 'Char' in Haskell, while @char(1)@ in SQL is
+-- @'PostgresqlTypes.Types.Bpchar.Bpchar' 1@ in Haskell. Despite the similar names,
+-- these are entirely different types in PostgreSQL.
 newtype Char = Char Word8
   deriving newtype (Eq, Ord)
   deriving (Show) via (ViaIsStandardType Char)
@@ -28,7 +39,6 @@ instance IsStandardType Char where
   typeName = Tagged "char"
   baseOid = Tagged (Just 18)
   arrayOid = Tagged (Just 1002)
-  runtimeTypeParams _ = []
   binaryEncoder (Char base) =
     Write.word8 base
   binaryDecoder =

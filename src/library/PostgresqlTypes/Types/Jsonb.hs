@@ -33,7 +33,7 @@ instance IsStandardType Jsonb where
   typeName = Tagged "jsonb"
   baseOid = Tagged (Just 3802)
   arrayOid = Tagged (Just 3807)
-  runtimeTypeParams _ = []
+  typeParams = Tagged []
   binaryEncoder =
     mappend (Write.word8 1) . Jsonifier.toWrite . JsonifierAeson.aesonValue . toAesonValue
   binaryDecoder = do

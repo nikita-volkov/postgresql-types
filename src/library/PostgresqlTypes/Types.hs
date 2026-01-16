@@ -22,7 +22,8 @@
 --
 -- * 'Text' - Variable-length character string (@text@)
 -- * 'Varchar' - Variable-length with limit (@varchar@)
--- * 'Char' - Fixed-length character string (@char@)
+-- * 'Char' - Single ASCII character (@char@)
+-- * 'Bpchar' - Fixed-length character string (@char(n)@, @character(n)@, or @bpchar(n)@)
 --
 -- == Boolean Type
 --
@@ -138,6 +139,7 @@ module PostgresqlTypes.Types
   ( Bit,
     Bool,
     Box,
+    Bpchar,
     Bytea,
     Char,
     Cidr,
@@ -160,13 +162,13 @@ module PostgresqlTypes.Types
     Macaddr,
     Macaddr8,
     Money,
+    Multirange,
     Numeric,
     Oid,
     Path,
     Point,
     Polygon,
     Range,
-    Multirange,
     Text,
     Time,
     Timestamp,
@@ -182,6 +184,7 @@ where
 import PostgresqlTypes.Types.Bit
 import PostgresqlTypes.Types.Bool
 import PostgresqlTypes.Types.Box
+import PostgresqlTypes.Types.Bpchar
 import PostgresqlTypes.Types.Bytea
 import PostgresqlTypes.Types.Char
 import PostgresqlTypes.Types.Cidr

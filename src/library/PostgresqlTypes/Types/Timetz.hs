@@ -37,7 +37,7 @@ instance IsStandardType Timetz where
   typeName = Tagged "timetz"
   baseOid = Tagged (Just 1266)
   arrayOid = Tagged (Just 1270)
-  runtimeTypeParams _ = []
+  typeParams = Tagged []
 
   binaryEncoder (Timetz time offset) =
     mconcat

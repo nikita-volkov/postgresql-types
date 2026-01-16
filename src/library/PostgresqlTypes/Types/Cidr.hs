@@ -52,7 +52,7 @@ instance IsStandardType Cidr where
   typeName = Tagged "cidr"
   baseOid = Tagged (Just 650)
   arrayOid = Tagged (Just 651)
-  runtimeTypeParams _ = []
+  typeParams = Tagged []
   binaryEncoder (Cidr ipAddr netmask) =
     case ipAddr of
       V4Ip addr ->

@@ -40,7 +40,7 @@ instance IsStandardType Numeric where
   typeName = Tagged "numeric"
   baseOid = Tagged (Just 1700)
   arrayOid = Tagged (Just 1231)
-  runtimeTypeParams _ = []
+  typeParams = Tagged []
 
   binaryEncoder = \case
     ScientificNumeric x ->

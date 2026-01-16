@@ -32,7 +32,7 @@ instance IsStandardType Point where
   typeName = Tagged "point"
   baseOid = Tagged (Just 600)
   arrayOid = Tagged (Just 1017)
-  runtimeTypeParams _ = []
+  typeParams = Tagged []
   binaryEncoder (Point x y) =
     mconcat
       [ Write.bWord64 (castDoubleToWord64 x),

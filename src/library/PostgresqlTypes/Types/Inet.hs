@@ -51,7 +51,7 @@ instance IsStandardType Inet where
   typeName = Tagged "inet"
   baseOid = Tagged (Just 869)
   arrayOid = Tagged (Just 1041)
-  runtimeTypeParams _ = []
+  typeParams = Tagged []
 
   binaryEncoder (Inet ipAddr netmask) =
     case ipAddr of

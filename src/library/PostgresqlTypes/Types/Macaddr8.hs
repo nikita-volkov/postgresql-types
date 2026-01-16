@@ -48,7 +48,7 @@ instance IsStandardType Macaddr8 where
   typeName = Tagged "macaddr8"
   baseOid = Tagged (Just 774)
   arrayOid = Tagged (Just 775)
-  runtimeTypeParams _ = []
+  typeParams = Tagged []
   binaryEncoder (Macaddr8 a b c d e f g h) =
     mconcat
       [ Write.word8 a,
