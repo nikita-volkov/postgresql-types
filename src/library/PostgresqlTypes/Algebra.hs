@@ -17,10 +17,8 @@ class IsStandardType a where
   -- | PostgreSQL array type OID, if known at compile time.
   arrayOid :: Tagged a (Maybe Word32)
 
-  -- | Extract the type parameters from a particular value at runtime.
-  --
-  -- E.g., in case of the @bit@ type, this can be use to translate the length parameter (the @n@ in @bit(n)@).
-  runtimeTypeParams :: a -> [Text]
+  -- | Static type parameters. E.g., the @n@ in @char(n)@.
+  typeParams :: Tagged a [Text]
 
   -- | Encode the value in PostgreSQL binary format.
   binaryEncoder :: a -> Write.Write
@@ -81,17 +79,19 @@ data DecodingErrorReason
       Text
   deriving stock (Show, Eq)
 
-toTypeSignature :: forall a. (IsStandardType a) => a -> Text
-toTypeSignature value =
-  let params = runtimeTypeParams value
-   in if null params
-        then untag (typeName @a)
-        else
-          TextBuilder.toText
-            ( mconcat
-                [ TextBuilder.text (untag (typeName @a)),
-                  "(",
-                  TextBuilder.intercalateMap ", " (TextBuilder.text) params,
-                  ")"
-                ]
-            )
+typeSignatureOf :: forall a. (IsStandardType a) => Tagged a Text
+typeSignatureOf =
+  let params = untag (typeParams @a)
+      name = untag (typeName @a)
+   in Tagged
+        if null params
+          then name
+          else
+            TextBuilder.toText
+              ( mconcat
+                  [ TextBuilder.text name,
+                    "(",
+                    TextBuilder.intercalateMap "," TextBuilder.text params,
+                    ")"
+                  ]
+              )

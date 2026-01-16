@@ -7,6 +7,7 @@ import qualified Data.Bits as Bits
 import qualified Data.ByteString as ByteString
 import qualified Data.Text as Text
 import qualified Data.Vector.Unboxed as VU
+import qualified GHC.TypeLits as TypeLits
 import qualified LawfulConversions
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
@@ -19,16 +20,16 @@ import qualified TextBuilder
 -- | PostgreSQL @bit@ type. Fixed-length bit string.
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-bit.html).
-data Bit = Bit
-  { -- | Number of bits
-    length :: Int32,
-    -- | Bit data (packed into bytes)
+-- 
+-- - * numBits: The static length of the bit string.
+data Bit (numBits :: Nat) = Bit
+  { -- | Bit data (packed into bytes)
     bytes :: ByteString
   }
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsStandardType Bit)
+  deriving (Show) via (ViaIsStandardType (Bit numBits))
 
-instance Arbitrary Bit where
+instance (TypeLits.KnownNat numBits) => Arbitrary (Bit numBits) where
   arbitrary = do
     len <- QuickCheck.chooseInt (0, 64) -- Reasonable bit length for tests
     bits <- QuickCheck.vectorOf len (arbitrary :: QuickCheck.Gen Bool) -- Generate the actual bits
