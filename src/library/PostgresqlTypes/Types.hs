@@ -21,7 +21,7 @@
 -- == Character Types
 --
 -- * 'Text' - Variable-length character string (@text@)
--- * 'Varchar' - Variable-length with limit (@varchar@)
+-- * 'Varchar' - Variable-length with limit (@varchar(n)@)
 -- * 'Char' - Single ASCII character (@char@)
 -- * 'Bpchar' - Fixed-length character string (@char(n)@, @character(n)@, or @bpchar(n)@)
 --
@@ -64,8 +64,8 @@
 --
 -- == Bit String Types
 --
--- * 'Bit' - Fixed-length bit string (@bit@)
--- * 'Varbit' - Variable-length bit string (@varbit@)
+-- * 'Bit' - Fixed-length bit string (@bit(n)@)
+-- * 'Varbit' - Variable-length bit string (@varbit(n)@)
 --
 -- == UUID Type
 --
