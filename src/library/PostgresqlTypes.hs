@@ -1,5 +1,12 @@
 module PostgresqlTypes
-  ( module PostgresqlTypes.Algebra,
+  ( IsStandardType (..),
+    IsRangeElement (..),
+    IsMultirangeElement (..),
+    DecodingError (..),
+    DecodingErrorReason (..),
+    typeSignature,
+
+    -- * Data Types re-exports
     module PostgresqlTypes.Types,
   )
 where

@@ -82,6 +82,10 @@ data DecodingErrorReason
       Text
   deriving stock (Show, Eq)
 
+-- | Get the PostgreSQL type signature for a given Haskell type.
+--
+-- In case of parameterized types, the type parameters are included in the signature.
+-- For example, for @'PostgresqlTypes.Types.Bpchar.Bpchar' 10@, the signature will be @bpchar(10)@.
 typeSignature :: forall a. (IsStandardType a) => Tagged a Text
 typeSignature =
   let params = untag (typeParams @a)
