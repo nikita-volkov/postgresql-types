@@ -13,13 +13,22 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
--- | PostgreSQL @bpchar(n)@ type. Fixed-length character string.
+-- | PostgreSQL @bpchar(n)@, @char(n)@, or @character(n)@ type. Fixed-length, blank-padded character string.
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-character.html).
 --
 -- The type parameter @numChars@ specifies the static length of the character string.
 -- Only character strings with exactly this length can be represented by this type.
--- For the single-byte @bpchar@ type (not @bpchar(n)@), use @Bpchar 1@.
+--
+-- __Important:__ Do not confuse this with the quoted @\"char\"@ type, which is a special
+-- single-byte internal type used in PostgreSQL system catalogs. The quoted @\"char\"@ type
+-- is represented by 'PostgresqlTypes.Types.Char.Char', not by @Bpchar 1@.
+--
+-- * @Bpchar n@ represents @bpchar(n)@, @char(n)@, or @character(n)@ — fixed-length, blank-padded strings
+-- * 'PostgresqlTypes.Types.Char.Char' represents @\"char\"@ (quoted) — single-byte internal type
+--
+-- For example, @char(1)@ in SQL is @Bpchar 1@ in Haskell, while @\"char\"@ in SQL is
+-- 'PostgresqlTypes.Types.Char.Char' in Haskell. These are completely different types in PostgreSQL.
 data Bpchar (numChars :: TypeLits.Nat) = Bpchar Text
   deriving stock (Eq, Ord)
   deriving (Show) via (ViaIsStandardType (Bpchar numChars))

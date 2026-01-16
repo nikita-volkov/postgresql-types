@@ -22,8 +22,8 @@
 --
 -- * 'Text' - Variable-length character string (@text@)
 -- * 'Varchar' - Variable-length with limit (@varchar@)
--- * 'Char' - Fixed-length character string (@char@)
--- * 'Bpchar' - Fixed-length character string (@char@)
+-- * 'Char' - Single ASCII character (@char@)
+-- * 'Bpchar' - Fixed-length character string (@char(n)@, @character(n)@, or @bpchar(n)@)
 --
 -- == Boolean Type
 --
