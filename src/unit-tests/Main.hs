@@ -81,8 +81,6 @@ main = hspec do
   testIsStandardType @PostgresqlTypes.Varbit Proxy
   testIsStandardType @PostgresqlTypes.Varchar Proxy
   testIs @PostgresqlTypes.Inet @(PostgresqlTypes.Ip, Word8) Proxy Proxy
-  testIs @(PostgresqlTypes.Bit 64) @[Bool] Proxy Proxy
-  testIs @(PostgresqlTypes.Bit 64) @(VU.Vector Bool) Proxy Proxy
   testIs @PostgresqlTypes.Bool @Bool Proxy Proxy
   testIs @PostgresqlTypes.Bytea @ByteString Proxy Proxy
   testIs @PostgresqlTypes.Float4 @Float Proxy Proxy

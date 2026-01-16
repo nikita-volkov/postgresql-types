@@ -183,11 +183,6 @@ instance (TypeLits.KnownNat numBits) => IsMany (Bit numBits) [Bool] where
       byteToBits :: Word8 -> [Bool]
       byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
 
--- | Bidirectional conversion between bit list and Bit.
-instance (TypeLits.KnownNat numBits) => Is [Bool] (Bit numBits)
-
-instance (TypeLits.KnownNat numBits) => Is (Bit numBits) [Bool]
-
 -- | Convert from an unboxed vector of Bool to a Bit.
 --
 -- This provides an efficient conversion from 'Data.Vector.Unboxed.Vector' 'Bool'
@@ -294,12 +289,3 @@ instance (TypeLits.KnownNat numBits) => IsMany (Bit numBits) (VU.Vector Bool) wh
     where
       byteToBits :: Word8 -> [Bool]
       byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
-
--- | Bidirectional conversion between unboxed bit vector and Bit.
---
--- This provides isomorphic conversion between 'Data.Vector.Unboxed.Vector' 'Bool'
--- and PostgreSQL @bit@ type. These instances enable seamless use of unboxed vectors
--- for efficient bit manipulation while maintaining PostgreSQL compatibility.
-instance (TypeLits.KnownNat numBits) => Is (VU.Vector Bool) (Bit numBits)
-
-instance (TypeLits.KnownNat numBits) => Is (Bit numBits) (VU.Vector Bool)
