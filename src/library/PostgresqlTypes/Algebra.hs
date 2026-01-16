@@ -94,7 +94,7 @@ typeSignatureOf =
               ( mconcat
                   [ TextBuilder.text name,
                     "(",
-                    TextBuilder.intercalateMap "," TextBuilder.text params,
+                    TextBuilder.intercalateMap ", " TextBuilder.text params,
                     ")"
                   ]
               )

@@ -51,7 +51,7 @@ instance (TypeLits.KnownNat numChars) => IsStandardType (Bpchar numChars) where
     Tagged
       ( let len = TypeLits.natVal (Proxy @numChars)
          in if len == 1
-              then [] -- char without length modifier
+              then [] -- PostgreSQL often displays bpchar(1) / char(1) as just "char" (no length modifier)
               else [Text.pack (show len)] -- bpchar(n)
       )
   binaryEncoder (Bpchar txt) =
