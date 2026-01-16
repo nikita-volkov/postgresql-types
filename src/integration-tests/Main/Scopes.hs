@@ -15,9 +15,9 @@ import Data.Typeable
 import Data.Word
 import qualified Database.PostgreSQL.LibPQ as Pq
 import LawfulConversions
+import Test.Hspec
 import qualified TestcontainersPostgresql
 import qualified TextBuilder
-import Test.Hspec
 import Prelude
 
 withContainer :: Text -> SpecWith (Text, Word16) -> Spec
