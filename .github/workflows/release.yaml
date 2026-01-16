@@ -13,14 +13,19 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  format-and-test:
-    uses: ./.github/workflows/format-and-test.yaml
+  build:
+    uses: ./.github/workflows/build.yaml
+    secrets: inherit
+
+  generate-docs:
+    uses: nikita-volkov/haskell-hackage-lib-github-actions-workflows/.github/workflows/generate-docs.yaml@v4
     secrets: inherit
 
   release:
     needs:
-      - format-and-test
+      - build
+      - generate-docs
     uses: nikita-volkov/haskell-hackage-lib-github-actions-workflows/.github/workflows/release.yaml@v4
     secrets: inherit
     with:
-      prefix-tag-with-v: false
+      prefix-tag-with-v: true
