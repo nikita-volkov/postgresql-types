@@ -49,7 +49,7 @@ instance IsStandardType Box where
   typeName = Tagged "box"
   baseOid = Tagged (Just 603)
   arrayOid = Tagged (Just 1020)
-  runtimeTypeParams _ = []
+  typeParams = Tagged []
   binaryEncoder (Box x1 y1 x2 y2) =
     mconcat
       [ Write.bWord64 (castDoubleToWord64 x2),

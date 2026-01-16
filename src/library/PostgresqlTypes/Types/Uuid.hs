@@ -22,7 +22,7 @@ instance IsStandardType Uuid where
   typeName = Tagged "uuid"
   baseOid = Tagged (Just 2950)
   arrayOid = Tagged (Just 2951)
-  runtimeTypeParams _ = []
+  typeParams = Tagged []
   binaryEncoder (Uuid uuid) =
     case Data.UUID.toWords uuid of
       (w1, w2, w3, w4) ->

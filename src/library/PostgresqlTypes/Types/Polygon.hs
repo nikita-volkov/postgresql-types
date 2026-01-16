@@ -40,7 +40,7 @@ instance IsStandardType Polygon where
   typeName = Tagged "polygon"
   baseOid = Tagged (Just 604)
   arrayOid = Tagged (Just 1027)
-  runtimeTypeParams _ = []
+  typeParams = Tagged []
   binaryEncoder (Polygon points) =
     let numPoints = fromIntegral (UnboxedVector.length points) :: Int32
         pointsEncoded = UnboxedVector.foldMap encodePoint points

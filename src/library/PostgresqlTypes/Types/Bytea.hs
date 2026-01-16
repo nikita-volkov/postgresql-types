@@ -21,7 +21,7 @@ instance IsStandardType Bytea where
   typeName = Tagged "bytea"
   baseOid = Tagged (Just 17)
   arrayOid = Tagged (Just 1001)
-  runtimeTypeParams _ = []
+  typeParams = Tagged []
   binaryEncoder (Bytea bs) =
     Write.byteString bs
   binaryDecoder =

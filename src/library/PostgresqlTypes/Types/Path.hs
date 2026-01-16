@@ -43,7 +43,7 @@ instance IsStandardType Path where
   typeName = Tagged "path"
   baseOid = Tagged (Just 602)
   arrayOid = Tagged (Just 1019)
-  runtimeTypeParams _ = []
+  typeParams = Tagged []
   binaryEncoder (Path closed points) =
     let closedByte = if closed then 1 else 0 :: Word8
         numPoints = fromIntegral (UnboxedVector.length points) :: Int32

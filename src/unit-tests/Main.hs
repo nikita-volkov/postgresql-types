@@ -31,11 +31,11 @@ import Prelude
 
 main :: IO ()
 main = hspec do
-  testIsStandardType @PostgresqlTypes.Bit Proxy
+  testIsStandardType @(PostgresqlTypes.Bit 64) Proxy
   testIsStandardType @PostgresqlTypes.Bool Proxy
   testIsStandardType @PostgresqlTypes.Box Proxy
   testIsStandardType @PostgresqlTypes.Bytea Proxy
-  testIsStandardType @PostgresqlTypes.Char Proxy
+  testIsStandardType @(PostgresqlTypes.Char 1) Proxy
   testIsStandardType @PostgresqlTypes.Cidr Proxy
   testIsStandardType @PostgresqlTypes.Circle Proxy
   testIsStandardType @PostgresqlTypes.Date Proxy
@@ -81,8 +81,8 @@ main = hspec do
   testIsStandardType @PostgresqlTypes.Varbit Proxy
   testIsStandardType @PostgresqlTypes.Varchar Proxy
   testIs @PostgresqlTypes.Inet @(PostgresqlTypes.Ip, Word8) Proxy Proxy
-  testIs @PostgresqlTypes.Bit @[Bool] Proxy Proxy
-  testIs @PostgresqlTypes.Bit @(VU.Vector Bool) Proxy Proxy
+  testIs @(PostgresqlTypes.Bit 64) @[Bool] Proxy Proxy
+  testIs @(PostgresqlTypes.Bit 64) @(VU.Vector Bool) Proxy Proxy
   testIs @PostgresqlTypes.Bool @Bool Proxy Proxy
   testIs @PostgresqlTypes.Bytea @ByteString Proxy Proxy
   testIs @PostgresqlTypes.Float4 @Float Proxy Proxy
@@ -103,8 +103,8 @@ main = hspec do
   testIsMany @PostgresqlTypes.Bool @Bool Proxy Proxy
   testIsMany @PostgresqlTypes.Box @(Double, Double, Double, Double) Proxy Proxy
   testIsMany @PostgresqlTypes.Bytea @ByteString Proxy Proxy
-  testIsMany @PostgresqlTypes.Char @Word8 Proxy Proxy
-  testIsMany @PostgresqlTypes.Char @Char Proxy Proxy
+  testIsMany @(PostgresqlTypes.Char 1) @Word8 Proxy Proxy
+  testIsMany @(PostgresqlTypes.Char 1) @Char Proxy Proxy
   testIsMany @PostgresqlTypes.Cidr @(PostgresqlTypes.Ip, Word8) Proxy Proxy
   testIsMany @PostgresqlTypes.Circle @(Double, Double, Double) Proxy Proxy
   testIsMany @PostgresqlTypes.Date @Day Proxy Proxy

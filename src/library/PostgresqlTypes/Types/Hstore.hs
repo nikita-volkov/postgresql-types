@@ -43,7 +43,7 @@ instance IsStandardType Hstore where
   typeName = Tagged "hstore"
   baseOid = Tagged Nothing
   arrayOid = Tagged Nothing
-  runtimeTypeParams _ = []
+  typeParams = Tagged []
   binaryEncoder (Hstore m) = do
     -- Binary format:
     -- 4 bytes: number of key-value pairs (int32)

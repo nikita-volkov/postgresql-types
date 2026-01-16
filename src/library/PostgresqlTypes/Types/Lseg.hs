@@ -35,7 +35,7 @@ instance IsStandardType Lseg where
   typeName = Tagged "lseg"
   baseOid = Tagged (Just 601)
   arrayOid = Tagged (Just 1018)
-  runtimeTypeParams _ = []
+  typeParams = Tagged []
   binaryEncoder (Lseg x1 y1 x2 y2) =
     mconcat
       [ Write.bWord64 (castDoubleToWord64 x1),

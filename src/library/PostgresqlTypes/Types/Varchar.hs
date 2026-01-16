@@ -32,7 +32,7 @@ instance IsStandardType Varchar where
   typeName = Tagged "varchar"
   baseOid = Tagged (Just 1043)
   arrayOid = Tagged (Just 1015)
-  runtimeTypeParams _ = []
+  typeParams = Tagged []
   binaryEncoder (Varchar base) = Write.textUtf8 base
   binaryDecoder = do
     bytes <- PtrPeeker.remainderAsByteString
