@@ -6,7 +6,7 @@ synopsis: Type-safe PostgreSQL types with lawful conversions and wire protocol c
 description:
   Haskell representation of PostgreSQL data types with mappings to and from both
   binary and textual formats of the PostgreSQL wire protocol.
-  
+
   This library is about precision. It aims to reproduce the PostgreSQL type system as closely as possible.
 
   Types are represented with hidden constructors, ensuring only valid PostgreSQL
