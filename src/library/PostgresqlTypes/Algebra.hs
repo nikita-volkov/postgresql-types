@@ -13,12 +13,15 @@ class IsStandardType a where
 
   -- | PostgreSQL type OID, if known at compile time.
   baseOid :: Tagged a (Maybe Word32)
+  baseOid = Tagged Nothing
 
   -- | PostgreSQL array type OID, if known at compile time.
   arrayOid :: Tagged a (Maybe Word32)
+  arrayOid = Tagged Nothing
 
   -- | Static type parameters. E.g., the @n@ in @char(n)@.
   typeParams :: Tagged a [Text]
+  typeParams = Tagged []
 
   -- | Encode the value in PostgreSQL binary format.
   binaryEncoder :: a -> Write.Write
