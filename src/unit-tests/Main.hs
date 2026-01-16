@@ -9,6 +9,7 @@ import qualified Data.Map.Strict as Map
 import Data.Proxy
 import qualified Data.Scientific as Scientific
 import Data.Tagged
+import Data.Text (Text)
 import qualified Data.Text as Text
 import Data.Time
 import Data.Typeable
@@ -31,12 +32,14 @@ import Prelude
 
 main :: IO ()
 main = hspec do
+  testIsStandardType @(PostgresqlTypes.Bit 1) Proxy
   testIsStandardType @(PostgresqlTypes.Bit 64) Proxy
   testIsStandardType @PostgresqlTypes.Bool Proxy
   testIsStandardType @PostgresqlTypes.Box Proxy
   testIsStandardType @PostgresqlTypes.Bytea Proxy
   testIsStandardType @PostgresqlTypes.Char Proxy
   testIsStandardType @(PostgresqlTypes.Bpchar 1) Proxy
+  testIsStandardType @(PostgresqlTypes.Bpchar 42) Proxy
   testIsStandardType @PostgresqlTypes.Cidr Proxy
   testIsStandardType @PostgresqlTypes.Circle Proxy
   testIsStandardType @PostgresqlTypes.Date Proxy
@@ -104,8 +107,8 @@ main = hspec do
   testIsMany @PostgresqlTypes.Bytea @ByteString Proxy Proxy
   testIsMany @PostgresqlTypes.Char @Word8 Proxy Proxy
   testIsMany @PostgresqlTypes.Char @Char Proxy Proxy
-  testIsMany @(PostgresqlTypes.Bpchar 1) @Word8 Proxy Proxy
-  testIsMany @(PostgresqlTypes.Bpchar 1) @Bpchar Proxy Proxy
+  testIsMany @(PostgresqlTypes.Bpchar 1) @Text Proxy Proxy
+  testIsMany @(PostgresqlTypes.Bpchar 42) @Text Proxy Proxy
   testIsMany @PostgresqlTypes.Cidr @(PostgresqlTypes.Ip, Word8) Proxy Proxy
   testIsMany @PostgresqlTypes.Circle @(Double, Double, Double) Proxy Proxy
   testIsMany @PostgresqlTypes.Date @Day Proxy Proxy
