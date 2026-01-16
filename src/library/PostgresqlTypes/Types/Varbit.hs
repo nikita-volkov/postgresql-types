@@ -136,13 +136,12 @@ instance (TypeLits.KnownNat numBits) => IsSome (Varbit numBits) [Bool] where
   to bits =
     let len = fromIntegral (length bits)
         maxLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
-     in if len <= maxLen
-          then
-            let numBytes = (len + 7) `div` 8
-                paddedBits = bits ++ replicate (numBytes * 8 - len) False
-                bytes = map boolsToByte (chunksOf 8 paddedBits)
-             in Varbit (fromIntegral len) (ByteString.pack bytes)
-          else Varbit (fromIntegral maxLen) ByteString.empty -- Should not happen with valid inputs
+        numBytes = (len + 7) `div` 8
+        paddedBits = bits ++ replicate (numBytes * 8 - len) False
+        bytes = map boolsToByte (chunksOf 8 paddedBits)
+        -- Truncate if exceeds max length (shouldn't happen but be safe)
+        actualLen = min len maxLen
+     in Varbit (fromIntegral actualLen) (ByteString.pack bytes)
     where
       boolsToByte :: [Bool] -> Word8
       boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
@@ -236,13 +235,12 @@ instance (TypeLits.KnownNat numBits) => IsSome (Varbit numBits) (VU.Vector Bool)
     let bits = VU.toList bitVector
         len = fromIntegral (VU.length bitVector)
         maxLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
-     in if len <= maxLen
-          then
-            let numBytes = (len + 7) `div` 8
-                paddedBits = bits ++ replicate (numBytes * 8 - len) False
-                bytes = map boolsToByte (chunksOf 8 paddedBits)
-             in Varbit (fromIntegral len) (ByteString.pack bytes)
-          else Varbit (fromIntegral maxLen) ByteString.empty -- Should not happen with valid inputs
+        numBytes = (len + 7) `div` 8
+        paddedBits = bits ++ replicate (numBytes * 8 - len) False
+        bytes = map boolsToByte (chunksOf 8 paddedBits)
+        -- Truncate if exceeds max length (shouldn't happen but be safe)
+        actualLen = min len maxLen
+     in Varbit (fromIntegral actualLen) (ByteString.pack bytes)
     where
       boolsToByte :: [Bool] -> Word8
       boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
