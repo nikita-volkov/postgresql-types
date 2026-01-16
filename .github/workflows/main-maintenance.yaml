@@ -1,4 +1,4 @@
-name: Main branch maintainance
+name: Main branch maintenance
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
 
 # Prevent overlapping publishes on rapid pushes
 concurrency:
-  group: main-maintainance
+  group: main-maintenance
   cancel-in-progress: true
 
 permissions:
