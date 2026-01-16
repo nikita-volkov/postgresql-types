@@ -2,8 +2,6 @@ module PostgresqlTypes.Types.Char (Char) where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.Char
-import qualified Data.Text as Text
-import qualified GHC.TypeLits as TypeLits
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude hiding (Char)
 import PostgresqlTypes.Via
@@ -12,31 +10,26 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
--- | PostgreSQL @char(n)@ type. Fixed-length character string.
+-- | PostgreSQL @"char"@ type.
 --
--- The type parameter @numChars@ specifies the static length of the character string.
--- For the single-byte @char@ type (not @char(n)@), use @Char 1@.
+-- @7@-bit value, occupying @1@ byte in the DB typically used for storing an ASCII character.
+--
+-- Not to confuse with @character(n)@, @char(n)@ and @bpchar(n)@.
+-- Those are represented with 'PostgresqlTypes.Types.Bpchar.Bpchar'.
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-character.html).
-newtype Char (numChars :: TypeLits.Nat) = Char Word8
+newtype Char = Char Word8
   deriving newtype (Eq, Ord)
-  deriving (Show) via (ViaIsStandardType (Char numChars))
+  deriving (Show) via (ViaIsStandardType Char)
 
-instance (TypeLits.KnownNat numChars) => Arbitrary (Char numChars) where
+instance Arbitrary Char where
   arbitrary =
     Char <$> QuickCheck.choose (0, 127)
 
-instance (TypeLits.KnownNat numChars) => IsStandardType (Char numChars) where
+instance IsStandardType Char where
   typeName = Tagged "char"
   baseOid = Tagged (Just 18)
   arrayOid = Tagged (Just 1002)
-  typeParams =
-    Tagged
-      ( let len = TypeLits.natVal (Proxy @numChars)
-         in if len == 1
-              then [] -- char without length modifier
-              else [Text.pack (show len)] -- char(n)
-      )
   binaryEncoder (Char base) =
     Write.word8 base
   binaryDecoder =
@@ -54,17 +47,17 @@ instance (TypeLits.KnownNat numChars) => IsStandardType (Char numChars) where
           then fail "Invalid char: value > 127"
           else pure (Char (fromIntegral charOrd))
 
-instance (TypeLits.KnownNat numChars) => IsSome Word8 (Char numChars) where
+instance IsSome Word8 Char where
   to = coerce
   maybeFrom word8 =
     if word8 > 127
       then Nothing
       else Just (Char word8)
 
-instance (TypeLits.KnownNat numChars) => IsMany Word8 (Char numChars) where
+instance IsMany Word8 Char where
   onfrom word8 = Char (clearBit word8 7)
 
-instance (TypeLits.KnownNat numChars) => IsSome Data.Char.Char (Char numChars) where
+instance IsSome Data.Char.Char Char where
   to (Char word8) = Data.Char.chr (fromIntegral word8)
   maybeFrom char =
     let ord = Data.Char.ord char
@@ -73,5 +66,5 @@ instance (TypeLits.KnownNat numChars) => IsSome Data.Char.Char (Char numChars) w
           else Just (Char (fromIntegral ord))
 
 -- | Turns invalid chars into '\NUL'.
-instance (TypeLits.KnownNat numChars) => IsMany Data.Char.Char (Char numChars) where
+instance IsMany Data.Char.Char Char where
   onfrom = fromMaybe (Char 0) . maybeFrom
