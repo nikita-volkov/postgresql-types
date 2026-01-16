@@ -13,7 +13,7 @@ import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
 -- | PostgreSQL @char(n)@ type. Fixed-length character string.
--- 
+--
 -- The type parameter @numChars@ specifies the static length of the character string.
 -- For the single-byte @char@ type (not @char(n)@), use @Char 1@.
 --
@@ -30,12 +30,13 @@ instance (TypeLits.KnownNat numChars) => IsStandardType (Char numChars) where
   typeName = Tagged "char"
   baseOid = Tagged (Just 18)
   arrayOid = Tagged (Just 1002)
-  typeParams = Tagged
-    ( let len = TypeLits.natVal (Proxy @numChars)
-      in if len == 1
-        then []  -- char without length modifier
-        else [Text.pack (show len)]  -- char(n)
-    )
+  typeParams =
+    Tagged
+      ( let len = TypeLits.natVal (Proxy @numChars)
+         in if len == 1
+              then [] -- char without length modifier
+              else [Text.pack (show len)] -- char(n)
+      )
   binaryEncoder (Char base) =
     Write.word8 base
   binaryDecoder =

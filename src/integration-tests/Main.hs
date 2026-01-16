@@ -12,11 +12,13 @@ main =
     parallel do
       withContainer "postgres:17" do
         withConnection Nothing do
-          withType @PostgresqlTypes.Bit [mappingSpec]
+          withType @(PostgresqlTypes.Bit 1) [mappingSpec]
+          withType @(PostgresqlTypes.Bit 64) [mappingSpec]
           withType @PostgresqlTypes.Bool [mappingSpec]
           withType @PostgresqlTypes.Box [mappingSpec]
           withType @PostgresqlTypes.Bytea [mappingSpec]
-          withType @PostgresqlTypes.Char [mappingSpec]
+          withType @(PostgresqlTypes.Char 1) [mappingSpec]
+          withType @(PostgresqlTypes.Char 64) [mappingSpec]
           withType @PostgresqlTypes.Cidr [mappingSpec]
           withType @PostgresqlTypes.Circle [mappingSpec]
           withType @PostgresqlTypes.Date [mappingSpec]
@@ -63,11 +65,13 @@ main =
 
       withContainer "postgres:9" do
         withConnection (Just 3) do
-          withType @PostgresqlTypes.Bit [mappingSpec]
+          withType @(PostgresqlTypes.Bit 1) [mappingSpec]
+          withType @(PostgresqlTypes.Bit 64) [mappingSpec]
           withType @PostgresqlTypes.Bool [mappingSpec]
           withType @PostgresqlTypes.Box [mappingSpec]
           withType @PostgresqlTypes.Bytea [mappingSpec]
-          withType @PostgresqlTypes.Char [mappingSpec]
+          withType @(PostgresqlTypes.Char 1) [mappingSpec]
+          withType @(PostgresqlTypes.Char 64) [mappingSpec]
           withType @PostgresqlTypes.Cidr [mappingSpec]
           withType @PostgresqlTypes.Circle [mappingSpec]
           withType @PostgresqlTypes.Date [mappingSpec]
