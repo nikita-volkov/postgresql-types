@@ -1,6 +1,7 @@
 module Main (main) where
 
-import Main.Helpers
+import Main.Scopes
+import Main.Scripts
 import qualified PostgresqlTypes as PostgresqlTypes
 import Test.Hspec
 import Test.QuickCheck.Instances ()
