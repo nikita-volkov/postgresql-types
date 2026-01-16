@@ -59,20 +59,22 @@ main = hspec do
   testIsStandardType @PostgresqlTypes.Macaddr Proxy
   testIsStandardType @PostgresqlTypes.Macaddr8 Proxy
   testIsStandardType @PostgresqlTypes.Money Proxy
-  testIsStandardType @PostgresqlTypes.Numeric Proxy
+  testIsStandardType @(PostgresqlTypes.Numeric 0 0) Proxy
+  testIsStandardType @(PostgresqlTypes.Numeric 10 0) Proxy
+  testIsStandardType @(PostgresqlTypes.Numeric 10 2) Proxy
   testIsStandardType @PostgresqlTypes.Oid Proxy
   testIsStandardType @PostgresqlTypes.Path Proxy
   testIsStandardType @PostgresqlTypes.Point Proxy
   testIsStandardType @PostgresqlTypes.Polygon Proxy
   testIsStandardType @(PostgresqlTypes.Range PostgresqlTypes.Int4) Proxy
   testIsStandardType @(PostgresqlTypes.Range PostgresqlTypes.Int8) Proxy
-  testIsStandardType @(PostgresqlTypes.Range PostgresqlTypes.Numeric) Proxy
+  testIsStandardType @(PostgresqlTypes.Range (PostgresqlTypes.Numeric 0 0)) Proxy
   testIsStandardType @(PostgresqlTypes.Range PostgresqlTypes.Timestamp) Proxy
   testIsStandardType @(PostgresqlTypes.Range PostgresqlTypes.Timestamptz) Proxy
   testIsStandardType @(PostgresqlTypes.Range PostgresqlTypes.Date) Proxy
   testIsStandardType @(PostgresqlTypes.Multirange PostgresqlTypes.Int4) Proxy
   testIsStandardType @(PostgresqlTypes.Multirange PostgresqlTypes.Int8) Proxy
-  testIsStandardType @(PostgresqlTypes.Multirange PostgresqlTypes.Numeric) Proxy
+  testIsStandardType @(PostgresqlTypes.Multirange (PostgresqlTypes.Numeric 0 0)) Proxy
   testIsStandardType @(PostgresqlTypes.Multirange PostgresqlTypes.Timestamp) Proxy
   testIsStandardType @(PostgresqlTypes.Multirange PostgresqlTypes.Timestamptz) Proxy
   testIsStandardType @(PostgresqlTypes.Multirange PostgresqlTypes.Date) Proxy
@@ -96,7 +98,7 @@ main = hspec do
   testIs @PostgresqlTypes.Macaddr @(Word8, Word8, Word8, Word8, Word8, Word8) Proxy Proxy
   testIs @PostgresqlTypes.Macaddr8 @(Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) Proxy Proxy
   testIs @PostgresqlTypes.Money @Int64 Proxy Proxy
-  testIs @PostgresqlTypes.Numeric @(Maybe Scientific.Scientific) Proxy Proxy
+  testIs @(PostgresqlTypes.Numeric 0 0) @(Maybe Scientific.Scientific) Proxy Proxy
   testIs @PostgresqlTypes.Oid @Word32 Proxy Proxy
   testIs @PostgresqlTypes.Point @(Double, Double) Proxy Proxy
   testIs @PostgresqlTypes.Uuid @UUID.UUID Proxy Proxy
@@ -125,7 +127,7 @@ main = hspec do
   testIsMany @PostgresqlTypes.Money @Int64 Proxy Proxy
   testIsMany @(PostgresqlTypes.Multirange PostgresqlTypes.Int4) @(Vector (PostgresqlTypes.Range PostgresqlTypes.Int4)) Proxy Proxy
   testIsMany @(PostgresqlTypes.Multirange PostgresqlTypes.Int8) @(Vector (PostgresqlTypes.Range PostgresqlTypes.Int8)) Proxy Proxy
-  testIsMany @(PostgresqlTypes.Multirange PostgresqlTypes.Numeric) @(Vector (PostgresqlTypes.Range PostgresqlTypes.Numeric)) Proxy Proxy
+  testIsMany @(PostgresqlTypes.Multirange (PostgresqlTypes.Numeric 0 0)) @(Vector (PostgresqlTypes.Range (PostgresqlTypes.Numeric 0 0))) Proxy Proxy
   testIsMany @(PostgresqlTypes.Multirange PostgresqlTypes.Timestamp) @(Vector (PostgresqlTypes.Range PostgresqlTypes.Timestamp)) Proxy Proxy
   testIsMany @(PostgresqlTypes.Multirange PostgresqlTypes.Timestamptz) @(Vector (PostgresqlTypes.Range PostgresqlTypes.Timestamptz)) Proxy Proxy
   testIsMany @(PostgresqlTypes.Multirange PostgresqlTypes.Date) @(Vector (PostgresqlTypes.Range PostgresqlTypes.Date)) Proxy Proxy
@@ -133,7 +135,7 @@ main = hspec do
   testIsMany @PostgresqlTypes.Point @(Double, Double) Proxy Proxy
   testIsMany @(PostgresqlTypes.Range PostgresqlTypes.Int4) @(Maybe (Maybe PostgresqlTypes.Int4, Maybe PostgresqlTypes.Int4)) Proxy Proxy
   testIsMany @(PostgresqlTypes.Range PostgresqlTypes.Int8) @(Maybe (Maybe PostgresqlTypes.Int8, Maybe PostgresqlTypes.Int8)) Proxy Proxy
-  testIsMany @(PostgresqlTypes.Range PostgresqlTypes.Numeric) @(Maybe (Maybe PostgresqlTypes.Numeric, Maybe PostgresqlTypes.Numeric)) Proxy Proxy
+  testIsMany @(PostgresqlTypes.Range (PostgresqlTypes.Numeric 0 0)) @(Maybe (Maybe (PostgresqlTypes.Numeric 0 0), Maybe (PostgresqlTypes.Numeric 0 0))) Proxy Proxy
   testIsMany @(PostgresqlTypes.Range PostgresqlTypes.Timestamp) @(Maybe (Maybe PostgresqlTypes.Timestamp, Maybe PostgresqlTypes.Timestamp)) Proxy Proxy
   testIsMany @(PostgresqlTypes.Range PostgresqlTypes.Timestamptz) @(Maybe (Maybe PostgresqlTypes.Timestamptz, Maybe PostgresqlTypes.Timestamptz)) Proxy Proxy
   testIsMany @(PostgresqlTypes.Range PostgresqlTypes.Date) @(Maybe (Maybe PostgresqlTypes.Date, Maybe PostgresqlTypes.Date)) Proxy Proxy
@@ -146,7 +148,7 @@ main = hspec do
   testIsMany @PostgresqlTypes.TimetzAsTimeOfDayAndTimeZone @(TimeOfDay, TimeZone) Proxy Proxy
   testIsMany @PostgresqlTypes.Uuid @UUID.UUID Proxy Proxy
   testIsMany @PostgresqlTypes.Varchar @Text.Text Proxy Proxy
-  testIsMany @Scientific.Scientific @PostgresqlTypes.Numeric Proxy Proxy
+  testIsMany @Scientific.Scientific @(PostgresqlTypes.Numeric 0 0) Proxy Proxy
   testIsSome @PostgresqlTypes.Path @(Bool, [(Double, Double)]) Proxy Proxy
   testIsSome @PostgresqlTypes.Path @(Bool, (Data.Vector.Unboxed.Vector (Double, Double))) Proxy Proxy
   testIsSome @PostgresqlTypes.Polygon @(Data.Vector.Unboxed.Vector (Double, Double)) Proxy Proxy

@@ -5,6 +5,8 @@ where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.Scientific as Scientific
+import qualified Data.Text as Text
+import qualified GHC.TypeLits as TypeLits
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
 import PostgresqlTypes.Via
@@ -23,24 +25,38 @@ import qualified TextBuilder
 -- The 'IsMany' and 'IsSome' instances provide bidirectional conversions for convenience.
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-numeric.html#DATATYPE-NUMERIC-DECIMAL).
-data Numeric
+--
+-- The type parameters @precision@ and @scale@ specify the static precision and scale of the numeric value.
+-- Only numeric values conforming to these constraints can be represented by this type.
+-- Use @Numeric 0 0@ to represent @numeric@ without precision/scale constraints (arbitrary precision).
+data Numeric (precision :: TypeLits.Nat) (scale :: TypeLits.Nat)
   = ScientificNumeric Scientific.Scientific
   | NanNumeric
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsStandardType Numeric)
+  deriving (Show) via (ViaIsStandardType (Numeric precision scale))
 
-instance Arbitrary Numeric where
+instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => Arbitrary (Numeric precision scale) where
   arbitrary =
     QuickCheck.oneof
       [ ScientificNumeric <$> arbitrary,
         pure NanNumeric
       ]
 
-instance IsStandardType Numeric where
+instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsStandardType (Numeric precision scale) where
   typeName = Tagged "numeric"
   baseOid = Tagged (Just 1700)
   arrayOid = Tagged (Just 1231)
-  typeParams = Tagged []
+  typeParams =
+    Tagged
+      ( let prec = TypeLits.natVal (Proxy @precision)
+            sc = TypeLits.natVal (Proxy @scale)
+         in if prec == 0 && sc == 0
+              then [] -- No type modifiers for arbitrary precision numeric
+              else
+                if sc == 0
+                  then [Text.pack (show prec)] -- numeric(precision)
+                  else [Text.pack (show prec), Text.pack (show sc)] -- numeric(precision, scale)
+      )
 
   binaryEncoder = \case
     ScientificNumeric x ->
@@ -122,48 +138,48 @@ instance IsStandardType Numeric where
       <|> (ScientificNumeric <$> Attoparsec.scientific)
 
 -- | Mapping to @numrange@ type.
-instance IsRangeElement Numeric where
+instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsRangeElement (Numeric precision scale) where
   rangeTypeName = Tagged "numrange"
   rangeBaseOid = Tagged (Just 3906)
   rangeArrayOid = Tagged (Just 3907)
 
 -- | Mapping to @nummultirange@ type.
-instance IsMultirangeElement Numeric where
+instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsMultirangeElement (Numeric precision scale) where
   multirangeTypeName = Tagged "nummultirange"
   multirangeBaseOid = Tagged (Just 4532)
   multirangeArrayOid = Tagged (Just 6151)
 
 -- |
 -- In 'maybeFrom' produces 'Nothing' for 'NanNumeric' values.
-instance IsSome Numeric Scientific.Scientific where
+instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsSome (Numeric precision scale) Scientific.Scientific where
   to = ScientificNumeric
   maybeFrom = \case
     ScientificNumeric s -> Just s
     NanNumeric -> Nothing
 
 -- | Treats 'NanNumeric' values as @0@.
-instance IsMany Numeric Scientific.Scientific where
+instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsMany (Numeric precision scale) Scientific.Scientific where
   onfrom = \case
     ScientificNumeric s -> s
     NanNumeric -> 0
 
-instance IsSome (Maybe Scientific.Scientific) Numeric where
+instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsSome (Maybe Scientific.Scientific) (Numeric precision scale) where
   to = \case
     ScientificNumeric s -> Just s
     NanNumeric -> Nothing
 
-instance IsMany (Maybe Scientific.Scientific) Numeric
+instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsMany (Maybe Scientific.Scientific) (Numeric precision scale)
 
-instance Is (Maybe Scientific.Scientific) Numeric
+instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => Is (Maybe Scientific.Scientific) (Numeric precision scale)
 
-instance IsSome Numeric (Maybe Scientific.Scientific) where
+instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsSome (Numeric precision scale) (Maybe Scientific.Scientific) where
   to = \case
     Just s -> ScientificNumeric s
     Nothing -> NanNumeric
 
-instance IsMany Numeric (Maybe Scientific.Scientific)
+instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsMany (Numeric precision scale) (Maybe Scientific.Scientific)
 
-instance Is Numeric (Maybe Scientific.Scientific)
+instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => Is (Numeric precision scale) (Maybe Scientific.Scientific)
 
 {-# INLINE extractComponents #-}
 extractComponents :: (Integral a) => a -> [Word16]
