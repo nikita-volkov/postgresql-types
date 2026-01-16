@@ -82,8 +82,8 @@ main = hspec do
   testIsStandardType @PostgresqlTypes.Timestamptz Proxy
   testIsStandardType @PostgresqlTypes.Timetz Proxy
   testIsStandardType @PostgresqlTypes.Uuid Proxy
-  testIsStandardType @PostgresqlTypes.Varbit Proxy
-  testIsStandardType @PostgresqlTypes.Varchar Proxy
+  testIsStandardType @(PostgresqlTypes.Varbit 128) Proxy
+  testIsStandardType @(PostgresqlTypes.Varchar 255) Proxy
   testIs @PostgresqlTypes.Inet @(PostgresqlTypes.Ip, Word8) Proxy Proxy
   testIs @PostgresqlTypes.Bool @Bool Proxy Proxy
   testIs @PostgresqlTypes.Bytea @ByteString Proxy Proxy
@@ -100,8 +100,8 @@ main = hspec do
   testIs @PostgresqlTypes.Oid @Word32 Proxy Proxy
   testIs @PostgresqlTypes.Point @(Double, Double) Proxy Proxy
   testIs @PostgresqlTypes.Uuid @UUID.UUID Proxy Proxy
-  testIs @PostgresqlTypes.Varbit @[Bool] Proxy Proxy
-  testIs @PostgresqlTypes.Varbit @(VU.Vector Bool) Proxy Proxy
+  testIs @(PostgresqlTypes.Varbit 128) @[Bool] Proxy Proxy
+  testIs @(PostgresqlTypes.Varbit 128) @(VU.Vector Bool) Proxy Proxy
   testIsMany @PostgresqlTypes.Bool @Bool Proxy Proxy
   testIsMany @PostgresqlTypes.Box @(Double, Double, Double, Double) Proxy Proxy
   testIsMany @PostgresqlTypes.Bytea @ByteString Proxy Proxy
@@ -145,7 +145,7 @@ main = hspec do
   testIsMany @PostgresqlTypes.TimetzAsTimeOfDayAndTimeZone @PostgresqlTypes.Timetz Proxy Proxy
   testIsMany @PostgresqlTypes.TimetzAsTimeOfDayAndTimeZone @(TimeOfDay, TimeZone) Proxy Proxy
   testIsMany @PostgresqlTypes.Uuid @UUID.UUID Proxy Proxy
-  testIsMany @PostgresqlTypes.Varchar @Text.Text Proxy Proxy
+  testIsMany @(PostgresqlTypes.Varchar 255) @Text.Text Proxy Proxy
   testIsMany @Scientific.Scientific @PostgresqlTypes.Numeric Proxy Proxy
   testIsSome @PostgresqlTypes.Path @(Bool, [(Double, Double)]) Proxy Proxy
   testIsSome @PostgresqlTypes.Path @(Bool, (Data.Vector.Unboxed.Vector (Double, Double))) Proxy Proxy

@@ -61,8 +61,8 @@ main =
           withType @PostgresqlTypes.Timestamptz [mappingSpec]
           withType @PostgresqlTypes.Timetz [mappingSpec]
           withType @PostgresqlTypes.Uuid [mappingSpec]
-          withType @PostgresqlTypes.Varbit [mappingSpec]
-          withType @PostgresqlTypes.Varchar [mappingSpec]
+          withType @(PostgresqlTypes.Varbit 128) [mappingSpec]
+          withType @(PostgresqlTypes.Varchar 255) [mappingSpec]
 
       withContainer "postgres:9" do
         withConnection (Just 3) do
@@ -108,5 +108,5 @@ main =
           withType @PostgresqlTypes.Timestamptz [mappingSpec]
           withType @PostgresqlTypes.Timetz [mappingSpec]
           withType @PostgresqlTypes.Uuid [mappingSpec]
-          withType @PostgresqlTypes.Varbit [mappingSpec]
-          withType @PostgresqlTypes.Varchar [mappingSpec]
+          withType @(PostgresqlTypes.Varbit 128) [mappingSpec]
+          withType @(PostgresqlTypes.Varchar 255) [mappingSpec]

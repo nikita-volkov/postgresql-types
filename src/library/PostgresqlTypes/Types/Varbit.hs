@@ -7,6 +7,7 @@ import qualified Data.Bits as Bits
 import qualified Data.ByteString as ByteString
 import qualified Data.Text as Text
 import qualified Data.Vector.Unboxed as VU
+import qualified GHC.TypeLits as TypeLits
 import qualified LawfulConversions
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
@@ -16,36 +17,42 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
--- | PostgreSQL @varbit@ type. Variable-length bit string.
+-- | PostgreSQL @varbit(n)@ type. Variable-length bit string with limit.
 --
--- Similar to @bit@ but without a fixed maximum length.
+-- Similar to @bit@ but with a variable length up to the specified maximum.
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-bit.html).
-data Varbit = Varbit
+--
+-- The type parameter @numBits@ specifies the static maximum length of the bit string.
+-- Bit strings up to this length can be represented by this type.
+data Varbit (numBits :: TypeLits.Nat) = Varbit
   { -- | Number of bits
     varbitLength :: Int32,
     -- | Bit data (packed into bytes)
     varbitData :: ByteString
   }
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsStandardType Varbit)
+  deriving (Show) via (ViaIsStandardType (Varbit numBits))
 
-instance Arbitrary Varbit where
+instance (TypeLits.KnownNat numBits) => Arbitrary (Varbit numBits) where
   arbitrary = do
-    len <- QuickCheck.chooseInt (0, 128) -- Reasonable bit length for tests
-    bits <- QuickCheck.vectorOf len (arbitrary :: QuickCheck.Gen Bool) -- Generate the actual bits
+    let maxLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
+    len <- QuickCheck.chooseInt (0, maxLen) -- Variable length up to max
+    bits <- QuickCheck.vectorOf len (arbitrary :: QuickCheck.Gen Bool)
     -- Convert through IsMany to ensure proper padding
-    pure $ LawfulConversions.from bits
-  shrink (Varbit len bytes) =
-    let bits = LawfulConversions.from (Varbit len bytes) :: [Bool]
+    pure $ LawfulConversions.from @[Bool] bits
+  shrink varbit@(Varbit len bytes) =
+    let maxLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
+        bits = LawfulConversions.to @[Bool] varbit
         shrunkBitsList = shrink bits
-     in map LawfulConversions.from shrunkBitsList
+     in [LawfulConversions.from @[Bool] b | b <- shrunkBitsList, length b <= maxLen]
 
-instance IsStandardType Varbit where
+instance (TypeLits.KnownNat numBits) => IsStandardType (Varbit numBits) where
   typeName = Tagged "varbit"
   baseOid = Tagged (Just 1562)
   arrayOid = Tagged (Just 1563)
-  typeParams = Tagged []
+  typeParams =
+    Tagged [Text.pack (show (TypeLits.natVal (Proxy @numBits)))]
   binaryEncoder (Varbit len bytes) =
     mconcat
       [ Write.bInt32 len,
@@ -54,7 +61,21 @@ instance IsStandardType Varbit where
   binaryDecoder = do
     len <- PtrPeeker.fixed PtrPeeker.beSignedInt4
     bytes <- PtrPeeker.remainderAsByteString
-    pure (Right (Varbit len bytes))
+    let maxLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
+    if len <= maxLen
+      then pure (Right (Varbit len bytes))
+      else
+        pure
+          ( Left
+              ( DecodingError
+                  { location = ["Varbit"],
+                    reason =
+                      UnsupportedValueDecodingErrorReason
+                        ("Varbit length " <> Text.pack (show len) <> " exceeds maximum " <> Text.pack (show maxLen))
+                        (TextBuilder.toText (TextBuilder.decimal len))
+                  }
+              )
+          )
   textualEncoder (Varbit len bytes) =
     let bits = concatMap byteToBits (ByteString.unpack bytes)
         trimmedBits = take (fromIntegral len) bits
@@ -67,10 +88,14 @@ instance IsStandardType Varbit where
     bitChars <- Attoparsec.takeText
     let bits = map (== '1') (Text.unpack bitChars)
         len = fromIntegral (length bits)
-        numBytes = (len + 7) `div` 8
-        paddedBits = bits ++ replicate (numBytes * 8 - len) False
-        bytes = map boolsToByte (chunksOf 8 paddedBits)
-    pure (Varbit (fromIntegral len) (ByteString.pack bytes))
+        maxLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
+    if len <= maxLen
+      then do
+        let numBytes = (len + 7) `div` 8
+            paddedBits = bits ++ replicate (numBytes * 8 - len) False
+            bytes = map boolsToByte (chunksOf 8 paddedBits)
+        pure (Varbit (fromIntegral len) (ByteString.pack bytes))
+      else fail ("Varbit length " <> show len <> " exceeds maximum " <> show maxLen)
     where
       boolsToByte :: [Bool] -> Word8
       boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
@@ -80,7 +105,7 @@ instance IsStandardType Varbit where
 
 -- | Convert from a bit string (as a list of Bool) to a Varbit.
 -- The bit string is packed into bytes.
-instance IsSome [Bool] Varbit where
+instance (TypeLits.KnownNat numBits) => IsSome [Bool] (Varbit numBits) where
   to (Varbit len bytes) =
     let bits = concatMap byteToBits (ByteString.unpack bytes)
         trimmedBits = take (fromIntegral len) bits
@@ -90,10 +115,14 @@ instance IsSome [Bool] Varbit where
       byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
   maybeFrom bits =
     let len = fromIntegral (length bits)
-        numBytes = (len + 7) `div` 8
-        paddedBits = bits ++ replicate (numBytes * 8 - len) False
-        bytes = map boolsToByte (chunksOf 8 paddedBits)
-     in Just (Varbit (fromIntegral len) (ByteString.pack bytes))
+        maxLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
+     in if len <= maxLen
+          then
+            let numBytes = (len + 7) `div` 8
+                paddedBits = bits ++ replicate (numBytes * 8 - len) False
+                bytes = map boolsToByte (chunksOf 8 paddedBits)
+             in Just (Varbit (fromIntegral len) (ByteString.pack bytes))
+          else Nothing
     where
       boolsToByte :: [Bool] -> Word8
       boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
@@ -103,13 +132,17 @@ instance IsSome [Bool] Varbit where
 
 -- | Convert from a Varbit to a list of Bool.
 -- Only returns the actual bits (not padding).
-instance IsSome Varbit [Bool] where
+instance (TypeLits.KnownNat numBits) => IsSome (Varbit numBits) [Bool] where
   to bits =
     let len = fromIntegral (length bits)
-        numBytes = (len + 7) `div` 8
-        paddedBits = bits ++ replicate (numBytes * 8 - len) False
-        bytes = map boolsToByte (chunksOf 8 paddedBits)
-     in Varbit (fromIntegral len) (ByteString.pack bytes)
+        maxLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
+     in if len <= maxLen
+          then
+            let numBytes = (len + 7) `div` 8
+                paddedBits = bits ++ replicate (numBytes * 8 - len) False
+                bytes = map boolsToByte (chunksOf 8 paddedBits)
+             in Varbit (fromIntegral len) (ByteString.pack bytes)
+          else Varbit (fromIntegral maxLen) ByteString.empty -- Should not happen with valid inputs
     where
       boolsToByte :: [Bool] -> Word8
       boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
@@ -125,13 +158,16 @@ instance IsSome Varbit [Bool] where
       byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
 
 -- | Direct conversion from bit list to Varbit.
-instance IsMany [Bool] Varbit where
+instance (TypeLits.KnownNat numBits) => IsMany [Bool] (Varbit numBits) where
   onfrom bits =
-    let len = fromIntegral (length bits)
-        numBytes = (len + 7) `div` 8
-        paddedBits = bits ++ replicate (numBytes * 8 - len) False
+    let len = length bits
+        maxLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
+        truncatedBits = take maxLen bits
+        actualLen = length truncatedBits
+        numBytes = (actualLen + 7) `div` 8
+        paddedBits = truncatedBits ++ replicate (numBytes * 8 - actualLen) False
         bytes = map boolsToByte (chunksOf 8 paddedBits)
-     in Varbit (fromIntegral len) (ByteString.pack bytes)
+     in Varbit (fromIntegral actualLen) (ByteString.pack bytes)
     where
       boolsToByte :: [Bool] -> Word8
       boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
@@ -140,7 +176,7 @@ instance IsMany [Bool] Varbit where
       chunksOf n xs = take n xs : chunksOf n (drop n xs)
 
 -- | Direct conversion from Varbit to bit list.
-instance IsMany Varbit [Bool] where
+instance (TypeLits.KnownNat numBits) => IsMany (Varbit numBits) [Bool] where
   onfrom (Varbit len bytes) =
     let bits = concatMap byteToBits (ByteString.unpack bytes)
         trimmedBits = take (fromIntegral len) bits
@@ -150,9 +186,9 @@ instance IsMany Varbit [Bool] where
       byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
 
 -- | Bidirectional conversion between bit list and Varbit.
-instance Is [Bool] Varbit
+instance (TypeLits.KnownNat numBits) => Is [Bool] (Varbit numBits)
 
-instance Is Varbit [Bool]
+instance (TypeLits.KnownNat numBits) => Is (Varbit numBits) [Bool]
 
 -- | Convert from an unboxed vector of Bool to a Varbit.
 --
@@ -162,7 +198,7 @@ instance Is Varbit [Bool]
 --
 -- This instance allows using unboxed vectors for high-performance bit operations
 -- while maintaining compatibility with PostgreSQL's variable-length bit string format.
-instance IsSome (VU.Vector Bool) Varbit where
+instance (TypeLits.KnownNat numBits) => IsSome (VU.Vector Bool) (Varbit numBits) where
   to (Varbit len bytes) =
     let bits = concatMap byteToBits (ByteString.unpack bytes)
         trimmedBits = take (fromIntegral len) bits
@@ -173,10 +209,14 @@ instance IsSome (VU.Vector Bool) Varbit where
   maybeFrom bitVector =
     let bits = VU.toList bitVector
         len = fromIntegral (VU.length bitVector)
-        numBytes = (len + 7) `div` 8
-        paddedBits = bits ++ replicate (numBytes * 8 - len) False
-        bytes = map boolsToByte (chunksOf 8 paddedBits)
-     in Just (Varbit (fromIntegral len) (ByteString.pack bytes))
+        maxLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
+     in if len <= maxLen
+          then
+            let numBytes = (len + 7) `div` 8
+                paddedBits = bits ++ replicate (numBytes * 8 - len) False
+                bytes = map boolsToByte (chunksOf 8 paddedBits)
+             in Just (Varbit (fromIntegral len) (ByteString.pack bytes))
+          else Nothing
     where
       boolsToByte :: [Bool] -> Word8
       boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
@@ -191,14 +231,18 @@ instance IsSome (VU.Vector Bool) Varbit where
 -- excluding any padding bits used for byte alignment.
 --
 -- This is the inverse of the 'IsSome' instance for @(VU.Vector Bool) Varbit@.
-instance IsSome Varbit (VU.Vector Bool) where
+instance (TypeLits.KnownNat numBits) => IsSome (Varbit numBits) (VU.Vector Bool) where
   to bitVector =
     let bits = VU.toList bitVector
         len = fromIntegral (VU.length bitVector)
-        numBytes = (len + 7) `div` 8
-        paddedBits = bits ++ replicate (numBytes * 8 - len) False
-        bytes = map boolsToByte (chunksOf 8 paddedBits)
-     in Varbit (fromIntegral len) (ByteString.pack bytes)
+        maxLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
+     in if len <= maxLen
+          then
+            let numBytes = (len + 7) `div` 8
+                paddedBits = bits ++ replicate (numBytes * 8 - len) False
+                bytes = map boolsToByte (chunksOf 8 paddedBits)
+             in Varbit (fromIntegral len) (ByteString.pack bytes)
+          else Varbit (fromIntegral maxLen) ByteString.empty -- Should not happen with valid inputs
     where
       boolsToByte :: [Bool] -> Word8
       boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
@@ -217,14 +261,17 @@ instance IsSome Varbit (VU.Vector Bool) where
 --
 -- This is a total conversion that always succeeds. The boolean vector
 -- is efficiently packed into the PostgreSQL @varbit@ format.
-instance IsMany (VU.Vector Bool) Varbit where
+instance (TypeLits.KnownNat numBits) => IsMany (VU.Vector Bool) (Varbit numBits) where
   onfrom bitVector =
     let bits = VU.toList bitVector
-        len = fromIntegral (VU.length bitVector)
-        numBytes = (len + 7) `div` 8
-        paddedBits = bits ++ replicate (numBytes * 8 - len) False
+        len = VU.length bitVector
+        maxLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
+        truncatedBits = take maxLen bits
+        actualLen = length truncatedBits
+        numBytes = (actualLen + 7) `div` 8
+        paddedBits = truncatedBits ++ replicate (numBytes * 8 - actualLen) False
         bytes = map boolsToByte (chunksOf 8 paddedBits)
-     in Varbit (fromIntegral len) (ByteString.pack bytes)
+     in Varbit (fromIntegral actualLen) (ByteString.pack bytes)
     where
       boolsToByte :: [Bool] -> Word8
       boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
@@ -236,7 +283,7 @@ instance IsMany (VU.Vector Bool) Varbit where
 --
 -- This is a total conversion that always succeeds. Efficiently extracts
 -- the bit data from PostgreSQL @varbit@ format into an unboxed vector.
-instance IsMany Varbit (VU.Vector Bool) where
+instance (TypeLits.KnownNat numBits) => IsMany (Varbit numBits) (VU.Vector Bool) where
   onfrom (Varbit len bytes) =
     let bits = concatMap byteToBits (ByteString.unpack bytes)
         trimmedBits = take (fromIntegral len) bits
@@ -250,6 +297,6 @@ instance IsMany Varbit (VU.Vector Bool) where
 -- This provides isomorphic conversion between 'Data.Vector.Unboxed.Vector' 'Bool'
 -- and PostgreSQL @varbit@ type. These instances enable seamless use of unboxed vectors
 -- for efficient bit manipulation while maintaining PostgreSQL compatibility.
-instance Is (VU.Vector Bool) Varbit
+instance (TypeLits.KnownNat numBits) => Is (VU.Vector Bool) (Varbit numBits)
 
-instance Is Varbit (VU.Vector Bool)
+instance (TypeLits.KnownNat numBits) => Is (Varbit numBits) (VU.Vector Bool)
