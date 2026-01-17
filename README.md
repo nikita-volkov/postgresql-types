@@ -1,9 +1,9 @@
 # postgresql-types
 
-<!-- [![Hackage](https://img.shields.io/hackage/v/postgresql-types.svg)](https://hackage.haskell.org/package/postgresql-types) -->
+[![Hackage](https://img.shields.io/hackage/v/postgresql-types.svg)](https://hackage.haskell.org/package/postgresql-types)
 [![Continuous Haddock](https://img.shields.io/badge/haddock-master-blue)](https://nikita-volkov.github.io/postgresql-types/)
 
-Haskell representation of PostgreSQL data types with mappings to and from both binary and textual formats used by the PostgreSQL wire protocol.
+Precise Haskell representations of PostgreSQL data types with mappings to and from both binary and textual formats.
 
 ## Status
 
