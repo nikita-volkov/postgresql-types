@@ -97,7 +97,7 @@
 -- * 'IsMany' - Total conversion that always succeeds (like @Int32 -> PostgresqlTypes.Int4@)
 -- * 'Is' - Bidirectional conversion combining both directions
 --
--- Each type also implements 'IsStandardType' which provides binary and textual
+-- Each type also implements 'IsScalar' which provides binary and textual
 -- encoding/decoding according to PostgreSQL's wire protocol specification.
 --
 -- = Usage Examples

@@ -17,7 +17,7 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-character.html).
 newtype Text = Text Text.Text
   deriving newtype (Eq, Ord)
-  deriving (Show) via (ViaIsStandardType Text)
+  deriving (Show) via (ViaIsScalar Text)
 
 instance Arbitrary Text where
   arbitrary =
@@ -28,7 +28,7 @@ instance Arbitrary Text where
   shrink (Text base) =
     Text . Text.pack <$> shrink (Text.unpack base)
 
-instance IsStandardType Text where
+instance IsScalar Text where
   typeName = Tagged "text"
   baseOid = Tagged (Just 25)
   arrayOid = Tagged (Just 1009)

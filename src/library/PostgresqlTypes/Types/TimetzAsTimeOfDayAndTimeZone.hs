@@ -19,7 +19,7 @@ data TimetzAsTimeOfDayAndTimeZone
       Time.TimeOfDay
       Time.TimeZone
   deriving stock (Eq, Ord)
-  deriving (IsStandardType, Arbitrary, Show) via (ViaIsMany Timetz TimetzAsTimeOfDayAndTimeZone)
+  deriving (IsScalar, Arbitrary, Show) via (ViaIsMany Timetz TimetzAsTimeOfDayAndTimeZone)
 
 instance Bounded TimetzAsTimeOfDayAndTimeZone where
   minBound = TimetzAsTimeOfDayAndTimeZone (Time.TimeOfDay 0 0 0) (TimeZone.convertFromMinutes (negate (15 * 60 + 59)))

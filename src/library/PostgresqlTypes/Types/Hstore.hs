@@ -22,7 +22,7 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/hstore.html).
 newtype Hstore = Hstore (Map.Map Text (Maybe Text))
   deriving newtype (Eq, Ord)
-  deriving (Show) via (ViaIsStandardType Hstore)
+  deriving (Show) via (ViaIsScalar Hstore)
 
 instance Arbitrary Hstore where
   arbitrary = do
@@ -39,7 +39,7 @@ instance Arbitrary Hstore where
   shrink (Hstore base) =
     Hstore . Map.fromList <$> shrink (Map.toList base)
 
-instance IsStandardType Hstore where
+instance IsScalar Hstore where
   typeName = Tagged "hstore"
   baseOid = Tagged Nothing
   arrayOid = Tagged Nothing

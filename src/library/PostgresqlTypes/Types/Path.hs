@@ -23,7 +23,7 @@ data Path = Path
     points :: UnboxedVector.Vector (Double, Double)
   }
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsStandardType Path)
+  deriving (Show) via (ViaIsScalar Path)
 
 instance Arbitrary Path where
   arbitrary = do
@@ -39,7 +39,7 @@ instance Arbitrary Path where
       UnboxedVector.length points' >= 1
     ]
 
-instance IsStandardType Path where
+instance IsScalar Path where
   typeName = Tagged "path"
   baseOid = Tagged (Just 602)
   arrayOid = Tagged (Just 1019)

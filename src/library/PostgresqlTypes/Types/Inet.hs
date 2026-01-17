@@ -25,7 +25,7 @@ data Inet = Inet
     netmask :: Word8
   }
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsStandardType Inet)
+  deriving (Show) via (ViaIsScalar Inet)
 
 instance Bounded Inet where
   minBound = Inet minBound 0
@@ -47,7 +47,7 @@ instance Arbitrary Inet where
         V6Ip _ _ _ _ -> netmask' <= 128
     ]
 
-instance IsStandardType Inet where
+instance IsScalar Inet where
   typeName = Tagged "inet"
   baseOid = Tagged (Just 869)
   arrayOid = Tagged (Just 1041)

@@ -29,7 +29,7 @@ data Box = Box
     boxY2 :: Double
   }
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsStandardType Box)
+  deriving (Show) via (ViaIsScalar Box)
 
 instance Arbitrary Box where
   arbitrary = do
@@ -45,7 +45,7 @@ instance Arbitrary Box where
     | (x1', y1', x2', y2') <- shrink (x1, y1, x2, y2)
     ]
 
-instance IsStandardType Box where
+instance IsScalar Box where
   typeName = Tagged "box"
   baseOid = Tagged (Just 603)
   arrayOid = Tagged (Just 1020)

@@ -15,9 +15,9 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-numeric.html#DATATYPE-INT).
 newtype Int4 = Int4 Int32
   deriving newtype (Eq, Ord, Arbitrary, Enum, Bounded)
-  deriving (Show) via (ViaIsStandardType Int4)
+  deriving (Show) via (ViaIsScalar Int4)
 
-instance IsStandardType Int4 where
+instance IsScalar Int4 where
   typeName = Tagged "int4"
   baseOid = Tagged (Just 23)
   arrayOid = Tagged (Just 1007)

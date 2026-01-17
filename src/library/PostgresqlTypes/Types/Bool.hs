@@ -13,9 +13,9 @@ import qualified PtrPoker.Write as Write
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-boolean.html).
 newtype Bool = Bool Data.Bool.Bool
   deriving newtype (Eq, Ord, Arbitrary)
-  deriving (Show) via (ViaIsStandardType Bool)
+  deriving (Show) via (ViaIsScalar Bool)
 
-instance IsStandardType Bool where
+instance IsScalar Bool where
   typeName = Tagged "bool"
   baseOid = Tagged (Just 16)
   arrayOid = Tagged (Just 1000)

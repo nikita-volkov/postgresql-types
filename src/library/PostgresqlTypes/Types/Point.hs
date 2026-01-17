@@ -22,13 +22,13 @@ data Point = Point
     pointY :: Double
   }
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsStandardType Point)
+  deriving (Show) via (ViaIsScalar Point)
 
 instance Arbitrary Point where
   arbitrary = Point <$> arbitrary <*> arbitrary
   shrink (Point x y) = [Point x' y' | (x', y') <- shrink (x, y)]
 
-instance IsStandardType Point where
+instance IsScalar Point where
   typeName = Tagged "point"
   baseOid = Tagged (Just 600)
   arrayOid = Tagged (Just 1017)

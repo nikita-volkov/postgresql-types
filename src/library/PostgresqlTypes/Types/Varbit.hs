@@ -28,7 +28,7 @@ data Varbit = Varbit
     varbitData :: ByteString
   }
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsStandardType Varbit)
+  deriving (Show) via (ViaIsScalar Varbit)
 
 instance Arbitrary Varbit where
   arbitrary = do
@@ -41,7 +41,7 @@ instance Arbitrary Varbit where
         shrunkBitsList = shrink bits
      in map LawfulConversions.from shrunkBitsList
 
-instance IsStandardType Varbit where
+instance IsScalar Varbit where
   typeName = Tagged "varbit"
   baseOid = Tagged (Just 1562)
   arrayOid = Tagged (Just 1563)

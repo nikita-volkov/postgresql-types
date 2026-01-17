@@ -2,18 +2,14 @@ module Main.Scripts where
 
 import Control.Monad
 import qualified Data.Attoparsec.Text
-import qualified Data.ByteString as ByteString
 import Data.Function
 import Data.Maybe
 import Data.Proxy
 import Data.Tagged
-import Data.Text (Text)
 import qualified Data.Text.Encoding as Text.Encoding
-import Data.Typeable
-import Data.Word
 import qualified Database.PostgreSQL.LibPQ as Pq
 import LawfulConversions
-import qualified PostgresqlTypes as PostgresqlTypes
+import qualified PostgresqlTypes.Algebra
 import qualified PqProcedures as Procedures
 import qualified PtrPeeker
 import qualified PtrPoker.Write
@@ -25,17 +21,17 @@ import Prelude
 
 mappingSpec ::
   forall a.
-  (HasCallStack, QuickCheck.Arbitrary a, Show a, Eq a, PostgresqlTypes.IsStandardType a) =>
+  (HasCallStack, QuickCheck.Arbitrary a, Show a, Eq a, PostgresqlTypes.Algebra.IsScalar a) =>
   Proxy a ->
   SpecWith Pq.Connection
 mappingSpec _ =
-  let typeName = untag (PostgresqlTypes.typeName @a)
-      maybeBaseOid = untag (PostgresqlTypes.baseOid @a)
-      maybeArrayOid = untag (PostgresqlTypes.arrayOid @a)
-      binEnc = PostgresqlTypes.binaryEncoder @a
-      binDec = PostgresqlTypes.binaryDecoder @a
-      txtEnc = PostgresqlTypes.textualEncoder @a
-      txtDec = PostgresqlTypes.textualDecoder @a
+  let typeName = untag (PostgresqlTypes.Algebra.typeName @a)
+      maybeBaseOid = untag (PostgresqlTypes.Algebra.baseOid @a)
+      maybeArrayOid = untag (PostgresqlTypes.Algebra.arrayOid @a)
+      binEnc = PostgresqlTypes.Algebra.binaryEncoder @a
+      binDec = PostgresqlTypes.Algebra.binaryDecoder @a
+      txtEnc = PostgresqlTypes.Algebra.textualEncoder @a
+      txtDec = PostgresqlTypes.Algebra.textualDecoder @a
 
       getOids connection = do
         case (maybeBaseOid, maybeArrayOid) of
@@ -50,7 +46,7 @@ mappingSpec _ =
                   Just oid -> oid
                   Nothing -> fromMaybe (error $ "Array OID not found for type: " <> to typeName) result.arrayOid
             pure (baseOid, arrayOid)
-   in describe "IsStandardType" do
+   in describe "IsScalar" do
         describe (to typeName) do
           describe "Encoding via textualEncoder" do
             describe "And decoding via textualDecoder" do

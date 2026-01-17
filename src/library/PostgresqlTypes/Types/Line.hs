@@ -24,7 +24,7 @@ data Line = Line
     lineC :: Double
   }
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsStandardType Line)
+  deriving (Show) via (ViaIsScalar Line)
 
 instance Arbitrary Line where
   arbitrary = do
@@ -41,7 +41,7 @@ instance Arbitrary Line where
       not (a' == 0 && b' == 0) -- Ensure shrunk values are also valid
     ]
 
-instance IsStandardType Line where
+instance IsScalar Line where
   typeName = Tagged "line"
   baseOid = Tagged (Just 628)
   arrayOid = Tagged (Just 629)

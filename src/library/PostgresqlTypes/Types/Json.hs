@@ -25,13 +25,13 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-json.html).
 newtype Json = Json Aeson.Value
   deriving newtype (Eq, Ord)
-  deriving (Show) via (ViaIsStandardType Json)
+  deriving (Show) via (ViaIsScalar Json)
 
 instance Arbitrary Json where
   arbitrary = fromAesonValue <$> arbitrary
   shrink = fmap Json . shrink . toAesonValue
 
-instance IsStandardType Json where
+instance IsScalar Json where
   typeName = Tagged "json"
   baseOid = Tagged (Just 114)
   arrayOid = Tagged (Just 199)

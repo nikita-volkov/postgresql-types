@@ -25,7 +25,7 @@ data Interval = Interval
     micros :: Int64
   }
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsStandardType Interval)
+  deriving (Show) via (ViaIsScalar Interval)
 
 instance Bounded Interval where
   minBound =
@@ -48,7 +48,7 @@ instance Arbitrary Interval where
     months <- QuickCheck.choose ((minBound @Interval).months, (maxBound @Interval).months)
     pure (max minBound (min maxBound (Interval {..})))
 
-instance IsStandardType Interval where
+instance IsScalar Interval where
   typeName = Tagged "interval"
   baseOid = Tagged (Just 1186)
   arrayOid = Tagged (Just 1187)

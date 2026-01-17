@@ -29,13 +29,13 @@ import qualified TextBuilder
 -- these are entirely different types in PostgreSQL.
 newtype Char = Char Word8
   deriving newtype (Eq, Ord)
-  deriving (Show) via (ViaIsStandardType Char)
+  deriving (Show) via (ViaIsScalar Char)
 
 instance Arbitrary Char where
   arbitrary =
     Char <$> QuickCheck.choose (0, 127)
 
-instance IsStandardType Char where
+instance IsScalar Char where
   typeName = Tagged "char"
   baseOid = Tagged (Just 18)
   arrayOid = Tagged (Just 1002)

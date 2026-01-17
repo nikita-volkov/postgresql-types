@@ -15,9 +15,9 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-numeric.html#DATATYPE-INT).
 newtype Int8 = Int8 Int64
   deriving newtype (Eq, Ord, Arbitrary)
-  deriving (Show) via (ViaIsStandardType Int8)
+  deriving (Show) via (ViaIsScalar Int8)
 
-instance IsStandardType Int8 where
+instance IsScalar Int8 where
   typeName = Tagged "int8"
   baseOid = Tagged (Just 20)
   arrayOid = Tagged (Just 1016)

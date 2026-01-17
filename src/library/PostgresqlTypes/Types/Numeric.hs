@@ -27,7 +27,7 @@ data Numeric
   = ScientificNumeric Scientific.Scientific
   | NanNumeric
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsStandardType Numeric)
+  deriving (Show) via (ViaIsScalar Numeric)
 
 instance Arbitrary Numeric where
   arbitrary =
@@ -36,7 +36,7 @@ instance Arbitrary Numeric where
         pure NanNumeric
       ]
 
-instance IsStandardType Numeric where
+instance IsScalar Numeric where
   typeName = Tagged "numeric"
   baseOid = Tagged (Just 1700)
   arrayOid = Tagged (Just 1231)

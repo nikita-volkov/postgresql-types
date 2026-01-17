@@ -27,7 +27,7 @@ data Circle = Circle
     radius :: Double
   }
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsStandardType Circle)
+  deriving (Show) via (ViaIsScalar Circle)
 
 instance Arbitrary Circle where
   arbitrary = do
@@ -41,7 +41,7 @@ instance Arbitrary Circle where
     r' <- abs <$> shrink r
     pure (Circle x' y' r')
 
-instance IsStandardType Circle where
+instance IsScalar Circle where
   typeName = Tagged "circle"
   baseOid = Tagged (Just 718)
   arrayOid = Tagged (Just 719)

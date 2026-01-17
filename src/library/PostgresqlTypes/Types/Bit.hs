@@ -27,7 +27,7 @@ data Bit (numBits :: TypeLits.Nat) = Bit
     bytes :: ByteString
   }
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsStandardType (Bit numBits))
+  deriving (Show) via (ViaIsScalar (Bit numBits))
 
 instance (TypeLits.KnownNat numBits) => Arbitrary (Bit numBits) where
   arbitrary = do
@@ -37,7 +37,7 @@ instance (TypeLits.KnownNat numBits) => Arbitrary (Bit numBits) where
       Nothing -> error "Arbitrary Bit: Generated bit string has incorrect length"
       Just bit -> pure bit
 
-instance (TypeLits.KnownNat numBits) => IsStandardType (Bit numBits) where
+instance (TypeLits.KnownNat numBits) => IsScalar (Bit numBits) where
   typeName = Tagged "bit"
   baseOid = Tagged (Just 1560)
   arrayOid = Tagged (Just 1561)
