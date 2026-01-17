@@ -27,6 +27,13 @@ In active development, but already working and exhaustively tested.
 - Multirange types: `Int4Multirange`, `Int8Multirange`, `NumMultirange`, `TsMultirange`, `TstzMultirange`, `DateMultirange`
 - Array types for all of the above
 
+### Ecosystem Integration
+
+Adapter packages provide integrations for major PostgreSQL client libraries:
+
+- "hasql": ["hasql-postgresql-types"](https://github.com/nikita-volkov/hasql-postgresql-types)
+- "postgresql-simple": ["postgresql-simple-postgresql-types"](https://github.com/nikita-volkov/postgresql-simple-postgresql-types)
+
 ### Type Safety & Valid Ranges
 
 All PostgreSQL types are represented with hidden constructors, ensuring that only valid PostgreSQL values can be constructed. This design prevents invalid data from being represented at the type level.

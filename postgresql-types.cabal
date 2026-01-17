@@ -16,6 +16,12 @@ description:
 
   The library can be used as the basis for various PostgreSQL libraries.
 
+  Ecosystem integration adapters are available for:
+
+  * hasql: <https://hackage-content.haskell.org/package/hasql-postgresql-types>
+
+  * postgresql-simple: <https://hackage-content.haskell.org/package/postgresql-simple-postgresql-types>
+
 homepage: https://github.com/nikita-volkov/postgresql-types
 bug-reports: https://github.com/nikita-volkov/postgresql-types/issues
 author: Nikita Volkov <nikita.y.volkov@mail.ru>
