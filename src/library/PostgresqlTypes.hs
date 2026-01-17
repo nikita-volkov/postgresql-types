@@ -4,7 +4,6 @@ module PostgresqlTypes
     IsMultirangeElement (..),
     DecodingError (..),
     DecodingErrorReason (..),
-    typeSignature,
 
     -- * Data Types re-exports
     module PostgresqlTypes.Types,

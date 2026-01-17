@@ -39,6 +39,7 @@ instance IsStandardType Char where
   typeName = Tagged "char"
   baseOid = Tagged (Just 18)
   arrayOid = Tagged (Just 1002)
+  typeSignature = Tagged "\"char\""
   binaryEncoder (Char base) =
     Write.word8 base
   binaryDecoder =

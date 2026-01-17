@@ -23,6 +23,27 @@ class IsStandardType a where
   typeParams :: Tagged a [Text]
   typeParams = Tagged []
 
+  -- | Get the PostgreSQL type signature for a given Haskell type.
+  --
+  -- In case of parameterized types, the type parameters are included in the signature.
+  -- For example, for @'PostgresqlTypes.Types.Bpchar.Bpchar' 10@, the signature will be @bpchar(10)@.
+  typeSignature :: Tagged a Text
+  typeSignature =
+    let params = untag (typeParams @a)
+        name = untag (typeName @a)
+     in Tagged
+          if null params
+            then name
+            else
+              TextBuilder.toText
+                ( mconcat
+                    [ TextBuilder.text name,
+                      "(",
+                      TextBuilder.intercalateMap ", " TextBuilder.text params,
+                      ")"
+                    ]
+                )
+
   -- | Encode the value in PostgreSQL binary format.
   binaryEncoder :: a -> Write.Write
 
@@ -81,24 +102,3 @@ data DecodingErrorReason
       -- | Value.
       Text
   deriving stock (Show, Eq)
-
--- | Get the PostgreSQL type signature for a given Haskell type.
---
--- In case of parameterized types, the type parameters are included in the signature.
--- For example, for @'PostgresqlTypes.Types.Bpchar.Bpchar' 10@, the signature will be @bpchar(10)@.
-typeSignature :: forall a. (IsStandardType a) => Tagged a Text
-typeSignature =
-  let params = untag (typeParams @a)
-      name = untag (typeName @a)
-   in Tagged
-        if null params
-          then name
-          else
-            TextBuilder.toText
-              ( mconcat
-                  [ TextBuilder.text name,
-                    "(",
-                    TextBuilder.intercalateMap ", " TextBuilder.text params,
-                    ")"
-                  ]
-              )
