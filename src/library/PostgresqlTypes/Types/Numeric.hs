@@ -39,8 +39,8 @@ data Numeric (precision :: TypeLits.Nat) (scale :: TypeLits.Nat)
 
 instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => Arbitrary (Numeric precision scale) where
   arbitrary = do
-    let prec = fromIntegral (TypeLits.natVal (Proxy @precision))
-        sc = fromIntegral (TypeLits.natVal (Proxy @scale))
+    let prec = fromIntegral (TypeLits.natVal (Proxy @precision)) :: Int
+        sc = fromIntegral (TypeLits.natVal (Proxy @scale)) :: Int
     if prec == 0 && sc == 0
       then
         -- Arbitrary precision: generate any Scientific value or NaN
@@ -51,21 +51,23 @@ instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => Arbitrary (Nu
       else do
         -- Generate value respecting precision and scale constraints
         -- Precision p, scale s means: at most p total digits, s after decimal point
-        -- So we can have at most (p - s) digits before decimal point
-        let intDigits = prec - sc
+        -- intDigits can be negative when scale > precision (e.g., NUMERIC(2,4) -> 0.0012)
+        let intDigits = max 0 (prec - sc)
+            -- Cap exponents to prevent excessive computation
+            maxIntDigits = min intDigits 15  -- Cap at 10^15 for reasonable generation
+            maxScale = min sc 15
         -- Generate a value with appropriate number of digits
-        -- For example: NUMERIC(10, 2) can store -99999999.99 to 99999999.99
         sign <- arbitrary @Bool
         -- Generate integer part (up to intDigits digits)
-        intPart <- if intDigits > 0
-                   then QuickCheck.choose (0, 10 ^ intDigits - 1)
+        intPart <- if maxIntDigits > 0
+                   then QuickCheck.choose (0, 10 ^ maxIntDigits - 1)
                    else pure 0
         -- Generate fractional part (up to sc digits)
-        fracPart <- if sc > 0
-                    then QuickCheck.choose (0, 10 ^ sc - 1)
+        fracPart <- if maxScale > 0
+                    then QuickCheck.choose (0, 10 ^ maxScale - 1)
                     else pure 0
-        let coefficient = (if sign then negate else id) (intPart * (10 ^ sc) + fracPart)
-            scientific = Scientific.scientific coefficient (negate (fromIntegral sc))
+        let coefficient = (if sign then negate else id) (intPart * (10 ^ maxScale) + fracPart)
+            scientific = Scientific.scientific coefficient (negate (fromIntegral maxScale))
         QuickCheck.oneof
           [ pure (ScientificNumeric scientific),
             pure NanNumeric
