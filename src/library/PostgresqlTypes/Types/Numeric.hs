@@ -26,9 +26,11 @@ import qualified TextBuilder
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-numeric.html#DATATYPE-NUMERIC-DECIMAL).
 --
--- The type parameters @precision@ and @scale@ specify the static precision and scale of the numeric value.
--- Only numeric values conforming to these constraints can be represented by this type.
--- Use @Numeric 0 0@ to represent @numeric@ without precision/scale constraints (arbitrary precision).
+-- The type parameters @precision@ and @scale@ specify the precision and scale used when generating
+-- the PostgreSQL @numeric@ type modifiers (e.g. @numeric(precision, scale)@).
+-- They do not enforce any runtime constraints on the represented values; all 'Scientific.Scientific'
+-- values are accepted (in addition to @NaN@ via 'NanNumeric').
+-- Use @Numeric 0 0@ to represent @numeric@ without precision/scale modifiers (arbitrary precision).
 data Numeric (precision :: TypeLits.Nat) (scale :: TypeLits.Nat)
   = ScientificNumeric Scientific.Scientific
   | NanNumeric
@@ -36,11 +38,38 @@ data Numeric (precision :: TypeLits.Nat) (scale :: TypeLits.Nat)
   deriving (Show) via (ViaIsStandardType (Numeric precision scale))
 
 instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => Arbitrary (Numeric precision scale) where
-  arbitrary =
-    QuickCheck.oneof
-      [ ScientificNumeric <$> arbitrary,
-        pure NanNumeric
-      ]
+  arbitrary = do
+    let prec = fromIntegral (TypeLits.natVal (Proxy @precision))
+        sc = fromIntegral (TypeLits.natVal (Proxy @scale))
+    if prec == 0 && sc == 0
+      then
+        -- Arbitrary precision: generate any Scientific value or NaN
+        QuickCheck.oneof
+          [ ScientificNumeric <$> arbitrary,
+            pure NanNumeric
+          ]
+      else do
+        -- Generate value respecting precision and scale constraints
+        -- Precision p, scale s means: at most p total digits, s after decimal point
+        -- So we can have at most (p - s) digits before decimal point
+        let intDigits = prec - sc
+        -- Generate a value with appropriate number of digits
+        -- For example: NUMERIC(10, 2) can store -99999999.99 to 99999999.99
+        sign <- arbitrary @Bool
+        -- Generate integer part (up to intDigits digits)
+        intPart <- if intDigits > 0
+                   then QuickCheck.choose (0, 10 ^ intDigits - 1)
+                   else pure 0
+        -- Generate fractional part (up to sc digits)
+        fracPart <- if sc > 0
+                    then QuickCheck.choose (0, 10 ^ sc - 1)
+                    else pure 0
+        let coefficient = (if sign then negate else id) (intPart * (10 ^ sc) + fracPart)
+            scientific = Scientific.scientific coefficient (negate (fromIntegral sc))
+        QuickCheck.oneof
+          [ pure (ScientificNumeric scientific),
+            pure NanNumeric
+          ]
 
 instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsStandardType (Numeric precision scale) where
   typeName = Tagged "numeric"
