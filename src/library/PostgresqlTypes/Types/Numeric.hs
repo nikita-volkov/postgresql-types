@@ -26,19 +26,9 @@ import qualified TextBuilder
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-numeric.html#DATATYPE-NUMERIC-DECIMAL).
 --
--- The type parameters @precision@ and @scale@ specify the precision and scale constraints
--- for the numeric type, matching PostgreSQL's @numeric(precision, scale)@ semantics.
--- 
--- When @precision@ and @scale@ are both 0, the type represents arbitrary precision @numeric@
--- with no constraints. Otherwise:
--- - @precision@: Total number of significant digits (before and after decimal point)
--- - @scale@: Number of digits after the decimal point
---
--- Runtime validation is performed in conversion instances to ensure values conform to
--- the specified constraints. Values that exceed the precision/scale bounds will fail
--- validation in 'IsSome' instances or be clamped/rounded in 'IsMany' instances.
---
--- Use @Numeric 0 0@ to represent @numeric@ without precision/scale modifiers (arbitrary precision).
+-- The type parameters @precision@ and @scale@ specify the static precision and scale of the numeric value.
+-- Only numeric values conforming to these constraints can be represented by this type.
+-- Use @Numeric 0 0@ to represent @numeric@ without precision/scale constraints (arbitrary precision).
 data Numeric (precision :: TypeLits.Nat) (scale :: TypeLits.Nat)
   = ScientificNumeric Scientific.Scientific
   | NanNumeric
