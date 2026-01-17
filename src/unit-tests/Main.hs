@@ -100,8 +100,10 @@ main = hspec do
   testIs @PostgresqlTypes.Oid @Word32 Proxy Proxy
   testIs @PostgresqlTypes.Point @(Double, Double) Proxy Proxy
   testIs @PostgresqlTypes.Uuid @UUID.UUID Proxy Proxy
-  testIs @(PostgresqlTypes.Varbit 128) @[Bool] Proxy Proxy
-  testIs @(PostgresqlTypes.Varbit 128) @(VU.Vector Bool) Proxy Proxy
+  testIsSome @(PostgresqlTypes.Varbit 128) @[Bool] Proxy Proxy
+  testIsSome @(PostgresqlTypes.Varbit 128) @(VU.Vector Bool) Proxy Proxy
+  testIsMany @(PostgresqlTypes.Varbit 128) @[Bool] Proxy Proxy
+  testIsMany @(PostgresqlTypes.Varbit 128) @(VU.Vector Bool) Proxy Proxy
   testIsMany @PostgresqlTypes.Bool @Bool Proxy Proxy
   testIsMany @PostgresqlTypes.Box @(Double, Double, Double, Double) Proxy Proxy
   testIsMany @PostgresqlTypes.Bytea @ByteString Proxy Proxy
