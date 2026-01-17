@@ -16,7 +16,7 @@ import qualified TextBuilder
 -- a single ASCII character (values 0-127). It is primarily used in PostgreSQL system
 -- catalogs as a simplistic enumeration type and is not intended for general-purpose use.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-character.html).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-character.html).
 --
 -- __Important distinction:__ This type represents the quoted @\"char\"@ type in PostgreSQL,
 -- which is completely different from @char(n)@, @character(n)@, or @bpchar(n)@:

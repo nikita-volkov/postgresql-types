@@ -17,7 +17,7 @@ import qualified TextBuilder
 --
 -- Similar to @cidr@ but specifically for host addresses with optional subnet masks.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-net-types.html#DATATYPE-INET).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-net-types.html#DATATYPE-INET).
 data Inet = Inet
   { -- | Host address
     ip :: Ip,

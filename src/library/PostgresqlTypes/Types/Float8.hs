@@ -11,7 +11,7 @@ import qualified TextBuilder
 
 -- | PostgreSQL @float8@ type. 8-byte floating-point number. 15 decimal digits precision.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-numeric.html#DATATYPE-FLOAT).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-numeric.html#DATATYPE-FLOAT).
 newtype Float8 = Float8 Double
   deriving newtype (Eq, Ord, Arbitrary)
   deriving (Show) via (ViaIsScalar Float8)

@@ -10,7 +10,7 @@ import qualified PtrPoker.Write as Write
 
 -- | PostgreSQL @boolean@ type. Logical Bool (@true@/@false@).
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-boolean.html).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-boolean.html).
 newtype Bool = Bool Data.Bool.Bool
   deriving newtype (Eq, Ord, Arbitrary)
   deriving (Show) via (ViaIsScalar Bool)

@@ -17,7 +17,7 @@ import qualified TextBuilder
 -- Represents a circle with center coordinates and radius.
 -- Gets stored as three @64@-bit floating point numbers (@x@,@y@,@radius@) in PostgreSQL.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-geometric.html#DATATYPE-CIRCLE).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-geometric.html#DATATYPE-CIRCLE).
 data Circle = Circle
   { -- | Center x coordinate
     centerX :: Double,

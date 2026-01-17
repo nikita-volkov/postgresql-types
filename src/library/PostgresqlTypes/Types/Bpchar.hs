@@ -15,7 +15,7 @@ import qualified TextBuilder
 
 -- | PostgreSQL @bpchar(n)@, @char(n)@, or @character(n)@ type. Fixed-length, blank-padded character string.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-character.html).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-character.html).
 --
 -- The type parameter @numChars@ specifies the static length of the character string.
 -- Only character strings with exactly this length can be represented by this type.

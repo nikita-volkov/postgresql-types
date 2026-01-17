@@ -32,7 +32,7 @@ import qualified TextBuilder
 --
 -- You can also define your own.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/rangetypes.html#RANGETYPES-MULTIRANGE).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/rangetypes.html#RANGETYPES-MULTIRANGE).
 newtype Multirange a = Multirange (Vector (Range a))
   deriving stock (Eq, Functor)
   deriving (Show) via (ViaIsScalar (Multirange a))

@@ -19,7 +19,7 @@ import qualified TextBuilder
 -- Values can be NULL (represented as Nothing in Haskell).
 -- Keys must be unique and cannot be NULL.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/hstore.html).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/hstore.html).
 newtype Hstore = Hstore (Map.Map Text (Maybe Text))
   deriving newtype (Eq, Ord)
   deriving (Show) via (ViaIsScalar Hstore)

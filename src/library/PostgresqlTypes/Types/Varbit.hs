@@ -20,7 +20,7 @@ import qualified TextBuilder
 --
 -- Similar to @bit@ but without a fixed maximum length.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-bit.html).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-bit.html).
 data Varbit = Varbit
   { -- | Number of bits
     varbitLength :: Int32,

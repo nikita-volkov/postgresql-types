@@ -18,7 +18,7 @@ import qualified TextBuilder
 
 -- | PostgreSQL @bit@ type. Fixed-length bit string.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-bit.html).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-bit.html).
 --
 -- The type parameter @numBits@ specifies the static length of the bit string.
 -- Only bit strings with exactly this length can be represented by this type.

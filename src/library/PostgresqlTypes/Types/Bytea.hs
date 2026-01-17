@@ -12,7 +12,7 @@ import qualified TextBuilder
 
 -- | PostgreSQL @bytea@ type. Binary data ("byte array").
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-binary.html).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-binary.html).
 newtype Bytea = Bytea ByteString
   deriving newtype (Eq, Ord, Arbitrary)
   deriving (Show) via (ViaIsScalar Bytea)

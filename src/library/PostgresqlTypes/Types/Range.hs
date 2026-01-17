@@ -28,7 +28,7 @@ import qualified TextBuilder
 --
 -- You can also define your own.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/rangetypes.html).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/rangetypes.html).
 data Range a
   = EmptyRange
   | BoundedRange (Maybe a) (Maybe a)

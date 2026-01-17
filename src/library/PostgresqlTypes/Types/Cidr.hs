@@ -18,7 +18,7 @@ import qualified TextBuilder
 --
 -- Similar to @inet@ but specifically for network addresses in CIDR notation.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-net-types.html#DATATYPE-CIDR).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-net-types.html#DATATYPE-CIDR).
 data Cidr = Cidr
   { -- | Network address (host bits must be zero)
     ip :: Ip,

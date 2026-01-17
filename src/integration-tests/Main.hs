@@ -11,7 +11,7 @@ main :: IO ()
 main =
   hspec do
     parallel do
-      withContainer "postgres:17" do
+      withContainer "postgres:18" do
         withConnection Nothing do
           withType @(PostgresqlTypes.Bit 1) [mappingSpec]
           withType @(PostgresqlTypes.Bit 64) [mappingSpec]

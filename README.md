@@ -69,7 +69,7 @@ The library employs a rigorous multi-layered testing strategy:
 - **Cross-format Validation**: Binary encoders are tested against textual decoders and vice versa
 
 #### Integration Tests
-- **Real PostgreSQL Validation**: Tests run against actual PostgreSQL servers (versions 9 through 17)
+- **Real PostgreSQL Validation**: Tests run against actual PostgreSQL servers (versions 9 through 18)
 - **Four-way Round-trip Matrix**: Each value is tested through all four combinations:
   1. Text encoding → Text decoding
   2. Text encoding → Binary decoding  

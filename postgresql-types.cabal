@@ -11,7 +11,7 @@ description:
 
   Types are represented with hidden constructors, ensuring only valid PostgreSQL
   values can be constructed. Conversions use the lawful-conversions library for
-  safe, well-defined transformations. Exhaustively tested against PostgreSQL 9-17
+  safe, well-defined transformations. Exhaustively tested against PostgreSQL 9-18
   with property-based testing covering the complete range of valid PostgreSQL values.
 
   The library can be used as the basis for various PostgreSQL libraries.

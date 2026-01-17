@@ -22,7 +22,7 @@ import qualified TextBuilder
 -- representation including whitespace and key ordering.
 -- However it is less efficient for both storage and processing.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-json.html).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-json.html).
 newtype Json = Json Aeson.Value
   deriving newtype (Eq, Ord)
   deriving (Show) via (ViaIsScalar Json)

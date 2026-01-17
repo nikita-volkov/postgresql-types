@@ -22,7 +22,7 @@ import qualified TextBuilder
 --
 -- The 'IsMany' and 'IsSome' instances provide bidirectional conversions for convenience.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-numeric.html#DATATYPE-NUMERIC-DECIMAL).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-numeric.html#DATATYPE-NUMERIC-DECIMAL).
 data Numeric
   = ScientificNumeric Scientific.Scientific
   | NanNumeric

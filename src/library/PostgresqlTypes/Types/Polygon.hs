@@ -19,7 +19,7 @@ import qualified TextBuilder
 -- The polygon is automatically closed (the last point connects to the first).
 -- Stored as the number of points followed by the point coordinates.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-geometric.html#DATATYPE-POLYGON).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-geometric.html#DATATYPE-POLYGON).
 newtype Polygon = Polygon
   { polygonPoints :: UnboxedVector.Vector (Double, Double)
   }
