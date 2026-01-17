@@ -26,10 +26,18 @@ import qualified TextBuilder
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-numeric.html#DATATYPE-NUMERIC-DECIMAL).
 --
--- The type parameters @precision@ and @scale@ specify the precision and scale used when generating
--- the PostgreSQL @numeric@ type modifiers (e.g. @numeric(precision, scale)@).
--- They do not enforce any runtime constraints on the represented values; all 'Scientific.Scientific'
--- values are accepted (in addition to @NaN@ via 'NanNumeric').
+-- The type parameters @precision@ and @scale@ specify the precision and scale constraints
+-- for the numeric type, matching PostgreSQL's @numeric(precision, scale)@ semantics.
+-- 
+-- When @precision@ and @scale@ are both 0, the type represents arbitrary precision @numeric@
+-- with no constraints. Otherwise:
+-- - @precision@: Total number of significant digits (before and after decimal point)
+-- - @scale@: Number of digits after the decimal point
+--
+-- Runtime validation is performed in conversion instances to ensure values conform to
+-- the specified constraints. Values that exceed the precision/scale bounds will fail
+-- validation in 'IsSome' instances or be clamped/rounded in 'IsMany' instances.
+--
 -- Use @Numeric 0 0@ to represent @numeric@ without precision/scale modifiers (arbitrary precision).
 data Numeric (precision :: TypeLits.Nat) (scale :: TypeLits.Nat)
   = ScientificNumeric Scientific.Scientific
@@ -179,12 +187,44 @@ instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsMultirangeE
   multirangeArrayOid = Tagged (Just 6151)
 
 -- |
+-- Conversion from Numeric to Scientific.
 -- In 'maybeFrom' produces 'Nothing' for 'NanNumeric' values.
+-- For parameterized types (precision > 0), also validates that the Scientific value
+-- fits within the precision and scale constraints.
 instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsSome (Numeric precision scale) Scientific.Scientific where
   to = ScientificNumeric
   maybeFrom = \case
     ScientificNumeric s -> Just s
     NanNumeric -> Nothing
+
+-- |
+-- Conversion from Scientific to Numeric with validation.
+-- For parameterized types (precision > 0), validates that values fit within constraints.
+instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsSome Scientific.Scientific (Numeric precision scale) where
+  to = \case
+    ScientificNumeric s -> s
+    NanNumeric -> 0  -- Or we could error here, but 0 seems reasonable
+  maybeFrom s =
+    let prec = fromIntegral (TypeLits.natVal (Proxy @precision)) :: Int
+        sc = fromIntegral (TypeLits.natVal (Proxy @scale)) :: Int
+     in if prec == 0 && sc == 0
+          then Just (ScientificNumeric s)
+          else
+            if validateNumericPrecisionScale prec sc s
+              then Just (ScientificNumeric s)
+              else Nothing
+
+-- |
+-- Conversion from Scientific to Numeric with clamping.
+-- Treats 'NanNumeric' values as @0@.
+-- For parameterized types (precision > 0), clamps values to fit within constraints.
+instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsMany Scientific.Scientific (Numeric precision scale) where
+  onfrom s =
+    let prec = fromIntegral (TypeLits.natVal (Proxy @precision)) :: Int
+        sc = fromIntegral (TypeLits.natVal (Proxy @scale)) :: Int
+     in if prec == 0 && sc == 0
+          then ScientificNumeric s
+          else ScientificNumeric (clampNumericValue prec sc s)
 
 -- | Treats 'NanNumeric' values as @0@.
 instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsMany (Numeric precision scale) Scientific.Scientific where
@@ -196,6 +236,17 @@ instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsSome (Maybe
   to = \case
     ScientificNumeric s -> Just s
     NanNumeric -> Nothing
+  maybeFrom = \case
+    Nothing -> Just NanNumeric
+    Just s ->
+      let prec = fromIntegral (TypeLits.natVal (Proxy @precision)) :: Int
+          sc = fromIntegral (TypeLits.natVal (Proxy @scale)) :: Int
+       in if prec == 0 && sc == 0
+            then Just (ScientificNumeric s)
+            else
+              if validateNumericPrecisionScale prec sc s
+                then Just (ScientificNumeric s)
+                else Nothing
 
 instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsMany (Maybe Scientific.Scientific) (Numeric precision scale)
 
@@ -209,6 +260,79 @@ instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsSome (Numer
 instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsMany (Numeric precision scale) (Maybe Scientific.Scientific)
 
 instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => Is (Numeric precision scale) (Maybe Scientific.Scientific)
+
+-- | Validates that a Scientific value fits within the given precision and scale constraints.
+-- Returns True if the value is valid, False otherwise.
+--
+-- For NUMERIC(precision, scale):
+-- - precision: total number of significant digits
+-- - scale: number of digits after decimal point
+-- - Maximum integer digits: precision - scale
+validateNumericPrecisionScale :: Int -> Int -> Scientific.Scientific -> Bool
+validateNumericPrecisionScale prec sc s =
+  let -- Normalize the scientific to have exactly 'sc' decimal places
+      -- This helps us count digits correctly
+      coeff = Scientific.coefficient s
+      exp = Scientific.base10Exponent s
+      
+      -- Adjust coefficient to have exactly 'sc' decimal places
+      targetExp = negate sc
+      adjustedCoeff = if exp == targetExp
+                      then coeff
+                      else if exp < targetExp
+                           -- Need more decimal places: multiply
+                           then coeff * (10 ^ (targetExp - exp))
+                           -- Need fewer decimal places: divide (truncate)
+                           else coeff `div` (10 ^ (exp - targetExp))
+      
+      -- Count total significant digits
+      totalDigits = countDigits (abs adjustedCoeff)
+      
+   in -- The number of significant digits must not exceed precision
+      totalDigits <= prec
+
+-- | Count the number of digits in an integer
+countDigits :: Integer -> Int
+countDigits 0 = 1
+countDigits n = length (show (abs n))
+
+-- | Clamp a Scientific value to fit within precision and scale constraints.
+-- Rounds the value to the specified scale and clamps the magnitude to fit precision.
+clampNumericValue :: Int -> Int -> Scientific.Scientific -> Scientific.Scientific
+clampNumericValue prec sc s =
+  let -- First, round to the correct scale
+      rounded = roundToScale sc s
+      coeff = Scientific.coefficient rounded
+      -- Calculate maximum absolute coefficient for given precision
+      -- When scaled by 10^sc, max is 10^prec - 1
+      maxCoeff = 10 ^ prec - 1
+   in if abs coeff > maxCoeff
+      then Scientific.scientific (if coeff < 0 then negate maxCoeff else maxCoeff) (negate sc)
+      else rounded
+
+-- | Round a Scientific value to a specific scale (number of decimal places)
+-- Uses proper rounding (banker's rounding / round half to even)
+roundToScale :: Int -> Scientific.Scientific -> Scientific.Scientific
+roundToScale sc s =
+  let currentExp = Scientific.base10Exponent s
+      targetExp = negate sc
+      coeff = Scientific.coefficient s
+   in if currentExp >= targetExp
+      then s  -- Already has fewer or equal decimal places than target
+      else
+        -- Need to round: convert to the target scale
+        let scaleDiff = targetExp - currentExp
+            divisor = 10 ^ scaleDiff
+            (quotient, remainder) = coeff `divMod` divisor
+            -- Round half to even (banker's rounding)
+            roundedQuotient = if remainder * 2 > divisor
+                              then quotient + 1
+                              else if remainder * 2 < divisor
+                                   then quotient
+                                   else if even quotient
+                                        then quotient
+                                        else quotient + 1
+         in Scientific.scientific roundedQuotient targetExp
 
 {-# INLINE extractComponents #-}
 extractComponents :: (Integral a) => a -> [Word16]
