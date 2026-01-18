@@ -20,16 +20,16 @@ import qualified TextBuilder
 --
 -- A more efficient representation than @json@, allowing for faster processing and smaller storage size.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-json.html).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-json.html).
 newtype Jsonb = Jsonb Aeson.Value
   deriving newtype (Eq, Ord)
-  deriving (Show) via (ViaIsStandardType Jsonb)
+  deriving (Show) via (ViaIsScalar Jsonb)
 
 instance Arbitrary Jsonb where
   arbitrary = fromAesonValue <$> arbitrary
   shrink = fmap Jsonb . shrink . toAesonValue
 
-instance IsStandardType Jsonb where
+instance IsScalar Jsonb where
   typeName = Tagged "jsonb"
   baseOid = Tagged (Just 3802)
   arrayOid = Tagged (Just 3807)

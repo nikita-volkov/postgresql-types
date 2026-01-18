@@ -2,7 +2,7 @@ cabal-version: 3.0
 name: postgresql-types
 version: 0
 category: PostgreSQL, Codecs
-synopsis: Type-safe PostgreSQL types with lawful conversions and wire protocol codecs
+synopsis: Precise PostgreSQL types representation and driver-agnostic codecs
 description:
   Haskell representation of PostgreSQL data types with mappings to and from both
   binary and textual formats of the PostgreSQL wire protocol.
@@ -11,10 +11,16 @@ description:
 
   Types are represented with hidden constructors, ensuring only valid PostgreSQL
   values can be constructed. Conversions use the lawful-conversions library for
-  safe, well-defined transformations. Exhaustively tested against PostgreSQL 9-17
+  safe, well-defined transformations. Exhaustively tested against PostgreSQL 9-18
   with property-based testing covering the complete range of valid PostgreSQL values.
 
   The library can be used as the basis for various PostgreSQL libraries.
+
+  Ecosystem integration adapters are available for:
+
+  * hasql: <https://hackage-content.haskell.org/package/hasql-postgresql-types>
+
+  * postgresql-simple: <https://hackage-content.haskell.org/package/postgresql-simple-postgresql-types>
 
 homepage: https://github.com/nikita-volkov/postgresql-types
 bug-reports: https://github.com/nikita-volkov/postgresql-types/issues
@@ -102,12 +108,11 @@ library
   hs-source-dirs: src/library
   exposed-modules:
     PostgresqlTypes
-    PostgresqlTypes.Types
 
   other-modules:
-    PostgresqlTypes.Algebra
     PostgresqlTypes.Prelude
     PostgresqlTypes.Prelude.LawfulConversions
+    PostgresqlTypes.Types
     PostgresqlTypes.Types.Bit
     PostgresqlTypes.Types.Bool
     PostgresqlTypes.Types.Box
@@ -154,8 +159,8 @@ library
     PostgresqlTypes.Types.Varchar
     PostgresqlTypes.Via
     PostgresqlTypes.Via.IsMany
+    PostgresqlTypes.Via.IsScalar
     PostgresqlTypes.Via.IsSome
-    PostgresqlTypes.Via.IsStandardType
     PostgresqlTypes.Writes
 
   build-depends:
@@ -172,6 +177,7 @@ library
     postgresql-types:base-extras,
     postgresql-types:jsonifier-aeson,
     postgresql-types:time-extras,
+    postgresql-types-algebra,
     profunctors ^>=5.6 && <6,
     ptr-peeker ^>=0.1,
     ptr-poker ^>=0.1.2.16,
@@ -255,6 +261,7 @@ test-suite unit-tests
     hspec >=2.11 && <3,
     lawful-conversions ^>=0.3,
     postgresql-types,
+    postgresql-types-algebra,
     ptr-peeker ^>=0.1,
     ptr-poker ^>=0.1.2.16,
     quickcheck-instances ^>=0.3.33,
@@ -272,7 +279,8 @@ test-suite integration-tests
   hs-source-dirs: src/integration-tests
   main-is: Main.hs
   other-modules:
-    Main.Helpers
+    Main.Scopes
+    Main.Scripts
 
   build-depends:
     QuickCheck >=2.14 && <3,
@@ -285,6 +293,7 @@ test-suite integration-tests
     postgresql-libpq >=0.10 && <0.12,
     postgresql-types,
     postgresql-types:pq-procedures,
+    postgresql-types-algebra,
     ptr-peeker ^>=0.1,
     ptr-poker ^>=0.1.2.16,
     quickcheck-instances ^>=0.3.33,

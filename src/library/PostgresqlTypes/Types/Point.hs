@@ -16,19 +16,19 @@ import qualified TextBuilder
 -- Represented with (@x@,@y@) coordinates.
 -- Stored as two @64@-bit floating point numbers (@float8@) in PostgreSQL.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-geometric.html#DATATYPE-GEOMETRIC-POINTS).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-geometric.html#DATATYPE-GEOMETRIC-POINTS).
 data Point = Point
   { pointX :: Double,
     pointY :: Double
   }
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsStandardType Point)
+  deriving (Show) via (ViaIsScalar Point)
 
 instance Arbitrary Point where
   arbitrary = Point <$> arbitrary <*> arbitrary
   shrink (Point x y) = [Point x' y' | (x', y') <- shrink (x, y)]
 
-instance IsStandardType Point where
+instance IsScalar Point where
   typeName = Tagged "point"
   baseOid = Tagged (Just 600)
   arrayOid = Tagged (Just 1017)

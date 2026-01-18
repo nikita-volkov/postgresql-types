@@ -17,7 +17,7 @@ import qualified TextBuilder
 -- Stored as four @64@-bit floating point numbers (@x1@,@y1@),(@x2@,@y2@) in PostgreSQL.
 -- The box is normalized so that @x1 <= x2@ and @y1 <= y2@.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-geometric.html#DATATYPE-GEOMETRIC-BOXES).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-geometric.html#DATATYPE-GEOMETRIC-BOXES).
 data Box = Box
   { -- | Lower-left x coordinate
     boxX1 :: Double,
@@ -29,7 +29,7 @@ data Box = Box
     boxY2 :: Double
   }
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsStandardType Box)
+  deriving (Show) via (ViaIsScalar Box)
 
 instance Arbitrary Box where
   arbitrary = do
@@ -45,7 +45,7 @@ instance Arbitrary Box where
     | (x1', y1', x2', y2') <- shrink (x1, y1, x2, y2)
     ]
 
-instance IsStandardType Box where
+instance IsScalar Box where
   typeName = Tagged "box"
   baseOid = Tagged (Just 603)
   arrayOid = Tagged (Just 1020)

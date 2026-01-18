@@ -15,13 +15,13 @@ import qualified TextBuilder
 
 -- | PostgreSQL @varchar(n)@ type. Variable-length character string with limit.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-character.html).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-character.html).
 --
 -- The type parameter @numChars@ specifies the static maximum length of the character string.
 -- Character strings up to this length can be represented by this type.
 data Varchar (numChars :: TypeLits.Nat) = Varchar Text.Text
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsStandardType (Varchar numChars))
+  deriving (Show) via (ViaIsScalar (Varchar numChars))
 
 instance (TypeLits.KnownNat numChars) => Arbitrary (Varchar numChars) where
   arbitrary = do
@@ -35,7 +35,7 @@ instance (TypeLits.KnownNat numChars) => Arbitrary (Varchar numChars) where
         shrunk = Text.pack <$> shrink (Text.unpack base)
      in [Varchar txt | txt <- shrunk, Text.length txt <= maxLen]
 
-instance (TypeLits.KnownNat numChars) => IsStandardType (Varchar numChars) where
+instance (TypeLits.KnownNat numChars) => IsScalar (Varchar numChars) where
   typeName = Tagged "varchar"
   baseOid = Tagged (Just 1043)
   arrayOid = Tagged (Just 1015)

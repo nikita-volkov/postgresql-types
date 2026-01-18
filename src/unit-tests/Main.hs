@@ -19,7 +19,8 @@ import qualified Data.Vector.Unboxed
 import qualified Data.Vector.Unboxed as VU
 import Data.Word
 import qualified LawfulConversions
-import qualified PostgresqlTypes as PostgresqlTypes
+import qualified PostgresqlTypes
+import qualified PostgresqlTypes.Algebra
 import qualified PtrPeeker
 import qualified PtrPoker.Write
 import Test.Hspec
@@ -32,58 +33,58 @@ import Prelude
 
 main :: IO ()
 main = hspec do
-  testIsStandardType @(PostgresqlTypes.Bit 1) Proxy
-  testIsStandardType @(PostgresqlTypes.Bit 64) Proxy
-  testIsStandardType @PostgresqlTypes.Bool Proxy
-  testIsStandardType @PostgresqlTypes.Box Proxy
-  testIsStandardType @PostgresqlTypes.Bytea Proxy
-  testIsStandardType @PostgresqlTypes.Char Proxy
-  testIsStandardType @(PostgresqlTypes.Bpchar 1) Proxy
-  testIsStandardType @(PostgresqlTypes.Bpchar 42) Proxy
-  testIsStandardType @PostgresqlTypes.Cidr Proxy
-  testIsStandardType @PostgresqlTypes.Circle Proxy
-  testIsStandardType @PostgresqlTypes.Date Proxy
-  testIsStandardType @PostgresqlTypes.Float4 Proxy
-  testIsStandardType @PostgresqlTypes.Float8 Proxy
-  testIsStandardType @PostgresqlTypes.Hstore Proxy
-  testIsStandardType @PostgresqlTypes.Inet Proxy
-  testIsStandardType @PostgresqlTypes.Int2 Proxy
-  testIsStandardType @PostgresqlTypes.Int4 Proxy
-  testIsStandardType @PostgresqlTypes.Int8 Proxy
-  testIsStandardType @PostgresqlTypes.Interval Proxy
-  testIsStandardType @PostgresqlTypes.IntervalAsMicroseconds Proxy
-  testIsStandardType @PostgresqlTypes.Json Proxy
-  testIsStandardType @PostgresqlTypes.Jsonb Proxy
-  testIsStandardType @PostgresqlTypes.Line Proxy
-  testIsStandardType @PostgresqlTypes.Lseg Proxy
-  testIsStandardType @PostgresqlTypes.Macaddr Proxy
-  testIsStandardType @PostgresqlTypes.Macaddr8 Proxy
-  testIsStandardType @PostgresqlTypes.Money Proxy
-  testIsStandardType @PostgresqlTypes.Numeric Proxy
-  testIsStandardType @PostgresqlTypes.Oid Proxy
-  testIsStandardType @PostgresqlTypes.Path Proxy
-  testIsStandardType @PostgresqlTypes.Point Proxy
-  testIsStandardType @PostgresqlTypes.Polygon Proxy
-  testIsStandardType @(PostgresqlTypes.Range PostgresqlTypes.Int4) Proxy
-  testIsStandardType @(PostgresqlTypes.Range PostgresqlTypes.Int8) Proxy
-  testIsStandardType @(PostgresqlTypes.Range PostgresqlTypes.Numeric) Proxy
-  testIsStandardType @(PostgresqlTypes.Range PostgresqlTypes.Timestamp) Proxy
-  testIsStandardType @(PostgresqlTypes.Range PostgresqlTypes.Timestamptz) Proxy
-  testIsStandardType @(PostgresqlTypes.Range PostgresqlTypes.Date) Proxy
-  testIsStandardType @(PostgresqlTypes.Multirange PostgresqlTypes.Int4) Proxy
-  testIsStandardType @(PostgresqlTypes.Multirange PostgresqlTypes.Int8) Proxy
-  testIsStandardType @(PostgresqlTypes.Multirange PostgresqlTypes.Numeric) Proxy
-  testIsStandardType @(PostgresqlTypes.Multirange PostgresqlTypes.Timestamp) Proxy
-  testIsStandardType @(PostgresqlTypes.Multirange PostgresqlTypes.Timestamptz) Proxy
-  testIsStandardType @(PostgresqlTypes.Multirange PostgresqlTypes.Date) Proxy
-  testIsStandardType @PostgresqlTypes.Text Proxy
-  testIsStandardType @PostgresqlTypes.Time Proxy
-  testIsStandardType @PostgresqlTypes.Timestamp Proxy
-  testIsStandardType @PostgresqlTypes.Timestamptz Proxy
-  testIsStandardType @PostgresqlTypes.Timetz Proxy
-  testIsStandardType @PostgresqlTypes.Uuid Proxy
-  testIsStandardType @(PostgresqlTypes.Varbit 128) Proxy
-  testIsStandardType @(PostgresqlTypes.Varchar 255) Proxy
+  testIsScalar @(PostgresqlTypes.Bit 1) Proxy
+  testIsScalar @(PostgresqlTypes.Bit 64) Proxy
+  testIsScalar @PostgresqlTypes.Bool Proxy
+  testIsScalar @PostgresqlTypes.Box Proxy
+  testIsScalar @PostgresqlTypes.Bytea Proxy
+  testIsScalar @PostgresqlTypes.Char Proxy
+  testIsScalar @(PostgresqlTypes.Bpchar 1) Proxy
+  testIsScalar @(PostgresqlTypes.Bpchar 42) Proxy
+  testIsScalar @PostgresqlTypes.Cidr Proxy
+  testIsScalar @PostgresqlTypes.Circle Proxy
+  testIsScalar @PostgresqlTypes.Date Proxy
+  testIsScalar @PostgresqlTypes.Float4 Proxy
+  testIsScalar @PostgresqlTypes.Float8 Proxy
+  testIsScalar @PostgresqlTypes.Hstore Proxy
+  testIsScalar @PostgresqlTypes.Inet Proxy
+  testIsScalar @PostgresqlTypes.Int2 Proxy
+  testIsScalar @PostgresqlTypes.Int4 Proxy
+  testIsScalar @PostgresqlTypes.Int8 Proxy
+  testIsScalar @PostgresqlTypes.Interval Proxy
+  testIsScalar @PostgresqlTypes.IntervalAsMicroseconds Proxy
+  testIsScalar @PostgresqlTypes.Json Proxy
+  testIsScalar @PostgresqlTypes.Jsonb Proxy
+  testIsScalar @PostgresqlTypes.Line Proxy
+  testIsScalar @PostgresqlTypes.Lseg Proxy
+  testIsScalar @PostgresqlTypes.Macaddr Proxy
+  testIsScalar @PostgresqlTypes.Macaddr8 Proxy
+  testIsScalar @PostgresqlTypes.Money Proxy
+  testIsScalar @PostgresqlTypes.Numeric Proxy
+  testIsScalar @PostgresqlTypes.Oid Proxy
+  testIsScalar @PostgresqlTypes.Path Proxy
+  testIsScalar @PostgresqlTypes.Point Proxy
+  testIsScalar @PostgresqlTypes.Polygon Proxy
+  testIsScalar @(PostgresqlTypes.Range PostgresqlTypes.Int4) Proxy
+  testIsScalar @(PostgresqlTypes.Range PostgresqlTypes.Int8) Proxy
+  testIsScalar @(PostgresqlTypes.Range PostgresqlTypes.Numeric) Proxy
+  testIsScalar @(PostgresqlTypes.Range PostgresqlTypes.Timestamp) Proxy
+  testIsScalar @(PostgresqlTypes.Range PostgresqlTypes.Timestamptz) Proxy
+  testIsScalar @(PostgresqlTypes.Range PostgresqlTypes.Date) Proxy
+  testIsScalar @(PostgresqlTypes.Multirange PostgresqlTypes.Int4) Proxy
+  testIsScalar @(PostgresqlTypes.Multirange PostgresqlTypes.Int8) Proxy
+  testIsScalar @(PostgresqlTypes.Multirange PostgresqlTypes.Numeric) Proxy
+  testIsScalar @(PostgresqlTypes.Multirange PostgresqlTypes.Timestamp) Proxy
+  testIsScalar @(PostgresqlTypes.Multirange PostgresqlTypes.Timestamptz) Proxy
+  testIsScalar @(PostgresqlTypes.Multirange PostgresqlTypes.Date) Proxy
+  testIsScalar @PostgresqlTypes.Text Proxy
+  testIsScalar @PostgresqlTypes.Time Proxy
+  testIsScalar @PostgresqlTypes.Timestamp Proxy
+  testIsScalar @PostgresqlTypes.Timestamptz Proxy
+  testIsScalar @PostgresqlTypes.Timetz Proxy
+  testIsScalar @PostgresqlTypes.Uuid Proxy
+  testIsScalar @(PostgresqlTypes.Varbit 128) Proxy
+  testIsScalar @(PostgresqlTypes.Varchar 255) Proxy
   testIs @PostgresqlTypes.Inet @(PostgresqlTypes.Ip, Word8) Proxy Proxy
   testIs @PostgresqlTypes.Bool @Bool Proxy Proxy
   testIs @PostgresqlTypes.Bytea @ByteString Proxy Proxy
@@ -262,25 +263,25 @@ testIs projection primitive =
           (LawfulConversions.isProperties primitive projection)
 
 -- | Test textual encoder/decoder roundtrip
-testIsStandardType ::
+testIsScalar ::
   forall a.
   ( QuickCheck.Arbitrary a,
     Show a,
     Eq a,
-    PostgresqlTypes.IsStandardType a,
+    PostgresqlTypes.Algebra.IsScalar a,
     Typeable a
   ) =>
   Proxy a ->
   Spec
-testIsStandardType _ =
-  let typeName = untag (PostgresqlTypes.typeName @a)
-      binEnc = PostgresqlTypes.binaryEncoder @a
-      binDec = PostgresqlTypes.binaryDecoder @a
-      txtEnc = PostgresqlTypes.textualEncoder @a
-      txtDec = PostgresqlTypes.textualDecoder @a
+testIsScalar _ =
+  let typeName = untag (PostgresqlTypes.Algebra.typeName @a)
+      binEnc = PostgresqlTypes.Algebra.binaryEncoder @a
+      binDec = PostgresqlTypes.Algebra.binaryDecoder @a
+      txtEnc = PostgresqlTypes.Algebra.textualEncoder @a
+      txtDec = PostgresqlTypes.Algebra.textualDecoder @a
    in describe (show (typeOf (undefined :: a))) do
         describe (Text.unpack typeName) do
-          describe "IsStandardType" do
+          describe "IsScalar" do
             describe "Encoding via textualEncoder" do
               describe "And decoding via textualDecoder" do
                 it "Should produce the original value" $

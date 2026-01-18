@@ -16,7 +16,7 @@ import qualified TextBuilder
 -- The line segment is defined by two endpoints, each with (@x@,@y@) coordinates.
 -- Stored as four @64@-bit floating point numbers: (@x1@, @y1@, @x2@, @y2@).
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-geometric.html#DATATYPE-LSEG).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-geometric.html#DATATYPE-LSEG).
 data Lseg = Lseg
   { lsegX1 :: Double,
     lsegY1 :: Double,
@@ -24,14 +24,14 @@ data Lseg = Lseg
     lsegY2 :: Double
   }
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsStandardType Lseg)
+  deriving (Show) via (ViaIsScalar Lseg)
 
 instance Arbitrary Lseg where
   arbitrary = Lseg <$> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary
   shrink (Lseg x1 y1 x2 y2) =
     [Lseg x1' y1' x2' y2' | (x1', y1', x2', y2') <- shrink (x1, y1, x2, y2)]
 
-instance IsStandardType Lseg where
+instance IsScalar Lseg where
   typeName = Tagged "lseg"
   baseOid = Tagged (Just 601)
   arrayOid = Tagged (Just 1018)

@@ -13,13 +13,13 @@ import qualified TimeExtras.TimeZone as TimeZone
 --
 -- Low value: @00:00:00+1559@. High value: @24:00:00-1559@.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-TIMEZONES).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-datetime.html#DATATYPE-TIMEZONES).
 data TimetzAsTimeOfDayAndTimeZone
   = TimetzAsTimeOfDayAndTimeZone
       Time.TimeOfDay
       Time.TimeZone
   deriving stock (Eq, Ord)
-  deriving (IsStandardType, Arbitrary, Show) via (ViaIsMany Timetz TimetzAsTimeOfDayAndTimeZone)
+  deriving (IsScalar, Arbitrary, Show) via (ViaIsMany Timetz TimetzAsTimeOfDayAndTimeZone)
 
 instance Bounded TimetzAsTimeOfDayAndTimeZone where
   minBound = TimetzAsTimeOfDayAndTimeZone (Time.TimeOfDay 0 0 0) (TimeZone.convertFromMinutes (negate (15 * 60 + 59)))

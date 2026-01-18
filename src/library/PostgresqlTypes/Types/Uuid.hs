@@ -13,12 +13,12 @@ import qualified TextBuilder
 --
 -- Isomorphic to 'Data.UUID.UUID'.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-uuid.html).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-uuid.html).
 newtype Uuid = Uuid Data.UUID.UUID
   deriving newtype (Eq, Ord, Arbitrary)
-  deriving (Show) via (ViaIsStandardType Uuid)
+  deriving (Show) via (ViaIsScalar Uuid)
 
-instance IsStandardType Uuid where
+instance IsScalar Uuid where
   typeName = Tagged "uuid"
   baseOid = Tagged (Just 2950)
   arrayOid = Tagged (Just 2951)

@@ -15,7 +15,7 @@ import qualified TextBuilder
 -- The format is eight groups of two hexadecimal digits, separated by colons.
 -- Example: @01:23:45:67:89:ab:cd:ef@
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-net-types.html#DATATYPE-MACADDR8).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-net-types.html#DATATYPE-MACADDR8).
 data Macaddr8 = Macaddr8
   { macaddr8Byte1 :: Word8,
     macaddr8Byte2 :: Word8,
@@ -27,7 +27,7 @@ data Macaddr8 = Macaddr8
     macaddr8Byte8 :: Word8
   }
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsStandardType Macaddr8)
+  deriving (Show) via (ViaIsScalar Macaddr8)
 
 instance Arbitrary Macaddr8 where
   arbitrary = do
@@ -44,7 +44,7 @@ instance Arbitrary Macaddr8 where
       not (a' == 0 && b' == 0 && c' == 0 && d' == 0 && e' == 0 && f' == 0 && g' == 0 && h' == 0)
     ]
 
-instance IsStandardType Macaddr8 where
+instance IsScalar Macaddr8 where
   typeName = Tagged "macaddr8"
   baseOid = Tagged (Just 774)
   arrayOid = Tagged (Just 775)

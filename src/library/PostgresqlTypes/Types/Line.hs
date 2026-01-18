@@ -17,14 +17,14 @@ import qualified TextBuilder
 -- The line is represented by the linear equation @Ax + By + C = 0@.
 -- Stored as three @64@-bit floating point numbers (@A@, @B@, @C@).
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-geometric.html#DATATYPE-LINE).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-geometric.html#DATATYPE-LINE).
 data Line = Line
   { lineA :: Double,
     lineB :: Double,
     lineC :: Double
   }
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsStandardType Line)
+  deriving (Show) via (ViaIsScalar Line)
 
 instance Arbitrary Line where
   arbitrary = do
@@ -41,7 +41,7 @@ instance Arbitrary Line where
       not (a' == 0 && b' == 0) -- Ensure shrunk values are also valid
     ]
 
-instance IsStandardType Line where
+instance IsScalar Line where
   typeName = Tagged "line"
   baseOid = Tagged (Just 628)
   arrayOid = Tagged (Just 629)

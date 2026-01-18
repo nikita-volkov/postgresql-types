@@ -17,7 +17,7 @@ import qualified TextBuilder
 --
 -- Similar to @cidr@ but specifically for host addresses with optional subnet masks.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-net-types.html#DATATYPE-INET).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-net-types.html#DATATYPE-INET).
 data Inet = Inet
   { -- | Host address
     ip :: Ip,
@@ -25,7 +25,7 @@ data Inet = Inet
     netmask :: Word8
   }
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsStandardType Inet)
+  deriving (Show) via (ViaIsScalar Inet)
 
 instance Bounded Inet where
   minBound = Inet minBound 0
@@ -47,7 +47,7 @@ instance Arbitrary Inet where
         V6Ip _ _ _ _ -> netmask' <= 128
     ]
 
-instance IsStandardType Inet where
+instance IsScalar Inet where
   typeName = Tagged "inet"
   baseOid = Tagged (Just 869)
   arrayOid = Tagged (Just 1041)

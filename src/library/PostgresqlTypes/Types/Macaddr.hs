@@ -14,7 +14,7 @@ import qualified TextBuilder
 -- The format is six groups of two hexadecimal digits, separated by colons.
 -- Example: @01:23:45:67:89:ab@
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-net-types.html#DATATYPE-MACADDR).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-net-types.html#DATATYPE-MACADDR).
 data Macaddr
   = Macaddr
       Word8
@@ -24,7 +24,7 @@ data Macaddr
       Word8
       Word8
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsStandardType Macaddr)
+  deriving (Show) via (ViaIsScalar Macaddr)
 
 instance Arbitrary Macaddr where
   arbitrary = do
@@ -45,7 +45,7 @@ instance Arbitrary Macaddr where
       f' <- shrink f
     ]
 
-instance IsStandardType Macaddr where
+instance IsScalar Macaddr where
   typeName = Tagged "macaddr"
   baseOid = Tagged (Just 829)
   arrayOid = Tagged (Just 1040)

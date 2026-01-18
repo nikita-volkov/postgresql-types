@@ -19,12 +19,12 @@ import qualified TextBuilder
 -- The polygon is automatically closed (the last point connects to the first).
 -- Stored as the number of points followed by the point coordinates.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-geometric.html#DATATYPE-POLYGON).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-geometric.html#DATATYPE-POLYGON).
 newtype Polygon = Polygon
   { polygonPoints :: UnboxedVector.Vector (Double, Double)
   }
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsStandardType Polygon)
+  deriving (Show) via (ViaIsScalar Polygon)
 
 instance Arbitrary Polygon where
   arbitrary = do
@@ -36,7 +36,7 @@ instance Arbitrary Polygon where
 
   shrink (Polygon points) = [Polygon points' | points' <- shrink points, UnboxedVector.length points' >= 3]
 
-instance IsStandardType Polygon where
+instance IsScalar Polygon where
   typeName = Tagged "polygon"
   baseOid = Tagged (Just 604)
   arrayOid = Tagged (Just 1027)

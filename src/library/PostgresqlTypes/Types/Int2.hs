@@ -12,12 +12,12 @@ import qualified TextBuilder
 --
 -- Range: @-32768@ to @+32767@.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-numeric.html#DATATYPE-INT).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-numeric.html#DATATYPE-INT).
 newtype Int2 = Int2 Int16
   deriving newtype (Eq, Ord, Arbitrary)
-  deriving (Show) via (ViaIsStandardType Int2)
+  deriving (Show) via (ViaIsScalar Int2)
 
-instance IsStandardType Int2 where
+instance IsScalar Int2 where
   typeName = Tagged "int2"
   baseOid = Tagged (Just 21)
   arrayOid = Tagged (Just 1005)

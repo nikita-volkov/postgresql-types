@@ -15,7 +15,7 @@ import qualified TextBuilder
 
 -- | PostgreSQL @bpchar(n)@, @char(n)@, or @character(n)@ type. Fixed-length, blank-padded character string.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-character.html).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-character.html).
 --
 -- The type parameter @numChars@ specifies the static length of the character string.
 -- Only character strings with exactly this length can be represented by this type.
@@ -31,7 +31,7 @@ import qualified TextBuilder
 -- 'PostgresqlTypes.Types.Char.Char' in Haskell. These are completely different types in PostgreSQL.
 data Bpchar (numChars :: TypeLits.Nat) = Bpchar Text
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsStandardType (Bpchar numChars))
+  deriving (Show) via (ViaIsScalar (Bpchar numChars))
 
 instance (TypeLits.KnownNat numChars) => Arbitrary (Bpchar numChars) where
   arbitrary = do
@@ -42,7 +42,7 @@ instance (TypeLits.KnownNat numChars) => Arbitrary (Bpchar numChars) where
       Nothing -> error "Arbitrary Bpchar: Generated string has incorrect length"
       Just char -> pure char
 
-instance (TypeLits.KnownNat numChars) => IsStandardType (Bpchar numChars) where
+instance (TypeLits.KnownNat numChars) => IsScalar (Bpchar numChars) where
   typeName = Tagged "bpchar"
   baseOid = Tagged (Just 1042)
   arrayOid = Tagged (Just 1014)

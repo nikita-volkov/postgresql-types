@@ -17,10 +17,10 @@ import qualified TextBuilder
 --
 -- Range: @4713 BC@ to @294276 AD@.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-DATETIME).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-datetime.html#DATATYPE-DATETIME).
 newtype Timestamp = Timestamp Int64
   deriving newtype (Eq, Ord)
-  deriving (Show) via (ViaIsStandardType Timestamp)
+  deriving (Show) via (ViaIsScalar Timestamp)
 
 instance Arbitrary Timestamp where
   arbitrary = Timestamp <$> QuickCheck.choose (pgTimestampMin, pgTimestampMax)
@@ -30,7 +30,7 @@ instance Arbitrary Timestamp where
       pgTimestampMin = -210866803200000000 -- 4713 BC January 1 00:00:00
       pgTimestampMax = 9214646400000000000 -- 294276 AD December 31 23:59:59.999999
 
-instance IsStandardType Timestamp where
+instance IsScalar Timestamp where
   typeName = Tagged "timestamp"
   baseOid = Tagged (Just 1114)
   arrayOid = Tagged (Just 1115)

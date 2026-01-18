@@ -17,13 +17,13 @@ import qualified TextBuilder
 --
 -- Represented as a series of connected points, which can be either open or closed.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-geometric.html#DATATYPE-PATH).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-geometric.html#DATATYPE-PATH).
 data Path = Path
   { closed :: Bool,
     points :: UnboxedVector.Vector (Double, Double)
   }
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsStandardType Path)
+  deriving (Show) via (ViaIsScalar Path)
 
 instance Arbitrary Path where
   arbitrary = do
@@ -39,7 +39,7 @@ instance Arbitrary Path where
       UnboxedVector.length points' >= 1
     ]
 
-instance IsStandardType Path where
+instance IsScalar Path where
   typeName = Tagged "path"
   baseOid = Tagged (Just 602)
   arrayOid = Tagged (Just 1019)

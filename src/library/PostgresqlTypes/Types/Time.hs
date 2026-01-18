@@ -17,15 +17,15 @@ import qualified TextBuilder
 --
 -- Range: @00:00:00@ to @24:00:00@.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-TIME).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-datetime.html#DATATYPE-TIME).
 newtype Time = Time Int64
   deriving newtype (Eq, Ord)
-  deriving (Show) via (ViaIsStandardType Time)
+  deriving (Show) via (ViaIsScalar Time)
 
 instance Arbitrary Time where
   arbitrary = Time <$> QuickCheck.choose (toMicroseconds minBound, toMicroseconds maxBound)
 
-instance IsStandardType Time where
+instance IsScalar Time where
   typeName = Tagged "time"
   baseOid = Tagged (Just 1083)
   arrayOid = Tagged (Just 1183)

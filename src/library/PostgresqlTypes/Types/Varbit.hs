@@ -20,7 +20,7 @@ import qualified TextBuilder
 --
 -- Similar to @bit@ but with a variable length up to the specified maximum.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-bit.html).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-bit.html).
 --
 -- The type parameter @numBits@ specifies the static maximum length of the bit string.
 -- Bit strings up to this length can be represented by this type.
@@ -31,7 +31,7 @@ data Varbit (numBits :: TypeLits.Nat) = Varbit
     varbitData :: ByteString
   }
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsStandardType (Varbit numBits))
+  deriving (Show) via (ViaIsScalar (Varbit numBits))
 
 instance (TypeLits.KnownNat numBits) => Arbitrary (Varbit numBits) where
   arbitrary = do
@@ -47,7 +47,7 @@ instance (TypeLits.KnownNat numBits) => Arbitrary (Varbit numBits) where
         shrunkBitsList = shrink bits
      in mapMaybe maybeFrom [b | b <- shrunkBitsList, length b <= maxLen]
 
-instance (TypeLits.KnownNat numBits) => IsStandardType (Varbit numBits) where
+instance (TypeLits.KnownNat numBits) => IsScalar (Varbit numBits) where
   typeName = Tagged "varbit"
   baseOid = Tagged (Just 1562)
   arrayOid = Tagged (Just 1563)
