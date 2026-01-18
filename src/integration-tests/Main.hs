@@ -13,12 +13,14 @@ main =
     parallel do
       withContainer "postgres:18" do
         withConnection Nothing do
+          withType @(PostgresqlTypes.Bit 0) [mappingSpec]
           withType @(PostgresqlTypes.Bit 1) [mappingSpec]
           withType @(PostgresqlTypes.Bit 64) [mappingSpec]
           withType @PostgresqlTypes.Bool [mappingSpec]
           withType @PostgresqlTypes.Box [mappingSpec]
           withType @PostgresqlTypes.Bytea [mappingSpec]
           withType @PostgresqlTypes.Char [mappingSpec]
+          withType @(PostgresqlTypes.Bpchar 0) [mappingSpec]
           withType @(PostgresqlTypes.Bpchar 1) [mappingSpec]
           withType @(PostgresqlTypes.Bpchar 64) [mappingSpec]
           withType @PostgresqlTypes.Cidr [mappingSpec]
@@ -62,17 +64,21 @@ main =
           withType @PostgresqlTypes.Timestamptz [mappingSpec]
           withType @PostgresqlTypes.Timetz [mappingSpec]
           withType @PostgresqlTypes.Uuid [mappingSpec]
+          withType @(PostgresqlTypes.Varbit 0) [mappingSpec]
           withType @(PostgresqlTypes.Varbit 128) [mappingSpec]
+          withType @(PostgresqlTypes.Varchar 0) [mappingSpec]
           withType @(PostgresqlTypes.Varchar 255) [mappingSpec]
 
       withContainer "postgres:9" do
         withConnection (Just 3) do
+          withType @(PostgresqlTypes.Bit 0) [mappingSpec]
           withType @(PostgresqlTypes.Bit 1) [mappingSpec]
           withType @(PostgresqlTypes.Bit 64) [mappingSpec]
           withType @PostgresqlTypes.Bool [mappingSpec]
           withType @PostgresqlTypes.Box [mappingSpec]
           withType @PostgresqlTypes.Bytea [mappingSpec]
           withType @PostgresqlTypes.Char [mappingSpec]
+          withType @(PostgresqlTypes.Bpchar 0) [mappingSpec]
           withType @(PostgresqlTypes.Bpchar 1) [mappingSpec]
           withType @(PostgresqlTypes.Bpchar 64) [mappingSpec]
           withType @PostgresqlTypes.Cidr [mappingSpec]
@@ -109,5 +115,7 @@ main =
           withType @PostgresqlTypes.Timestamptz [mappingSpec]
           withType @PostgresqlTypes.Timetz [mappingSpec]
           withType @PostgresqlTypes.Uuid [mappingSpec]
+          withType @(PostgresqlTypes.Varbit 0) [mappingSpec]
           withType @(PostgresqlTypes.Varbit 128) [mappingSpec]
+          withType @(PostgresqlTypes.Varchar 0) [mappingSpec]
           withType @(PostgresqlTypes.Varchar 255) [mappingSpec]
