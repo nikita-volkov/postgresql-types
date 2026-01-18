@@ -75,9 +75,10 @@ instance (IsMultirangeElement a) => IsScalar (Multirange a) where
   textualDecoder = do
     _ <- Attoparsec.char '{'
     Attoparsec.skipSpace
-    ranges <- (textualDecoder @(Range a)) `Attoparsec.sepBy` (Attoparsec.char ',' >> Attoparsec.skipSpace)
+    ranges <- (textualDecoder @(Range a)) `Attoparsec.sepBy` (Attoparsec.skipSpace >> Attoparsec.char ',' >> Attoparsec.skipSpace)
     Attoparsec.skipSpace
     _ <- Attoparsec.char '}'
+    Attoparsec.skipSpace
     pure (Multirange (Vector.fromList ranges))
 
 instance (IsRangeElement a, Arbitrary a, Ord a) => Arbitrary (Multirange a) where

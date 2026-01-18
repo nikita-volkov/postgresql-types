@@ -33,6 +33,7 @@ import Prelude
 
 main :: IO ()
 main = hspec do
+  testIsScalar @(PostgresqlTypes.Bit 0) Proxy
   testIsScalar @(PostgresqlTypes.Bit 1) Proxy
   testIsScalar @(PostgresqlTypes.Bit 64) Proxy
   testIsScalar @PostgresqlTypes.Bool Proxy
@@ -86,8 +87,8 @@ main = hspec do
   testIsScalar @PostgresqlTypes.Timestamptz Proxy
   testIsScalar @PostgresqlTypes.Timetz Proxy
   testIsScalar @PostgresqlTypes.Uuid Proxy
-  testIsScalar @PostgresqlTypes.Varbit Proxy
-  testIsScalar @PostgresqlTypes.Varchar Proxy
+  testIsScalar @(PostgresqlTypes.Varbit 128) Proxy
+  testIsScalar @(PostgresqlTypes.Varchar 255) Proxy
   testIs @PostgresqlTypes.Inet @(PostgresqlTypes.Ip, Word8) Proxy Proxy
   testIs @PostgresqlTypes.Bool @Bool Proxy Proxy
   testIs @PostgresqlTypes.Bytea @ByteString Proxy Proxy
@@ -103,13 +104,17 @@ main = hspec do
   testIs @PostgresqlTypes.Oid @Word32 Proxy Proxy
   testIs @PostgresqlTypes.Point @(Double, Double) Proxy Proxy
   testIs @PostgresqlTypes.Uuid @UUID.UUID Proxy Proxy
-  testIs @PostgresqlTypes.Varbit @[Bool] Proxy Proxy
-  testIs @PostgresqlTypes.Varbit @(VU.Vector Bool) Proxy Proxy
+  testIsSome @(PostgresqlTypes.Varbit 0) @[Bool] Proxy Proxy
+  testIsSome @(PostgresqlTypes.Varbit 128) @[Bool] Proxy Proxy
+  testIsSome @(PostgresqlTypes.Varbit 128) @(VU.Vector Bool) Proxy Proxy
+  testIsMany @(PostgresqlTypes.Varbit 128) @[Bool] Proxy Proxy
+  testIsMany @(PostgresqlTypes.Varbit 128) @(VU.Vector Bool) Proxy Proxy
   testIsMany @PostgresqlTypes.Bool @Bool Proxy Proxy
   testIsMany @PostgresqlTypes.Box @(Double, Double, Double, Double) Proxy Proxy
   testIsMany @PostgresqlTypes.Bytea @ByteString Proxy Proxy
   testIsMany @PostgresqlTypes.Char @Word8 Proxy Proxy
   testIsMany @PostgresqlTypes.Char @Char Proxy Proxy
+  testIsMany @(PostgresqlTypes.Bpchar 0) @Text Proxy Proxy
   testIsMany @(PostgresqlTypes.Bpchar 1) @Text Proxy Proxy
   testIsMany @(PostgresqlTypes.Bpchar 42) @Text Proxy Proxy
   testIsMany @PostgresqlTypes.Cidr @(PostgresqlTypes.Ip, Word8) Proxy Proxy
@@ -148,7 +153,8 @@ main = hspec do
   testIsMany @PostgresqlTypes.TimetzAsTimeOfDayAndTimeZone @PostgresqlTypes.Timetz Proxy Proxy
   testIsMany @PostgresqlTypes.TimetzAsTimeOfDayAndTimeZone @(TimeOfDay, TimeZone) Proxy Proxy
   testIsMany @PostgresqlTypes.Uuid @UUID.UUID Proxy Proxy
-  testIsMany @PostgresqlTypes.Varchar @Text.Text Proxy Proxy
+  testIsMany @(PostgresqlTypes.Varchar 0) @Text.Text Proxy Proxy
+  testIsMany @(PostgresqlTypes.Varchar 255) @Text.Text Proxy Proxy
   testIsMany @Scientific.Scientific @(PostgresqlTypes.Numeric 0 0) Proxy Proxy
   testIsSome @PostgresqlTypes.Path @(Bool, [(Double, Double)]) Proxy Proxy
   testIsSome @PostgresqlTypes.Path @(Bool, (Data.Vector.Unboxed.Vector (Double, Double))) Proxy Proxy
