@@ -14,10 +14,10 @@ import qualified TextBuilder
 
 -- | PostgreSQL @varchar@ type. Variable-length character string with limit.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-character.html).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-character.html).
 newtype Varchar = Varchar Text.Text
   deriving newtype (Eq, Ord)
-  deriving (Show) via (ViaIsStandardType Varchar)
+  deriving (Show) via (ViaIsScalar Varchar)
 
 instance Arbitrary Varchar where
   arbitrary =
@@ -28,7 +28,7 @@ instance Arbitrary Varchar where
   shrink (Varchar base) =
     Varchar . Text.pack <$> shrink (Text.unpack base)
 
-instance IsStandardType Varchar where
+instance IsScalar Varchar where
   typeName = Tagged "varchar"
   baseOid = Tagged (Just 1043)
   arrayOid = Tagged (Just 1015)

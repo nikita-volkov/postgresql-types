@@ -27,7 +27,7 @@ instance (IsSome a b) => IsSome a (ViaIsSome a b) where
   to = to @a . to @b
   maybeFrom = fmap ViaIsSome . maybeFrom @a
 
-instance (IsStandardType a, IsSome a b) => IsStandardType (ViaIsSome a b) where
+instance (IsScalar a, IsSome a b) => IsScalar (ViaIsSome a b) where
   typeName = retag (typeName @a)
   baseOid = retag (baseOid @a)
   arrayOid = retag (arrayOid @a)

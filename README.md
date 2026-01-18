@@ -1,9 +1,9 @@
 # postgresql-types
 
-<!-- [![Hackage](https://img.shields.io/hackage/v/postgresql-types.svg)](https://hackage.haskell.org/package/postgresql-types) -->
+[![Hackage](https://img.shields.io/hackage/v/postgresql-types.svg)](https://hackage.haskell.org/package/postgresql-types)
 [![Continuous Haddock](https://img.shields.io/badge/haddock-master-blue)](https://nikita-volkov.github.io/postgresql-types/)
 
-Haskell representation of PostgreSQL data types with mappings to and from both binary and textual formats used by the PostgreSQL wire protocol.
+Precise Haskell representations of PostgreSQL data types with mappings to and from both binary and textual formats.
 
 ## Status
 
@@ -11,7 +11,16 @@ In active development, but already working and exhaustively tested.
 
 ## Key Features
 
+### Ecosystem Integration
+
+Adapter packages provide integrations for major PostgreSQL client libraries:
+
+- "hasql": ["hasql-postgresql-types"](https://github.com/nikita-volkov/hasql-postgresql-types)
+- "postgresql-simple": ["postgresql-simple-postgresql-types"](https://github.com/nikita-volkov/postgresql-simple-postgresql-types)
+
 ### Supported Types
+
+This package provides support for nearly all PostgreSQL data types, including but not limited to:
 
 - Numeric types: `Int2`, `Int4`, `Int8`, `Float4`, `Float8`, `Numeric`
 - Character types: `Char`, `Varchar`, `Text`
@@ -35,13 +44,7 @@ Values can only be created through lawful conversions, guaranteeing adherence to
 
 ### Lawful Conversions
 
-The library uses the [lawful-conversions](https://hackage.haskell.org/package/lawful-conversions) library to provide safe, well-defined transformations between Haskell and PostgreSQL types:
-
-- **`IsMany`** - Total conversions that always succeed (e.g., `Int32 → Int4`)
-- **`IsSome`** - Partial conversions that may fail (e.g., `Text → Maybe PostgreSQL.Text` fails if input contains NUL bytes)
-- **`Is`** - Bidirectional isomorphisms combining both directions
-
-This approach ensures that:
+The library uses the [lawful-conversions](https://hackage.haskell.org/package/lawful-conversions) library to provide safe, well-defined transformations between Haskell and PostgreSQL types. This approach ensures that:
 - Type constructors remain hidden to protect invariants
 - All conversions are explicit and lawful
 - Invalid data is either rejected or canonicalized (e.g., removing NUL bytes from text)
@@ -68,7 +71,7 @@ The library employs a rigorous multi-layered testing strategy:
 - **Cross-format Validation**: Binary encoders are tested against textual decoders and vice versa
 
 #### Integration Tests
-- **Real PostgreSQL Validation**: Tests run against actual PostgreSQL servers (versions 9 through 17)
+- **Real PostgreSQL Validation**: Tests run against actual PostgreSQL servers (versions 9 through 18)
 - **Four-way Round-trip Matrix**: Each value is tested through all four combinations:
   1. Text encoding → Text decoding
   2. Text encoding → Binary decoding  

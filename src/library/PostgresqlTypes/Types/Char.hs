@@ -16,7 +16,7 @@ import qualified TextBuilder
 -- a single ASCII character (values 0-127). It is primarily used in PostgreSQL system
 -- catalogs as a simplistic enumeration type and is not intended for general-purpose use.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-character.html).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-character.html).
 --
 -- __Important distinction:__ This type represents the quoted @\"char\"@ type in PostgreSQL,
 -- which is completely different from @char(n)@, @character(n)@, or @bpchar(n)@:
@@ -29,16 +29,17 @@ import qualified TextBuilder
 -- these are entirely different types in PostgreSQL.
 newtype Char = Char Word8
   deriving newtype (Eq, Ord)
-  deriving (Show) via (ViaIsStandardType Char)
+  deriving (Show) via (ViaIsScalar Char)
 
 instance Arbitrary Char where
   arbitrary =
     Char <$> QuickCheck.choose (0, 127)
 
-instance IsStandardType Char where
+instance IsScalar Char where
   typeName = Tagged "char"
   baseOid = Tagged (Just 18)
   arrayOid = Tagged (Just 1002)
+  typeSignature = Tagged "\"char\""
   binaryEncoder (Char base) =
     Write.word8 base
   binaryDecoder =

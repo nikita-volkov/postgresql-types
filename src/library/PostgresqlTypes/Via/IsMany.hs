@@ -29,7 +29,7 @@ instance (IsSome a b) => IsSome a (ViaIsMany a b) where
 instance (IsMany a b) => IsMany a (ViaIsMany a b) where
   onfrom = ViaIsMany . onfrom
 
-instance (IsStandardType a, IsMany a b) => IsStandardType (ViaIsMany a b) where
+instance (IsScalar a, IsMany a b) => IsScalar (ViaIsMany a b) where
   typeName = retag (typeName @a)
   baseOid = retag (baseOid @a)
   arrayOid = retag (arrayOid @a)

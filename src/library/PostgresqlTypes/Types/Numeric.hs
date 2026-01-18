@@ -33,7 +33,7 @@ data Numeric (precision :: TypeLits.Nat) (scale :: TypeLits.Nat)
   = ScientificNumeric Scientific.Scientific
   | NanNumeric
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsStandardType (Numeric precision scale))
+  deriving (Show) via (ViaIsScalar (Numeric precision scale))
 
 instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => Arbitrary (Numeric precision scale) where
   arbitrary = do
@@ -52,18 +52,20 @@ instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => Arbitrary (Nu
         -- intDigits can be negative when scale > precision (e.g., NUMERIC(2,4) -> 0.0012)
         let intDigits = max 0 (prec - sc)
             -- Cap exponents to prevent excessive computation
-            maxIntDigits = min intDigits 15  -- Cap at 10^15 for reasonable generation
+            maxIntDigits = min intDigits 15 -- Cap at 10^15 for reasonable generation
             maxScale = min sc 15
         -- Generate a value with appropriate number of digits
         sign <- arbitrary @Bool
         -- Generate integer part (up to intDigits digits)
-        intPart <- if maxIntDigits > 0
-                   then QuickCheck.choose (0, 10 ^ maxIntDigits - 1)
-                   else pure 0
+        intPart <-
+          if maxIntDigits > 0
+            then QuickCheck.choose (0, 10 ^ maxIntDigits - 1)
+            else pure 0
         -- Generate fractional part (up to sc digits)
-        fracPart <- if maxScale > 0
-                    then QuickCheck.choose (0, 10 ^ maxScale - 1)
-                    else pure 0
+        fracPart <-
+          if maxScale > 0
+            then QuickCheck.choose (0, 10 ^ maxScale - 1)
+            else pure 0
         let coefficient = (if sign then negate else id) (intPart * (10 ^ maxScale) + fracPart)
             scientific = Scientific.scientific coefficient (negate (fromIntegral maxScale))
         QuickCheck.oneof
@@ -71,7 +73,7 @@ instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => Arbitrary (Nu
             pure NanNumeric
           ]
 
-instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsStandardType (Numeric precision scale) where
+instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsScalar (Numeric precision scale) where
   typeName = Tagged "numeric"
   baseOid = Tagged (Just 1700)
   arrayOid = Tagged (Just 1231)
@@ -272,20 +274,21 @@ validateNumericPrecisionScale prec sc s =
       -- This helps us count digits correctly
       coeff = Scientific.coefficient s
       exp = Scientific.base10Exponent s
-      
+
       -- Adjust coefficient to have exactly 'sc' decimal places
       targetExp = negate sc
-      adjustedCoeff = if exp == targetExp
-                      then coeff
-                      else if exp < targetExp
-                           -- Need more decimal places: multiply
-                           then coeff * (10 ^ (targetExp - exp))
-                           -- Need fewer decimal places: divide (truncate)
-                           else coeff `div` (10 ^ (exp - targetExp))
-      
+      adjustedCoeff =
+        if exp == targetExp
+          then coeff
+          else
+            if exp < targetExp
+              -- Need more decimal places: multiply
+              then coeff * (10 ^ (targetExp - exp))
+              -- Need fewer decimal places: divide (truncate)
+              else coeff `div` (10 ^ (exp - targetExp))
+
       -- Count total significant digits
       totalDigits = countDigits (abs adjustedCoeff)
-      
    in -- The number of significant digits must not exceed precision
       totalDigits <= prec
 
@@ -308,8 +311,8 @@ clampNumericValue prec sc s =
       -- When scaled by 10^sc, max is 10^prec - 1
       maxCoeff = 10 ^ prec - 1
    in if abs coeff > maxCoeff
-      then Scientific.scientific (if coeff < 0 then negate maxCoeff else maxCoeff) (negate sc)
-      else rounded
+        then Scientific.scientific (if coeff < 0 then negate maxCoeff else maxCoeff) (negate sc)
+        else rounded
 
 -- | Round a Scientific value to a specific scale (number of decimal places)
 -- Uses proper rounding (banker's rounding / round half to even)
@@ -319,24 +322,27 @@ roundToScale sc s =
       targetExp = negate sc
       coeff = Scientific.coefficient s
    in if currentExp >= targetExp
-      then s  -- Already has fewer or equal decimal places than target
-      else
-        -- Need to round: convert to the target scale
-        let scaleDiff = targetExp - currentExp
-            divisor = 10 ^ scaleDiff
-            (quotient, remainder) = abs coeff `divMod` divisor
-            absRemainder = abs remainder
-            -- Round half to even (banker's rounding)
-            roundedQuotient = if absRemainder * 2 > divisor
-                              then quotient + 1
-                              else if absRemainder * 2 < divisor
-                                   then quotient
-                                   else if even quotient
-                                        then quotient
-                                        else quotient + 1
-            -- Apply sign
-            finalQuotient = if coeff < 0 then negate roundedQuotient else roundedQuotient
-         in Scientific.scientific finalQuotient targetExp
+        then s -- Already has fewer or equal decimal places than target
+        else
+          -- Need to round: convert to the target scale
+          let scaleDiff = targetExp - currentExp
+              divisor = 10 ^ scaleDiff
+              (quotient, remainder) = abs coeff `divMod` divisor
+              absRemainder = abs remainder
+              -- Round half to even (banker's rounding)
+              roundedQuotient =
+                if absRemainder * 2 > divisor
+                  then quotient + 1
+                  else
+                    if absRemainder * 2 < divisor
+                      then quotient
+                      else
+                        if even quotient
+                          then quotient
+                          else quotient + 1
+              -- Apply sign
+              finalQuotient = if coeff < 0 then negate roundedQuotient else roundedQuotient
+           in Scientific.scientific finalQuotient targetExp
 
 {-# INLINE extractComponents #-}
 extractComponents :: (Integral a) => a -> [Word16]

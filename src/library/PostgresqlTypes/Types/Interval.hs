@@ -18,14 +18,14 @@ import qualified TextBuilder
 --
 -- Range: @-178000000@ years to @178000000@ years.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-INTERVAL-INPUT).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-datetime.html#DATATYPE-INTERVAL-INPUT).
 data Interval = Interval
   { months :: Int32,
     days :: Int32,
     micros :: Int64
   }
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsStandardType Interval)
+  deriving (Show) via (ViaIsScalar Interval)
 
 instance Bounded Interval where
   minBound =
@@ -48,7 +48,7 @@ instance Arbitrary Interval where
     months <- QuickCheck.choose ((minBound @Interval).months, (maxBound @Interval).months)
     pure (max minBound (min maxBound (Interval {..})))
 
-instance IsStandardType Interval where
+instance IsScalar Interval where
   typeName = Tagged "interval"
   baseOid = Tagged (Just 1186)
   arrayOid = Tagged (Just 1187)

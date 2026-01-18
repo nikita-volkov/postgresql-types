@@ -28,14 +28,14 @@ import qualified TextBuilder
 --
 -- You can also define your own.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/rangetypes.html).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/rangetypes.html).
 data Range a
   = EmptyRange
   | BoundedRange (Maybe a) (Maybe a)
   deriving stock (Eq, Functor)
-  deriving (Show) via (ViaIsStandardType (Range a))
+  deriving (Show) via (ViaIsScalar (Range a))
 
-instance (IsRangeElement a) => IsStandardType (Range a) where
+instance (IsRangeElement a) => IsScalar (Range a) where
   typeName = retag (rangeTypeName @a)
   baseOid = retag (rangeBaseOid @a)
   arrayOid = retag (rangeArrayOid @a)

@@ -10,7 +10,7 @@ import PostgresqlTypes.Prelude
 
 -- | IP address type for representing IPv4 and IPv6 addresses.
 --
--- This type does not have a 'IsStandardType' instance and serves as a component to the 'Inet' and 'Cidr' types.
+-- This type does not have a 'IsScalar' instance and serves as a component to the 'Inet' and 'Cidr' types.
 data Ip
   = -- | IPv4 address stored as 32-bit big-endian word.
     V4Ip Word32

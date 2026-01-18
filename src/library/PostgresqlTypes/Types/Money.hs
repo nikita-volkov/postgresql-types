@@ -19,12 +19,12 @@ import qualified TextBuilder
 --
 -- Note: The textual representation includes a currency symbol (e.g., @$1.23@) and currently does not support localization.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-money.html).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-money.html).
 newtype Money = Money Int64
   deriving newtype (Eq, Ord, Arbitrary)
-  deriving (Show) via (ViaIsStandardType Money)
+  deriving (Show) via (ViaIsScalar Money)
 
-instance IsStandardType Money where
+instance IsScalar Money where
   typeName = Tagged "money"
   baseOid = Tagged (Just 790)
   arrayOid = Tagged (Just 791)

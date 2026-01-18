@@ -17,7 +17,7 @@ import qualified PtrPeeker
 --
 -- Low value: @00:00:00+1559@. High value: @24:00:00-1559@.
 --
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-datetime.html#DATATYPE-TIMEZONES).
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-datetime.html#DATATYPE-TIMEZONES).
 data Timetz = Timetz
   { -- | Time as microseconds since midnight (00:00:00)
     time :: Time.TimetzTime,
@@ -25,7 +25,7 @@ data Timetz = Timetz
     offset :: Offset.TimetzOffset
   }
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsStandardType Timetz)
+  deriving (Show) via (ViaIsScalar Timetz)
 
 instance Arbitrary Timetz where
   arbitrary = do
@@ -33,7 +33,7 @@ instance Arbitrary Timetz where
     offset <- arbitrary
     pure (Timetz time offset)
 
-instance IsStandardType Timetz where
+instance IsScalar Timetz where
   typeName = Tagged "timetz"
   baseOid = Tagged (Just 1266)
   arrayOid = Tagged (Just 1270)
