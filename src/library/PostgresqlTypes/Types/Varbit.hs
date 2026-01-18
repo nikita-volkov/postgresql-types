@@ -22,37 +22,37 @@ import qualified TextBuilder
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-bit.html).
 --
--- The type parameter @numBits@ specifies the static maximum length of the bit string.
+-- The type parameter @maxLen@ specifies the static maximum length of the bit string.
 -- Bit strings up to this length can be represented by this type.
-data Varbit (numBits :: TypeLits.Nat) = Varbit
-  { -- | Number of bits
-    varbitLength :: Int32,
-    -- | Bit data (packed into bytes)
-    varbitData :: ByteString
-  }
+data Varbit (maxLen :: TypeLits.Nat)
+  = Varbit
+      -- | Actual number of bits
+      Int32
+      -- | Bit data (packed into bytes)
+      ByteString
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsScalar (Varbit numBits))
+  deriving (Show) via (ViaIsScalar (Varbit maxLen))
 
-instance (TypeLits.KnownNat numBits) => Arbitrary (Varbit numBits) where
+instance (TypeLits.KnownNat maxLen) => Arbitrary (Varbit maxLen) where
   arbitrary = do
-    let maxLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
+    let maxLen = fromIntegral (TypeLits.natVal (Proxy @maxLen))
     len <- QuickCheck.chooseInt (0, maxLen) -- Variable length up to max
     bits <- QuickCheck.vectorOf len (arbitrary :: QuickCheck.Gen Bool)
     case maybeFrom bits of
       Nothing -> error "Arbitrary Varbit: Generated bit string exceeds maximum length"
       Just varbit -> pure varbit
   shrink varbit =
-    let maxLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
+    let maxLen = fromIntegral (TypeLits.natVal (Proxy @maxLen))
         bits = to @[Bool] varbit
         shrunkBitsList = shrink bits
      in mapMaybe maybeFrom [b | b <- shrunkBitsList, length b <= maxLen]
 
-instance (TypeLits.KnownNat numBits) => IsScalar (Varbit numBits) where
+instance (TypeLits.KnownNat maxLen) => IsScalar (Varbit maxLen) where
   typeName = Tagged "varbit"
   baseOid = Tagged (Just 1562)
   arrayOid = Tagged (Just 1563)
   typeParams =
-    Tagged [Text.pack (show (TypeLits.natVal (Proxy @numBits)))]
+    Tagged [Text.pack (show (TypeLits.natVal (Proxy @maxLen)))]
   binaryEncoder (Varbit len bytes) =
     mconcat
       [ Write.bInt32 len,
@@ -61,7 +61,7 @@ instance (TypeLits.KnownNat numBits) => IsScalar (Varbit numBits) where
   binaryDecoder = do
     len <- PtrPeeker.fixed PtrPeeker.beSignedInt4
     bytes <- PtrPeeker.remainderAsByteString
-    let maxLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
+    let maxLen = fromIntegral (TypeLits.natVal (Proxy @maxLen))
     if len <= maxLen
       then pure (Right (Varbit len bytes))
       else
@@ -88,7 +88,7 @@ instance (TypeLits.KnownNat numBits) => IsScalar (Varbit numBits) where
     bitChars <- Attoparsec.takeText
     let bits = map (== '1') (Text.unpack bitChars)
         len = fromIntegral (length bits)
-        maxLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
+        maxLen = fromIntegral (TypeLits.natVal (Proxy @maxLen))
     if len <= maxLen
       then do
         let numBytes = (len + 7) `div` 8
@@ -106,7 +106,7 @@ instance (TypeLits.KnownNat numBits) => IsScalar (Varbit numBits) where
 -- | Convert from a bit string (as a list of Bool) to a Varbit.
 -- The bit string must not exceed the maximum length specified by the type parameter.
 -- The bit string is packed into bytes.
-instance (TypeLits.KnownNat numBits) => IsSome [Bool] (Varbit numBits) where
+instance (TypeLits.KnownNat maxLen) => IsSome [Bool] (Varbit maxLen) where
   to (Varbit len bytes) =
     let bits = concatMap byteToBits (ByteString.unpack bytes)
         trimmedBits = take (fromIntegral len) bits
@@ -116,7 +116,7 @@ instance (TypeLits.KnownNat numBits) => IsSome [Bool] (Varbit numBits) where
       byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
   maybeFrom bits =
     let len = length bits
-        maxLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
+        maxLen = fromIntegral (TypeLits.natVal (Proxy @maxLen))
      in if len <= maxLen
           then
             let numBytes = (len + 7) `div` 8
@@ -133,9 +133,9 @@ instance (TypeLits.KnownNat numBits) => IsSome [Bool] (Varbit numBits) where
 
 -- | Direct conversion from bit list to Varbit.
 -- Truncates to the maximum length if necessary.
-instance (TypeLits.KnownNat numBits) => IsMany [Bool] (Varbit numBits) where
+instance (TypeLits.KnownNat maxLen) => IsMany [Bool] (Varbit maxLen) where
   onfrom bits =
-    let maxLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
+    let maxLen = fromIntegral (TypeLits.natVal (Proxy @maxLen))
         truncatedBits = take maxLen bits
         actualLen = length truncatedBits
         numBytes = (actualLen + 7) `div` 8
@@ -157,7 +157,7 @@ instance (TypeLits.KnownNat numBits) => IsMany [Bool] (Varbit numBits) where
 --
 -- This instance allows using unboxed vectors for high-performance bit operations
 -- while maintaining compatibility with PostgreSQL's variable-length bit string format.
-instance (TypeLits.KnownNat numBits) => IsSome (VU.Vector Bool) (Varbit numBits) where
+instance (TypeLits.KnownNat maxLen) => IsSome (VU.Vector Bool) (Varbit maxLen) where
   to (Varbit len bytes) =
     let bits = concatMap byteToBits (ByteString.unpack bytes)
         trimmedBits = take (fromIntegral len) bits
@@ -168,7 +168,7 @@ instance (TypeLits.KnownNat numBits) => IsSome (VU.Vector Bool) (Varbit numBits)
   maybeFrom bitVector =
     let bits = VU.toList bitVector
         len = fromIntegral (VU.length bitVector)
-        maxLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
+        maxLen = fromIntegral (TypeLits.natVal (Proxy @maxLen))
      in if len <= maxLen
           then
             let numBytes = (len + 7) `div` 8
@@ -188,9 +188,9 @@ instance (TypeLits.KnownNat numBits) => IsSome (VU.Vector Bool) (Varbit numBits)
 --
 -- This is a total conversion that always succeeds. The boolean vector
 -- is efficiently packed into the PostgreSQL @varbit@ format.
-instance (TypeLits.KnownNat numBits) => IsMany (VU.Vector Bool) (Varbit numBits) where
+instance (TypeLits.KnownNat maxLen) => IsMany (VU.Vector Bool) (Varbit maxLen) where
   onfrom bitVector =
-    let maxLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
+    let maxLen = fromIntegral (TypeLits.natVal (Proxy @maxLen))
         bits = VU.toList bitVector
         truncatedBits = take maxLen bits
         actualLen = length truncatedBits
