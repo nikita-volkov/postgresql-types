@@ -11,7 +11,16 @@ In active development, but already working and exhaustively tested.
 
 ## Key Features
 
+### Ecosystem Integration
+
+Adapter packages provide integrations for major PostgreSQL client libraries:
+
+- "hasql": ["hasql-postgresql-types"](https://github.com/nikita-volkov/hasql-postgresql-types)
+- "postgresql-simple": ["postgresql-simple-postgresql-types"](https://github.com/nikita-volkov/postgresql-simple-postgresql-types)
+
 ### Supported Types
+
+This package provides support for nearly all PostgreSQL data types, including but not limited to:
 
 - Numeric types: `Int2`, `Int4`, `Int8`, `Float4`, `Float8`, `Numeric`
 - Character types: `Char`, `Varchar`, `Text`
@@ -26,13 +35,6 @@ In active development, but already working and exhaustively tested.
 - Range types: `Int4Range`, `Int8Range`, `NumRange`, `TsRange`, `TstzRange`, `DateRange`
 - Multirange types: `Int4Multirange`, `Int8Multirange`, `NumMultirange`, `TsMultirange`, `TstzMultirange`, `DateMultirange`
 - Array types for all of the above
-
-### Ecosystem Integration
-
-Adapter packages provide integrations for major PostgreSQL client libraries:
-
-- "hasql": ["hasql-postgresql-types"](https://github.com/nikita-volkov/hasql-postgresql-types)
-- "postgresql-simple": ["postgresql-simple-postgresql-types"](https://github.com/nikita-volkov/postgresql-simple-postgresql-types)
 
 ### Type Safety & Valid Ranges
 
