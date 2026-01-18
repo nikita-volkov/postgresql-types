@@ -54,28 +54,26 @@ instance (TypeLits.KnownNat maxLen) => IsScalar (Varbit maxLen) where
   typeParams =
     Tagged [Text.pack (show (TypeLits.natVal (Proxy @maxLen)))]
   binaryEncoder (Varbit len bytes) =
-    mconcat
-      [ Write.bInt32 len,
-        Write.byteString bytes
-      ]
-  binaryDecoder = do
-    len <- PtrPeeker.fixed PtrPeeker.beSignedInt4
-    bytes <- PtrPeeker.remainderAsByteString
+    Write.bInt32 len <> Write.byteString bytes
+  binaryDecoder =
     let maxLen = fromIntegral (TypeLits.natVal (Proxy @maxLen))
-    if len <= maxLen
-      then pure (Right (Varbit len bytes))
-      else
-        pure
-          ( Left
-              ( DecodingError
-                  { location = ["Varbit"],
-                    reason =
-                      UnsupportedValueDecodingErrorReason
-                        ("Varbit length " <> Text.pack (show len) <> " exceeds maximum " <> Text.pack (show maxLen))
-                        (TextBuilder.toText (TextBuilder.decimal len))
-                  }
-              )
-          )
+     in do
+          len <- PtrPeeker.fixed PtrPeeker.beSignedInt4
+          bytes <- PtrPeeker.remainderAsByteString
+
+          pure
+            if len <= maxLen
+              then Right (Varbit len bytes)
+              else
+                Left
+                  ( DecodingError
+                      { location = ["Varbit"],
+                        reason =
+                          UnsupportedValueDecodingErrorReason
+                            ("Varbit length " <> Text.pack (show len) <> " exceeds maximum " <> Text.pack (show maxLen))
+                            (TextBuilder.toText (TextBuilder.decimal len))
+                      }
+                  )
   textualEncoder (Varbit len bytes) =
     let bits = concatMap byteToBits (ByteString.unpack bytes)
         trimmedBits = take (fromIntegral len) bits
@@ -84,18 +82,18 @@ instance (TypeLits.KnownNat maxLen) => IsScalar (Varbit maxLen) where
     where
       byteToBits :: Word8 -> [Bool]
       byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
-  textualDecoder = do
-    bitChars <- Attoparsec.takeText
-    let bits = map (== '1') (Text.unpack bitChars)
-        len = fromIntegral (length bits)
-        maxLen = fromIntegral (TypeLits.natVal (Proxy @maxLen))
-    if len <= maxLen
-      then do
-        let numBytes = (len + 7) `div` 8
-            paddedBits = bits ++ replicate (numBytes * 8 - len) False
-            bytes = map boolsToByte (chunksOf 8 paddedBits)
-        pure (Varbit (fromIntegral len) (ByteString.pack bytes))
-      else fail ("Varbit length " <> show len <> " exceeds maximum " <> show maxLen)
+  textualDecoder =
+    let maxLen = fromIntegral (TypeLits.natVal (Proxy @maxLen))
+     in do
+          bitText <- Attoparsec.takeWhile (\c -> c == '0' || c == '1')
+          let len = Text.length bitText
+          when (len > maxLen) do
+            fail ("Varbit length " <> show len <> " exceeds maximum " <> show maxLen)
+          let boolList = map (== '1') (Text.unpack bitText)
+              numBytes = (len + 7) `div` 8
+              paddedBoolList = boolList ++ replicate (numBytes * 8 - len) False
+              bytes = map boolsToByte (chunksOf 8 paddedBoolList)
+          pure (Varbit (fromIntegral len) (ByteString.pack bytes))
     where
       boolsToByte :: [Bool] -> Word8
       boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
