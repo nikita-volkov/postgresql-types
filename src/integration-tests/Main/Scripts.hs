@@ -6,6 +6,7 @@ import Data.Function
 import Data.Maybe
 import Data.Proxy
 import Data.Tagged
+import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text.Encoding
 import qualified Database.PostgreSQL.LibPQ as Pq
 import LawfulConversions
@@ -52,6 +53,7 @@ mappingSpec _ =
             describe "And decoding via textualDecoder" do
               it "Should produce the original value" \(connection :: Pq.Connection) ->
                 QuickCheck.property \(value :: a) -> do
+                  let valueText = TextBuilder.toText (txtEnc value)
                   QuickCheck.idempotentIOProperty do
                     (baseOid, _) <- getOids connection
                     bytes <-
@@ -59,7 +61,7 @@ mappingSpec _ =
                         connection
                         Procedures.RunRoundtripQueryParams
                           { paramOid = baseOid,
-                            paramEncoding = Text.Encoding.encodeUtf8 (TextBuilder.toText (txtEnc value)),
+                            paramEncoding = Text.Encoding.encodeUtf8 valueText,
                             paramFormat = Pq.Text,
                             resultFormat = Pq.Text,
                             typeSignature = Nothing
@@ -68,13 +70,21 @@ mappingSpec _ =
                         decoding = Data.Attoparsec.Text.parseOnly txtDec serverProducedText
                     pure
                       ( QuickCheck.counterexample
-                          ("serverProducedText: " <> show serverProducedText)
+                          ( to
+                              ( Text.intercalate
+                                  "\n"
+                                  [ "serverProducedText: " <> serverProducedText,
+                                    "encoded: " <> valueText
+                                  ]
+                              )
+                          )
                           (decoding === Right value)
                       )
 
             describe "And decoding via binaryDecoder" do
               it "Should produce the original value" \(connection :: Pq.Connection) ->
                 QuickCheck.property \(value :: a) -> do
+                  let valueText = TextBuilder.toText (txtEnc value)
                   QuickCheck.idempotentIOProperty do
                     (baseOid, _) <- getOids connection
                     bytes <-
@@ -82,13 +92,23 @@ mappingSpec _ =
                         connection
                         Procedures.RunRoundtripQueryParams
                           { paramOid = baseOid,
-                            paramEncoding = Text.Encoding.encodeUtf8 (TextBuilder.toText (txtEnc value)),
+                            paramEncoding = Text.Encoding.encodeUtf8 valueText,
                             paramFormat = Pq.Text,
                             resultFormat = Pq.Binary,
                             typeSignature = Nothing
                           }
                     let decoding = PtrPeeker.runVariableOnByteString binDec bytes
-                    pure (decoding === Right (Right value))
+                    pure
+                      ( QuickCheck.counterexample
+                          ( to
+                              ( Text.intercalate
+                                  "\n"
+                                  [ "encoded: " <> valueText
+                                  ]
+                              )
+                          )
+                          (decoding === Right (Right value))
+                      )
 
           describe "Encoding via binaryEncoder" do
             describe "And decoding via textualDecoder" do

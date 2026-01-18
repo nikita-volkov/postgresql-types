@@ -1,3 +1,8 @@
+{-# OPTIONS_GHC -Wno-unused-binds -Wno-unused-imports -Wno-name-shadowing -Wno-incomplete-patterns -Wno-unused-matches -Wno-missing-methods -Wno-unused-record-wildcards -Wno-redundant-constraints -Wno-deprecations -Wno-missing-signatures #-}
+
+-- Reference implementation for numeric type in PostgreSQL:
+--
+-- - Sign flags: https://github.com/postgres/postgres/blob/6bca4b50d000e840cad17a9dd6cb46785fb2cedb/src/backend/utils/adt/numeric.c#L201-L203
 module PostgresqlTypes.Types.Numeric
   ( Numeric,
   )
@@ -15,63 +20,75 @@ import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
--- | PostgreSQL @numeric@ type. Arbitrary precision decimal number.
+-- | PostgreSQL @numeric@ or @decimal@ type. Arbitrary or specific precision decimal number.
+--
+-- Use @Numeric 0 0@ to represent @numeric@ without precision/scale constraints (arbitrary precision).
 --
 -- Up to @131072@ digits before decimal point, up to @16383@ digits after decimal point.
 --
--- On the Haskell end the 'Scientific.Scientific' type fits well with an exception of it not supporting @NaN@ values, which Postgres does support.
--- Hence is why we represent it as a sum-type with a separate constructor for @NaN@-values.
---
--- The 'IsMany' and 'IsSome' instances provide bidirectional conversions for convenience.
---
--- [PostgreSQL docs](https://www.postgresql.org/docs/17/datatype-numeric.html#DATATYPE-NUMERIC-DECIMAL).
+-- On the Haskell end the 'Scientific.Scientific' type fits almost well with a few corner cases of it not supporting @NaN@, @Infinity@ and @-Infinity@ values, which Postgres does support.
+-- Please notice that @Infinity@ and @-Infinity@ values are not supported by Postgres versions lower than 14.
 --
 -- The type parameters @precision@ and @scale@ specify the static precision and scale of the numeric value.
 -- Only numeric values conforming to these constraints can be represented by this type.
--- Use @Numeric 0 0@ to represent @numeric@ without precision/scale constraints (arbitrary precision).
+--
+-- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-numeric.html#DATATYPE-NUMERIC-DECIMAL).
 data Numeric (precision :: TypeLits.Nat) (scale :: TypeLits.Nat)
-  = ScientificNumeric Scientific.Scientific
+  = NegInfinityNumeric
+  | ScientificNumeric Scientific.Scientific
+  | PosInfinityNumeric
   | NanNumeric
   deriving stock (Eq, Ord)
   deriving (Show) via (ViaIsScalar (Numeric precision scale))
 
 instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => Arbitrary (Numeric precision scale) where
-  arbitrary = do
+  arbitrary =
     let prec = fromIntegral (TypeLits.natVal (Proxy @precision)) :: Int
         sc = fromIntegral (TypeLits.natVal (Proxy @scale)) :: Int
-    if prec == 0 && sc == 0
-      then
-        -- Arbitrary precision: generate any Scientific value or NaN
-        QuickCheck.oneof
-          [ ScientificNumeric <$> arbitrary,
-            pure NanNumeric
-          ]
-      else do
-        -- Generate value respecting precision and scale constraints
-        -- Precision p, scale s means: at most p total digits, s after decimal point
-        -- intDigits can be negative when scale > precision (e.g., NUMERIC(2,4) -> 0.0012)
-        let intDigits = max 0 (prec - sc)
-            -- Cap exponents to prevent excessive computation
-            maxIntDigits = min intDigits 15 -- Cap at 10^15 for reasonable generation
-            maxScale = min sc 15
-        -- Generate a value with appropriate number of digits
-        sign <- arbitrary @Bool
-        -- Generate integer part (up to intDigits digits)
-        intPart <-
-          if maxIntDigits > 0
-            then QuickCheck.choose (0, 10 ^ maxIntDigits - 1)
-            else pure 0
-        -- Generate fractional part (up to sc digits)
-        fracPart <-
-          if maxScale > 0
-            then QuickCheck.choose (0, 10 ^ maxScale - 1)
-            else pure 0
-        let coefficient = (if sign then negate else id) (intPart * (10 ^ maxScale) + fracPart)
-            scientific = Scientific.scientific coefficient (negate (fromIntegral maxScale))
-        QuickCheck.oneof
-          [ pure (ScientificNumeric scientific),
-            pure NanNumeric
-          ]
+        intDigits = max 0 (prec - sc)
+     in if prec == 0 && sc == 0
+          then
+            -- Arbitrary precision numeric: generate any Scientific value or special values
+            QuickCheck.frequency
+              [ (1, pure NanNumeric),
+                (1, pure NegInfinityNumeric),
+                (1, pure PosInfinityNumeric),
+                (47, ScientificNumeric . Scientific.normalize <$> arbitrary)
+              ]
+          else
+            if sc > prec
+              then
+                -- Invalid configuration: scale cannot be greater than precision
+                pure NanNumeric
+              else
+                -- From PostgreSQL docs:
+                -- Note that an infinity can only be stored in an unconstrained numeric column, because it notionally exceeds any finite precision limit.
+                QuickCheck.frequency
+                  [ (1, pure NanNumeric),
+                    ( 49,
+                      do
+                        -- Generate value respecting precision and scale constraints
+                        -- Precision p, scale s means: at most p total digits, s after decimal point
+                        -- intDigits can be negative when scale > precision (e.g., NUMERIC(2,4) -> 0.0012)
+
+                        -- Generate a value with appropriate number of digits
+                        negative <- arbitrary @Bool
+                        -- Generate integer part (up to intDigits digits)
+                        intPart <-
+                          if intDigits > 0
+                            then QuickCheck.choose (0, 10 ^ intDigits - 1)
+                            else pure 0
+                        -- Generate fractional part (up to sc digits)
+                        fracPart <-
+                          if sc > 0
+                            then QuickCheck.choose (0, 10 ^ sc - 1)
+                            else pure 0
+                        let unsignedCoefficient = intPart * (10 ^ sc) + fracPart
+                            coefficient = if negative then negate unsignedCoefficient else unsignedCoefficient
+                            scientific = Scientific.scientific coefficient (negate (fromIntegral sc))
+                        pure (ScientificNumeric scientific)
+                    )
+                  ]
 
 instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsScalar (Numeric precision scale) where
   typeName = Tagged "numeric"
@@ -92,7 +109,7 @@ instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsScalar (Num
       mconcat
         [ Write.bWord16 (fromIntegral componentsAmount),
           Write.bWord16 (fromIntegral pointIndex),
-          signCode,
+          flag,
           Write.bWord16 (fromIntegral trimmedExponent),
           foldMap Write.bWord16 components
         ]
@@ -115,7 +132,7 @@ instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsScalar (Num
           if tunedExponent >= 0
             then 0
             else negate tunedExponent
-        signCode =
+        flag =
           if coefficient < 0
             then Write.bWord16 0x4000
             else Write.bWord16 0x0000
@@ -123,48 +140,105 @@ instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsScalar (Num
       mconcat
         [ Write.bWord16 0x0000, -- componentsAmount
           Write.bWord16 0x0000, -- pointIndex
-          Write.bWord16 0xC000, -- signCode for NaN
+          Write.bWord16 0xC000, -- flag for NaN
+          Write.bWord16 0x0000 -- trimmedExponent
+        ]
+    PosInfinityNumeric ->
+      mconcat
+        [ Write.bWord16 0x0000, -- componentsAmount
+          Write.bWord16 0x0000, -- pointIndex
+          Write.bWord16 0xD000, -- flag for +Infinity
+          Write.bWord16 0x0000 -- trimmedExponent
+        ]
+    NegInfinityNumeric ->
+      mconcat
+        [ Write.bWord16 0x0000, -- componentsAmount
+          Write.bWord16 0x0000, -- pointIndex
+          Write.bWord16 0xF000, -- flag for -Infinity
           Write.bWord16 0x0000 -- trimmedExponent
         ]
 
-  binaryDecoder = do
-    (componentsAmount, pointIndex, signCode, _trimmedExponent) <- PtrPeeker.fixed do
-      componentsAmount <- fromIntegral <$> PtrPeeker.beSignedInt2
-      pointIndex <- PtrPeeker.beSignedInt2
-      signCode <- PtrPeeker.beUnsignedInt2
-      trimmedExponent <- PtrPeeker.beSignedInt2
-      pure (componentsAmount, pointIndex, signCode, trimmedExponent)
+  binaryDecoder =
+    let prec = fromIntegral (TypeLits.natVal (Proxy @precision))
+        sc = fromIntegral (TypeLits.natVal (Proxy @scale))
+     in do
+          (componentsAmount, pointIndex, flag, _trimmedExponent) <- PtrPeeker.fixed do
+            componentsAmount <- fromIntegral <$> PtrPeeker.beSignedInt2
+            pointIndex <- PtrPeeker.beSignedInt2
+            flag <- PtrPeeker.beUnsignedInt2
+            trimmedExponent <- PtrPeeker.beSignedInt2
+            pure (componentsAmount, pointIndex, flag, trimmedExponent)
 
-    coefficient <- PtrPeeker.fixed do
-      foldl' (\l r -> l * 10000 + fromIntegral r) 0
-        <$> replicateM componentsAmount PtrPeeker.beSignedInt2
+          coefficient <- PtrPeeker.fixed do
+            foldl' (\l r -> l * 10000 + fromIntegral r) 0
+              <$> replicateM componentsAmount PtrPeeker.beSignedInt2
 
-    pure
-      let byCoefficient coefficient =
-            let exponent = (fromIntegral pointIndex + 1 - componentsAmount) * 4
-             in Right (ScientificNumeric (Scientific.scientific coefficient exponent))
-       in case signCode of
-            0x0000 -> byCoefficient coefficient
-            0x4000 -> byCoefficient (negate coefficient)
-            0xC000 -> Right NanNumeric
-            _ ->
-              Left
-                DecodingError
-                  { location = ["sign-code"],
-                    reason =
-                      UnexpectedValueDecodingErrorReason
-                        "0x0000 or 0x4000"
-                        (TextBuilder.toText (TextBuilder.decimal signCode))
-                  }
+          pure
+            let byCoefficient coefficient =
+                  let exponent = (fromIntegral pointIndex + 1 - componentsAmount) * 4
+                      scientific = Scientific.scientific coefficient exponent
+                   in if prec == 0 && sc == 0
+                        then Right (ScientificNumeric scientific)
+                        else
+                          if validateNumericPrecisionScale prec sc scientific
+                            then Right (ScientificNumeric scientific)
+                            else
+                              Left
+                                DecodingError
+                                  { location = ["precision-scale-validation"],
+                                    reason =
+                                      UnexpectedValueDecodingErrorReason
+                                        (TextBuilder.toText ("value within precision=" <> TextBuilder.decimal prec <> ", scale=" <> TextBuilder.decimal sc))
+                                        (Text.pack (Scientific.formatScientific Scientific.Fixed Nothing scientific))
+                                  }
+             in case flag of
+                  0x0000 -> byCoefficient coefficient
+                  0x4000 -> byCoefficient (negate coefficient)
+                  0xC000 -> Right NanNumeric
+                  0xD000 -> Right PosInfinityNumeric
+                  0xF000 -> Right NegInfinityNumeric
+                  _ ->
+                    Left
+                      DecodingError
+                        { location = ["flag"],
+                          reason =
+                            UnexpectedValueDecodingErrorReason
+                              "0x0000, 0x4000, 0xC000, 0xD000, or 0xF000"
+                              (Text.toUpper (TextBuilder.toText (TextBuilder.prefixedHexadecimal flag)))
+                        }
 
-  textualEncoder = \case
-    ScientificNumeric scientific ->
-      TextBuilder.text (fromString (Scientific.formatScientific Scientific.Fixed Nothing scientific))
-    NanNumeric ->
-      TextBuilder.text "NaN"
+  textualEncoder =
+    let prec = fromIntegral (TypeLits.natVal (Proxy @precision)) :: Int
+        sc = fromIntegral (TypeLits.natVal (Proxy @scale)) :: Int
+     in \case
+          ScientificNumeric scientific ->
+            if sc == 0 && prec /= 0
+              then TextBuilder.string (Scientific.formatScientific Scientific.Fixed (Just 0) scientific)
+              else TextBuilder.string (Scientific.formatScientific Scientific.Fixed Nothing scientific)
+          NanNumeric ->
+            "NaN"
+          NegInfinityNumeric ->
+            "-Infinity"
+          PosInfinityNumeric ->
+            "Infinity"
+
   textualDecoder =
-    (NanNumeric <$ Attoparsec.string "NaN")
-      <|> (ScientificNumeric <$> Attoparsec.scientific)
+    let prec = fromIntegral (TypeLits.natVal (Proxy @precision)) :: Int
+        sc = fromIntegral (TypeLits.natVal (Proxy @scale)) :: Int
+     in asum
+          [ if prec == 0 && sc == 0
+              then ScientificNumeric <$> Attoparsec.scientific
+              else do
+                scientific <- Attoparsec.scientific
+                if validateNumericPrecisionScale prec sc scientific
+                  then pure (ScientificNumeric scientific)
+                  else fail ("Value does not satisfy the \"precision=" <> show prec <> ", scale=" <> show sc <> "\" constraints: " <> show scientific),
+            NanNumeric <$ Attoparsec.string "NaN",
+            NegInfinityNumeric <$ Attoparsec.string "-Infinity",
+            NegInfinityNumeric <$ Attoparsec.string "-inf",
+            PosInfinityNumeric <$ Attoparsec.string "Infinity",
+            PosInfinityNumeric <$ Attoparsec.string "inf"
+          ]
 
 -- | Mapping to @numrange@ type.
 instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsRangeElement (Numeric precision scale) where
@@ -194,7 +268,7 @@ instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsSome (Numer
               else error "Scientific value does not fit within Numeric precision/scale constraints"
   maybeFrom = \case
     ScientificNumeric s -> Just s
-    NanNumeric -> Nothing
+    _ -> Nothing
 
 -- |
 -- Conversion from Scientific to Numeric.
@@ -230,14 +304,14 @@ instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsMany Scient
 instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsMany (Numeric precision scale) Scientific.Scientific where
   onfrom = \case
     ScientificNumeric s -> s
-    NanNumeric -> 0
+    _ -> 0
 
 instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsSome (Maybe Scientific.Scientific) (Numeric precision scale) where
   to = \case
     ScientificNumeric s -> Just s
-    NanNumeric -> Nothing
+    _ -> Nothing
   maybeFrom = \case
-    Nothing -> Just NanNumeric
+    Nothing -> Nothing
     Just s ->
       let prec = fromIntegral (TypeLits.natVal (Proxy @precision)) :: Int
           sc = fromIntegral (TypeLits.natVal (Proxy @scale)) :: Int
@@ -248,18 +322,10 @@ instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsSome (Maybe
                 then Just (ScientificNumeric s)
                 else Nothing
 
-instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsMany (Maybe Scientific.Scientific) (Numeric precision scale)
-
-instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => Is (Maybe Scientific.Scientific) (Numeric precision scale)
-
-instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsSome (Numeric precision scale) (Maybe Scientific.Scientific) where
-  to = \case
+instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsMany (Maybe Scientific.Scientific) (Numeric precision scale) where
+  onfrom = \case
     Just s -> ScientificNumeric s
     Nothing -> NanNumeric
-
-instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsMany (Numeric precision scale) (Maybe Scientific.Scientific)
-
-instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => Is (Numeric precision scale) (Maybe Scientific.Scientific)
 
 -- | Validates that a Scientific value fits within the given precision and scale constraints.
 -- Returns True if the value is valid, False otherwise.
@@ -270,27 +336,45 @@ instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => Is (Numeric p
 -- - Maximum integer digits: precision - scale
 validateNumericPrecisionScale :: Int -> Int -> Scientific.Scientific -> Bool
 validateNumericPrecisionScale prec sc s =
-  let -- Normalize the scientific to have exactly 'sc' decimal places
-      -- This helps us count digits correctly
-      coeff = Scientific.coefficient s
+  let coeff = Scientific.coefficient s
       exp = Scientific.base10Exponent s
 
-      -- Adjust coefficient to have exactly 'sc' decimal places
-      targetExp = negate sc
-      adjustedCoeff =
-        if exp == targetExp
-          then coeff
-          else
-            if exp < targetExp
-              -- Need more decimal places: multiply
-              then coeff * (10 ^ (targetExp - exp))
-              -- Need fewer decimal places: divide (truncate)
-              else coeff `div` (10 ^ (exp - targetExp))
+      -- We need to count significant digits
+      -- Significant digits are all non-zero digits plus any zeros between them or after the first non-zero digit
+      -- For a value like 123.45, that's 5 significant digits
+      -- For a value like 0.0012, that's 2 significant digits (leading zeros don't count)
+      -- For a value like 120, that's 3 significant digits (trailing zeros do count)
 
-      -- Count total significant digits
-      totalDigits = countDigits (abs adjustedCoeff)
-   in -- The number of significant digits must not exceed precision
-      totalDigits <= prec
+      -- First, normalize to scale
+      targetExp = negate sc
+      normalized =
+        if exp >= targetExp
+          then Scientific.scientific coeff exp
+          else
+            -- Need to round/truncate to the target scale
+            let shift = targetExp - exp
+                divisor = 10 ^ shift
+             in Scientific.scientific (coeff `div` divisor) targetExp
+
+      normalizedCoeff = Scientific.coefficient normalized
+
+      -- Count significant digits: for a value normalized to scale digits after decimal point,
+      -- significant digits are all digits in the coefficient (excluding leading zeros if coefficient < 10^scale)
+      -- But we need to handle the case where abs(coeff) < 10^scale (leading zeros)
+      absCoeff = abs normalizedCoeff
+
+      -- If coefficient is 0, we have 1 significant digit
+      sigDigits =
+        if absCoeff == 0
+          then 1
+          else
+            let totalDigitsInCoeff = countDigits absCoeff
+             in -- If the coefficient has fewer digits than scale, there are leading zeros
+                -- e.g., for 0.0012 with scale=4, coeff=12, scale=4, but totalDigits=2
+                -- The significant digits are just the digits in coeff
+                -- For 123.45 with scale=2, coeff=12345, totalDigits=5, sigDigits=5
+                totalDigitsInCoeff
+   in sigDigits <= prec
 
 -- | Count the number of digits in an integer (more efficiently)
 countDigits :: Integer -> Int

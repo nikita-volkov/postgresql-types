@@ -25,7 +25,7 @@ import qualified PtrPeeker
 import qualified PtrPoker.Write
 import Test.Hspec
 import Test.Hspec.QuickCheck
-import Test.QuickCheck (Arbitrary, (===))
+import Test.QuickCheck
 import qualified Test.QuickCheck as QuickCheck
 import Test.QuickCheck.Instances ()
 import qualified TextBuilder
@@ -63,6 +63,7 @@ main = hspec do
   testIsScalar @(PostgresqlTypes.Numeric 0 0) Proxy
   testIsScalar @(PostgresqlTypes.Numeric 10 0) Proxy
   testIsScalar @(PostgresqlTypes.Numeric 10 2) Proxy
+  testIsScalar @(PostgresqlTypes.Numeric 10 7) Proxy
   testIsScalar @PostgresqlTypes.Oid Proxy
   testIsScalar @PostgresqlTypes.Path Proxy
   testIsScalar @PostgresqlTypes.Point Proxy
@@ -99,7 +100,6 @@ main = hspec do
   testIs @PostgresqlTypes.Macaddr @(Word8, Word8, Word8, Word8, Word8, Word8) Proxy Proxy
   testIs @PostgresqlTypes.Macaddr8 @(Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) Proxy Proxy
   testIs @PostgresqlTypes.Money @Int64 Proxy Proxy
-  testIs @(PostgresqlTypes.Numeric 0 0) @(Maybe Scientific.Scientific) Proxy Proxy
   testIs @PostgresqlTypes.Oid @Word32 Proxy Proxy
   testIs @PostgresqlTypes.Point @(Double, Double) Proxy Proxy
   testIs @PostgresqlTypes.Uuid @UUID.UUID Proxy Proxy
@@ -288,7 +288,8 @@ testIsScalar _ =
                   QuickCheck.property \(value :: a) ->
                     let encoded = TextBuilder.toText (txtEnc value)
                         decoding = Data.Attoparsec.Text.parseOnly txtDec encoded
-                     in decoding === Right value
+                     in counterexample ("Encoded: " ++ show encoded) $
+                          decoding === Right value
 
             describe "Encoding via binaryEncoder" do
               describe "And decoding via binaryDecoder" do
