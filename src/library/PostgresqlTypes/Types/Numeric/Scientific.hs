@@ -77,9 +77,17 @@ clampToPrecisionAndScale prec sc s =
   let -- First, round to the correct scale
       rounded = roundToScale sc s
       coeff = Scientific.coefficient rounded
-      -- Calculate maximum absolute coefficient for given precision
-      -- When scaled by 10^sc, max is 10^prec - 1
-      maxCoeff = 10 ^ prec - 1
+
+      -- Calculate maximum absolute coefficient for given precision and scale.
+      -- For NUMERIC(prec, sc):
+      --   * integerDigits   = prec - sc  (digits before decimal, minimum 0)
+      --   * fractionalDigits = sc        (digits after decimal, minimum 0)
+      -- The Scientific coefficient here represents the value scaled by 10^sc,
+      -- so it may use up to integerDigits + fractionalDigits total digits.
+      integerDigits    = max 0 (prec - sc)
+      fractionalDigits = max 0 sc
+      totalDigits      = integerDigits + fractionalDigits
+      maxCoeff         = 10 ^ totalDigits - 1
    in if abs coeff > maxCoeff
         then Scientific.scientific (if coeff < 0 then negate maxCoeff else maxCoeff) (negate sc)
         else rounded
