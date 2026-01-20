@@ -79,7 +79,7 @@ instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => Arbitrary (Nu
                       do
                         -- Generate value respecting precision and scale constraints
                         -- Precision p, scale s means: at most p total digits, s after decimal point
-                        -- intDigits can be negative when scale > precision (e.g., NUMERIC(2,4) -> 0.0012)
+                        -- At this point sc <= prec (sc > prec is handled above), so intDigits is non-negative.
 
                         -- Generate a value with appropriate number of digits
                         negative <- arbitrary @Bool
