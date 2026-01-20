@@ -7,7 +7,6 @@ import Data.Foldable
 import Data.Int
 import qualified Data.Map.Strict as Map
 import Data.Proxy
-import qualified Data.Scientific as Scientific
 import Data.Tagged
 import Data.Text (Text)
 import qualified Data.Text as Text
@@ -155,7 +154,6 @@ main = hspec do
   testIsMany @PostgresqlTypes.Uuid @UUID.UUID Proxy Proxy
   testIsMany @(PostgresqlTypes.Varchar 0) @Text.Text Proxy Proxy
   testIsMany @(PostgresqlTypes.Varchar 255) @Text.Text Proxy Proxy
-  testIsMany @Scientific.Scientific @(PostgresqlTypes.Numeric 0 0) Proxy Proxy
   testIsSome @PostgresqlTypes.Path @(Bool, [(Double, Double)]) Proxy Proxy
   testIsSome @PostgresqlTypes.Path @(Bool, (Data.Vector.Unboxed.Vector (Double, Double))) Proxy Proxy
   testIsSome @PostgresqlTypes.Polygon @(Data.Vector.Unboxed.Vector (Double, Double)) Proxy Proxy

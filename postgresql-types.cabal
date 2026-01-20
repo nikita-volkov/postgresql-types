@@ -108,6 +108,7 @@ library
   hs-source-dirs: src/library
   exposed-modules:
     PostgresqlTypes
+    PostgresqlTypes.Types.Numeric
 
   other-modules:
     PostgresqlTypes.Prelude
@@ -140,7 +141,8 @@ library
     PostgresqlTypes.Types.Macaddr8
     PostgresqlTypes.Types.Money
     PostgresqlTypes.Types.Multirange
-    PostgresqlTypes.Types.Numeric
+    PostgresqlTypes.Types.Numeric.Integer
+    PostgresqlTypes.Types.Numeric.Scientific
     PostgresqlTypes.Types.Oid
     PostgresqlTypes.Types.Path
     PostgresqlTypes.Types.Point
@@ -265,7 +267,6 @@ test-suite unit-tests
     ptr-peeker ^>=0.1,
     ptr-poker ^>=0.1.2.16,
     quickcheck-instances ^>=0.3.33,
-    scientific >=0.3 && <1,
     tagged ^>=0.8.9,
     text >=1.2 && <3,
     text-builder ^>=1.0.0.4,
