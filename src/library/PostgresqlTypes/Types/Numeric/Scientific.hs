@@ -138,7 +138,7 @@ clampToPostgresNumericLimits s =
                 else clampedToScale
 
 -- | Round a Scientific value to a specific scale (number of decimal places)
--- Uses proper rounding (banker's rounding / round half to even)
+-- Uses round ties away from zero (PostgreSQL numeric rounding behavior)
 roundToScale :: Int -> Scientific.Scientific -> Scientific.Scientific
 roundToScale sc s =
   let currentExp = Scientific.base10Exponent s
@@ -152,17 +152,12 @@ roundToScale sc s =
               divisor = 10 ^ scaleDiff
               (quotient, remainder) = abs coeff `divMod` divisor
               absRemainder = abs remainder
-              -- Round half to even (banker's rounding)
+              -- Round ties away from zero (PostgreSQL behavior)
+              -- If remainder * 2 >= divisor, round away from zero
               roundedQuotient =
-                if absRemainder * 2 > divisor
+                if absRemainder * 2 >= divisor
                   then quotient + 1
-                  else
-                    if absRemainder * 2 < divisor
-                      then quotient
-                      else
-                        if even quotient
-                          then quotient
-                          else quotient + 1
+                  else quotient
               -- Apply sign
               finalQuotient = if coeff < 0 then negate roundedQuotient else roundedQuotient
            in Scientific.scientific finalQuotient targetExp
