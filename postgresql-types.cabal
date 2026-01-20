@@ -108,6 +108,7 @@ library
   hs-source-dirs: src/library
   exposed-modules:
     PostgresqlTypes
+    PostgresqlTypes.Types.Numeric
 
   other-modules:
     PostgresqlTypes.Prelude
@@ -140,7 +141,8 @@ library
     PostgresqlTypes.Types.Macaddr8
     PostgresqlTypes.Types.Money
     PostgresqlTypes.Types.Multirange
-    PostgresqlTypes.Types.Numeric
+    PostgresqlTypes.Types.Numeric.Integer
+    PostgresqlTypes.Types.Numeric.Scientific
     PostgresqlTypes.Types.Oid
     PostgresqlTypes.Types.Path
     PostgresqlTypes.Types.Point
@@ -251,6 +253,9 @@ test-suite unit-tests
   type: exitcode-stdio-1.0
   hs-source-dirs: src/unit-tests
   main-is: Main.hs
+  other-modules:
+    NumericSpec
+
   build-depends:
     QuickCheck >=2.14 && <3,
     aeson >=2.2 && <3,

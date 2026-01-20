@@ -7,7 +7,6 @@ import Data.Foldable
 import Data.Int
 import qualified Data.Map.Strict as Map
 import Data.Proxy
-import qualified Data.Scientific as Scientific
 import Data.Tagged
 import Data.Text (Text)
 import qualified Data.Text as Text
@@ -19,20 +18,21 @@ import qualified Data.Vector.Unboxed
 import qualified Data.Vector.Unboxed as VU
 import Data.Word
 import qualified LawfulConversions
+import qualified NumericSpec
 import qualified PostgresqlTypes
 import qualified PostgresqlTypes.Algebra
 import qualified PtrPeeker
 import qualified PtrPoker.Write
 import Test.Hspec
 import Test.Hspec.QuickCheck
-import Test.QuickCheck (Arbitrary, (===))
+import Test.QuickCheck
 import qualified Test.QuickCheck as QuickCheck
 import Test.QuickCheck.Instances ()
 import qualified TextBuilder
 import Prelude
 
 main :: IO ()
-main = hspec do
+main = hspec $ parallel do
   testIsScalar @(PostgresqlTypes.Bit 0) Proxy
   testIsScalar @(PostgresqlTypes.Bit 1) Proxy
   testIsScalar @(PostgresqlTypes.Bit 64) Proxy
@@ -61,20 +61,23 @@ main = hspec do
   testIsScalar @PostgresqlTypes.Macaddr Proxy
   testIsScalar @PostgresqlTypes.Macaddr8 Proxy
   testIsScalar @PostgresqlTypes.Money Proxy
-  testIsScalar @PostgresqlTypes.Numeric Proxy
+  testIsScalar @(PostgresqlTypes.Numeric 0 0) Proxy
+  testIsScalar @(PostgresqlTypes.Numeric 10 0) Proxy
+  testIsScalar @(PostgresqlTypes.Numeric 10 2) Proxy
+  testIsScalar @(PostgresqlTypes.Numeric 10 7) Proxy
   testIsScalar @PostgresqlTypes.Oid Proxy
   testIsScalar @PostgresqlTypes.Path Proxy
   testIsScalar @PostgresqlTypes.Point Proxy
   testIsScalar @PostgresqlTypes.Polygon Proxy
   testIsScalar @(PostgresqlTypes.Range PostgresqlTypes.Int4) Proxy
   testIsScalar @(PostgresqlTypes.Range PostgresqlTypes.Int8) Proxy
-  testIsScalar @(PostgresqlTypes.Range PostgresqlTypes.Numeric) Proxy
+  testIsScalar @(PostgresqlTypes.Range (PostgresqlTypes.Numeric 0 0)) Proxy
   testIsScalar @(PostgresqlTypes.Range PostgresqlTypes.Timestamp) Proxy
   testIsScalar @(PostgresqlTypes.Range PostgresqlTypes.Timestamptz) Proxy
   testIsScalar @(PostgresqlTypes.Range PostgresqlTypes.Date) Proxy
   testIsScalar @(PostgresqlTypes.Multirange PostgresqlTypes.Int4) Proxy
   testIsScalar @(PostgresqlTypes.Multirange PostgresqlTypes.Int8) Proxy
-  testIsScalar @(PostgresqlTypes.Multirange PostgresqlTypes.Numeric) Proxy
+  testIsScalar @(PostgresqlTypes.Multirange (PostgresqlTypes.Numeric 0 0)) Proxy
   testIsScalar @(PostgresqlTypes.Multirange PostgresqlTypes.Timestamp) Proxy
   testIsScalar @(PostgresqlTypes.Multirange PostgresqlTypes.Timestamptz) Proxy
   testIsScalar @(PostgresqlTypes.Multirange PostgresqlTypes.Date) Proxy
@@ -98,7 +101,6 @@ main = hspec do
   testIs @PostgresqlTypes.Macaddr @(Word8, Word8, Word8, Word8, Word8, Word8) Proxy Proxy
   testIs @PostgresqlTypes.Macaddr8 @(Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) Proxy Proxy
   testIs @PostgresqlTypes.Money @Int64 Proxy Proxy
-  testIs @PostgresqlTypes.Numeric @(Maybe Scientific.Scientific) Proxy Proxy
   testIs @PostgresqlTypes.Oid @Word32 Proxy Proxy
   testIs @PostgresqlTypes.Point @(Double, Double) Proxy Proxy
   testIs @PostgresqlTypes.Uuid @UUID.UUID Proxy Proxy
@@ -131,7 +133,7 @@ main = hspec do
   testIsMany @PostgresqlTypes.Money @Int64 Proxy Proxy
   testIsMany @(PostgresqlTypes.Multirange PostgresqlTypes.Int4) @(Vector (PostgresqlTypes.Range PostgresqlTypes.Int4)) Proxy Proxy
   testIsMany @(PostgresqlTypes.Multirange PostgresqlTypes.Int8) @(Vector (PostgresqlTypes.Range PostgresqlTypes.Int8)) Proxy Proxy
-  testIsMany @(PostgresqlTypes.Multirange PostgresqlTypes.Numeric) @(Vector (PostgresqlTypes.Range PostgresqlTypes.Numeric)) Proxy Proxy
+  testIsMany @(PostgresqlTypes.Multirange (PostgresqlTypes.Numeric 0 0)) @(Vector (PostgresqlTypes.Range (PostgresqlTypes.Numeric 0 0))) Proxy Proxy
   testIsMany @(PostgresqlTypes.Multirange PostgresqlTypes.Timestamp) @(Vector (PostgresqlTypes.Range PostgresqlTypes.Timestamp)) Proxy Proxy
   testIsMany @(PostgresqlTypes.Multirange PostgresqlTypes.Timestamptz) @(Vector (PostgresqlTypes.Range PostgresqlTypes.Timestamptz)) Proxy Proxy
   testIsMany @(PostgresqlTypes.Multirange PostgresqlTypes.Date) @(Vector (PostgresqlTypes.Range PostgresqlTypes.Date)) Proxy Proxy
@@ -139,7 +141,7 @@ main = hspec do
   testIsMany @PostgresqlTypes.Point @(Double, Double) Proxy Proxy
   testIsMany @(PostgresqlTypes.Range PostgresqlTypes.Int4) @(Maybe (Maybe PostgresqlTypes.Int4, Maybe PostgresqlTypes.Int4)) Proxy Proxy
   testIsMany @(PostgresqlTypes.Range PostgresqlTypes.Int8) @(Maybe (Maybe PostgresqlTypes.Int8, Maybe PostgresqlTypes.Int8)) Proxy Proxy
-  testIsMany @(PostgresqlTypes.Range PostgresqlTypes.Numeric) @(Maybe (Maybe PostgresqlTypes.Numeric, Maybe PostgresqlTypes.Numeric)) Proxy Proxy
+  testIsMany @(PostgresqlTypes.Range (PostgresqlTypes.Numeric 0 0)) @(Maybe (Maybe (PostgresqlTypes.Numeric 0 0), Maybe (PostgresqlTypes.Numeric 0 0))) Proxy Proxy
   testIsMany @(PostgresqlTypes.Range PostgresqlTypes.Timestamp) @(Maybe (Maybe PostgresqlTypes.Timestamp, Maybe PostgresqlTypes.Timestamp)) Proxy Proxy
   testIsMany @(PostgresqlTypes.Range PostgresqlTypes.Timestamptz) @(Maybe (Maybe PostgresqlTypes.Timestamptz, Maybe PostgresqlTypes.Timestamptz)) Proxy Proxy
   testIsMany @(PostgresqlTypes.Range PostgresqlTypes.Date) @(Maybe (Maybe PostgresqlTypes.Date, Maybe PostgresqlTypes.Date)) Proxy Proxy
@@ -153,13 +155,13 @@ main = hspec do
   testIsMany @PostgresqlTypes.Uuid @UUID.UUID Proxy Proxy
   testIsMany @(PostgresqlTypes.Varchar 0) @Text.Text Proxy Proxy
   testIsMany @(PostgresqlTypes.Varchar 255) @Text.Text Proxy Proxy
-  testIsMany @Scientific.Scientific @PostgresqlTypes.Numeric Proxy Proxy
   testIsSome @PostgresqlTypes.Path @(Bool, [(Double, Double)]) Proxy Proxy
   testIsSome @PostgresqlTypes.Path @(Bool, (Data.Vector.Unboxed.Vector (Double, Double))) Proxy Proxy
   testIsSome @PostgresqlTypes.Polygon @(Data.Vector.Unboxed.Vector (Double, Double)) Proxy Proxy
   testIsSome @PostgresqlTypes.Polygon @[(Double, Double)] Proxy Proxy
   testIsSomeBounded @PostgresqlTypes.Time @TimeOfDay Proxy Proxy
   testIsSomeBounded @PostgresqlTypes.TimetzAsTimeOfDayAndTimeZone @(TimeOfDay, TimeZone) Proxy Proxy
+  describe "Numeric" NumericSpec.spec
 
 -- | Test lawful conversions for a PostgreSQL type
 testIsMany ::
@@ -292,7 +294,8 @@ testIsScalar _ =
                   QuickCheck.property \(value :: a) ->
                     let encoded = TextBuilder.toText (txtEnc value)
                         decoding = Data.Attoparsec.Text.parseOnly txtDec encoded
-                     in decoding === Right value
+                     in counterexample ("Encoded: " ++ show encoded) $
+                          decoding === Right value
 
             describe "Encoding via binaryEncoder" do
               describe "And decoding via binaryDecoder" do
