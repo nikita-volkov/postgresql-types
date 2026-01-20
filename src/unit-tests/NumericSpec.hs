@@ -25,7 +25,7 @@ spec = do
       Numeric.normalizeToScientific normalized `shouldBe` Scientific.scientific 99999 (-2)
 
     it "rejects values exceeding precision for Numeric(5,2)" do
-      let invalid = Scientific.scientific 1234567 (-2) -- 12345.67 -> 7 significant digits > 5
+      let invalid = Scientific.scientific 1234567 (-2) -- 12345.67 -> 7 total digits > precision 5
       Numeric.projectFromScientific @5 @2 invalid `shouldBe` Nothing
 
     it "accepts valid values for Numeric(5,2)" do
