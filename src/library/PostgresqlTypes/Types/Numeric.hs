@@ -317,7 +317,10 @@ normalizeFromScientific s =
       sc = fromIntegral (TypeLits.natVal (Proxy @scale)) :: Int
    in if prec == 0 && sc == 0
         then ScientificNumeric (Scientific.clampToPostgresNumericLimits s)
-        else ScientificNumeric (Scientific.clampToPrecisionAndScale prec sc s)
+        else
+          if sc > prec
+            then NanNumeric -- Invalid configuration: scale cannot exceed precision
+            else ScientificNumeric (Scientific.clampToPrecisionAndScale prec sc s)
 
 -- | Converts a 'Numeric' value to 'Scientific.Scientific' if possible.
 -- Returns 'Nothing' for special values like 'NanNumeric', 'PosInfinityNumeric', and 'NegInfinityNumeric'.
@@ -339,6 +342,9 @@ projectFromScientific s =
             then Just (ScientificNumeric s)
             else Nothing
         else
-          if Scientific.validateNumericPrecisionScale prec sc s
-            then Just (ScientificNumeric s)
-            else Nothing
+          if sc > prec
+            then Nothing -- Invalid configuration: scale cannot exceed precision
+            else
+              if Scientific.validateNumericPrecisionScale prec sc s
+                then Just (ScientificNumeric s)
+                else Nothing

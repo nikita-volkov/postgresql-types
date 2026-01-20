@@ -17,15 +17,26 @@ validateNumericPrecisionScale prec sc s =
   let coeff = Scientific.coefficient s
       exp = Scientific.base10Exponent s
 
+      -- Normalize the scientific to remove trailing zeros from the coefficient
+      -- This ensures we get a canonical representation for scale checking
+      normalized = Scientific.normalize s
+      normExp = Scientific.base10Exponent normalized
+
+      -- First check: the actual scale (digits after decimal) must not exceed declared scale
+      -- A negative exponent indicates digits after decimal point
+      -- We use the normalized representation to get the true scale
+      actualScale = if normExp < 0 then abs normExp else 0
+      scaleValid = actualScale <= sc
+
       -- We need to count significant digits
       -- Significant digits are all non-zero digits plus any zeros between them or after the first non-zero digit
       -- For a value like 123.45, that's 5 significant digits
       -- For a value like 0.0012, that's 2 significant digits (leading zeros don't count)
       -- For a value like 120, that's 3 significant digits (trailing zeros do count)
 
-      -- First, normalize to scale
+      -- Normalize to scale for precision check
       targetExp = negate sc
-      normalized =
+      scaledForPrecision =
         if exp >= targetExp
           then Scientific.scientific coeff exp
           else
@@ -34,12 +45,12 @@ validateNumericPrecisionScale prec sc s =
                 divisor = 10 ^ shift
              in Scientific.scientific (coeff `div` divisor) targetExp
 
-      normalizedCoeff = Scientific.coefficient normalized
+      scaledCoeff = Scientific.coefficient scaledForPrecision
 
       -- Count significant digits: for a value normalized to scale digits after decimal point,
       -- significant digits are all digits in the coefficient (excluding leading zeros if coefficient < 10^scale)
       -- But we need to handle the case where abs(coeff) < 10^scale (leading zeros)
-      absCoeff = abs normalizedCoeff
+      absCoeff = abs scaledCoeff
 
       -- If coefficient is 0, we have 1 significant digit
       sigDigits =
@@ -52,7 +63,7 @@ validateNumericPrecisionScale prec sc s =
                 -- The significant digits are just the digits in coeff
                 -- For 123.45 with scale=2, coeff=12345, totalDigits=5, sigDigits=5
                 totalDigitsInCoeff
-   in sigDigits <= prec
+   in scaleValid && sigDigits <= prec
 
 -- | Validates that a Scientific value fits within PostgreSQL's numeric type limits:
 -- - Up to 131072 digits before decimal point

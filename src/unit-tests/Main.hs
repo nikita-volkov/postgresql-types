@@ -32,7 +32,7 @@ import qualified TextBuilder
 import Prelude
 
 main :: IO ()
-main = hspec do
+main = hspec $ parallel do
   testIsScalar @(PostgresqlTypes.Bit 0) Proxy
   testIsScalar @(PostgresqlTypes.Bit 1) Proxy
   testIsScalar @(PostgresqlTypes.Bit 64) Proxy
