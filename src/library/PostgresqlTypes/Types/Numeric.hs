@@ -6,6 +6,9 @@ module PostgresqlTypes.Types.Numeric
     isNaN,
     isPosInfinity,
     isNegInfinity,
+    nan,
+    posInfinity,
+    negInfinity,
     normalizeToScientific,
     normalizeFromScientific,
     projectToScientific,
@@ -276,6 +279,18 @@ isNaN :: Numeric precision scale -> Bool
 isNaN = \case
   NanNumeric -> True
   _ -> False
+
+-- | Represents '+Infinity' value for 'Numeric' type.
+posInfinity :: Numeric precision scale
+posInfinity = PosInfinityNumeric
+
+-- | Represents '-Infinity' value for 'Numeric' type.
+negInfinity :: Numeric precision scale
+negInfinity = NegInfinityNumeric
+
+-- | Represents 'NaN' value for 'Numeric' type.
+nan :: Numeric precision scale
+nan = NanNumeric
 
 -- | Normalizes a 'Numeric' value to 'Scientific.Scientific'.
 --

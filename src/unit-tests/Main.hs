@@ -18,6 +18,7 @@ import qualified Data.Vector.Unboxed
 import qualified Data.Vector.Unboxed as VU
 import Data.Word
 import qualified LawfulConversions
+import qualified NumericSpec
 import qualified PostgresqlTypes
 import qualified PostgresqlTypes.Algebra
 import qualified PtrPeeker
@@ -160,6 +161,7 @@ main = hspec do
   testIsSome @PostgresqlTypes.Polygon @[(Double, Double)] Proxy Proxy
   testIsSomeBounded @PostgresqlTypes.Time @TimeOfDay Proxy Proxy
   testIsSomeBounded @PostgresqlTypes.TimetzAsTimeOfDayAndTimeZone @(TimeOfDay, TimeZone) Proxy Proxy
+  describe "Numeric" NumericSpec.spec
 
 -- | Test lawful conversions for a PostgreSQL type
 testIsMany ::
