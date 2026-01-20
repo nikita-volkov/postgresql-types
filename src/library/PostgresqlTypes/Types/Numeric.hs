@@ -19,6 +19,7 @@ import qualified Data.Text as Text
 import qualified GHC.TypeLits as TypeLits
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude hiding (isNaN)
+import qualified PostgresqlTypes.Types.Numeric.Integer as Integer
 import qualified PostgresqlTypes.Types.Numeric.Scientific as Scientific
 import PostgresqlTypes.Via
 import qualified PtrPeeker
@@ -127,7 +128,7 @@ instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsScalar (Num
         exponent =
           Scientific.base10Exponent x
         components =
-          extractComponents tunedCoefficient
+          Integer.extractComponents tunedCoefficient
         pointIndex =
           componentsAmount + (tunedExponent `div` 4) - 1
         (tunedCoefficient, tunedExponent) =
@@ -326,11 +327,3 @@ projectFromScientific s =
           if Scientific.validateNumericPrecisionScale prec sc s
             then Just (ScientificNumeric s)
             else Nothing
-
-{-# INLINE extractComponents #-}
-extractComponents :: (Integral a) => a -> [Word16]
-extractComponents =
-  (reverse .) . (. abs) . unfoldr $ \case
-    0 -> Nothing
-    x -> case divMod x 10000 of
-      (d, m) -> Just (fromIntegral m, d)
