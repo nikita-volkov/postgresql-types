@@ -1,5 +1,6 @@
 module NumericSpec (spec) where
 
+import Control.Monad
 import Data.Proxy (Proxy (..))
 import qualified Data.Scientific as Scientific
 import Data.Typeable (Typeable, typeRep)
@@ -13,10 +14,11 @@ import Prelude
 
 spec :: Spec
 spec = do
-  describe "roundtrips" do
-    roundtripSuite (Proxy @0) (Proxy @0)
-    roundtripSuite (Proxy @10) (Proxy @4)
-    roundtripSuite (Proxy @5) (Proxy @2)
+  describe "By precision and scale" do
+    byPrecisionAndScale (Proxy @0) (Proxy @0)
+    byPrecisionAndScale (Proxy @10) (Proxy @4)
+    byPrecisionAndScale (Proxy @5) (Proxy @2)
+    byPrecisionAndScale (Proxy @5) (Proxy @0)
 
   describe "clamping and validation" do
     it "clamps to scale and precision for Numeric(5,2)" do
@@ -57,8 +59,50 @@ spec = do
       Numeric.projectToScientific (Numeric.posInfinity :: Numeric.Numeric 0 0) `shouldBe` Nothing
       Numeric.projectToScientific (Numeric.negInfinity :: Numeric.Numeric 0 0) `shouldBe` Nothing
 
+  describe "Invalid type params" do
+    describe "projectFromScientific" do
+      it "Fails on any scientific" do
+        QuickCheck.property \(sci :: Scientific.Scientific) ->
+          Numeric.projectFromScientific @2 @5 sci === Nothing
+
+    describe "normalizeFromScientific" do
+      it "Always returns NaN" do
+        QuickCheck.property \(sci :: Scientific.Scientific) ->
+          let normalized = Numeric.normalizeFromScientific @2 @5 sci
+           in Numeric.isNaN normalized
+
+  describe "Valid type params" do
+    describe "projectFromScientific" do
+      it "Rejects values exceeding scale" do
+        let sci = Scientific.scientific 12345 (-3) -- 12.345 has scale 3 > 2
+        Numeric.projectFromScientific @5 @2 sci `shouldBe` Nothing
+
+      it "Rejects values exceeding precision" do
+        let sci = Scientific.scientific 123456 (-2) -- 12345.6 has precision 6 > 5
+        Numeric.projectFromScientific @5 @2 sci `shouldBe` Nothing
+
+      it "Accepts values within precision and scale" do
+        let sci = Scientific.scientific 12345 (-2) -- 123.45 fits precision and scale
+        Numeric.projectFromScientific @5 @2 sci `shouldBe` Just (Numeric.normalizeFromScientific sci)
+
+    describe "normalizeFromScientific" do
+      it "Clamps scale to 2" do
+        let sci = Scientific.scientific 12345 (-4) -- 1.2345 has scale 4 > 2
+            normalized = Numeric.normalizeFromScientific @5 @2 sci
+        Numeric.normalizeToScientific normalized `shouldBe` Scientific.scientific 123 (-2)
+
+      it "Clamps when input is larger than max" do
+        let sci = Scientific.scientific 1234567 (-2) -- 12345.67 has precision 7 > 5
+            normalized = Numeric.normalizeFromScientific @5 @2 sci
+        Numeric.normalizeToScientific normalized `shouldBe` read "999.99"
+
+      it "Clamps when input is smaller than min" do
+        let sci = read "-10000"
+            normalized = Numeric.normalizeFromScientific @5 @2 sci
+        Numeric.normalizeToScientific normalized `shouldBe` read "-999.99"
+
 -- | Property suites shared across several numeric precisions/scales.
-roundtripSuite ::
+byPrecisionAndScale ::
   forall precision scale.
   ( TypeLits.KnownNat precision,
     TypeLits.KnownNat scale,
@@ -70,7 +114,10 @@ roundtripSuite ::
   Proxy precision ->
   Proxy scale ->
   Spec
-roundtripSuite _ _ =
+byPrecisionAndScale _ _ = do
+  let precision = fromIntegral (TypeLits.natVal (Proxy @precision)) :: Int
+      scale = fromIntegral (TypeLits.natVal (Proxy @scale)) :: Int
+
   describe (show (typeRep (Proxy @(Numeric.Numeric precision scale)))) do
     it "project -> normalize restores finite values" do
       QuickCheck.property \(value :: Numeric.Numeric precision scale) ->
@@ -89,3 +136,11 @@ roundtripSuite _ _ =
         let value = Numeric.normalizeFromScientific @precision @scale sci
             normalizedSci = Numeric.normalizeToScientific value
          in Numeric.projectFromScientific @precision @scale normalizedSci === Just value
+
+    when (precision > 0) do
+      it "rounds the input scientific to the correct scale" do
+        QuickCheck.property \(sci :: Scientific.Scientific) ->
+          let value = Numeric.normalizeFromScientific @precision @scale sci
+              normalizedSci = Numeric.normalizeToScientific value
+              actualScale = negate (Scientific.base10Exponent normalizedSci)
+           in actualScale <= scale
