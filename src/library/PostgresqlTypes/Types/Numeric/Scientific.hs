@@ -144,20 +144,27 @@ roundToScale sc s =
   let currentExp = Scientific.base10Exponent s
       targetExp = negate sc
       coeff = Scientific.coefficient s
-   in if currentExp >= targetExp
-        then s -- Already has fewer or equal decimal places than target
+   in if currentExp == targetExp
+        then s -- Already at exact target scale
         else
-          -- Need to round: convert to the target scale
-          let scaleDiff = targetExp - currentExp
-              divisor = 10 ^ scaleDiff
-              (quotient, remainder) = abs coeff `divMod` divisor
-              absRemainder = abs remainder
-              -- Round ties away from zero (PostgreSQL behavior)
-              -- If remainder * 2 >= divisor, round away from zero
-              roundedQuotient =
-                if absRemainder * 2 >= divisor
-                  then quotient + 1
-                  else quotient
-              -- Apply sign
-              finalQuotient = if coeff < 0 then negate roundedQuotient else roundedQuotient
-           in Scientific.scientific finalQuotient targetExp
+          if currentExp > targetExp
+            then
+              -- Need to add decimal places: scale up coefficient
+              let scaleDiff = currentExp - targetExp
+                  scaledCoeff = coeff * (10 ^ scaleDiff)
+               in Scientific.scientific scaledCoeff targetExp
+            else
+              -- Need to round: convert to the target scale
+              let scaleDiff = targetExp - currentExp
+                  divisor = 10 ^ scaleDiff
+                  (quotient, remainder) = abs coeff `divMod` divisor
+                  absRemainder = abs remainder
+                  -- Round ties away from zero (PostgreSQL behavior)
+                  -- If remainder * 2 >= divisor, round away from zero
+                  roundedQuotient =
+                    if absRemainder * 2 >= divisor
+                      then quotient + 1
+                      else quotient
+                  -- Apply sign
+                  finalQuotient = if coeff < 0 then negate roundedQuotient else roundedQuotient
+               in Scientific.scientific finalQuotient targetExp
