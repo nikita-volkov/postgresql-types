@@ -8,8 +8,8 @@ convertFromMinutes = minutesToTimeZone
 
 -- |
 -- Normalize, canonicalize, compress.
-compressFromSeconds :: Int -> TimeZone
-compressFromSeconds seconds =
+normalizeFromSeconds :: Int -> TimeZone
+normalizeFromSeconds seconds =
   if seconds < 0
     then fromSignerAndAbsSeconds negate (negate seconds)
     else fromSignerAndAbsSeconds id seconds

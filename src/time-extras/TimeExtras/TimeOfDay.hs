@@ -12,8 +12,8 @@ convertFromMicroseconds microseconds =
       picoseconds = MkFixed (fromIntegral microseconds' * 1_000_000)
    in TimeOfDay hours minutes' picoseconds
 
-compressToMicroseconds :: TimeOfDay -> Int
-compressToMicroseconds (TimeOfDay hours minutes picoseconds) =
+normalizeToMicroseconds :: TimeOfDay -> Int
+normalizeToMicroseconds (TimeOfDay hours minutes picoseconds) =
   let MkFixed picoseconds' = picoseconds
       microseconds = div picoseconds' 1_000_000
       microseconds' = fromIntegral ((hours * 60 + minutes) * 60) * 1_000_000 + fromIntegral microseconds

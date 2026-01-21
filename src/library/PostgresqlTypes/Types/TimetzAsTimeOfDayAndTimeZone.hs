@@ -27,7 +27,7 @@ instance Bounded TimetzAsTimeOfDayAndTimeZone where
 
 instance IsSome Timetz TimetzAsTimeOfDayAndTimeZone where
   to (TimetzAsTimeOfDayAndTimeZone timeOfDay timeZone) =
-    let time = TimeOfDay.compressToMicroseconds timeOfDay
+    let time = TimeOfDay.normalizeToMicroseconds timeOfDay
         offset = TimeZone.convertToSeconds timeZone
      in onfrom @(Int64, Int32) (fromIntegral time, fromIntegral offset)
   maybeFrom timetz = do
@@ -41,7 +41,7 @@ instance IsMany Timetz TimetzAsTimeOfDayAndTimeZone where
     let (time, offset) = to @(Int64, Int32) timetz
      in TimetzAsTimeOfDayAndTimeZone
           (TimeOfDay.convertFromMicroseconds (fromIntegral time))
-          (TimeZone.compressFromSeconds (fromIntegral offset))
+          (TimeZone.normalizeFromSeconds (fromIntegral offset))
 
 instance IsSome (Time.TimeOfDay, Time.TimeZone) TimetzAsTimeOfDayAndTimeZone where
   to (TimetzAsTimeOfDayAndTimeZone timeOfDay timeZone) =
@@ -54,7 +54,7 @@ instance IsSome (Time.TimeOfDay, Time.TimeZone) TimetzAsTimeOfDayAndTimeZone whe
 
 instance IsMany (Time.TimeOfDay, Time.TimeZone) TimetzAsTimeOfDayAndTimeZone where
   onfrom (timeOfDay, timeZone) =
-    let time = fromIntegral (TimeOfDay.compressToMicroseconds timeOfDay) :: Int64
+    let time = fromIntegral (TimeOfDay.normalizeToMicroseconds timeOfDay) :: Int64
         offset = fromIntegral (TimeZone.convertToSeconds timeZone) :: Int32
         timetz = onfrom (time, offset) :: Timetz
      in onfrom timetz
