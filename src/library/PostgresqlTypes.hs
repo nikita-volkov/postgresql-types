@@ -1,7 +1,11 @@
 -- |
--- Haskell representations of PostgreSQL data structures in their canonical forms that directly correspond to their PostgreSQL definitions. No data loss.
+-- Haskell representations of PostgreSQL data structures in their canonical forms that directly correspond to their PostgreSQL definitions. No data loss, no compromise!
 --
--- These types do not necessarily have direct mappings to the common Haskell types. E.g., any @text@ value from PostgreSQL makes valid 'Data.Text.Text' values in Haskell, but not every Haskell 'Data.Text.Text` value makes valid PostgreSQL @text@, because PostgreSQL does not allow NUL-bytes in text fields, but Haskell's 'Data.Text.Text' does. In case of dates the supported date ranges may differ between PostgreSQL and Haskell's \"time\" library. Therefore, conversions between these types and common Haskell types may be partial and may fail if the data cannot be represented in the target type.
+-- The philosophy behind this package is that nuance matters. PostgreSQL has a rich type system with many types that have subtle differences in their behavior and representation. This package aims to provide Haskell types that accurately reflect these PostgreSQL types, preserving their semantics and constraints.
+--
+-- These types do not necessarily have direct mappings to the common Haskell types. Canonicalizing conversions and smart constructors are provided to address that.
+--
+-- E.g., any @text@ value from PostgreSQL makes valid 'Data.Text.Text' values in Haskell, but not every Haskell 'Data.Text.Text` value makes valid PostgreSQL @text@, because PostgreSQL does not allow NUL-bytes in text fields, but Haskell's 'Data.Text.Text' does. In case of dates the supported date ranges may differ between PostgreSQL and Haskell's \"time\" library. Therefore, conversions between these types and common Haskell types may be partial and may fail if the data cannot be represented in the target type.
 --
 -- = Type Categories
 --
@@ -14,16 +18,16 @@
 -- * 'Int8' - 8-byte signed integer (@int8@ \/ @bigint@)
 -- * 'Float4' - Single-precision floating point (@float4@ \/ @real@)
 -- * 'Float8' - Double-precision floating point (@float8@ \/ @double precision@)
--- * 'Numeric' - Arbitrary precision numeric (@numeric@ \/ @decimal@)
+-- * @'Numeric' precision scale@ - Arbitrary and precise precision numeric (@numeric@ \/ @decimal@)
 -- * 'Money' - Currency amount (@money@)
 -- * 'Oid' - Object identifier (@oid@)
 --
 -- == Character Types
 --
 -- * 'Text' - Variable-length character string (@text@)
--- * 'Varchar' - Variable-length with limit (@varchar@)
+-- * @'Varchar' limit@ - Variable-length with limit (@varchar@)
 -- * 'Char' - Single ASCII character (@char@)
--- * 'Bpchar' - Fixed-length character string (@char(n)@, @character(n)@, or @bpchar(n)@)
+-- * @'Bpchar' length@ - Fixed-length character string (@char(n)@, @character(n)@, or @bpchar(n)@)
 --
 -- == Boolean Type
 --
@@ -40,7 +44,6 @@
 -- * 'Timestamp' - Date and time without time zone (@timestamp@)
 -- * 'Timestamptz' - Date and time with time zone (@timestamptz@)
 -- * 'Timetz' - Time of day with time zone (@timetz@)
--- * 'TimetzAsTimeOfDayAndTimeZone' - Alternative representation of @timetz@
 -- * 'Interval' - Time interval (@interval@)
 -- * 'IntervalAsMicroseconds' - Interval as microseconds
 --
@@ -64,8 +67,8 @@
 --
 -- == Bit String Types
 --
--- * 'Bit' - Fixed-length bit string (@bit@)
--- * 'Varbit' - Variable-length bit string (@varbit@)
+-- * @'Bit' length@ - Fixed-length bit string (@bit@)
+-- * @'Varbit' limit@ - Variable-length bit string (@varbit@)
 --
 -- == UUID Type
 --
