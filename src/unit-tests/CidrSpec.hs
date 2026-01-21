@@ -1,10 +1,11 @@
 module CidrSpec (spec) where
 
+import Data.Bits
 import Data.Maybe
 import Data.Word
 import qualified PostgresqlTypes.Types.Cidr as Cidr
 import Test.Hspec
-import Test.QuickCheck
+import Test.QuickCheck hiding ((.&.))
 import qualified Test.QuickCheck as QuickCheck
 import Prelude
 
