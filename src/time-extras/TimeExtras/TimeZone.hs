@@ -20,8 +20,8 @@ normalizeFromSeconds seconds =
 
 -- |
 -- Compile, distill, rectify seconds. Extract from seconds.
-projectFromSeconds :: Int -> Maybe TimeZone
-projectFromSeconds seconds =
+refineFromSeconds :: Int -> Maybe TimeZone
+refineFromSeconds seconds =
   if seconds < 0
     then fromSignerAndAbsSeconds negate (negate seconds)
     else fromSignerAndAbsSeconds id seconds

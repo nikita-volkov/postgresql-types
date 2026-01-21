@@ -36,29 +36,29 @@ spec = do
           Timetz.toTimeInMicroseconds timetz `shouldBe` 43_200_000_000
           Timetz.toTimeZoneInSeconds timetz `shouldBe` 3600
 
-      describe "projectFromTimeInMicrosecondsAndOffsetInSeconds" do
+      describe "refineFromTimeInMicrosecondsAndOffsetInSeconds" do
         it "rejects time values below minimum" do
-          Timetz.projectFromTimeInMicrosecondsAndOffsetInSeconds (-1) 0 `shouldBe` Nothing
+          Timetz.refineFromTimeInMicrosecondsAndOffsetInSeconds (-1) 0 `shouldBe` Nothing
 
         it "rejects time values above maximum" do
-          Timetz.projectFromTimeInMicrosecondsAndOffsetInSeconds 86_400_000_001 0 `shouldBe` Nothing
+          Timetz.refineFromTimeInMicrosecondsAndOffsetInSeconds 86_400_000_001 0 `shouldBe` Nothing
 
         it "rejects offset values below minimum" do
-          Timetz.projectFromTimeInMicrosecondsAndOffsetInSeconds 0 (-57_600) `shouldBe` Nothing
+          Timetz.refineFromTimeInMicrosecondsAndOffsetInSeconds 0 (-57_600) `shouldBe` Nothing
 
         it "rejects offset values above maximum" do
-          Timetz.projectFromTimeInMicrosecondsAndOffsetInSeconds 0 57_600 `shouldBe` Nothing
+          Timetz.refineFromTimeInMicrosecondsAndOffsetInSeconds 0 57_600 `shouldBe` Nothing
 
         it "accepts minimum time and offset" do
-          let result = Timetz.projectFromTimeInMicrosecondsAndOffsetInSeconds 0 (-57_599)
+          let result = Timetz.refineFromTimeInMicrosecondsAndOffsetInSeconds 0 (-57_599)
           result `shouldSatisfy` isJust
 
         it "accepts maximum time and offset" do
-          let result = Timetz.projectFromTimeInMicrosecondsAndOffsetInSeconds 86_400_000_000 57_599
+          let result = Timetz.refineFromTimeInMicrosecondsAndOffsetInSeconds 86_400_000_000 57_599
           result `shouldSatisfy` isJust
 
         it "accepts valid values within range" do
-          let result = Timetz.projectFromTimeInMicrosecondsAndOffsetInSeconds 43_200_000_000 3600
+          let result = Timetz.refineFromTimeInMicrosecondsAndOffsetInSeconds 43_200_000_000 3600
           result `shouldSatisfy` isJust
 
       describe "normalizeFromTimeOfDayAndTimeZone" do
@@ -83,22 +83,22 @@ spec = do
           Timetz.toTimeInMicroseconds timetz `shouldBe` (15 * 3600 + 30 * 60 + 45) * 1_000_000
           Timetz.toTimeZoneInSeconds timetz `shouldBe` 3600
 
-      describe "projectFromTimeOfDayAndTimeZone" do
+      describe "refineFromTimeOfDayAndTimeZone" do
         it "rejects TimeOfDay that doesn't fit in valid range" do
           -- TimeOfDay with 24:00:00.000001 would exceed maximum
-          let result = Timetz.projectFromTimeOfDayAndTimeZone (Time.TimeOfDay 24 0 0.000001) (Time.TimeZone 0 False "UTC")
+          let result = Timetz.refineFromTimeOfDayAndTimeZone (Time.TimeOfDay 24 0 0.000001) (Time.TimeZone 0 False "UTC")
           result `shouldBe` Nothing
 
         it "accepts midnight (00:00:00)" do
-          let result = Timetz.projectFromTimeOfDayAndTimeZone (Time.TimeOfDay 0 0 0) (Time.TimeZone 0 False "UTC")
+          let result = Timetz.refineFromTimeOfDayAndTimeZone (Time.TimeOfDay 0 0 0) (Time.TimeZone 0 False "UTC")
           result `shouldSatisfy` isJust
 
         it "accepts exactly 24:00:00" do
-          let result = Timetz.projectFromTimeOfDayAndTimeZone (Time.TimeOfDay 24 0 0) (Time.TimeZone 0 False "UTC")
+          let result = Timetz.refineFromTimeOfDayAndTimeZone (Time.TimeOfDay 24 0 0) (Time.TimeZone 0 False "UTC")
           result `shouldSatisfy` isJust
 
         it "accepts valid time and time zone" do
-          let result = Timetz.projectFromTimeOfDayAndTimeZone (Time.TimeOfDay 15 30 45) (Time.TimeZone 60 False "UTC+1")
+          let result = Timetz.refineFromTimeOfDayAndTimeZone (Time.TimeOfDay 15 30 45) (Time.TimeZone 60 False "UTC+1")
           result `shouldSatisfy` isJust
 
     describe "Accessors" do
@@ -132,14 +132,14 @@ spec = do
           -- Should be rounded to nearest minute
           Time.timeZoneMinutes timeZone `shouldSatisfy` (\m -> abs (m - 60) <= 1)
 
-      describe "projectToTimeZone" do
+      describe "refineToTimeZone" do
         it "returns Just for offset that is a multiple of 60" do
           let timetz = Timetz.normalizeFromTimeInMicrosecondsAndOffsetInSeconds 0 3600
-          Timetz.projectToTimeZone timetz `shouldSatisfy` isJust
+          Timetz.refineToTimeZone timetz `shouldSatisfy` isJust
 
         it "returns Nothing for offset that is not a multiple of 60" do
           let timetz = Timetz.normalizeFromTimeInMicrosecondsAndOffsetInSeconds 0 3630
-          Timetz.projectToTimeZone timetz `shouldBe` Nothing
+          Timetz.refineToTimeZone timetz `shouldBe` Nothing
 
     describe "Edge cases" do
       it "handles minimum bound time (00:00:00)" do
@@ -215,12 +215,12 @@ spec = do
           let seconds = Timetz.toTimeZoneInSeconds timetz
            in seconds >= (-57_599) .&&. seconds <= 57_599
 
-      it "normalizeFrom* followed by projectFrom* is identity" do
+      it "normalizeFrom* followed by refineFrom* is identity" do
         QuickCheck.property \(microseconds :: Int64, seconds :: Int32) ->
           let normalized = Timetz.normalizeFromTimeInMicrosecondsAndOffsetInSeconds microseconds seconds
               microseconds' = Timetz.toTimeInMicroseconds normalized
               seconds' = Timetz.toTimeZoneInSeconds normalized
-              projected = Timetz.projectFromTimeInMicrosecondsAndOffsetInSeconds microseconds' seconds'
+              projected = Timetz.refineFromTimeInMicrosecondsAndOffsetInSeconds microseconds' seconds'
            in projected === Just normalized
 
       it "toTimeOfDay followed by normalizeFromTimeOfDay preserves value" do

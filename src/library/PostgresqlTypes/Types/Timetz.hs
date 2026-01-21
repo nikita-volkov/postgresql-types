@@ -6,13 +6,13 @@ module PostgresqlTypes.Types.Timetz
     toTimeZoneInSeconds,
     toTimeOfDay,
     normalizeToTimeZone,
-    projectToTimeZone,
+    refineToTimeZone,
 
     -- * Constructors
     normalizeFromTimeInMicrosecondsAndOffsetInSeconds,
     normalizeFromTimeOfDayAndTimeZone,
-    projectFromTimeInMicrosecondsAndOffsetInSeconds,
-    projectFromTimeOfDayAndTimeZone,
+    refineFromTimeInMicrosecondsAndOffsetInSeconds,
+    refineFromTimeOfDayAndTimeZone,
   )
 where
 
@@ -90,7 +90,7 @@ instance IsScalar Timetz where
     let timeMicros = fromIntegral h * 3600_000_000 + fromIntegral m * 60_000_000 + fromIntegral s * 1_000_000 + micros
         -- Note: PostgreSQL stores offset with inverted sign (positive means west of UTC)
         offsetSeconds = negate sign * (fromIntegral tzH * 3600 + fromIntegral tzM * 60 + fromIntegral tzS)
-    case (Time.projectFromMicroseconds timeMicros, Offset.projectFromSeconds offsetSeconds) of
+    case (Time.refineFromMicroseconds timeMicros, Offset.refineFromSeconds offsetSeconds) of
       (Just time, Just offset) -> pure (Timetz time offset)
       _ -> fail "Invalid timetz value"
     where
@@ -110,8 +110,8 @@ instance IsSome (Int64, Int32) Timetz where
   to (Timetz time offset) =
     (Time.toMicroseconds time, Offset.toSeconds offset)
   maybeFrom (microseconds, offset) = do
-    time <- Time.projectFromMicroseconds microseconds
-    offset <- Offset.projectFromSeconds offset
+    time <- Time.refineFromMicroseconds microseconds
+    offset <- Offset.refineFromSeconds offset
     pure (Timetz time offset)
 
 -- | Normalize from time in microseconds and time zone offset in seconds, ensuring valid time range.
@@ -152,8 +152,8 @@ normalizeToTimeZone :: Timetz -> TimeLib.TimeZone
 normalizeToTimeZone (Timetz _ offset) = Offset.normalizeToTimeZone offset
 
 -- | Try to extract time zone, failing if the offset in seconds is not a multiple of 60.
-projectToTimeZone :: Timetz -> Maybe TimeLib.TimeZone
-projectToTimeZone (Timetz _ offset) = Offset.projectToTimeZone offset
+refineToTimeZone :: Timetz -> Maybe TimeLib.TimeZone
+refineToTimeZone (Timetz _ offset) = Offset.refineToTimeZone offset
 
 -- * Constructors
 
@@ -170,15 +170,15 @@ normalizeFromTimeOfDayAndTimeZone timeOfDay timeZone =
    in Timetz time offset
 
 -- | Try to construct 'Timetz' from time in microseconds since midnight and time zone offset in seconds, failing if out of range.
-projectFromTimeInMicrosecondsAndOffsetInSeconds :: Int64 -> Int32 -> Maybe Timetz
-projectFromTimeInMicrosecondsAndOffsetInSeconds microseconds offset = do
-  time <- Time.projectFromMicroseconds microseconds
-  offset <- Offset.projectFromSeconds offset
+refineFromTimeInMicrosecondsAndOffsetInSeconds :: Int64 -> Int32 -> Maybe Timetz
+refineFromTimeInMicrosecondsAndOffsetInSeconds microseconds offset = do
+  time <- Time.refineFromMicroseconds microseconds
+  offset <- Offset.refineFromSeconds offset
   pure (Timetz time offset)
 
 -- | Try to construct 'Timetz' from 'TimeLib.TimeOfDay' and 'TimeLib.TimeZone', failing if out of range.
-projectFromTimeOfDayAndTimeZone :: TimeLib.TimeOfDay -> TimeLib.TimeZone -> Maybe Timetz
-projectFromTimeOfDayAndTimeZone timeOfDay timeZone = do
-  time <- Time.projectFromTimeOfDay timeOfDay
-  offset <- Offset.projectFromTimeZone timeZone
+refineFromTimeOfDayAndTimeZone :: TimeLib.TimeOfDay -> TimeLib.TimeZone -> Maybe Timetz
+refineFromTimeOfDayAndTimeZone timeOfDay timeZone = do
+  time <- Time.refineFromTimeOfDay timeOfDay
+  offset <- Offset.refineFromTimeZone timeZone
   pure (Timetz time offset)

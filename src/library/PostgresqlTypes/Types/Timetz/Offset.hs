@@ -28,23 +28,23 @@ extemeInSeconds =
 toSeconds :: TimetzOffset -> Int32
 toSeconds (TimetzOffset seconds) = seconds
 
-projectToTimeZone :: TimetzOffset -> Maybe Time.TimeZone
-projectToTimeZone =
-  TimeZone.projectFromSeconds . fromIntegral . toSeconds
+refineToTimeZone :: TimetzOffset -> Maybe Time.TimeZone
+refineToTimeZone =
+  TimeZone.refineFromSeconds . fromIntegral . toSeconds
 
 normalizeToTimeZone :: TimetzOffset -> Time.TimeZone
 normalizeToTimeZone =
   TimeZone.normalizeFromSeconds . fromIntegral . toSeconds
 
-projectFromSeconds :: Int32 -> Maybe TimetzOffset
-projectFromSeconds seconds
+refineFromSeconds :: Int32 -> Maybe TimetzOffset
+refineFromSeconds seconds
   | seconds >= toSeconds minBound && seconds <= toSeconds maxBound = Just (TimetzOffset seconds)
   | otherwise = Nothing
 
-projectFromTimeZone :: Time.TimeZone -> Maybe TimetzOffset
-projectFromTimeZone (Time.TimeZone minutes _ _) =
+refineFromTimeZone :: Time.TimeZone -> Maybe TimetzOffset
+refineFromTimeZone (Time.TimeZone minutes _ _) =
   let seconds = fromIntegral (minutes * 60)
-   in projectFromSeconds seconds
+   in refineFromSeconds seconds
 
 -- | Clamp seconds to the valid range.
 normalizeFromSeconds :: Int32 -> TimetzOffset

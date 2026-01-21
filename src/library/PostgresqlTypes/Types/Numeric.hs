@@ -9,14 +9,14 @@ module PostgresqlTypes.Types.Numeric
     isPosInfinity,
     isNegInfinity,
     normalizeToScientific,
-    projectToScientific,
+    refineToScientific,
 
     -- * Constructors.
     nan,
     posInfinity,
     negInfinity,
     normalizeFromScientific,
-    projectFromScientific,
+    refineFromScientific,
   )
 where
 
@@ -328,15 +328,15 @@ normalizeFromScientific s =
 
 -- | Converts a 'Numeric' value to 'Scientific.Scientific' if possible.
 -- Returns 'Nothing' for special values like 'NanNumeric', 'PosInfinityNumeric', and 'NegInfinityNumeric'.
-projectToScientific :: Numeric precision scale -> Maybe Scientific.Scientific
-projectToScientific = \case
+refineToScientific :: Numeric precision scale -> Maybe Scientific.Scientific
+refineToScientific = \case
   ScientificNumeric s -> Just s
   _ -> Nothing
 
 -- | Converts a 'Scientific.Scientific' value to 'Numeric' with validation.
 -- Returns 'Nothing' if the value does not fit within the specified precision and scale constraints.
-projectFromScientific :: forall precision scale. (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => Scientific.Scientific -> Maybe (Numeric precision scale)
-projectFromScientific s =
+refineFromScientific :: forall precision scale. (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => Scientific.Scientific -> Maybe (Numeric precision scale)
+refineFromScientific s =
   let prec = fromIntegral (TypeLits.natVal (Proxy @precision)) :: Int
       sc = fromIntegral (TypeLits.natVal (Proxy @scale)) :: Int
    in if prec == 0 && sc == 0

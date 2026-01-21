@@ -27,17 +27,17 @@ spec = do
 
     it "rejects values exceeding precision for Numeric(5,2)" do
       let invalid = Scientific.scientific 1234567 (-2) -- 12345.67 -> 7 total digits > precision 5
-      Numeric.projectFromScientific @5 @2 invalid `shouldBe` Nothing
+      Numeric.refineFromScientific @5 @2 invalid `shouldBe` Nothing
 
     it "accepts valid values for Numeric(5,2)" do
       let valid = Scientific.scientific 12345 (-2) -- 123.45 fits precision and scale
-      Numeric.projectFromScientific @5 @2 valid `shouldBe` Just (Numeric.normalizeFromScientific valid)
+      Numeric.refineFromScientific @5 @2 valid `shouldBe` Just (Numeric.normalizeFromScientific valid)
 
     it "rejects scientifics outside PostgreSQL limits for Numeric(0,0)" do
       let tooManyIntegerDigits = Scientific.scientific 1 131074 -- digits before decimal exceed 131072
           tooManyFractionDigits = Scientific.scientific 1 (-20000) -- digits after decimal exceed 16383
-      Numeric.projectFromScientific @0 @0 tooManyIntegerDigits `shouldBe` Nothing
-      Numeric.projectFromScientific @0 @0 tooManyFractionDigits `shouldBe` Nothing
+      Numeric.refineFromScientific @0 @0 tooManyIntegerDigits `shouldBe` Nothing
+      Numeric.refineFromScientific @0 @0 tooManyFractionDigits `shouldBe` Nothing
 
   describe "special values" do
     it "normalizeToScientific renders special values as 0" do
@@ -53,16 +53,16 @@ spec = do
       Numeric.isPosInfinity (Numeric.normalizeFromScientific 0 :: Numeric.Numeric 0 0) `shouldBe` False
       Numeric.isNegInfinity (Numeric.normalizeFromScientific 0 :: Numeric.Numeric 0 0) `shouldBe` False
 
-    it "projectToScientific rejects special values" do
-      Numeric.projectToScientific (Numeric.nan :: Numeric.Numeric 0 0) `shouldBe` Nothing
-      Numeric.projectToScientific (Numeric.posInfinity :: Numeric.Numeric 0 0) `shouldBe` Nothing
-      Numeric.projectToScientific (Numeric.negInfinity :: Numeric.Numeric 0 0) `shouldBe` Nothing
+    it "refineToScientific rejects special values" do
+      Numeric.refineToScientific (Numeric.nan :: Numeric.Numeric 0 0) `shouldBe` Nothing
+      Numeric.refineToScientific (Numeric.posInfinity :: Numeric.Numeric 0 0) `shouldBe` Nothing
+      Numeric.refineToScientific (Numeric.negInfinity :: Numeric.Numeric 0 0) `shouldBe` Nothing
 
   describe "Invalid type params" do
-    describe "projectFromScientific" do
+    describe "refineFromScientific" do
       it "Fails on any scientific" do
         QuickCheck.property \(sci :: Scientific.Scientific) ->
-          Numeric.projectFromScientific @2 @5 sci === Nothing
+          Numeric.refineFromScientific @2 @5 sci === Nothing
 
     describe "normalizeFromScientific" do
       it "Always returns NaN" do
@@ -71,18 +71,18 @@ spec = do
            in Numeric.isNaN normalized
 
   describe "Valid type params" do
-    describe "projectFromScientific" do
+    describe "refineFromScientific" do
       it "Rejects values exceeding scale" do
         let sci = Scientific.scientific 12345 (-3) -- 12.345 has scale 3 > 2
-        Numeric.projectFromScientific @5 @2 sci `shouldBe` Nothing
+        Numeric.refineFromScientific @5 @2 sci `shouldBe` Nothing
 
       it "Rejects values exceeding precision" do
         let sci = Scientific.scientific 123456 (-2) -- 12345.6 has precision 6 > 5
-        Numeric.projectFromScientific @5 @2 sci `shouldBe` Nothing
+        Numeric.refineFromScientific @5 @2 sci `shouldBe` Nothing
 
       it "Accepts values within precision and scale" do
         let sci = Scientific.scientific 12345 (-2) -- 123.45 fits precision and scale
-        Numeric.projectFromScientific @5 @2 sci `shouldBe` Just (Numeric.normalizeFromScientific sci)
+        Numeric.refineFromScientific @5 @2 sci `shouldBe` Just (Numeric.normalizeFromScientific sci)
 
     describe "normalizeFromScientific" do
       it "Clamps scale to 2" do
@@ -120,21 +120,21 @@ byPrecisionAndScale _ _ = do
   describe (show (typeRep (Proxy @(Numeric.Numeric precision scale)))) do
     it "project -> normalize restores finite values" do
       QuickCheck.property \(value :: Numeric.Numeric precision scale) ->
-        case Numeric.projectToScientific value of
+        case Numeric.refineToScientific value of
           Nothing -> QuickCheck.property True
           Just sci -> Numeric.normalizeFromScientific @precision @scale sci === value
 
-    it "projectFromScientific . projectToScientific is identity on finite values" do
+    it "refineFromScientific . refineToScientific is identity on finite values" do
       QuickCheck.property \(value :: Numeric.Numeric precision scale) ->
-        case Numeric.projectToScientific value of
+        case Numeric.refineToScientific value of
           Nothing -> QuickCheck.property True
-          Just sci -> Numeric.projectFromScientific @precision @scale sci === Just value
+          Just sci -> Numeric.refineFromScientific @precision @scale sci === Just value
 
     it "normalizeFromScientific produces projectable values" do
       QuickCheck.property \(sci :: Scientific.Scientific) ->
         let value = Numeric.normalizeFromScientific @precision @scale sci
             normalizedSci = Numeric.normalizeToScientific value
-         in Numeric.projectFromScientific @precision @scale normalizedSci === Just value
+         in Numeric.refineFromScientific @precision @scale normalizedSci === Just value
 
     when (precision > 0) do
       it "rounds the input scientific to the correct scale" do
