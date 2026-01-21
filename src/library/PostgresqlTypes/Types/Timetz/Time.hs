@@ -64,19 +64,23 @@ normalizeFromTimeOfDay (Time.TimeOfDay hours minutes picoseconds) =
 
 renderInTextFormat :: TimetzTime -> TextBuilder.TextBuilder
 renderInTextFormat (TimetzTime microseconds) =
-  let (seconds, microseconds') = divMod microseconds 1_000_000
-      (minutes, seconds') = divMod seconds 60
-      (hours, minutes') = divMod minutes 60
-   in mconcat
-        [ TextBuilder.fixedLengthDecimal 2 hours,
-          ":",
-          TextBuilder.fixedLengthDecimal 2 minutes',
-          ":",
-          TextBuilder.fixedLengthDecimal 2 seconds',
-          if microseconds == 0
-            then ""
-            else "." <> TextBuilder.fixedLengthDecimal 6 microseconds'
-        ]
+  -- Handle the special case of 24:00:00 (86400000000 microseconds)
+  if microseconds == 86_400_000_000
+    then "24:00:00"
+    else
+      let (seconds, microseconds') = divMod microseconds 1_000_000
+          (minutes, seconds') = divMod seconds 60
+          (hours, minutes') = divMod minutes 60
+       in mconcat
+            [ TextBuilder.fixedLengthDecimal 2 hours,
+              ":",
+              TextBuilder.fixedLengthDecimal 2 minutes',
+              ":",
+              TextBuilder.fixedLengthDecimal 2 seconds',
+              if microseconds' == 0
+                then ""
+                else "." <> TextBuilder.fixedLengthDecimal 6 microseconds'
+            ]
 
 binaryEncoder :: TimetzTime -> Write.Write
 binaryEncoder (TimetzTime microseconds) =

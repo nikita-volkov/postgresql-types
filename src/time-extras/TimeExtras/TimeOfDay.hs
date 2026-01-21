@@ -7,10 +7,14 @@ import Prelude
 
 convertFromMicroseconds :: Int -> TimeOfDay
 convertFromMicroseconds microseconds =
-  let (minutes, microseconds') = divMod microseconds 60_000_000
-      (hours, minutes') = divMod minutes 60
-      picoseconds = MkFixed (fromIntegral microseconds' * 1_000_000)
-   in TimeOfDay hours minutes' picoseconds
+  -- Handle the special case of 24:00:00 (86400000000 microseconds)
+  if microseconds == 86_400_000_000
+    then TimeOfDay 24 0 0
+    else
+      let (minutes, microseconds') = divMod microseconds 60_000_000
+          (hours, minutes') = divMod minutes 60
+          picoseconds = MkFixed (fromIntegral microseconds' * 1_000_000)
+       in TimeOfDay hours minutes' picoseconds
 
 normalizeToMicroseconds :: TimeOfDay -> Int
 normalizeToMicroseconds (TimeOfDay hours minutes picoseconds) =
