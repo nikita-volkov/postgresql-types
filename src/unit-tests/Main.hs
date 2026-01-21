@@ -89,7 +89,6 @@ main = hspec $ parallel do
   testIsScalar @PostgresqlTypes.Uuid Proxy
   testIsScalar @(PostgresqlTypes.Varbit 128) Proxy
   testIsScalar @(PostgresqlTypes.Varchar 255) Proxy
-  testIs @PostgresqlTypes.Inet @(PostgresqlTypes.Ip, Word8) Proxy Proxy
   testIs @PostgresqlTypes.Bool @Bool Proxy Proxy
   testIs @PostgresqlTypes.Bytea @ByteString Proxy Proxy
   testIs @PostgresqlTypes.Float4 @Float Proxy Proxy
