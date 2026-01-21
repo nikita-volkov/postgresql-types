@@ -1,12 +1,13 @@
 -- | Custom IP address type. IPv4 or IPv6 address.
 module PostgresqlTypes.Types.Ip
   ( Ip (..),
+    mask,
     maskedV4,
     maskedV6,
   )
 where
 
-import PostgresqlTypes.Prelude
+import PostgresqlTypes.Prelude hiding (mask)
 
 -- | IP address type for representing IPv4 and IPv6 addresses.
 --
@@ -31,6 +32,12 @@ instance Arbitrary Ip where
   shrink (V4Ip w) = V4Ip <$> shrink w
   shrink (V6Ip w1 w2 w3 w4) =
     [V6Ip w1' w2' w3' w4' | (w1', w2', w3', w4') <- shrink (w1, w2, w3, w4)]
+
+-- | Apply a network mask to an IP address, zeroing out host bits.
+mask :: Int -> Ip -> Ip
+mask netmask = \case
+  V4Ip w -> maskedV4 netmask w
+  V6Ip w1 w2 w3 w4 -> maskedV6 netmask w1 w2 w3 w4
 
 maskedV4 :: Int -> Word32 -> Ip
 maskedV4 netmask w =
