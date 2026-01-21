@@ -1,5 +1,6 @@
 module Main (main) where
 
+import qualified CidrSpec
 import qualified Data.Aeson as Aeson
 import qualified Data.Attoparsec.Text
 import Data.ByteString (ByteString)
@@ -17,7 +18,6 @@ import Data.Vector (Vector)
 import qualified Data.Vector.Unboxed
 import qualified Data.Vector.Unboxed as VU
 import Data.Word
-import qualified CidrSpec
 import qualified InetSpec
 import qualified IntervalSpec
 import qualified LawfulConversions

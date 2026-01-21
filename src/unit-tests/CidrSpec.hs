@@ -231,11 +231,13 @@ spec = do
       it "refineFromV4 accepts only valid network addresses" do
         QuickCheck.property \addr netmask ->
           let result = Cidr.refineFromV4 addr netmask
-              isValid = netmask <= 32 &&
-                        ( let hostBits = 32 - fromIntegral netmask
-                              networkMask = if hostBits >= 32 then 0 else complement ((1 `shiftL` hostBits) - 1)
-                              networkAddr = addr .&. networkMask
-                          in networkAddr == addr )
+              isValid =
+                netmask <= 32
+                  && ( let hostBits = 32 - fromIntegral netmask
+                           networkMask = if hostBits >= 32 then 0 else complement ((1 `shiftL` hostBits) - 1)
+                           networkAddr = addr .&. networkMask
+                        in networkAddr == addr
+                     )
            in isJust result === isValid
 
       it "refineFromV6 accepts only valid network addresses" do
