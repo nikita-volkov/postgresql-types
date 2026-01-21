@@ -13,57 +13,57 @@
 --
 -- == Numeric Types
 --
--- * 'Int2' - 2-byte signed integer (@int2@ \/ @smallint@)
--- * 'Int4' - 4-byte signed integer (@int4@ \/ @integer@)
--- * 'Int8' - 8-byte signed integer (@int8@ \/ @bigint@)
--- * 'Float4' - Single-precision floating point (@float4@ \/ @real@)
--- * 'Float8' - Double-precision floating point (@float8@ \/ @double precision@)
+-- * @'Int2'@ - 2-byte signed integer (@int2@ \/ @smallint@)
+-- * @'Int4'@ - 4-byte signed integer (@int4@ \/ @integer@)
+-- * @'Int8'@ - 8-byte signed integer (@int8@ \/ @bigint@)
+-- * @'Float4'@ - Single-precision floating point (@float4@ \/ @real@)
+-- * @'Float8'@ - Double-precision floating point (@float8@ \/ @double precision@)
 -- * @'Numeric' precision scale@ - Arbitrary and precise precision numeric (@numeric@ \/ @decimal@)
--- * 'Money' - Currency amount (@money@)
--- * 'Oid' - Object identifier (@oid@)
+-- * @'Money'@ - Currency amount (@money@)
+-- * @'Oid'@ - Object identifier (@oid@)
 --
 -- == Character Types
 --
--- * 'Text' - Variable-length character string (@text@)
+-- * @'Text'@ - Variable-length character string (@text@)
 -- * @'Varchar' limit@ - Variable-length with limit (@varchar@)
--- * 'Char' - Single ASCII character (@char@)
+-- * @'Char'@ - Single ASCII character (@char@)
 -- * @'Bpchar' length@ - Fixed-length character string (@char(n)@, @character(n)@, or @bpchar(n)@)
 --
 -- == Boolean Type
 --
--- * 'Bool' - Boolean (@bool@)
+-- * @'Bool'@ - Boolean (@bool@)
 --
 -- == Binary Data
 --
--- * 'Bytea' - Binary data (@bytea@)
+-- * @'Bytea'@ - Binary data (@bytea@)
 --
 -- == Date\/Time Types
 --
--- * 'Date' - Calendar date (@date@)
--- * 'Time' - Time of day without time zone (@time@)
--- * 'Timestamp' - Date and time without time zone (@timestamp@)
--- * 'Timestamptz' - Date and time with time zone (@timestamptz@)
--- * 'Timetz' - Time of day with time zone (@timetz@)
--- * 'Interval' - Time interval (@interval@)
--- * 'IntervalAsMicroseconds' - Interval as microseconds
+-- * @'Date'@ - Calendar date (@date@)
+-- * @'Time'@ - Time of day without time zone (@time@)
+-- * @'Timestamp'@ - Date and time without time zone (@timestamp@)
+-- * @'Timestamptz'@ - Date and time with time zone (@timestamptz@)
+-- * @'Timetz'@ - Time of day with time zone (@timetz@)
+-- * @'Interval'@ - Time interval (@interval@)
+-- * @'IntervalAsMicroseconds'@ - Interval as microseconds
 --
 -- == Network Address Types
 --
--- * 'Inet' - IPv4 or IPv6 host address (@inet@)
--- * 'Cidr' - IPv4 or IPv6 network address (@cidr@)
--- * 'Macaddr' - MAC address (@macaddr@)
--- * 'Macaddr8' - MAC address (EUI-64 format) (@macaddr8@)
--- * 'Ip' - Generic IP address type
+-- * @'Inet'@ - IPv4 or IPv6 host address (@inet@)
+-- * @'Cidr'@ - IPv4 or IPv6 network address (@cidr@)
+-- * @'Macaddr'@ - MAC address (@macaddr@)
+-- * @'Macaddr8'@ - MAC address (EUI-64 format) (@macaddr8@)
+-- * @'Ip'@ - Generic IP address type
 --
 -- == Geometric Types
 --
--- * 'Point' - Point on a plane (@point@)
--- * 'Line' - Infinite line (@line@)
--- * 'Lseg' - Line segment (@lseg@)
--- * 'Box' - Rectangular box (@box@)
--- * 'Path' - Geometric path (@path@)
--- * 'Polygon' - Closed geometric path (@polygon@)
--- * 'Circle' - Circle (@circle@)
+-- * @'Point'@ - Point on a plane (@point@)
+-- * @'Line'@ - Infinite line (@line@)
+-- * @'Lseg'@ - Line segment (@lseg@)
+-- * @'Box'@ - Rectangular box (@box@)
+-- * @'Path'@ - Geometric path (@path@)
+-- * @'Polygon'@ - Closed geometric path (@polygon@)
+-- * @'Circle'@ - Circle (@circle@)
 --
 -- == Bit String Types
 --
@@ -72,21 +72,21 @@
 --
 -- == UUID Type
 --
--- * 'Uuid' - Universally unique identifier (@uuid@)
+-- * @'Uuid'@ - Universally unique identifier (@uuid@)
 --
 -- == JSON Types
 --
--- * 'Json' - JSON data (@json@)
--- * 'Jsonb' - Binary JSON data (@jsonb@)
+-- * @'Json'@ - JSON data (@json@)
+-- * @'Jsonb'@ - Binary JSON data (@jsonb@)
 --
 -- == Key-Value Types
 --
--- * 'Hstore' - Key-value store (@hstore@)
+-- * @'Hstore'@ - Key-value store (@hstore@)
 --
 -- == Range Types
 --
--- * 'Range' - Generic range type (@int4range@, @int8range@, @numrange@, @tsrange@, @tstzrange@, @daterange@)
--- * 'Multirange' - Generic multirange type (@int4multirange@, @int8multirange@, etc.)
+-- * @'Range'@ - Generic range type (@int4range@, @int8range@, @numrange@, @tsrange@, @tstzrange@, @daterange@)
+-- * @'Multirange'@ - Generic multirange type (@int4multirange@, @int8multirange@, etc.)
 --
 -- = Type Conversions
 --
