@@ -302,6 +302,6 @@ testIsScalar _ =
               describe "And decoding via binaryDecoder" do
                 it "Should produce the original value" $
                   QuickCheck.property \(value :: a) ->
-                    let encoded = PtrPoker.Write.writeToByteString (binEnc value)
+                    let encoded = PtrPoker.Write.toByteString (binEnc value)
                         decoding = PtrPeeker.runVariableOnByteString binDec encoded
                      in decoding === Right (Right value)

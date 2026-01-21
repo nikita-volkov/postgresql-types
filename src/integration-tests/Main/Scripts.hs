@@ -121,7 +121,7 @@ mappingSpec _ =
                         connection
                         Procedures.RunRoundtripQueryParams
                           { paramOid = baseOid,
-                            paramEncoding = PtrPoker.Write.writeToByteString (binEnc value),
+                            paramEncoding = PtrPoker.Write.toByteString (binEnc value),
                             paramFormat = Pq.Binary,
                             resultFormat = Pq.Text,
                             typeSignature = Nothing
@@ -144,7 +144,7 @@ mappingSpec _ =
                         connection
                         Procedures.RunRoundtripQueryParams
                           { paramOid = baseOid,
-                            paramEncoding = PtrPoker.Write.writeToByteString (binEnc value),
+                            paramEncoding = PtrPoker.Write.toByteString (binEnc value),
                             paramFormat = Pq.Binary,
                             resultFormat = Pq.Binary,
                             typeSignature = Nothing
@@ -191,7 +191,7 @@ mappingSpec _ =
                         connection
                         Procedures.RunRoundtripQueryParams
                           { paramOid = arrayOid,
-                            paramEncoding = PtrPoker.Write.writeToByteString (arrayBinEnc value),
+                            paramEncoding = PtrPoker.Write.toByteString (arrayBinEnc value),
                             paramFormat = Pq.Binary,
                             resultFormat = Pq.Binary,
                             typeSignature = Nothing
