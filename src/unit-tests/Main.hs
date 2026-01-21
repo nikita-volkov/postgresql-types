@@ -27,7 +27,6 @@ import Test.Hspec
 import Test.Hspec.QuickCheck
 import Test.QuickCheck
 import qualified Test.QuickCheck as QuickCheck
-import Test.QuickCheck.Instances ()
 import qualified TextBuilder
 import Prelude
 
