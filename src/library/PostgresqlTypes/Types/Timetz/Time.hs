@@ -7,6 +7,7 @@ import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
+import qualified TimeExtras.TimeOfDay as TimeOfDay
 
 -- | Time component of the @timetz@ type.
 newtype TimetzTime = TimetzTime Int64
@@ -23,13 +24,8 @@ toMicroseconds :: TimetzTime -> Int64
 toMicroseconds (TimetzTime microseconds) = microseconds
 
 toTimeOfDay :: TimetzTime -> Time.TimeOfDay
-toTimeOfDay (TimetzTime microseconds) =
-  let (minutes, microseconds') = divMod microseconds 60_000_000
-      (hours, minutes') = divMod minutes 60
-      picoseconds = MkFixed (fromIntegral microseconds' * 1_000_000)
-      minutes'' = fromIntegral minutes'
-      hours' = fromIntegral hours
-   in Time.TimeOfDay hours' minutes'' picoseconds
+toTimeOfDay =
+  TimeOfDay.convertFromMicroseconds . fromIntegral . toMicroseconds
 
 projectFromMicroseconds :: Int64 -> Maybe TimetzTime
 projectFromMicroseconds microseconds
@@ -49,11 +45,15 @@ projectFromTimeOfDay (Time.TimeOfDay hours minutes picoseconds) =
       picoseconds'' = fromIntegral ((hours * 60 + minutes) * 60) * 1_000_000_000_000 + picoseconds'
    in projectFromPicoseconds picoseconds''
 
--- | Wrap the overflow values around the clock.
+-- | Clamp the overflow values to the valid range.
 normalizeFromMicroseconds :: Int64 -> TimetzTime
 normalizeFromMicroseconds microseconds =
-  let wrappedMicroseconds = microseconds `mod` 86_400_000_000
-   in TimetzTime wrappedMicroseconds
+  if microseconds < toMicroseconds minBound
+    then minBound
+    else
+      if microseconds > toMicroseconds maxBound
+        then maxBound
+        else TimetzTime microseconds
 
 normalizeFromPicoseconds :: Integer -> TimetzTime
 normalizeFromPicoseconds picoseconds =
@@ -68,19 +68,23 @@ normalizeFromTimeOfDay (Time.TimeOfDay hours minutes picoseconds) =
 
 renderInTextFormat :: TimetzTime -> TextBuilder.TextBuilder
 renderInTextFormat (TimetzTime microseconds) =
-  let (seconds, microseconds') = divMod microseconds 1_000_000
-      (minutes, seconds') = divMod seconds 60
-      (hours, minutes') = divMod minutes 60
-   in mconcat
-        [ TextBuilder.fixedLengthDecimal 2 hours,
-          ":",
-          TextBuilder.fixedLengthDecimal 2 minutes',
-          ":",
-          TextBuilder.fixedLengthDecimal 2 seconds',
-          if microseconds == 0
-            then ""
-            else "." <> TextBuilder.fixedLengthDecimal 6 microseconds'
-        ]
+  -- Handle the special case of 24:00:00 (86400000000 microseconds)
+  if microseconds == 86_400_000_000
+    then "24:00:00"
+    else
+      let (seconds, microseconds') = divMod microseconds 1_000_000
+          (minutes, seconds') = divMod seconds 60
+          (hours, minutes') = divMod minutes 60
+       in mconcat
+            [ TextBuilder.fixedLengthDecimal 2 hours,
+              ":",
+              TextBuilder.fixedLengthDecimal 2 minutes',
+              ":",
+              TextBuilder.fixedLengthDecimal 2 seconds',
+              if microseconds' == 0
+                then ""
+                else "." <> TextBuilder.fixedLengthDecimal 6 microseconds'
+            ]
 
 binaryEncoder :: TimetzTime -> Write.Write
 binaryEncoder (TimetzTime microseconds) =

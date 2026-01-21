@@ -1,9 +1,24 @@
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
+module PostgresqlTypes.Types.Timetz
+  ( Timetz,
 
-module PostgresqlTypes.Types.Timetz (Timetz) where
+    -- * Accessors
+    toTimeInMicroseconds,
+    toTimeZoneInSeconds,
+    toTimeOfDay,
+    normalizeToTimeZone,
+    projectToTimeZone,
+
+    -- * Constructors
+    normalizeFromTimeInMicrosecondsAndOffsetInSeconds,
+    normalizeFromTimeOfDayAndTimeZone,
+    projectFromTimeInMicrosecondsAndOffsetInSeconds,
+    projectFromTimeOfDayAndTimeZone,
+  )
+where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.Text as Text
+import qualified Data.Time as TimeLib
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
 import qualified PostgresqlTypes.Types.Timetz.Offset as Offset
@@ -13,17 +28,17 @@ import qualified PtrPeeker
 
 -- | PostgreSQL @timetz@ type. Time of day with time zone.
 --
--- Stored as microseconds since midnight and timezone offset in seconds.
+-- Stored as microseconds since midnight and time zone offset in seconds.
 --
 -- Low value: @00:00:00+1559@. High value: @24:00:00-1559@.
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-datetime.html#DATATYPE-TIMEZONES).
-data Timetz = Timetz
-  { -- | Time as microseconds since midnight (00:00:00)
-    time :: Time.TimetzTime,
-    -- | Timezone offset in seconds (positive is east of UTC, negative is west of UTC)
-    offset :: Offset.TimetzOffset
-  }
+data Timetz
+  = Timetz
+      -- | Time as microseconds since midnight (00:00:00)
+      Time.TimetzTime
+      -- | Timezone offset in seconds (positive is east of UTC, negative is west of UTC)
+      Offset.TimetzOffset
   deriving stock (Eq, Ord)
   deriving (Show) via (ViaIsScalar Timetz)
 
@@ -65,7 +80,7 @@ instance IsScalar Timetz where
     _ <- Attoparsec.char ':'
     s <- twoDigits
     micros <- Attoparsec.option 0 parseFraction
-    -- Parse timezone offset: [+-]HH[:MM[:SS]]
+    -- Parse time zone offset: [+-]HH[:MM[:SS]]
     -- PostgreSQL omits minutes and seconds when they are zero
     sign <- (1 <$ Attoparsec.char '+') <|> ((-1) <$ Attoparsec.char '-')
     tzH <- twoDigits
@@ -90,7 +105,7 @@ instance IsScalar Timetz where
             micros = foldl' (\acc c -> acc * 10 + fromIntegral (digitToInt c)) 0 paddedDigits
         pure micros
 
--- | Convert from a tuple of time in microseconds and timezone offset in seconds to Timetz.
+-- | Convert from a tuple of time in microseconds and time zone offset in seconds to Timetz.
 instance IsSome (Int64, Int32) Timetz where
   to (Timetz time offset) =
     (Time.toMicroseconds time, Offset.toSeconds offset)
@@ -99,7 +114,7 @@ instance IsSome (Int64, Int32) Timetz where
     offset <- Offset.projectFromSeconds offset
     pure (Timetz time offset)
 
--- | Normalize from time in microseconds and timezone offset in seconds, ensuring valid time range.
+-- | Normalize from time in microseconds and time zone offset in seconds, ensuring valid time range.
 instance IsMany (Int64, Int32) Timetz where
   onfrom (time, offset) =
     Timetz (Time.normalizeFromMicroseconds time) (Offset.normalizeFromSeconds offset)
@@ -117,3 +132,53 @@ instance IsMany Timetz (Time.TimetzTime, Offset.TimetzOffset)
 instance Is (Time.TimetzTime, Offset.TimetzOffset) Timetz
 
 instance Is Timetz (Time.TimetzTime, Offset.TimetzOffset)
+
+-- * Accessors
+
+-- | Extract time in microseconds since midnight.
+toTimeInMicroseconds :: Timetz -> Int64
+toTimeInMicroseconds (Timetz time _) = Time.toMicroseconds time
+
+-- | Extract time zone offset in seconds.
+toTimeZoneInSeconds :: Timetz -> Int32
+toTimeZoneInSeconds (Timetz _ offset) = Offset.toSeconds offset
+
+-- | Extract time of day.
+toTimeOfDay :: Timetz -> TimeLib.TimeOfDay
+toTimeOfDay (Timetz time _) = Time.toTimeOfDay time
+
+-- | Extract time zone rounding the offset in seconds to the nearest minute, because that's the precision supported by 'TimeLib.TimeZone'.
+normalizeToTimeZone :: Timetz -> TimeLib.TimeZone
+normalizeToTimeZone (Timetz _ offset) = Offset.normalizeToTimeZone offset
+
+-- | Try to extract time zone, failing if the offset in seconds is not a multiple of 60.
+projectToTimeZone :: Timetz -> Maybe TimeLib.TimeZone
+projectToTimeZone (Timetz _ offset) = Offset.projectToTimeZone offset
+
+-- * Constructors
+
+-- | Construct 'Timetz' from time in microseconds since midnight and time zone offset in seconds, clamping the out of range values.
+normalizeFromTimeInMicrosecondsAndOffsetInSeconds :: Int64 -> Int32 -> Timetz
+normalizeFromTimeInMicrosecondsAndOffsetInSeconds microseconds offset =
+  Timetz (Time.normalizeFromMicroseconds microseconds) (Offset.normalizeFromSeconds offset)
+
+-- | Construct 'Timetz' from 'TimeLib.TimeOfDay' and 'TimeLib.TimeZone', clamping the out of range values.
+normalizeFromTimeOfDayAndTimeZone :: TimeLib.TimeOfDay -> TimeLib.TimeZone -> Timetz
+normalizeFromTimeOfDayAndTimeZone timeOfDay timeZone =
+  let time = Time.normalizeFromTimeOfDay timeOfDay
+      offset = Offset.normalizeFromTimeZone timeZone
+   in Timetz time offset
+
+-- | Try to construct 'Timetz' from time in microseconds since midnight and time zone offset in seconds, failing if out of range.
+projectFromTimeInMicrosecondsAndOffsetInSeconds :: Int64 -> Int32 -> Maybe Timetz
+projectFromTimeInMicrosecondsAndOffsetInSeconds microseconds offset = do
+  time <- Time.projectFromMicroseconds microseconds
+  offset <- Offset.projectFromSeconds offset
+  pure (Timetz time offset)
+
+-- | Try to construct 'Timetz' from 'TimeLib.TimeOfDay' and 'TimeLib.TimeZone', failing if out of range.
+projectFromTimeOfDayAndTimeZone :: TimeLib.TimeOfDay -> TimeLib.TimeZone -> Maybe Timetz
+projectFromTimeOfDayAndTimeZone timeOfDay timeZone = do
+  time <- Time.projectFromTimeOfDay timeOfDay
+  offset <- Offset.projectFromTimeZone timeZone
+  pure (Timetz time offset)
