@@ -1,6 +1,15 @@
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
-module PostgresqlTypes.Macaddr8 (Macaddr8) where
+module PostgresqlTypes.Macaddr8
+  ( Macaddr8 (..),
+
+    -- * Accessors
+    toBytes,
+
+    -- * Constructors
+    fromBytes,
+  )
+where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import PostgresqlTypes.Algebra
@@ -118,25 +127,14 @@ instance IsScalar Macaddr8 where
           <|> (\c -> fromIntegral (ord c - ord 'A' + 10))
             <$> Attoparsec.satisfy (\c -> c >= 'A' && c <= 'F')
 
--- | Convert from a tuple of 8 Word8s to Macaddr8.
-instance IsSome (Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) Macaddr8 where
-  to (Macaddr8 a b c d e f g h) = (a, b, c, d, e, f, g, h)
-  maybeFrom (a, b, c, d, e, f, g, h) = Just (Macaddr8 a b c d e f g h)
+-- * Accessors
 
--- | Convert from Macaddr8 to a tuple of 8 Word8s.
-instance IsSome Macaddr8 (Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) where
-  to (a, b, c, d, e, f, g, h) = Macaddr8 a b c d e f g h
-  maybeFrom (Macaddr8 a b c d e f g h) = Just (a, b, c, d, e, f, g, h)
+-- | Extract the 8-tuple of Word8 representing the MAC address.
+toBytes :: Macaddr8 -> (Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8)
+toBytes (Macaddr8 a b c d e f g h) = (a, b, c, d, e, f, g, h)
 
--- | Convert from a tuple of 8 Word8s to Macaddr8.
-instance IsMany (Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) Macaddr8 where
-  onfrom (a, b, c, d, e, f, g, h) = Macaddr8 a b c d e f g h
+-- * Constructors
 
--- | Convert from Macaddr8 to a tuple of 8 Word8s.
-instance IsMany Macaddr8 (Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) where
-  onfrom (Macaddr8 a b c d e f g h) = (a, b, c, d, e, f, g, h)
-
--- | Bidirectional conversion between tuple and Macaddr8.
-instance Is (Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) Macaddr8
-
-instance Is Macaddr8 (Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8)
+-- | Construct a PostgreSQL 'Macaddr8' from an 8-tuple of Word8.
+fromBytes :: (Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) -> Macaddr8
+fromBytes (a, b, c, d, e, f, g, h) = Macaddr8 a b c d e f g h
