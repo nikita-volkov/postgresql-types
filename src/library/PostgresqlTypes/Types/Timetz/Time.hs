@@ -7,6 +7,7 @@ import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
+import qualified TimeExtras.TimeOfDay as TimeOfDay
 
 -- | Time component of the @timetz@ type.
 newtype TimetzTime = TimetzTime Int64
@@ -23,13 +24,8 @@ toMicroseconds :: TimetzTime -> Int64
 toMicroseconds (TimetzTime microseconds) = microseconds
 
 toTimeOfDay :: TimetzTime -> Time.TimeOfDay
-toTimeOfDay (TimetzTime microseconds) =
-  let (minutes, microseconds') = divMod microseconds 60_000_000
-      (hours, minutes') = divMod minutes 60
-      picoseconds = MkFixed (fromIntegral microseconds' * 1_000_000)
-      minutes'' = fromIntegral minutes'
-      hours' = fromIntegral hours
-   in Time.TimeOfDay hours' minutes'' picoseconds
+toTimeOfDay =
+  TimeOfDay.convertFromMicroseconds . fromIntegral . toMicroseconds
 
 projectFromMicroseconds :: Int64 -> Maybe TimetzTime
 projectFromMicroseconds microseconds

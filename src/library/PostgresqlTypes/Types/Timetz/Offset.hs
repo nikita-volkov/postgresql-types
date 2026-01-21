@@ -7,6 +7,7 @@ import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
+import qualified TimeExtras.TimeZone as TimeZone
 
 -- | Offset component of the @timetz@ type.
 newtype TimetzOffset = TimetzOffset Int32
@@ -27,11 +28,13 @@ extemeInSeconds =
 toSeconds :: TimetzOffset -> Int32
 toSeconds (TimetzOffset seconds) = seconds
 
-toTimeZone :: TimetzOffset -> Time.TimeZone
-toTimeZone (TimetzOffset seconds) =
-  let -- Round to the nearest minute instead of truncating
-      minutes = fromIntegral (seconds + 30) `div` 60
-   in Time.minutesToTimeZone minutes
+projectToTimeZone :: TimetzOffset -> Maybe Time.TimeZone
+projectToTimeZone =
+  TimeZone.projectFromSeconds . fromIntegral . toSeconds
+
+normalizeToTimeZone :: TimetzOffset -> Time.TimeZone
+normalizeToTimeZone =
+  TimeZone.normalizeFromSeconds . fromIntegral . toSeconds
 
 projectFromSeconds :: Int32 -> Maybe TimetzOffset
 projectFromSeconds seconds
