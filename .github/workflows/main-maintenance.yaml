@@ -2,7 +2,7 @@ name: Main branch maintenance
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
 
 # Prevent overlapping publishes on rapid pushes
 concurrency:
