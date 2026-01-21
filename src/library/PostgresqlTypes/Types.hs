@@ -37,7 +37,6 @@ module PostgresqlTypes.Types
     Timestamp,
     Timestamptz,
     Timetz,
-    TimetzAsTimeOfDayAndTimeZone,
     Uuid,
     Varbit,
     Varchar,
@@ -82,7 +81,6 @@ import PostgresqlTypes.Types.Time
 import PostgresqlTypes.Types.Timestamp
 import PostgresqlTypes.Types.Timestamptz
 import PostgresqlTypes.Types.Timetz
-import PostgresqlTypes.Types.TimetzAsTimeOfDayAndTimeZone
 import PostgresqlTypes.Types.Uuid
 import PostgresqlTypes.Types.Varbit
 import PostgresqlTypes.Types.Varchar

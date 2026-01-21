@@ -155,7 +155,6 @@ library
     PostgresqlTypes.Types.Timetz
     PostgresqlTypes.Types.Timetz.Offset
     PostgresqlTypes.Types.Timetz.Time
-    PostgresqlTypes.Types.TimetzAsTimeOfDayAndTimeZone
     PostgresqlTypes.Types.Uuid
     PostgresqlTypes.Types.Varbit
     PostgresqlTypes.Types.Varchar

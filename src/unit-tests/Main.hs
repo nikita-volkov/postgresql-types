@@ -149,8 +149,6 @@ main = hspec $ parallel do
   testIsMany @PostgresqlTypes.Time @TimeOfDay Proxy Proxy
   testIsMany @PostgresqlTypes.Timestamp @LocalTime Proxy Proxy
   testIsMany @PostgresqlTypes.Timestamptz @UTCTime Proxy Proxy
-  testIsMany @PostgresqlTypes.TimetzAsTimeOfDayAndTimeZone @PostgresqlTypes.Timetz Proxy Proxy
-  testIsMany @PostgresqlTypes.TimetzAsTimeOfDayAndTimeZone @(TimeOfDay, TimeZone) Proxy Proxy
   testIsMany @PostgresqlTypes.Uuid @UUID.UUID Proxy Proxy
   testIsMany @(PostgresqlTypes.Varchar 0) @Text.Text Proxy Proxy
   testIsMany @(PostgresqlTypes.Varchar 255) @Text.Text Proxy Proxy
@@ -159,7 +157,6 @@ main = hspec $ parallel do
   testIsSome @PostgresqlTypes.Polygon @(Data.Vector.Unboxed.Vector (Double, Double)) Proxy Proxy
   testIsSome @PostgresqlTypes.Polygon @[(Double, Double)] Proxy Proxy
   testIsSomeBounded @PostgresqlTypes.Time @TimeOfDay Proxy Proxy
-  testIsSomeBounded @PostgresqlTypes.TimetzAsTimeOfDayAndTimeZone @(TimeOfDay, TimeZone) Proxy Proxy
   describe "Numeric" NumericSpec.spec
 
 -- | Test lawful conversions for a PostgreSQL type
