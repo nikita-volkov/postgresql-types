@@ -16,7 +16,6 @@ module PostgresqlTypes.Types
     Int4,
     Int8,
     Interval,
-    Ip (..),
     Json,
     Jsonb,
     Line,
@@ -59,7 +58,6 @@ import PostgresqlTypes.Types.Int2
 import PostgresqlTypes.Types.Int4
 import PostgresqlTypes.Types.Int8
 import PostgresqlTypes.Types.Interval
-import PostgresqlTypes.Types.Ip
 import PostgresqlTypes.Types.Json
 import PostgresqlTypes.Types.Jsonb
 import PostgresqlTypes.Types.Line

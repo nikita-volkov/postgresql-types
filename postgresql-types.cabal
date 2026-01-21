@@ -108,6 +108,7 @@ library
   hs-source-dirs: src/library
   exposed-modules:
     PostgresqlTypes
+    PostgresqlTypes.Types.Cidr
     PostgresqlTypes.Types.Inet
     PostgresqlTypes.Types.Interval
     PostgresqlTypes.Types.Numeric
@@ -123,7 +124,6 @@ library
     PostgresqlTypes.Types.Bpchar
     PostgresqlTypes.Types.Bytea
     PostgresqlTypes.Types.Char
-    PostgresqlTypes.Types.Cidr
     PostgresqlTypes.Types.Circle
     PostgresqlTypes.Types.Date
     PostgresqlTypes.Types.Float4
@@ -132,7 +132,6 @@ library
     PostgresqlTypes.Types.Int2
     PostgresqlTypes.Types.Int4
     PostgresqlTypes.Types.Int8
-    PostgresqlTypes.Types.Ip
     PostgresqlTypes.Types.Json
     PostgresqlTypes.Types.Jsonb
     PostgresqlTypes.Types.Line
@@ -252,6 +251,7 @@ test-suite unit-tests
   hs-source-dirs: src/unit-tests
   main-is: Main.hs
   other-modules:
+    CidrSpec
     InetSpec
     IntervalSpec
     NumericSpec

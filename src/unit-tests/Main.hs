@@ -17,6 +17,7 @@ import Data.Vector (Vector)
 import qualified Data.Vector.Unboxed
 import qualified Data.Vector.Unboxed as VU
 import Data.Word
+import qualified CidrSpec
 import qualified InetSpec
 import qualified IntervalSpec
 import qualified LawfulConversions
@@ -117,7 +118,6 @@ main = hspec $ parallel do
   testIsMany @(PostgresqlTypes.Bpchar 0) @Text Proxy Proxy
   testIsMany @(PostgresqlTypes.Bpchar 1) @Text Proxy Proxy
   testIsMany @(PostgresqlTypes.Bpchar 42) @Text Proxy Proxy
-  testIsMany @PostgresqlTypes.Cidr @(PostgresqlTypes.Ip, Word8) Proxy Proxy
   testIsMany @PostgresqlTypes.Circle @(Double, Double, Double) Proxy Proxy
   testIsMany @PostgresqlTypes.Date @Day Proxy Proxy
   testIsMany @PostgresqlTypes.Float4 @Float Proxy Proxy
@@ -156,6 +156,7 @@ main = hspec $ parallel do
   testIsSome @PostgresqlTypes.Polygon @(Data.Vector.Unboxed.Vector (Double, Double)) Proxy Proxy
   testIsSome @PostgresqlTypes.Polygon @[(Double, Double)] Proxy Proxy
   testIsSomeBounded @PostgresqlTypes.Time @TimeOfDay Proxy Proxy
+  describe "Cidr" CidrSpec.spec
   describe "Inet" InetSpec.spec
   describe "Interval" IntervalSpec.spec
   describe "Numeric" NumericSpec.spec
