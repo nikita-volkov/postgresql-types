@@ -1,4 +1,13 @@
-module PostgresqlTypes.Timestamp (Timestamp) where
+module PostgresqlTypes.Timestamp
+  ( Timestamp,
+
+    -- * Accessors
+    toLocalTime,
+
+    -- * Constructors
+    fromLocalTime,
+  )
+where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.Text as Text
@@ -119,31 +128,22 @@ instance IsMultirangeElement Timestamp where
 postgresTimestampEpoch :: Time.LocalTime
 postgresTimestampEpoch = Time.LocalTime (Time.fromGregorian 2000 1 1) Time.midnight
 
+-- * Accessors
+
+-- | Convert PostgreSQL 'Timestamp' to 'Time.LocalTime'.
 toLocalTime :: Timestamp -> Time.LocalTime
 toLocalTime (Timestamp micros) =
   let diffTime = fromIntegral micros / 1_000_000
    in Time.addLocalTime diffTime postgresTimestampEpoch
 
+-- * Constructors
+
+-- | Construct a PostgreSQL 'Timestamp' from 'Time.LocalTime'.
 fromLocalTime :: Time.LocalTime -> Timestamp
 fromLocalTime localTime =
   let diffTime = Time.diffLocalTime localTime postgresTimestampEpoch
       micros = round (diffTime * 1_000_000)
    in Timestamp micros
-
--- | Direct conversion from 'Data.Time.LocalTime'.
--- This is always safe since both represent local timestamps.
-instance IsSome Time.LocalTime Timestamp where
-  to = toLocalTime
-  maybeFrom localTime =
-    let timestamp = fromLocalTime localTime
-     in if to timestamp == localTime
-          then Just timestamp
-          else Nothing
-
--- | Direct conversion from 'Data.Time.LocalTime'.
--- This is a total conversion as it always succeeds.
-instance IsMany Time.LocalTime Timestamp where
-  onfrom = fromLocalTime
 
 -- | Format a LocalTime for PostgreSQL timestamp text format.
 -- PostgreSQL requires specific formatting for extreme dates:

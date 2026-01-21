@@ -1,4 +1,16 @@
-module PostgresqlTypes.Time (Time) where
+module PostgresqlTypes.Time
+  ( Time,
+
+    -- * Accessors
+    toMicroseconds,
+    toTimeOfDay,
+
+    -- * Constructors
+    fromMicroseconds,
+    refineFromTimeOfDay,
+    normalizeFromTimeOfDay,
+  )
+where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.Text as Text
@@ -68,27 +80,40 @@ instance Bounded Time where
   minBound = Time 0
   maxBound = Time (24 * 60 * 60 * 1_000_000) -- 24 hours in microseconds
 
--- | Convert from TimeOfDay to Time (microseconds)
-instance IsSome Time.TimeOfDay Time where
-  to (Time microseconds) =
-    let diffTime = fromIntegral microseconds / 1_000_000
-     in Time.timeToTimeOfDay diffTime
-  maybeFrom timeOfDay =
-    let diffTime = Time.timeOfDayToTime timeOfDay
-        microseconds = round (diffTime * 1_000_000)
-        time = Time microseconds
-     in if microseconds >= 0 && microseconds <= 86_400_000_000 && to time == timeOfDay
-          then Just time
-          else Nothing
+-- * Accessors
 
--- | Convert from TimeOfDay to Time, wrapping negative values around 24-hour period
-instance IsMany Time.TimeOfDay Time where
-  onfrom timeOfDay =
-    let diffTime = Time.timeOfDayToTime timeOfDay
-        microseconds = round (diffTime * 1_000_000)
-        -- Wrap around 24-hour period for negative values
-        wrappedMicroseconds = microseconds `mod` 86_400_000_000
-     in Time wrappedMicroseconds
-
+-- | Extract the underlying microseconds value.
 toMicroseconds :: Time -> Int64
 toMicroseconds (Time microseconds) = microseconds
+
+-- | Convert PostgreSQL 'Time' to 'Time.TimeOfDay'.
+toTimeOfDay :: Time -> Time.TimeOfDay
+toTimeOfDay (Time microseconds) =
+  let diffTime = fromIntegral microseconds / 1_000_000
+   in Time.timeToTimeOfDay diffTime
+
+-- * Constructors
+
+-- | Construct a PostgreSQL 'Time' from microseconds.
+fromMicroseconds :: Int64 -> Time
+fromMicroseconds = Time
+
+-- | Convert from 'Time.TimeOfDay' to PostgreSQL 'Time' with validation.
+-- Returns 'Nothing' if the value is outside the valid range.
+refineFromTimeOfDay :: Time.TimeOfDay -> Maybe Time
+refineFromTimeOfDay timeOfDay =
+  let diffTime = Time.timeOfDayToTime timeOfDay
+      microseconds = round (diffTime * 1_000_000)
+      time = Time microseconds
+   in if microseconds >= 0 && microseconds <= 86_400_000_000 && toTimeOfDay time == timeOfDay
+        then Just time
+        else Nothing
+
+-- | Convert from 'Time.TimeOfDay' to PostgreSQL 'Time', wrapping negative values around 24-hour period.
+normalizeFromTimeOfDay :: Time.TimeOfDay -> Time
+normalizeFromTimeOfDay timeOfDay =
+  let diffTime = Time.timeOfDayToTime timeOfDay
+      microseconds = round (diffTime * 1_000_000)
+      -- Wrap around 24-hour period for negative values
+      wrappedMicroseconds = microseconds `mod` 86_400_000_000
+   in Time wrappedMicroseconds

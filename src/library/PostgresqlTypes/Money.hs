@@ -1,4 +1,13 @@
-module PostgresqlTypes.Money (Money) where
+module PostgresqlTypes.Money
+  ( Money,
+
+    -- * Accessors
+    toInt64,
+
+    -- * Constructors
+    fromInt64,
+  )
+where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.Text as Text
@@ -61,30 +70,16 @@ instance IsScalar Money where
         value = dollars * 100 + cents
     pure (Money (if isNegative then negate value else value))
 
--- | Direct conversion from 'Int64'.
+-- * Accessors
+
+-- | Extract the underlying 'Int64' value.
 -- This represents the raw monetary value in the smallest currency unit
 -- (e.g., cents for USD, where 123 represents $1.23).
-instance IsSome Int64 Money where
-  to (Money i) = i
-  maybeFrom = Just . Money
+toInt64 :: Money -> Int64
+toInt64 (Money i) = i
 
--- | Direct conversion from PostgreSQL Money to 'Int64'.
--- This extracts the raw monetary value as an integer.
-instance IsSome Money Int64 where
-  to i = Money i
-  maybeFrom (Money i) = Just i
+-- * Constructors
 
--- | Direct conversion from 'Int64'.
--- This is a total conversion as it always succeeds.
-instance IsMany Int64 Money where
-  onfrom = Money
-
--- | Direct conversion from PostgreSQL Money to 'Int64'.
--- This is a total conversion as it always succeeds.
-instance IsMany Money Int64 where
-  onfrom (Money i) = i
-
--- | Bidirectional conversion between 'Int64' and PostgreSQL Money.
-instance Is Int64 Money
-
-instance Is Money Int64
+-- | Construct a PostgreSQL 'Money' from an 'Int64' value.
+fromInt64 :: Int64 -> Money
+fromInt64 = Money

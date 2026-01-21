@@ -1,6 +1,15 @@
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
-module PostgresqlTypes.Timestamptz (Timestamptz) where
+module PostgresqlTypes.Timestamptz
+  ( Timestamptz,
+
+    -- * Accessors
+    toUtcTime,
+
+    -- * Constructors
+    fromUtcTime,
+  )
+where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.Text as Text
@@ -132,35 +141,22 @@ instance IsMultirangeElement Timestamptz where
 postgresUtcEpoch :: Time.UTCTime
 postgresUtcEpoch = Time.UTCTime (Time.fromGregorian 2000 1 1) 0
 
+-- * Accessors
+
+-- | Convert PostgreSQL 'Timestamptz' to 'Time.UTCTime'.
 toUtcTime :: Timestamptz -> Time.UTCTime
 toUtcTime (Timestamptz micros) =
   let diffTime = fromIntegral micros / 1_000_000
    in Time.addUTCTime diffTime postgresUtcEpoch
 
+-- * Constructors
+
+-- | Construct a PostgreSQL 'Timestamptz' from 'Time.UTCTime'.
 fromUtcTime :: Time.UTCTime -> Timestamptz
 fromUtcTime utcTime =
   let diffTime = Time.diffUTCTime utcTime postgresUtcEpoch
       micros = round (diffTime * 1_000_000)
    in Timestamptz micros
-
--- | Direct conversion from 'Data.Time.UTCTime'.
--- This is always safe since both represent UTC timestamps.
-instance IsSome Time.UTCTime Timestamptz where
-  to = toUtcTime
-  maybeFrom utcTime =
-    let diffTime = Time.diffUTCTime utcTime postgresUtcEpoch
-        picoSeconds = Time.nominalDiffTimeToSeconds diffTime
-        -- Convert Pico to Integer picoseconds (Pico has 10^12 precision)
-        picosecondsInteger = round @_ @Integer (toRational picoSeconds * 1_000_000_000_000)
-        (microseconds, remainder) = divMod picosecondsInteger 1_000_000
-     in if remainder == 0
-          then Just (Timestamptz (fromIntegral microseconds))
-          else Nothing
-
--- | Direct conversion from 'Data.Time.UTCTime'.
--- This is a total conversion as it always succeeds.
-instance IsMany Time.UTCTime Timestamptz where
-  onfrom = fromUtcTime
 
 -- | Format a UTCTime for PostgreSQL timestamptz text format.
 -- PostgreSQL requires specific formatting for extreme dates:
