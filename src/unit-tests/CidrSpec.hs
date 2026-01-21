@@ -5,8 +5,7 @@ import Data.Maybe
 import Data.Word
 import qualified PostgresqlTypes.Types.Cidr as Cidr
 import Test.Hspec
-import Test.QuickCheck (property, (===), (==>))
-import qualified Test.QuickCheck as QuickCheck
+import Test.QuickCheck hiding ((.&.))
 import Prelude
 
 spec :: Spec
@@ -197,7 +196,7 @@ spec = do
 
     describe "Property Tests" do
       it "normalizeFromV4 always zeros host bits" do
-        QuickCheck.property \addr netmask ->
+        property \addr netmask ->
           let cidr = Cidr.normalizeFromV4 addr netmask
               (addr', _) = fromJust (Cidr.refineToV4 cidr)
               clampedNetmask = min 32 netmask
@@ -207,7 +206,7 @@ spec = do
            in addr' === expectedAddr
 
       it "normalizeFromV6 always zeros host bits" do
-        QuickCheck.property \w1 w2 w3 w4 netmask ->
+        property \w1 w2 w3 w4 netmask ->
           let cidr = Cidr.normalizeFromV6 w1 w2 w3 w4 netmask
               (w1', w2', w3', w4', _) = fromJust (Cidr.refineToV6 cidr)
               -- Verify host bits are zero by attempting to refine
@@ -215,21 +214,21 @@ spec = do
            in isJust refined === True
 
       it "normalizeFromV4 is idempotent" do
-        QuickCheck.property \addr netmask ->
+        property \addr netmask ->
           let normalized1 = Cidr.normalizeFromV4 addr netmask
               (addr', netmask') = fromJust (Cidr.refineToV4 normalized1)
               normalized2 = Cidr.normalizeFromV4 addr' netmask'
            in normalized1 === normalized2
 
       it "normalizeFromV6 is idempotent" do
-        QuickCheck.property \w1 w2 w3 w4 netmask ->
+        property \w1 w2 w3 w4 netmask ->
           let normalized1 = Cidr.normalizeFromV6 w1 w2 w3 w4 netmask
               (w1', w2', w3', w4', netmask') = fromJust (Cidr.refineToV6 normalized1)
               normalized2 = Cidr.normalizeFromV6 w1' w2' w3' w4' netmask'
            in normalized1 === normalized2
 
       it "refineFromV4 accepts only valid network addresses" do
-        QuickCheck.property \addr netmask ->
+        property \addr netmask ->
           let result = Cidr.refineFromV4 addr netmask
               isValid =
                 netmask <= 32
@@ -241,7 +240,7 @@ spec = do
            in isJust result === isValid
 
       it "refineFromV6 accepts only valid network addresses" do
-        QuickCheck.property \w1 w2 w3 w4 netmask ->
+        property \w1 w2 w3 w4 netmask ->
           netmask <= 128 ==>
             let result = Cidr.refineFromV6 w1 w2 w3 w4 netmask
                 normalized = Cidr.normalizeFromV6 w1 w2 w3 w4 netmask
@@ -249,7 +248,7 @@ spec = do
              in isJust result === ((w1, w2, w3, w4) == (nw1, nw2, nw3, nw4))
 
       it "refineToV4 roundtrips with normalizeFromV4" do
-        QuickCheck.property \addr (netmask :: Word8) ->
+        property \addr (netmask :: Word8) ->
           netmask <= 32 ==>
             let cidr = Cidr.normalizeFromV4 addr netmask
                 result = Cidr.refineToV4 cidr
@@ -262,7 +261,7 @@ spec = do
              in (addr', netmask') === (expectedAddr, clampedNetmask)
 
       it "refineToV6 roundtrips with normalizeFromV6" do
-        QuickCheck.property \w1 w2 w3 w4 (netmask :: Word8) ->
+        property \w1 w2 w3 w4 (netmask :: Word8) ->
           netmask <= 128 ==>
             let cidr = Cidr.normalizeFromV6 w1 w2 w3 w4 netmask
                 result = Cidr.refineToV6 cidr
@@ -270,14 +269,14 @@ spec = do
              in netmask' === min 128 netmask
 
       it "fold correctly identifies IPv4" do
-        QuickCheck.property \addr (netmask :: Word8) ->
+        property \addr (netmask :: Word8) ->
           netmask <= 32 ==>
             let cidr = Cidr.normalizeFromV4 addr netmask
                 isV4 = Cidr.fold (\_ _ -> True) (\_ _ _ _ _ -> False) cidr
              in isV4 === True
 
       it "fold correctly identifies IPv6" do
-        QuickCheck.property \w1 w2 w3 w4 (netmask :: Word8) ->
+        property \w1 w2 w3 w4 (netmask :: Word8) ->
           netmask <= 128 ==>
             let cidr = Cidr.normalizeFromV6 w1 w2 w3 w4 netmask
                 isV6 = Cidr.fold (\_ _ -> False) (\_ _ _ _ _ -> True) cidr
