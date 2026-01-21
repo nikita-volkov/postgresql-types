@@ -109,6 +109,7 @@ library
   exposed-modules:
     PostgresqlTypes
     PostgresqlTypes.Types.Numeric
+    PostgresqlTypes.Types.Timetz
 
   other-modules:
     PostgresqlTypes.Prelude
@@ -152,7 +153,6 @@ library
     PostgresqlTypes.Types.Time
     PostgresqlTypes.Types.Timestamp
     PostgresqlTypes.Types.Timestamptz
-    PostgresqlTypes.Types.Timetz
     PostgresqlTypes.Types.Timetz.Offset
     PostgresqlTypes.Types.Timetz.Time
     PostgresqlTypes.Types.Uuid
@@ -254,6 +254,7 @@ test-suite unit-tests
   main-is: Main.hs
   other-modules:
     NumericSpec
+    TimetzSpec
 
   build-depends:
     QuickCheck >=2.14 && <3,

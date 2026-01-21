@@ -28,6 +28,7 @@ import Test.Hspec.QuickCheck
 import Test.QuickCheck
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
+import qualified TimetzSpec
 import Prelude
 
 main :: IO ()
@@ -158,6 +159,7 @@ main = hspec $ parallel do
   testIsSome @PostgresqlTypes.Polygon @[(Double, Double)] Proxy Proxy
   testIsSomeBounded @PostgresqlTypes.Time @TimeOfDay Proxy Proxy
   describe "Numeric" NumericSpec.spec
+  describe "Timetz" TimetzSpec.spec
 
 -- | Test lawful conversions for a PostgreSQL type
 testIsMany ::
