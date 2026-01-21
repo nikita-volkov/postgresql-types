@@ -362,7 +362,17 @@ refineFromV6 w1 w2 w3 w4 netmask
             then Just (V6Cidr w1 w2 w3 w4 netmask)
             else Nothing
 
--- Helper function to apply IPv6 network mask
+-- | Helper function to apply IPv6 network mask by zeroing out host bits.
+--
+-- Takes a netmask length (0-128) and four 32-bit words representing the IPv6 address.
+-- Returns the four 32-bit words with host bits zeroed according to the netmask.
+--
+-- The masking is applied word by word, starting from the most significant word.
+-- Each word represents 32 bits, so:
+-- - netmask 0-32 affects only w1
+-- - netmask 33-64 affects w1 and w2
+-- - netmask 65-96 affects w1, w2, and w3
+-- - netmask 97-128 affects all four words
 applyV6Mask :: Int -> Word32 -> Word32 -> Word32 -> Word32 -> (Word32, Word32, Word32, Word32)
 applyV6Mask netmask w1 w2 w3 w4
   | netmask <= 0 = (0, 0, 0, 0)

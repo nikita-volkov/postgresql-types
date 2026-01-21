@@ -5,7 +5,7 @@ import Data.Maybe
 import Data.Word
 import qualified PostgresqlTypes.Types.Cidr as Cidr
 import Test.Hspec
-import Test.QuickCheck hiding ((.&.))
+import Test.QuickCheck (property, (===), (==>))
 import qualified Test.QuickCheck as QuickCheck
 import Prelude
 
