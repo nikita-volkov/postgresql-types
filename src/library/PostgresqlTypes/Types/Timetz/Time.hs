@@ -45,11 +45,15 @@ projectFromTimeOfDay (Time.TimeOfDay hours minutes picoseconds) =
       picoseconds'' = fromIntegral ((hours * 60 + minutes) * 60) * 1_000_000_000_000 + picoseconds'
    in projectFromPicoseconds picoseconds''
 
--- | Wrap the overflow values around the clock.
+-- | Clamp the overflow values to the valid range.
 normalizeFromMicroseconds :: Int64 -> TimetzTime
 normalizeFromMicroseconds microseconds =
-  let wrappedMicroseconds = microseconds `mod` 86_400_000_000
-   in TimetzTime wrappedMicroseconds
+  if microseconds < toMicroseconds minBound
+    then minBound
+    else
+      if microseconds > toMicroseconds maxBound
+        then maxBound
+        else TimetzTime microseconds
 
 normalizeFromPicoseconds :: Integer -> TimetzTime
 normalizeFromPicoseconds picoseconds =
