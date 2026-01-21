@@ -108,54 +108,53 @@ library
   hs-source-dirs: src/library
   exposed-modules:
     PostgresqlTypes
-    PostgresqlTypes.Types.Cidr
-    PostgresqlTypes.Types.Inet
-    PostgresqlTypes.Types.Interval
-    PostgresqlTypes.Types.Numeric
-    PostgresqlTypes.Types.Timetz
+    PostgresqlTypes.Cidr
+    PostgresqlTypes.Inet
+    PostgresqlTypes.Interval
+    PostgresqlTypes.Numeric
+    PostgresqlTypes.Timetz
 
   other-modules:
+    PostgresqlTypes.Bit
+    PostgresqlTypes.Bool
+    PostgresqlTypes.Box
+    PostgresqlTypes.Bpchar
+    PostgresqlTypes.Bytea
+    PostgresqlTypes.Char
+    PostgresqlTypes.Circle
+    PostgresqlTypes.Date
+    PostgresqlTypes.Float4
+    PostgresqlTypes.Float8
+    PostgresqlTypes.Hstore
+    PostgresqlTypes.Int2
+    PostgresqlTypes.Int4
+    PostgresqlTypes.Int8
+    PostgresqlTypes.Json
+    PostgresqlTypes.Jsonb
+    PostgresqlTypes.Line
+    PostgresqlTypes.Lseg
+    PostgresqlTypes.Macaddr
+    PostgresqlTypes.Macaddr8
+    PostgresqlTypes.Money
+    PostgresqlTypes.Multirange
+    PostgresqlTypes.Numeric.Integer
+    PostgresqlTypes.Numeric.Scientific
+    PostgresqlTypes.Oid
+    PostgresqlTypes.Path
+    PostgresqlTypes.Point
+    PostgresqlTypes.Polygon
     PostgresqlTypes.Prelude
     PostgresqlTypes.Prelude.LawfulConversions
-    PostgresqlTypes.Types
-    PostgresqlTypes.Types.Bit
-    PostgresqlTypes.Types.Bool
-    PostgresqlTypes.Types.Box
-    PostgresqlTypes.Types.Bpchar
-    PostgresqlTypes.Types.Bytea
-    PostgresqlTypes.Types.Char
-    PostgresqlTypes.Types.Circle
-    PostgresqlTypes.Types.Date
-    PostgresqlTypes.Types.Float4
-    PostgresqlTypes.Types.Float8
-    PostgresqlTypes.Types.Hstore
-    PostgresqlTypes.Types.Int2
-    PostgresqlTypes.Types.Int4
-    PostgresqlTypes.Types.Int8
-    PostgresqlTypes.Types.Json
-    PostgresqlTypes.Types.Jsonb
-    PostgresqlTypes.Types.Line
-    PostgresqlTypes.Types.Lseg
-    PostgresqlTypes.Types.Macaddr
-    PostgresqlTypes.Types.Macaddr8
-    PostgresqlTypes.Types.Money
-    PostgresqlTypes.Types.Multirange
-    PostgresqlTypes.Types.Numeric.Integer
-    PostgresqlTypes.Types.Numeric.Scientific
-    PostgresqlTypes.Types.Oid
-    PostgresqlTypes.Types.Path
-    PostgresqlTypes.Types.Point
-    PostgresqlTypes.Types.Polygon
-    PostgresqlTypes.Types.Range
-    PostgresqlTypes.Types.Text
-    PostgresqlTypes.Types.Time
-    PostgresqlTypes.Types.Timestamp
-    PostgresqlTypes.Types.Timestamptz
-    PostgresqlTypes.Types.Timetz.Offset
-    PostgresqlTypes.Types.Timetz.Time
-    PostgresqlTypes.Types.Uuid
-    PostgresqlTypes.Types.Varbit
-    PostgresqlTypes.Types.Varchar
+    PostgresqlTypes.Range
+    PostgresqlTypes.Text
+    PostgresqlTypes.Time
+    PostgresqlTypes.Timestamp
+    PostgresqlTypes.Timestamptz
+    PostgresqlTypes.Timetz.Offset
+    PostgresqlTypes.Timetz.Time
+    PostgresqlTypes.Uuid
+    PostgresqlTypes.Varbit
+    PostgresqlTypes.Varchar
     PostgresqlTypes.Via
     PostgresqlTypes.Via.IsMany
     PostgresqlTypes.Via.IsScalar

@@ -1,0 +1,106 @@
+module PostgresqlTypes.Timetz.Offset where
+
+import qualified Data.Time as Time
+import PostgresqlTypes.Algebra
+import PostgresqlTypes.Prelude
+import qualified PtrPeeker
+import qualified PtrPoker.Write as Write
+import qualified Test.QuickCheck as QuickCheck
+import qualified TextBuilder
+import qualified TimeExtras.TimeZone as TimeZone
+
+-- | Offset component of the @timetz@ type.
+newtype TimetzOffset = TimetzOffset Int32
+  deriving newtype (Eq, Ord, Show)
+
+instance Arbitrary TimetzOffset where
+  arbitrary = TimetzOffset <$> QuickCheck.choose (toSeconds minBound, toSeconds maxBound)
+
+instance Bounded TimetzOffset where
+  minBound = TimetzOffset (negate extemeInSeconds)
+  maxBound = TimetzOffset extemeInSeconds
+
+-- | @15:59:59@
+extemeInSeconds :: Int32
+extemeInSeconds =
+  59 + 59 * 60 + 15 * 60 * 60
+
+toSeconds :: TimetzOffset -> Int32
+toSeconds (TimetzOffset seconds) = seconds
+
+refineToTimeZone :: TimetzOffset -> Maybe Time.TimeZone
+refineToTimeZone =
+  TimeZone.refineFromSeconds . fromIntegral . toSeconds
+
+normalizeToTimeZone :: TimetzOffset -> Time.TimeZone
+normalizeToTimeZone =
+  TimeZone.normalizeFromSeconds . fromIntegral . toSeconds
+
+refineFromSeconds :: Int32 -> Maybe TimetzOffset
+refineFromSeconds seconds
+  | seconds >= toSeconds minBound && seconds <= toSeconds maxBound = Just (TimetzOffset seconds)
+  | otherwise = Nothing
+
+refineFromTimeZone :: Time.TimeZone -> Maybe TimetzOffset
+refineFromTimeZone (Time.TimeZone minutes _ _) =
+  let seconds = fromIntegral (minutes * 60)
+   in refineFromSeconds seconds
+
+-- | Clamp seconds to the valid range.
+normalizeFromSeconds :: Int32 -> TimetzOffset
+normalizeFromSeconds seconds =
+  if seconds < toSeconds minBound
+    then minBound
+    else
+      if seconds > toSeconds maxBound
+        then maxBound
+        else TimetzOffset seconds
+
+normalizeFromTimeZone :: Time.TimeZone -> TimetzOffset
+normalizeFromTimeZone (Time.TimeZone minutes _ _) =
+  let seconds = fromIntegral (minutes * 60)
+   in normalizeFromSeconds seconds
+
+renderInTextFormat :: TimetzOffset -> TextBuilder.TextBuilder
+renderInTextFormat (TimetzOffset seconds) =
+  let (sign, seconds') = if seconds < 0 then ("+", negate seconds) else ("-", seconds)
+      (minutes, seconds'') = divMod seconds' 60
+      (hours, minutes') = divMod minutes 60
+   in mconcat
+        [ sign,
+          TextBuilder.fixedLengthDecimal 2 hours,
+          ":",
+          TextBuilder.fixedLengthDecimal 2 minutes',
+          ":",
+          TextBuilder.fixedLengthDecimal 2 seconds''
+        ]
+
+binaryEncoder :: TimetzOffset -> Write.Write
+binaryEncoder (TimetzOffset seconds) =
+  Write.bInt32 seconds
+
+binaryDecoder :: PtrPeeker.Fixed (Either DecodingError TimetzOffset)
+binaryDecoder =
+  PtrPeeker.beSignedInt4 <&> \int ->
+    if int < toSeconds minBound
+      then
+        Left
+          DecodingError
+            { location = [],
+              reason =
+                UnsupportedValueDecodingErrorReason
+                  "Value is less than minimum bound"
+                  (TextBuilder.toText (TextBuilder.decimal int))
+            }
+      else
+        if int > toSeconds maxBound
+          then
+            Left
+              DecodingError
+                { location = [],
+                  reason =
+                    UnsupportedValueDecodingErrorReason
+                      "Value is greater than maximum bound"
+                      (TextBuilder.toText (TextBuilder.decimal int))
+                }
+          else Right (TimetzOffset int)

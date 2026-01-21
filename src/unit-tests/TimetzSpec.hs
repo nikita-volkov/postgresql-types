@@ -4,7 +4,7 @@ import Data.Int
 import Data.Maybe
 import qualified Data.Time as Time
 import qualified LawfulConversions
-import qualified PostgresqlTypes.Types.Timetz as Timetz
+import qualified PostgresqlTypes.Timetz as Timetz
 import Test.Hspec
 import Test.QuickCheck
 import qualified Test.QuickCheck as QuickCheck

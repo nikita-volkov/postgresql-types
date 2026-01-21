@@ -138,8 +138,84 @@
 -- * [PostgreSQL type documentation](https://www.postgresql.org/docs/current/datatype.html)
 -- * [lawful-conversions library](https://hackage.haskell.org/package/lawful-conversions)
 module PostgresqlTypes
-  ( module PostgresqlTypes.Types,
+  ( Bit,
+    Bool,
+    Box,
+    Bpchar,
+    Bytea,
+    Char,
+    Cidr,
+    Circle,
+    Date,
+    Float4,
+    Float8,
+    Hstore,
+    Inet,
+    Int2,
+    Int4,
+    Int8,
+    Interval,
+    Json,
+    Jsonb,
+    Line,
+    Lseg,
+    Macaddr,
+    Macaddr8,
+    Money,
+    Multirange,
+    Numeric,
+    Oid,
+    Path,
+    Point,
+    Polygon,
+    Range,
+    Text,
+    Time,
+    Timestamp,
+    Timestamptz,
+    Timetz,
+    Uuid,
+    Varbit,
+    Varchar,
   )
 where
 
-import PostgresqlTypes.Types
+import PostgresqlTypes.Bit
+import PostgresqlTypes.Bool
+import PostgresqlTypes.Box
+import PostgresqlTypes.Bpchar
+import PostgresqlTypes.Bytea
+import PostgresqlTypes.Char
+import PostgresqlTypes.Cidr
+import PostgresqlTypes.Circle
+import PostgresqlTypes.Date
+import PostgresqlTypes.Float4
+import PostgresqlTypes.Float8
+import PostgresqlTypes.Hstore
+import PostgresqlTypes.Inet
+import PostgresqlTypes.Int2
+import PostgresqlTypes.Int4
+import PostgresqlTypes.Int8
+import PostgresqlTypes.Interval
+import PostgresqlTypes.Json
+import PostgresqlTypes.Jsonb
+import PostgresqlTypes.Line
+import PostgresqlTypes.Lseg
+import PostgresqlTypes.Macaddr
+import PostgresqlTypes.Macaddr8
+import PostgresqlTypes.Money
+import PostgresqlTypes.Multirange
+import PostgresqlTypes.Numeric
+import PostgresqlTypes.Oid
+import PostgresqlTypes.Path
+import PostgresqlTypes.Point
+import PostgresqlTypes.Polygon
+import PostgresqlTypes.Range
+import PostgresqlTypes.Text
+import PostgresqlTypes.Time
+import PostgresqlTypes.Timestamp
+import PostgresqlTypes.Timestamptz
+import PostgresqlTypes.Timetz
+import PostgresqlTypes.Uuid
+import PostgresqlTypes.Varbit
+import PostgresqlTypes.Varchar

@@ -4,7 +4,7 @@ import Data.Int
 import Data.Maybe
 import qualified Data.Time as Time
 import qualified LawfulConversions
-import qualified PostgresqlTypes.Types.Interval as Interval
+import qualified PostgresqlTypes.Interval as Interval
 import Test.Hspec
 import Test.QuickCheck
 import qualified Test.QuickCheck as QuickCheck

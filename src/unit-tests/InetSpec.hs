@@ -2,7 +2,7 @@ module InetSpec (spec) where
 
 import Data.Maybe
 import Data.Word
-import qualified PostgresqlTypes.Types.Inet as Inet
+import qualified PostgresqlTypes.Inet as Inet
 import Test.Hspec
 import Test.QuickCheck
 import qualified Test.QuickCheck as QuickCheck

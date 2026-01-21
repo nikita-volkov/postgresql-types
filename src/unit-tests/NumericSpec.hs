@@ -5,7 +5,7 @@ import Data.Proxy (Proxy (..))
 import qualified Data.Scientific as Scientific
 import Data.Typeable (Typeable, typeRep)
 import qualified GHC.TypeLits as TypeLits
-import qualified PostgresqlTypes.Types.Numeric as Numeric
+import qualified PostgresqlTypes.Numeric as Numeric
 import Test.Hspec
 import Test.QuickCheck
 import qualified Test.QuickCheck as QuickCheck
