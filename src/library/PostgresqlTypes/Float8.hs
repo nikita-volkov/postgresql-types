@@ -1,4 +1,13 @@
-module PostgresqlTypes.Float8 (Float8) where
+module PostgresqlTypes.Float8
+  ( Float8,
+
+    -- * Accessors
+    toDouble,
+
+    -- * Constructors
+    fromDouble,
+  )
+where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
@@ -30,29 +39,14 @@ instance IsScalar Float8 where
       <|> (Float8 (-1 / 0) <$ Attoparsec.string "-Infinity")
       <|> (Float8 <$> Attoparsec.double)
 
--- | Direct conversion from 'Double'.
--- This is always safe since both types represent 64-bit floating point numbers identically.
-instance IsSome Double Float8 where
-  to (Float8 d) = d
-  maybeFrom = Just . Float8
+-- * Accessors
 
--- | Direct conversion from PostgreSQL Float8 to 'Double'.
--- This is always safe since both types represent 64-bit floating point numbers identically.
-instance IsSome Float8 Double where
-  to d = Float8 d
-  maybeFrom (Float8 d) = Just d
+-- | Extract the underlying 'Double' value.
+toDouble :: Float8 -> Double
+toDouble (Float8 d) = d
 
--- | Direct conversion from 'Double'.
--- This is a total conversion as it always succeeds.
-instance IsMany Double Float8 where
-  onfrom = Float8
+-- * Constructors
 
--- | Direct conversion from PostgreSQL Float8 to 'Double'.
--- This is a total conversion as it always succeeds.
-instance IsMany Float8 Double where
-  onfrom (Float8 d) = d
-
--- | Bidirectional conversion between 'Double' and PostgreSQL Float8.
-instance Is Double Float8
-
-instance Is Float8 Double
+-- | Construct a PostgreSQL 'Float8' from a 'Double' value.
+fromDouble :: Double -> Float8
+fromDouble = Float8

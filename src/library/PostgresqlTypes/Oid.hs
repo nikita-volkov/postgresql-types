@@ -1,4 +1,13 @@
-module PostgresqlTypes.Oid (Oid) where
+module PostgresqlTypes.Oid
+  ( Oid,
+
+    -- * Accessors
+    toWord32,
+
+    -- * Constructors
+    fromWord32,
+  )
+where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import PostgresqlTypes.Algebra
@@ -27,29 +36,14 @@ instance IsScalar Oid where
   textualEncoder (Oid x) = TextBuilder.decimal x
   textualDecoder = Oid <$> Attoparsec.decimal
 
--- | Direct conversion from 'Word32'.
--- This is always safe since both types represent 32-bit unsigned integers identically.
-instance IsSome Word32 Oid where
-  to (Oid w) = w
-  maybeFrom = Just . Oid
+-- * Accessors
 
--- | Direct conversion from PostgreSQL Oid to 'Word32'.
--- This is always safe since both types represent 32-bit unsigned integers identically.
-instance IsSome Oid Word32 where
-  to w = Oid w
-  maybeFrom (Oid w) = Just w
+-- | Extract the underlying 'Word32' value.
+toWord32 :: Oid -> Word32
+toWord32 (Oid w) = w
 
--- | Direct conversion from 'Word32'.
--- This is a total conversion as it always succeeds.
-instance IsMany Word32 Oid where
-  onfrom = Oid
+-- * Constructors
 
--- | Direct conversion from PostgreSQL Oid to 'Word32'.
--- This is a total conversion as it always succeeds.
-instance IsMany Oid Word32 where
-  onfrom (Oid w) = w
-
--- | Bidirectional conversion between 'Word32' and PostgreSQL Oid.
-instance Is Word32 Oid
-
-instance Is Oid Word32
+-- | Construct a PostgreSQL 'Oid' from a 'Word32' value.
+fromWord32 :: Word32 -> Oid
+fromWord32 = Oid

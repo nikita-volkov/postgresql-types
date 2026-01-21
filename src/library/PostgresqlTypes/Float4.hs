@@ -1,4 +1,13 @@
-module PostgresqlTypes.Float4 (Float4) where
+module PostgresqlTypes.Float4
+  ( Float4,
+
+    -- * Accessors
+    toFloat,
+
+    -- * Constructors
+    fromFloat,
+  )
+where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import GHC.Float (castFloatToWord32, castWord32ToFloat)
@@ -30,29 +39,14 @@ instance IsScalar Float4 where
       <|> (Float4 (-1 / 0) <$ Attoparsec.string "-Infinity")
       <|> (Float4 . realToFrac <$> Attoparsec.double)
 
--- | Direct conversion from 'Float'.
--- This is always safe since both types represent 32-bit floating point numbers identically.
-instance IsSome Float Float4 where
-  to (Float4 f) = f
-  maybeFrom = Just . Float4
+-- * Accessors
 
--- | Direct conversion from PostgreSQL Float4 to 'Float'.
--- This is always safe since both types represent 32-bit floating point numbers identically.
-instance IsSome Float4 Float where
-  to f = Float4 f
-  maybeFrom (Float4 f) = Just f
+-- | Extract the underlying 'Float' value.
+toFloat :: Float4 -> Float
+toFloat (Float4 f) = f
 
--- | Direct conversion from 'Float'.
--- This is a total conversion as it always succeeds.
-instance IsMany Float Float4 where
-  onfrom = Float4
+-- * Constructors
 
--- | Direct conversion from PostgreSQL Float4 to 'Float'.
--- This is a total conversion as it always succeeds.
-instance IsMany Float4 Float where
-  onfrom (Float4 f) = f
-
--- | Bidirectional conversion between 'Float' and PostgreSQL Float4.
-instance Is Float Float4
-
-instance Is Float4 Float
+-- | Construct a PostgreSQL 'Float4' from a 'Float' value.
+fromFloat :: Float -> Float4
+fromFloat = Float4

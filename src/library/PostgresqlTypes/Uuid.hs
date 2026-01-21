@@ -1,4 +1,13 @@
-module PostgresqlTypes.Uuid (Uuid) where
+module PostgresqlTypes.Uuid
+  ( Uuid,
+
+    -- * Accessors
+    toUUID,
+
+    -- * Constructors
+    fromUUID,
+  )
+where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.UUID
@@ -47,29 +56,14 @@ instance IsScalar Uuid where
       Nothing -> fail "Invalid UUID format"
       Just uuid -> pure (Uuid uuid)
 
--- | Direct conversion from 'Data.UUID.UUID'.
--- This is always safe since both types represent UUIDs identically.
-instance IsSome Data.UUID.UUID Uuid where
-  to (Uuid uuid) = uuid
-  maybeFrom = Just . Uuid
+-- * Accessors
 
--- | Direct conversion from PostgreSQL Uuid to 'Data.UUID.UUID'.
--- This is always safe since both types represent UUIDs identically.
-instance IsSome Uuid Data.UUID.UUID where
-  to uuid = Uuid uuid
-  maybeFrom (Uuid uuid) = Just uuid
+-- | Extract the underlying 'Data.UUID.UUID' value.
+toUUID :: Uuid -> Data.UUID.UUID
+toUUID (Uuid uuid) = uuid
 
--- | Direct conversion from 'Data.UUID.UUID'.
--- This is a total conversion as it always succeeds.
-instance IsMany Data.UUID.UUID Uuid where
-  onfrom = Uuid
+-- * Constructors
 
--- | Direct conversion from PostgreSQL Uuid to 'Data.UUID.UUID'.
--- This is a total conversion as it always succeeds.
-instance IsMany Uuid Data.UUID.UUID where
-  onfrom (Uuid uuid) = uuid
-
--- | Bidirectional conversion between 'Data.UUID.UUID' and PostgreSQL Uuid.
-instance Is Data.UUID.UUID Uuid
-
-instance Is Uuid Data.UUID.UUID
+-- | Construct a PostgreSQL 'Uuid' from a 'Data.UUID.UUID' value.
+fromUUID :: Data.UUID.UUID -> Uuid
+fromUUID = Uuid

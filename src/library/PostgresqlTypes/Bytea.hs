@@ -1,4 +1,13 @@
-module PostgresqlTypes.Bytea (Bytea) where
+module PostgresqlTypes.Bytea
+  ( Bytea,
+
+    -- * Accessors
+    toByteString,
+
+    -- * Constructors
+    fromByteString,
+  )
+where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.ByteString as ByteString
@@ -55,29 +64,14 @@ instance IsScalar Bytea where
         | c >= 'A' && c <= 'F' = Right (fromIntegral (ord c - ord 'A' + 10))
         | otherwise = Left ("Invalid hex digit: " ++ [c])
 
--- | Direct conversion from 'ByteString'.
--- This is always safe since both types represent binary data identically.
-instance IsSome ByteString Bytea where
-  to (Bytea bs) = bs
-  maybeFrom = Just . Bytea
+-- * Accessors
 
--- | Direct conversion from PostgreSQL Bytea to 'ByteString'.
--- This is always safe since both types represent binary data identically.
-instance IsSome Bytea ByteString where
-  to bs = Bytea bs
-  maybeFrom (Bytea bs) = Just bs
+-- | Extract the underlying 'ByteString' value.
+toByteString :: Bytea -> ByteString
+toByteString (Bytea bs) = bs
 
--- | Direct conversion from 'ByteString'.
--- This is a total conversion as it always succeeds.
-instance IsMany ByteString Bytea where
-  onfrom = Bytea
+-- * Constructors
 
--- | Direct conversion from PostgreSQL Bytea to 'ByteString'.
--- This is a total conversion as it always succeeds.
-instance IsMany Bytea ByteString where
-  onfrom (Bytea bs) = bs
-
--- | Bidirectional conversion between 'ByteString' and PostgreSQL Bytea.
-instance Is ByteString Bytea
-
-instance Is Bytea ByteString
+-- | Construct a PostgreSQL 'Bytea' from a 'ByteString' value.
+fromByteString :: ByteString -> Bytea
+fromByteString = Bytea

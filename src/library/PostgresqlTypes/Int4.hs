@@ -1,4 +1,13 @@
-module PostgresqlTypes.Int4 (Int4) where
+module PostgresqlTypes.Int4
+  ( Int4,
+
+    -- * Accessors
+    toInt32,
+
+    -- * Constructors
+    fromInt32,
+  )
+where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import PostgresqlTypes.Algebra
@@ -39,29 +48,14 @@ instance IsMultirangeElement Int4 where
   multirangeBaseOid = Tagged (Just 4451)
   multirangeArrayOid = Tagged (Just 6150)
 
--- | Direct conversion from 'Int32'.
--- This is always safe since both types represent 32-bit signed integers identically.
-instance IsSome Int32 Int4 where
-  to (Int4 i) = i
-  maybeFrom = Just . Int4
+-- * Accessors
 
--- | Direct conversion from PostgreSQL Int4 to 'Int32'.
--- This is always safe since both types represent 32-bit signed integers identically.
-instance IsSome Int4 Int32 where
-  to i = Int4 i
-  maybeFrom (Int4 i) = Just i
+-- | Extract the underlying 'Int32' value.
+toInt32 :: Int4 -> Int32
+toInt32 (Int4 i) = i
 
--- | Direct conversion from 'Int32'.
--- This is a total conversion as it always succeeds.
-instance IsMany Int32 Int4 where
-  onfrom = Int4
+-- * Constructors
 
--- | Direct conversion from PostgreSQL Int4 to 'Int32'.
--- This is a total conversion as it always succeeds.
-instance IsMany Int4 Int32 where
-  onfrom (Int4 i) = i
-
--- | Bidirectional conversion between 'Int32' and PostgreSQL Int4.
-instance Is Int32 Int4
-
-instance Is Int4 Int32
+-- | Construct a PostgreSQL 'Int4' from an 'Int32' value.
+fromInt32 :: Int32 -> Int4
+fromInt32 = Int4

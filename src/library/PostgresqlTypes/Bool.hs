@@ -1,4 +1,13 @@
-module PostgresqlTypes.Bool (Bool) where
+module PostgresqlTypes.Bool
+  ( Bool,
+
+    -- * Accessors
+    toBool,
+
+    -- * Constructors
+    fromBool,
+  )
+where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.Bool
@@ -32,29 +41,14 @@ instance IsScalar Bool where
       <|> (Bool True <$ Attoparsec.string "true")
       <|> (Bool False <$ Attoparsec.string "false")
 
--- | Direct conversion from Haskell 'Data.Bool.Bool'.
--- This is always safe since both types represent the same values.
-instance IsSome Data.Bool.Bool Bool where
-  to (Bool b) = b
-  maybeFrom = Just . Bool
+-- * Accessors
 
--- | Direct conversion from PostgreSQL Bool to Haskell 'Data.Bool.Bool'.
--- This is always safe since both types represent the same values.
-instance IsSome Bool Data.Bool.Bool where
-  to b = Bool b
-  maybeFrom (Bool b) = Just b
+-- | Extract the underlying Haskell 'Data.Bool.Bool' value.
+toBool :: Bool -> Data.Bool.Bool
+toBool (Bool b) = b
 
--- | Direct conversion from Haskell 'Data.Bool.Bool'.
--- This is a total conversion as it always succeeds.
-instance IsMany Data.Bool.Bool Bool where
-  onfrom = Bool
+-- * Constructors
 
--- | Direct conversion from PostgreSQL Bool to Haskell 'Data.Bool.Bool'.
--- This is a total conversion as it always succeeds.
-instance IsMany Bool Data.Bool.Bool where
-  onfrom (Bool b) = b
-
--- | Bidirectional conversion between Haskell 'Data.Bool.Bool' and PostgreSQL Bool.
-instance Is Data.Bool.Bool Bool
-
-instance Is Bool Data.Bool.Bool
+-- | Construct a PostgreSQL 'Bool' from a Haskell 'Data.Bool.Bool' value.
+fromBool :: Data.Bool.Bool -> Bool
+fromBool = Bool
