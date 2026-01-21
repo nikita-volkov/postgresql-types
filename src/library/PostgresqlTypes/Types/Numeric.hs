@@ -3,15 +3,19 @@
 -- - Sign flags: https://github.com/postgres/postgres/blob/6bca4b50d000e840cad17a9dd6cb46785fb2cedb/src/backend/utils/adt/numeric.c#L201-L203
 module PostgresqlTypes.Types.Numeric
   ( Numeric,
+
+    -- * Accessors.
     isNaN,
     isPosInfinity,
     isNegInfinity,
+    normalizeToScientific,
+    projectToScientific,
+
+    -- * Constructors.
     nan,
     posInfinity,
     negInfinity,
-    normalizeToScientific,
     normalizeFromScientific,
-    projectToScientific,
     projectFromScientific,
   )
 where
