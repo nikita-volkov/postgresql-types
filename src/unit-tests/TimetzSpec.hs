@@ -240,7 +240,9 @@ spec = do
 
       it "Eq is transitive" do
         QuickCheck.property \(t1 :: Timetz.Timetz, t2 :: Timetz.Timetz, t3 :: Timetz.Timetz) ->
-          ((t1 == t2) && (t2 == t3)) ==> (t1 === t3)
+          if (t1 == t2) && (t2 == t3)
+            then t1 === t3
+            else property True
 
       it "Ord is consistent with Eq" do
         QuickCheck.property \(t1 :: Timetz.Timetz, t2 :: Timetz.Timetz) ->
@@ -252,7 +254,9 @@ spec = do
 
       it "Ord is antisymmetric" do
         QuickCheck.property \(t1 :: Timetz.Timetz, t2 :: Timetz.Timetz) ->
-          ((t1 <= t2) && (t2 <= t1)) ==> (t1 === t2)
+          if (t1 <= t2) && (t2 <= t1)
+            then t1 === t2
+            else property True
 
       it "Ord is total" do
         QuickCheck.property \(t1 :: Timetz.Timetz, t2 :: Timetz.Timetz) ->
