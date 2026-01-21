@@ -1,6 +1,17 @@
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
-module PostgresqlTypes.Path (Path) where
+module PostgresqlTypes.Path
+  ( Path (..),
+
+    -- * Accessors
+    toPointList,
+    toPointVector,
+
+    -- * Constructors
+    refineFromPointList,
+    refineFromPointVector,
+  )
+where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.Vector.Unboxed as UnboxedVector
@@ -96,20 +107,30 @@ instance IsScalar Path where
         _ <- Attoparsec.char ')'
         pure (x, y)
 
--- | Convert from a tuple of Bool and list of points to a Path.
--- This is always safe since both represent the same data.
-instance IsSome (Bool, [(Double, Double)]) Path where
-  to (Path closed points) = (closed, UnboxedVector.toList points)
-  maybeFrom (closed, points) =
-    case points of
-      [] -> Nothing
-      _ -> Just (Path closed (UnboxedVector.fromList points))
+-- * Accessors
 
--- | Convert from a tuple of Bool and list of points to a Path.
--- This is always safe since both represent the same data.
-instance IsSome (Bool, (UnboxedVector.Vector (Double, Double))) Path where
-  to (Path closed points) = (closed, points)
-  maybeFrom (closed, points) =
-    if UnboxedVector.length points >= 1
-      then Just (Path closed points)
-      else Nothing
+-- | Extract as (closed, points) where points is a list.
+toPointList :: Path -> (Bool, [(Double, Double)])
+toPointList (Path closed points) = (closed, UnboxedVector.toList points)
+
+-- | Extract as (closed, points) where points is an unboxed vector.
+toPointVector :: Path -> (Bool, UnboxedVector.Vector (Double, Double))
+toPointVector (Path closed points) = (closed, points)
+
+-- * Constructors
+
+-- | Construct a PostgreSQL 'Path' from (closed, points) list with validation.
+-- Returns 'Nothing' if the list is empty.
+refineFromPointList :: (Bool, [(Double, Double)]) -> Maybe Path
+refineFromPointList (closed, points) =
+  case points of
+    [] -> Nothing
+    _ -> Just (Path closed (UnboxedVector.fromList points))
+
+-- | Construct a PostgreSQL 'Path' from (closed, points) vector with validation.
+-- Returns 'Nothing' if the vector is empty.
+refineFromPointVector :: (Bool, UnboxedVector.Vector (Double, Double)) -> Maybe Path
+refineFromPointVector (closed, points) =
+  if UnboxedVector.length points >= 1
+    then Just (Path closed points)
+    else Nothing

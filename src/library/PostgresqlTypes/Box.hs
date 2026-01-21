@@ -1,6 +1,16 @@
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
-module PostgresqlTypes.Box (Box) where
+module PostgresqlTypes.Box
+  ( Box (..),
+
+    -- * Accessors
+    toCorners,
+
+    -- * Constructors
+    refineFromCorners,
+    normalizeFromCorners,
+  )
+where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
@@ -92,18 +102,23 @@ instance IsScalar Box where
     -- PostgreSQL may return coordinates in any order, normalize to ensure x1 <= x2 and y1 <= y2
     pure (Box (min x1 x2) (min y1 y2) (max x1 x2) (max y1 y2))
 
--- | Mapping to a tuple of coordinates of lower-left and upper-right corners represented as @(lowerX, lowerY, upperX, upperY)@.
---
--- Input is validated to ensure @lowerX <= upperX@ and @lowerY <= upperY@.
-instance IsSome (Double, Double, Double, Double) Box where
-  to (Box x1 y1 x2 y2) = (x1, y1, x2, y2)
-  maybeFrom (x1, y1, x2, y2) =
-    if x1 <= x2 && y1 <= y2
-      then Just (Box x1 y1 x2 y2)
-      else Nothing
+-- * Accessors
 
--- | Mapping to a tuple of coordinates of lower-left and upper-right corners represented as @(lowerX, lowerY, upperX, upperY)@.
---
--- Input is normalized to ensure @lowerX <= upperX@ and @lowerY <= upperY@.
-instance IsMany (Double, Double, Double, Double) Box where
-  onfrom (x1, y1, x2, y2) = Box (min x1 x2) (min y1 y2) (max x1 x2) (max y1 y2)
+-- | Extract the box corners as (lowerX, lowerY, upperX, upperY).
+toCorners :: Box -> (Double, Double, Double, Double)
+toCorners (Box x1 y1 x2 y2) = (x1, y1, x2, y2)
+
+-- * Constructors
+
+-- | Construct a PostgreSQL 'Box' from corners (lowerX, lowerY, upperX, upperY) with validation.
+-- Returns 'Nothing' if lowerX > upperX or lowerY > upperY.
+refineFromCorners :: (Double, Double, Double, Double) -> Maybe Box
+refineFromCorners (x1, y1, x2, y2) =
+  if x1 <= x2 && y1 <= y2
+    then Just (Box x1 y1 x2 y2)
+    else Nothing
+
+-- | Construct a PostgreSQL 'Box' from corners (x1, y1, x2, y2).
+-- Normalizes coordinates to ensure lowerX <= upperX and lowerY <= upperY.
+normalizeFromCorners :: (Double, Double, Double, Double) -> Box
+normalizeFromCorners (x1, y1, x2, y2) = Box (min x1 x2) (min y1 y2) (max x1 x2) (max y1 y2)

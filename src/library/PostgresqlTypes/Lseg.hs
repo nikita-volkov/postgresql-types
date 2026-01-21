@@ -1,6 +1,15 @@
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
-module PostgresqlTypes.Lseg (Lseg) where
+module PostgresqlTypes.Lseg
+  ( Lseg (..),
+
+    -- * Accessors
+    toEndpoints,
+
+    -- * Constructors
+    fromEndpoints,
+  )
+where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
@@ -76,28 +85,14 @@ instance IsScalar Lseg where
     _ <- Attoparsec.char ']'
     pure (Lseg x1 y1 x2 y2)
 
--- | Convert from a 4-tuple to an Lseg.
--- This is always safe since both represent the same data.
-instance IsSome (Double, Double, Double, Double) Lseg where
-  to (Lseg x1 y1 x2 y2) = (x1, y1, x2, y2)
-  maybeFrom (x1, y1, x2, y2) = Just (Lseg x1 y1 x2 y2)
+-- * Accessors
 
--- | Convert from an Lseg to a 4-tuple.
--- This is always safe since both represent the same data.
-instance IsSome Lseg (Double, Double, Double, Double) where
-  to (x1, y1, x2, y2) = Lseg x1 y1 x2 y2
-  maybeFrom (Lseg x1 y1 x2 y2) = Just (x1, y1, x2, y2)
+-- | Extract the endpoints as a 4-tuple (x1, y1, x2, y2).
+toEndpoints :: Lseg -> (Double, Double, Double, Double)
+toEndpoints (Lseg x1 y1 x2 y2) = (x1, y1, x2, y2)
 
--- | Direct conversion from 4-tuple to Lseg.
--- This is a total conversion as it always succeeds.
-instance IsMany (Double, Double, Double, Double) Lseg where
-  onfrom (x1, y1, x2, y2) = Lseg x1 y1 x2 y2
+-- * Constructors
 
--- | Direct conversion from Lseg to 4-tuple.
--- This is a total conversion as it always succeeds.
-instance IsMany Lseg (Double, Double, Double, Double) where
-  onfrom (Lseg x1 y1 x2 y2) = (x1, y1, x2, y2)
-
-instance Is (Double, Double, Double, Double) Lseg
-
-instance Is Lseg (Double, Double, Double, Double)
+-- | Construct a PostgreSQL 'Lseg' from endpoints (x1, y1, x2, y2).
+fromEndpoints :: (Double, Double, Double, Double) -> Lseg
+fromEndpoints (x1, y1, x2, y2) = Lseg x1 y1 x2 y2
