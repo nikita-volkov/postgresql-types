@@ -4,14 +4,14 @@
 module PostgresqlTypes.Types.Numeric
   ( Numeric,
 
-    -- * Accessors.
+    -- * Accessors
     isNaN,
     isPosInfinity,
     isNegInfinity,
     normalizeToScientific,
     refineToScientific,
 
-    -- * Constructors.
+    -- * Constructors
     nan,
     posInfinity,
     negInfinity,
