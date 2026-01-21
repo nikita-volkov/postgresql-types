@@ -20,8 +20,8 @@ compressFromSeconds seconds =
 
 -- |
 -- Compile, distill, rectify seconds. Extract from seconds.
-compileFromSeconds :: Int -> Maybe TimeZone
-compileFromSeconds seconds =
+projectFromSeconds :: Int -> Maybe TimeZone
+projectFromSeconds seconds =
   if seconds < 0
     then fromSignerAndAbsSeconds negate (negate seconds)
     else fromSignerAndAbsSeconds id seconds

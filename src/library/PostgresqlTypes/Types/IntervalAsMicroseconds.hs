@@ -45,7 +45,7 @@ instance IsMany Interval IntervalAsMicroseconds where
 
 instance IsSome DiffTime IntervalAsMicroseconds where
   to = Time.picosecondsToDiffTime . (1_000_000 *) . toInteger
-  maybeFrom = compileFromDiffTime
+  maybeFrom = projectFromDiffTime
 
 instance IsMany DiffTime IntervalAsMicroseconds where
   onfrom = normalizeFromDiffTime
@@ -53,7 +53,7 @@ instance IsMany DiffTime IntervalAsMicroseconds where
 -- | Conversion to 'Integer' amount of microseconds.
 instance IsSome Integer IntervalAsMicroseconds where
   to = toInteger
-  maybeFrom = compileFromMicroseconds
+  maybeFrom = projectFromMicroseconds
 
 -- | Conversion to 'Integer' amount of microseconds.
 instance IsMany Integer IntervalAsMicroseconds where
@@ -90,23 +90,23 @@ fromInterval interval =
 -- * Compilation
 
 -- | Performs bounds check.
-compileFromMicroseconds :: Integer -> Maybe IntervalAsMicroseconds
-compileFromMicroseconds microseconds =
+projectFromMicroseconds :: Integer -> Maybe IntervalAsMicroseconds
+projectFromMicroseconds microseconds =
   let wrapped = IntervalAsMicroseconds microseconds
    in if wrapped >= minBound && wrapped <= maxBound
         then Just wrapped
         else Nothing
 
 -- | Performs precision loss check.
-compileFromPicoseconds :: Integer -> Maybe IntervalAsMicroseconds
-compileFromPicoseconds picoseconds =
+projectFromPicoseconds :: Integer -> Maybe IntervalAsMicroseconds
+projectFromPicoseconds picoseconds =
   let (microseconds, remainder) = divMod picoseconds 1_000_000
    in if remainder == 0
-        then compileFromMicroseconds microseconds
+        then projectFromMicroseconds microseconds
         else Nothing
 
-compileFromDiffTime :: DiffTime -> Maybe IntervalAsMicroseconds
-compileFromDiffTime = compileFromPicoseconds . Time.diffTimeToPicoseconds
+projectFromDiffTime :: DiffTime -> Maybe IntervalAsMicroseconds
+projectFromDiffTime = projectFromPicoseconds . Time.diffTimeToPicoseconds
 
 -- * Normalization
 

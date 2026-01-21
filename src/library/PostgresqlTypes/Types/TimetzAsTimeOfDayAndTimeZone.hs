@@ -33,7 +33,7 @@ instance IsSome Timetz TimetzAsTimeOfDayAndTimeZone where
   maybeFrom timetz = do
     let (timeMicroseconds, offsetSeconds) = to @(Int64, Int32) timetz
     let timeOfDay = TimeOfDay.convertFromMicroseconds (fromIntegral timeMicroseconds)
-    timeZone <- TimeZone.compileFromSeconds (fromIntegral offsetSeconds)
+    timeZone <- TimeZone.projectFromSeconds (fromIntegral offsetSeconds)
     pure (TimetzAsTimeOfDayAndTimeZone timeOfDay timeZone)
 
 instance IsMany Timetz TimetzAsTimeOfDayAndTimeZone where
@@ -47,7 +47,7 @@ instance IsSome (Time.TimeOfDay, Time.TimeZone) TimetzAsTimeOfDayAndTimeZone whe
   to (TimetzAsTimeOfDayAndTimeZone timeOfDay timeZone) =
     (timeOfDay, timeZone)
   maybeFrom (timeOfDay, timeZone) = do
-    time <- TimeOfDay.compileToMicroseconds timeOfDay
+    time <- TimeOfDay.projectToMicroseconds timeOfDay
     let offset = fromIntegral (TimeZone.convertToSeconds timeZone)
     timetz :: Timetz <- maybeFrom (fromIntegral time :: Int64, offset :: Int32)
     maybeFrom timetz

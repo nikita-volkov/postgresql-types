@@ -19,8 +19,8 @@ compressToMicroseconds (TimeOfDay hours minutes picoseconds) =
       microseconds' = fromIntegral ((hours * 60 + minutes) * 60) * 1_000_000 + fromIntegral microseconds
    in microseconds'
 
-compileToMicroseconds :: TimeOfDay -> Maybe Int
-compileToMicroseconds (TimeOfDay hours minutes picoseconds) = do
+projectToMicroseconds :: TimeOfDay -> Maybe Int
+projectToMicroseconds (TimeOfDay hours minutes picoseconds) = do
   let MkFixed picoseconds' = picoseconds
       (microseconds, remainder) = divMod picoseconds' 1_000_000
   guard (remainder == 0)

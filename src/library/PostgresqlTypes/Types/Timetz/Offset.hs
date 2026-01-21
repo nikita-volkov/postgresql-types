@@ -33,15 +33,15 @@ toTimeZone (TimetzOffset seconds) =
       minutes = fromIntegral (seconds + 30) `div` 60
    in Time.minutesToTimeZone minutes
 
-compileFromSeconds :: Int32 -> Maybe TimetzOffset
-compileFromSeconds seconds
+projectFromSeconds :: Int32 -> Maybe TimetzOffset
+projectFromSeconds seconds
   | seconds >= toSeconds minBound && seconds <= toSeconds maxBound = Just (TimetzOffset seconds)
   | otherwise = Nothing
 
-compileFromTimeZone :: Time.TimeZone -> Maybe TimetzOffset
-compileFromTimeZone (Time.TimeZone minutes _ _) =
+projectFromTimeZone :: Time.TimeZone -> Maybe TimetzOffset
+projectFromTimeZone (Time.TimeZone minutes _ _) =
   let seconds = fromIntegral (minutes * 60)
-   in compileFromSeconds seconds
+   in projectFromSeconds seconds
 
 -- | Clamp seconds to the valid range.
 normalizeFromSeconds :: Int32 -> TimetzOffset

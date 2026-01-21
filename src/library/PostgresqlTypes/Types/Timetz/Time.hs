@@ -31,23 +31,23 @@ toTimeOfDay (TimetzTime microseconds) =
       hours' = fromIntegral hours
    in Time.TimeOfDay hours' minutes'' picoseconds
 
-compileFromMicroseconds :: Int64 -> Maybe TimetzTime
-compileFromMicroseconds microseconds
+projectFromMicroseconds :: Int64 -> Maybe TimetzTime
+projectFromMicroseconds microseconds
   | microseconds >= toMicroseconds minBound && microseconds <= toMicroseconds maxBound = Just (TimetzTime microseconds)
   | otherwise = Nothing
 
-compileFromPicoseconds :: Integer -> Maybe TimetzTime
-compileFromPicoseconds picoseconds =
+projectFromPicoseconds :: Integer -> Maybe TimetzTime
+projectFromPicoseconds picoseconds =
   let (microseconds, picoseconds') = divMod picoseconds 1_000_000
    in if picoseconds' == 0
-        then compileFromMicroseconds (fromIntegral microseconds)
+        then projectFromMicroseconds (fromIntegral microseconds)
         else Nothing
 
-compileFromTimeOfDay :: Time.TimeOfDay -> Maybe TimetzTime
-compileFromTimeOfDay (Time.TimeOfDay hours minutes picoseconds) =
+projectFromTimeOfDay :: Time.TimeOfDay -> Maybe TimetzTime
+projectFromTimeOfDay (Time.TimeOfDay hours minutes picoseconds) =
   let MkFixed picoseconds' = picoseconds
       picoseconds'' = fromIntegral ((hours * 60 + minutes) * 60) * 1_000_000_000_000 + picoseconds'
-   in compileFromPicoseconds picoseconds''
+   in projectFromPicoseconds picoseconds''
 
 -- | Wrap the overflow values around the clock.
 normalizeFromMicroseconds :: Int64 -> TimetzTime

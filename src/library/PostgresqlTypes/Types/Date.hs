@@ -133,7 +133,7 @@ instance IsMultirangeElement Date where
 -- | Conversion to 'Data.Time.Day'.
 instance IsSome Time.Day Date where
   to = toDay
-  maybeFrom = compileFromDay
+  maybeFrom = projectFromDay
 
 -- | Conversion from 'Data.Time.Day'.
 instance IsMany Time.Day Date where
@@ -147,8 +147,8 @@ postgresEpoch = Time.fromGregorian 2000 1 1
 toDay :: Date -> Time.Day
 toDay (Date days) = Time.addDays (fromIntegral days) postgresEpoch
 
-compileFromDay :: Time.Day -> Maybe Date
-compileFromDay day
+projectFromDay :: Time.Day -> Maybe Date
+projectFromDay day
   | day < minDay || day > maxDay = Nothing
   | otherwise = Just (unsafeFromDay day)
 

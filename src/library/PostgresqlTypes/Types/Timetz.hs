@@ -75,7 +75,7 @@ instance IsScalar Timetz where
     let timeMicros = fromIntegral h * 3600_000_000 + fromIntegral m * 60_000_000 + fromIntegral s * 1_000_000 + micros
         -- Note: PostgreSQL stores offset with inverted sign (positive means west of UTC)
         offsetSeconds = negate sign * (fromIntegral tzH * 3600 + fromIntegral tzM * 60 + fromIntegral tzS)
-    case (Time.compileFromMicroseconds timeMicros, Offset.compileFromSeconds offsetSeconds) of
+    case (Time.projectFromMicroseconds timeMicros, Offset.projectFromSeconds offsetSeconds) of
       (Just time, Just offset) -> pure (Timetz time offset)
       _ -> fail "Invalid timetz value"
     where
@@ -95,8 +95,8 @@ instance IsSome (Int64, Int32) Timetz where
   to (Timetz time offset) =
     (Time.toMicroseconds time, Offset.toSeconds offset)
   maybeFrom (microseconds, offset) = do
-    time <- Time.compileFromMicroseconds microseconds
-    offset <- Offset.compileFromSeconds offset
+    time <- Time.projectFromMicroseconds microseconds
+    offset <- Offset.projectFromSeconds offset
     pure (Timetz time offset)
 
 -- | Normalize from time in microseconds and timezone offset in seconds, ensuring valid time range.
