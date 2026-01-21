@@ -108,6 +108,7 @@ library
   hs-source-dirs: src/library
   exposed-modules:
     PostgresqlTypes
+    PostgresqlTypes.Types.Interval
     PostgresqlTypes.Types.Numeric
     PostgresqlTypes.Types.Timetz
 
@@ -131,8 +132,6 @@ library
     PostgresqlTypes.Types.Int2
     PostgresqlTypes.Types.Int4
     PostgresqlTypes.Types.Int8
-    PostgresqlTypes.Types.Interval
-    PostgresqlTypes.Types.IntervalAsMicroseconds
     PostgresqlTypes.Types.Ip
     PostgresqlTypes.Types.Json
     PostgresqlTypes.Types.Jsonb
@@ -253,6 +252,7 @@ test-suite unit-tests
   hs-source-dirs: src/unit-tests
   main-is: Main.hs
   other-modules:
+    IntervalSpec
     NumericSpec
     TimetzSpec
 

@@ -17,6 +17,7 @@ import Data.Vector (Vector)
 import qualified Data.Vector.Unboxed
 import qualified Data.Vector.Unboxed as VU
 import Data.Word
+import qualified IntervalSpec
 import qualified LawfulConversions
 import qualified NumericSpec
 import qualified PostgresqlTypes
@@ -53,7 +54,6 @@ main = hspec $ parallel do
   testIsScalar @PostgresqlTypes.Int4 Proxy
   testIsScalar @PostgresqlTypes.Int8 Proxy
   testIsScalar @PostgresqlTypes.Interval Proxy
-  testIsScalar @PostgresqlTypes.IntervalAsMicroseconds Proxy
   testIsScalar @PostgresqlTypes.Json Proxy
   testIsScalar @PostgresqlTypes.Jsonb Proxy
   testIsScalar @PostgresqlTypes.Line Proxy
@@ -126,8 +126,6 @@ main = hspec $ parallel do
   testIsMany @PostgresqlTypes.Int4 @Int32 Proxy Proxy
   testIsMany @PostgresqlTypes.Int8 @Int64 Proxy Proxy
   testIsMany @PostgresqlTypes.Interval @(Int32, Int32, Int64) Proxy Proxy
-  testIsMany @PostgresqlTypes.IntervalAsMicroseconds @PostgresqlTypes.Interval Proxy Proxy
-  testIsMany @PostgresqlTypes.IntervalAsMicroseconds @DiffTime Proxy Proxy
   testIsMany @PostgresqlTypes.Json @Aeson.Value Proxy Proxy
   testIsMany @PostgresqlTypes.Line @(Double, Double, Double) Proxy Proxy
   testIsMany @PostgresqlTypes.Money @Int64 Proxy Proxy
@@ -158,6 +156,7 @@ main = hspec $ parallel do
   testIsSome @PostgresqlTypes.Polygon @(Data.Vector.Unboxed.Vector (Double, Double)) Proxy Proxy
   testIsSome @PostgresqlTypes.Polygon @[(Double, Double)] Proxy Proxy
   testIsSomeBounded @PostgresqlTypes.Time @TimeOfDay Proxy Proxy
+  describe "Interval" IntervalSpec.spec
   describe "Numeric" NumericSpec.spec
   describe "Timetz" TimetzSpec.spec
 

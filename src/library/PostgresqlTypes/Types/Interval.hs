@@ -1,6 +1,24 @@
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
-module PostgresqlTypes.Types.Interval (Interval) where
+module PostgresqlTypes.Types.Interval
+  ( Interval,
+
+    -- * Accessors
+    toMonths,
+    toDays,
+    toMicroseconds,
+    normalizeToMicrosecondsInTotal,
+    normalizeToDiffTime,
+
+    -- * Constructors
+    normalizeFromMonthsDaysAndMicroseconds,
+    normalizeFromMicrosecondsInTotal,
+    normalizeFromDiffTime,
+    refineFromMonthsDaysAndMicroseconds,
+    refineFromMicrosecondsInTotal,
+    refineFromDiffTime,
+  )
+where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.Text as Text
@@ -14,7 +32,10 @@ import qualified TextBuilder
 
 -- | PostgreSQL @interval@ type. Time span with separate components for months, days, and microseconds with individual signs.
 --
--- For a simpler and more portable representation consider 'PostgresqlTypes.Types.IntervalAsMicroseconds.IntervalAsMicroseconds'.
+-- Stored as three components: months, days, and microseconds, each with their own sign.
+--
+-- For a simpler representation, use the 'normalizeToMicrosecondsInTotal' and 'normalizeFromMicrosecondsInTotal'/'refineFromMicrosecondsInTotal' functions
+-- to work with a single microseconds value.
 --
 -- Range: @-178000000@ years to @178000000@ years.
 --
@@ -285,23 +306,81 @@ instance IsMany (Int32, Int32, Int64) Interval where
           then interval
           else max minBound (min maxBound interval)
 
-fromMicros :: Integer -> Interval
-fromMicros =
-  evalState do
+-- * Accessors
+
+-- | Extract the months component.
+toMonths :: Interval -> Int32
+toMonths Interval {..} = months
+
+-- | Extract the days component.
+toDays :: Interval -> Int32
+toDays Interval {..} = days
+
+-- | Extract the microseconds component.
+toMicroseconds :: Interval -> Int64
+toMicroseconds Interval {..} = micros
+
+-- | Convert interval to total microseconds, approximating months as 30 days and days as 24 hours.
+normalizeToMicrosecondsInTotal :: Interval -> Integer
+normalizeToMicrosecondsInTotal Interval {..} =
+  fromIntegral micros + microsPerDay * (fromIntegral days + daysPerMonth * fromIntegral months)
+
+-- | Convert interval to 'DiffTime', approximating months as 30 days and days as 24 hours.
+normalizeToDiffTime :: Interval -> DiffTime
+normalizeToDiffTime = picosecondsToDiffTime . (1_000_000 *) . normalizeToMicrosecondsInTotal
+
+-- * Constructors
+
+-- | Construct 'Interval' from months, days, and microseconds components, clamping to valid range.
+normalizeFromMonthsDaysAndMicroseconds :: Int32 -> Int32 -> Int64 -> Interval
+normalizeFromMonthsDaysAndMicroseconds months days micros =
+  let interval = Interval {..}
+   in max minBound (min maxBound interval)
+
+-- | Try to construct 'Interval' from months, days, and microseconds components, failing if out of range.
+refineFromMonthsDaysAndMicroseconds :: Int32 -> Int32 -> Int64 -> Maybe Interval
+refineFromMonthsDaysAndMicroseconds months days micros =
+  let interval = Interval {..}
+   in if interval >= minBound && interval <= maxBound
+        then Just interval
+        else Nothing
+
+-- | Construct 'Interval' from total microseconds, approximating months as 30 days and days as 24 hours, clamping to valid range.
+normalizeFromMicrosecondsInTotal :: Integer -> Interval
+normalizeFromMicrosecondsInTotal microseconds =
+  let interval = unsafeFromMicrosecondsInTotal microseconds
+   in max minBound (min maxBound interval)
+
+-- | Try to construct 'Interval' from total microseconds, approximating months as 30 days and days as 24 hours, failing if out of range or if the conversion is lossy.
+refineFromMicrosecondsInTotal :: Integer -> Maybe Interval
+refineFromMicrosecondsInTotal microseconds =
+  let interval = unsafeFromMicrosecondsInTotal microseconds
+   in if interval >= minBound && interval <= maxBound && normalizeToMicrosecondsInTotal interval == microseconds
+        then Just interval
+        else Nothing
+
+-- | Construct 'Interval' from 'DiffTime', approximating months as 30 days and days as 24 hours, clamping to valid range and losing sub-microsecond precision.
+normalizeFromDiffTime :: DiffTime -> Interval
+normalizeFromDiffTime = normalizeFromMicrosecondsInTotal . (`div` 1_000_000) . diffTimeToPicoseconds
+
+-- | Try to construct 'Interval' from 'DiffTime', approximating months as 30 days and days as 24 hours, failing if out of range or if precision is lost.
+refineFromDiffTime :: DiffTime -> Maybe Interval
+refineFromDiffTime diffTime =
+  let picoseconds = diffTimeToPicoseconds diffTime
+      (microseconds, remainder) = divMod picoseconds 1_000_000
+   in if remainder == 0
+        then refineFromMicrosecondsInTotal microseconds
+        else Nothing
+
+-- * Internal helpers
+
+unsafeFromMicrosecondsInTotal :: Integer -> Interval
+unsafeFromMicrosecondsInTotal =
+  evalState $ do
     micros <- fromIntegral <$> state (swap . flip divMod microsPerDay)
     days <- fromIntegral <$> state (swap . flip divMod daysPerMonth)
     months <- fromIntegral <$> get
     pure Interval {..}
-
-toMicros :: Interval -> Integer
-toMicros Interval {..} =
-  fromIntegral micros + microsPerDay * (fromIntegral days + daysPerMonth * fromIntegral months)
-
-toPicos :: Interval -> Integer
-toPicos = (1_000_000 *) . toMicros
-
-toDiffTime :: Interval -> DiffTime
-toDiffTime = picosecondsToDiffTime . toPicos
 
 microsPerDay :: (Num a) => a
 microsPerDay = 1_000_000 * 60 * 60 * 24

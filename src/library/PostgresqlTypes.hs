@@ -45,7 +45,6 @@
 -- * @'Timestamptz'@ - Date and time with time zone (@timestamptz@)
 -- * @'Timetz'@ - Time of day with time zone (@timetz@)
 -- * @'Interval'@ - Time interval (@interval@)
--- * @'IntervalAsMicroseconds'@ - Interval as microseconds
 --
 -- == Network Address Types
 --
