@@ -8,7 +8,6 @@ import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
 import PostgresqlTypes.Types.Range (Range)
 import PostgresqlTypes.Via
-import qualified PostgresqlTypes.Writes as Writes
 import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified QuickCheckExtras.Gen
@@ -50,7 +49,8 @@ instance (IsMultirangeElement a) => IsScalar (Multirange a) where
         ]
     where
       renderRange range =
-        Writes.sized (binaryEncoder range)
+        let write = binaryEncoder range
+         in Write.bWord32 (fromIntegral (Write.writeSize write)) <> write
 
   binaryDecoder = runExceptT do
     numRanges <- lift do

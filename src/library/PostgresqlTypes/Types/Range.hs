@@ -4,7 +4,6 @@ import qualified Data.Attoparsec.Text as Attoparsec
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
 import PostgresqlTypes.Via
-import qualified PostgresqlTypes.Writes as Writes
 import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
 import qualified Test.QuickCheck as QuickCheck
@@ -54,7 +53,8 @@ instance (IsRangeElement a) => IsScalar (Range a) where
         ]
     where
       renderBound bound =
-        Writes.sized (binaryEncoder bound)
+        let write = binaryEncoder bound
+         in Write.bWord32 (fromIntegral (Write.writeSize write)) <> write
 
   binaryDecoder = runExceptT do
     flags <- lift do

@@ -160,7 +160,6 @@ library
     PostgresqlTypes.Via.IsMany
     PostgresqlTypes.Via.IsScalar
     PostgresqlTypes.Via.IsSome
-    PostgresqlTypes.Writes
 
   build-depends:
     QuickCheck >=2.14 && <3,
