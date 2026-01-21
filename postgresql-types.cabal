@@ -252,6 +252,7 @@ test-suite unit-tests
   hs-source-dirs: src/unit-tests
   main-is: Main.hs
   other-modules:
+    InetSpec
     IntervalSpec
     NumericSpec
     TimetzSpec
