@@ -1,6 +1,19 @@
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
-module PostgresqlTypes.Varbit (Varbit) where
+module PostgresqlTypes.Varbit
+  ( Varbit,
+
+    -- * Accessors
+    toBoolList,
+    toBoolVector,
+
+    -- * Constructors
+    refineFromBoolList,
+    normalizeFromBoolList,
+    refineFromBoolVector,
+    normalizeFromBoolVector,
+  )
+where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.Bits as Bits
@@ -38,14 +51,14 @@ instance (TypeLits.KnownNat maxLen) => Arbitrary (Varbit maxLen) where
     let maxLen = fromIntegral (TypeLits.natVal (Proxy @maxLen))
     len <- QuickCheck.chooseInt (0, maxLen) -- Variable length up to max
     bits <- QuickCheck.vectorOf len (arbitrary :: QuickCheck.Gen Bool)
-    case maybeFrom bits of
+    case refineFromBoolList bits of
       Nothing -> error "Arbitrary Varbit: Generated bit string exceeds maximum length"
       Just varbit -> pure varbit
   shrink varbit =
     let maxLen = fromIntegral (TypeLits.natVal (Proxy @maxLen))
-        bits = to @[Bool] varbit
+        bits = toBoolList varbit
         shrunkBitsList = shrink bits
-     in mapMaybe maybeFrom [b | b <- shrunkBitsList, length b <= maxLen]
+     in mapMaybe refineFromBoolList [b | b <- shrunkBitsList, length b <= maxLen]
 
 instance (TypeLits.KnownNat maxLen) => IsScalar (Varbit maxLen) where
   typeName = Tagged "varbit"
@@ -101,104 +114,104 @@ instance (TypeLits.KnownNat maxLen) => IsScalar (Varbit maxLen) where
       chunksOf _ [] = []
       chunksOf n xs = take n xs : chunksOf n (drop n xs)
 
--- | Convert from a bit string (as a list of Bool) to a Varbit.
--- The bit string must not exceed the maximum length specified by the type parameter.
--- The bit string is packed into bytes.
-instance (TypeLits.KnownNat maxLen) => IsSome [Bool] (Varbit maxLen) where
-  to (Varbit len bytes) =
-    let bits = concatMap byteToBits (ByteString.unpack bytes)
-        trimmedBits = take (fromIntegral len) bits
-     in trimmedBits
-    where
-      byteToBits :: Word8 -> [Bool]
-      byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
-  maybeFrom bits =
-    let len = length bits
-        maxLen = fromIntegral (TypeLits.natVal (Proxy @maxLen))
-     in if len <= maxLen
-          then
-            let numBytes = (len + 7) `div` 8
-                paddedBits = bits ++ replicate (numBytes * 8 - len) False
-                bytes = map boolsToByte (chunksOf 8 paddedBits)
-             in Just (Varbit (fromIntegral len) (ByteString.pack bytes))
-          else Nothing
-    where
-      boolsToByte :: [Bool] -> Word8
-      boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
-      chunksOf :: Int -> [a] -> [[a]]
-      chunksOf _ [] = []
-      chunksOf n xs = take n xs : chunksOf n (drop n xs)
+-- * Accessors
 
--- | Direct conversion from bit list to Varbit.
+-- | Extract the bit string as a list of Bool.
+toBoolList :: forall maxLen. (TypeLits.KnownNat maxLen) => Varbit maxLen -> [Bool]
+toBoolList (Varbit len bytes) =
+  let bits = concatMap byteToBits (ByteString.unpack bytes)
+      trimmedBits = take (fromIntegral len) bits
+   in trimmedBits
+  where
+    byteToBits :: Word8 -> [Bool]
+    byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
+
+-- | Extract the bit string as an unboxed vector of Bool.
+toBoolVector :: forall maxLen. (TypeLits.KnownNat maxLen) => Varbit maxLen -> VU.Vector Bool
+toBoolVector (Varbit len bytes) =
+  let bits = concatMap byteToBits (ByteString.unpack bytes)
+      trimmedBits = take (fromIntegral len) bits
+   in VU.fromList trimmedBits
+  where
+    byteToBits :: Word8 -> [Bool]
+    byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
+
+-- * Constructors
+
+-- | Construct a PostgreSQL 'Varbit' from a list of Bool with validation.
+-- Returns 'Nothing' if the list length exceeds the maximum length.
+refineFromBoolList :: forall maxLen. (TypeLits.KnownNat maxLen) => [Bool] -> Maybe (Varbit maxLen)
+refineFromBoolList bits =
+  let len = length bits
+      maxLen = fromIntegral (TypeLits.natVal (Proxy @maxLen))
+   in if len <= maxLen
+        then
+          let numBytes = (len + 7) `div` 8
+              paddedBits = bits ++ replicate (numBytes * 8 - len) False
+              bytes = map boolsToByte (chunksOf 8 paddedBits)
+           in Just (Varbit (fromIntegral len) (ByteString.pack bytes))
+        else Nothing
+  where
+    boolsToByte :: [Bool] -> Word8
+    boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
+    chunksOf :: Int -> [a] -> [[a]]
+    chunksOf _ [] = []
+    chunksOf n xs = take n xs : chunksOf n (drop n xs)
+
+-- | Construct a PostgreSQL 'Varbit' from a list of Bool.
 -- Truncates to the maximum length if necessary.
-instance (TypeLits.KnownNat maxLen) => IsMany [Bool] (Varbit maxLen) where
-  onfrom bits =
-    let maxLen = fromIntegral (TypeLits.natVal (Proxy @maxLen))
-        truncatedBits = take maxLen bits
-        actualLen = length truncatedBits
-        numBytes = (actualLen + 7) `div` 8
-        paddedBits = truncatedBits ++ replicate (numBytes * 8 - actualLen) False
-        bytes = map boolsToByte (chunksOf 8 paddedBits)
-     in Varbit (fromIntegral actualLen) (ByteString.pack bytes)
-    where
-      boolsToByte :: [Bool] -> Word8
-      boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
-      chunksOf :: Int -> [a] -> [[a]]
-      chunksOf _ [] = []
-      chunksOf n xs = take n xs : chunksOf n (drop n xs)
+normalizeFromBoolList :: forall maxLen. (TypeLits.KnownNat maxLen) => [Bool] -> Varbit maxLen
+normalizeFromBoolList bits =
+  let maxLen = fromIntegral (TypeLits.natVal (Proxy @maxLen))
+      truncatedBits = take maxLen bits
+      actualLen = length truncatedBits
+      numBytes = (actualLen + 7) `div` 8
+      paddedBits = truncatedBits ++ replicate (numBytes * 8 - actualLen) False
+      bytes = map boolsToByte (chunksOf 8 paddedBits)
+   in Varbit (fromIntegral actualLen) (ByteString.pack bytes)
+  where
+    boolsToByte :: [Bool] -> Word8
+    boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
+    chunksOf :: Int -> [a] -> [[a]]
+    chunksOf _ [] = []
+    chunksOf n xs = take n xs : chunksOf n (drop n xs)
 
--- | Convert from an unboxed vector of Bool to a Varbit.
---
--- This provides an efficient conversion from 'Data.Vector.Unboxed.Vector' 'Bool'
--- to PostgreSQL @varbit@ type. The boolean vector is packed into bytes with proper
--- padding to align to byte boundaries.
---
--- This instance allows using unboxed vectors for high-performance bit operations
--- while maintaining compatibility with PostgreSQL's variable-length bit string format.
-instance (TypeLits.KnownNat maxLen) => IsSome (VU.Vector Bool) (Varbit maxLen) where
-  to (Varbit len bytes) =
-    let bits = concatMap byteToBits (ByteString.unpack bytes)
-        trimmedBits = take (fromIntegral len) bits
-     in VU.fromList trimmedBits
-    where
-      byteToBits :: Word8 -> [Bool]
-      byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
-  maybeFrom bitVector =
-    let bits = VU.toList bitVector
-        len = fromIntegral (VU.length bitVector)
-        maxLen = fromIntegral (TypeLits.natVal (Proxy @maxLen))
-     in if len <= maxLen
-          then
-            let numBytes = (len + 7) `div` 8
-                paddedBits = bits ++ replicate (numBytes * 8 - len) False
-                bytes = map boolsToByte (chunksOf 8 paddedBits)
-             in Just (Varbit (fromIntegral len) (ByteString.pack bytes))
-          else Nothing
-    where
-      boolsToByte :: [Bool] -> Word8
-      boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
-      chunksOf :: Int -> [a] -> [[a]]
-      chunksOf _ [] = []
-      chunksOf n xs = take n xs : chunksOf n (drop n xs)
+-- | Construct a PostgreSQL 'Varbit' from an unboxed vector of Bool with validation.
+-- Returns 'Nothing' if the vector length exceeds the maximum length.
+refineFromBoolVector :: forall maxLen. (TypeLits.KnownNat maxLen) => VU.Vector Bool -> Maybe (Varbit maxLen)
+refineFromBoolVector bitVector =
+  let bits = VU.toList bitVector
+      len = fromIntegral (VU.length bitVector)
+      maxLen = fromIntegral (TypeLits.natVal (Proxy @maxLen))
+   in if len <= maxLen
+        then
+          let numBytes = (len + 7) `div` 8
+              paddedBits = bits ++ replicate (numBytes * 8 - len) False
+              bytes = map boolsToByte (chunksOf 8 paddedBits)
+           in Just (Varbit (fromIntegral len) (ByteString.pack bytes))
+        else Nothing
+  where
+    boolsToByte :: [Bool] -> Word8
+    boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
+    chunksOf :: Int -> [a] -> [[a]]
+    chunksOf _ [] = []
+    chunksOf n xs = take n xs : chunksOf n (drop n xs)
 
--- | Direct conversion from unboxed bit vector to Varbit.
+-- | Construct a PostgreSQL 'Varbit' from an unboxed vector of Bool.
 -- Truncates to the maximum length if necessary.
---
--- This is a total conversion that always succeeds. The boolean vector
--- is efficiently packed into the PostgreSQL @varbit@ format.
-instance (TypeLits.KnownNat maxLen) => IsMany (VU.Vector Bool) (Varbit maxLen) where
-  onfrom bitVector =
-    let maxLen = fromIntegral (TypeLits.natVal (Proxy @maxLen))
-        bits = VU.toList bitVector
-        truncatedBits = take maxLen bits
-        actualLen = length truncatedBits
-        numBytes = (actualLen + 7) `div` 8
-        paddedBits = truncatedBits ++ replicate (numBytes * 8 - actualLen) False
-        bytes = map boolsToByte (chunksOf 8 paddedBits)
-     in Varbit (fromIntegral actualLen) (ByteString.pack bytes)
-    where
-      boolsToByte :: [Bool] -> Word8
-      boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
-      chunksOf :: Int -> [a] -> [[a]]
-      chunksOf _ [] = []
-      chunksOf n xs = take n xs : chunksOf n (drop n xs)
+normalizeFromBoolVector :: forall maxLen. (TypeLits.KnownNat maxLen) => VU.Vector Bool -> Varbit maxLen
+normalizeFromBoolVector bitVector =
+  let maxLen = fromIntegral (TypeLits.natVal (Proxy @maxLen))
+      bits = VU.toList bitVector
+      truncatedBits = take maxLen bits
+      actualLen = length truncatedBits
+      numBytes = (actualLen + 7) `div` 8
+      paddedBits = truncatedBits ++ replicate (numBytes * 8 - actualLen) False
+      bytes = map boolsToByte (chunksOf 8 paddedBits)
+   in Varbit (fromIntegral actualLen) (ByteString.pack bytes)
+  where
+    boolsToByte :: [Bool] -> Word8
+    boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
+    chunksOf :: Int -> [a] -> [[a]]
+    chunksOf _ [] = []
+    chunksOf n xs = take n xs : chunksOf n (drop n xs)

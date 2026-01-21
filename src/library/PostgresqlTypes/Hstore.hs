@@ -1,4 +1,14 @@
-module PostgresqlTypes.Hstore (Hstore) where
+module PostgresqlTypes.Hstore
+  ( Hstore,
+
+    -- * Accessors
+    toMap,
+
+    -- * Constructors
+    refineFromMap,
+    normalizeFromMap,
+  )
+where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.ByteString as ByteString
@@ -146,26 +156,33 @@ instance IsScalar Hstore where
         _ <- Attoparsec.string "NULL"
         pure Nothing
 
--- | Conversion from Haskell 'Map.Map Text (Maybe Text)'.
--- Fails if any key or value contains null characters (not supported by PostgreSQL).
-instance IsSome (Map.Map Text (Maybe Text)) Hstore where
-  to (Hstore m) = m
-  maybeFrom m =
-    if any hasNul (Map.keys m) || any (maybe False hasNul) (Map.elems m)
-      then Nothing
-      else Just (Hstore m)
-    where
-      hasNul = Text.elem '\NUL'
+-- * Accessors
 
--- | Total conversion from Haskell 'Map.Map Text (Maybe Text)'.
+-- | Extract the underlying 'Map.Map Text (Maybe Text)'.
+toMap :: Hstore -> Map.Map Text (Maybe Text)
+toMap (Hstore m) = m
+
+-- * Constructors
+
+-- | Construct from Haskell 'Map.Map Text (Maybe Text)' with validation.
+-- Returns 'Nothing' if any key or value contains null characters (not supported by PostgreSQL).
+refineFromMap :: Map.Map Text (Maybe Text) -> Maybe Hstore
+refineFromMap m =
+  if any hasNul (Map.keys m) || any (maybe False hasNul) (Map.elems m)
+    then Nothing
+    else Just (Hstore m)
+  where
+    hasNul = Text.elem '\NUL'
+
+-- | Construct from Haskell 'Map.Map Text (Maybe Text)'.
 -- Strips null characters to ensure PostgreSQL compatibility.
-instance IsMany (Map.Map Text (Maybe Text)) Hstore where
-  onfrom m =
-    Hstore
-      ( Map.fromList
-          [ (stripNul k, fmap stripNul v)
-          | (k, v) <- Map.toList m
-          ]
-      )
-    where
-      stripNul = Text.replace "\NUL" ""
+normalizeFromMap :: Map.Map Text (Maybe Text) -> Hstore
+normalizeFromMap m =
+  Hstore
+    ( Map.fromList
+        [ (stripNul k, fmap stripNul v)
+        | (k, v) <- Map.toList m
+        ]
+    )
+  where
+    stripNul = Text.replace "\NUL" ""

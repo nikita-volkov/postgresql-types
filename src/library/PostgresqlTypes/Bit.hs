@@ -1,6 +1,19 @@
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
-module PostgresqlTypes.Bit (Bit) where
+module PostgresqlTypes.Bit
+  ( Bit,
+
+    -- * Accessors
+    toBoolList,
+    toBoolVector,
+
+    -- * Constructors
+    refineFromBoolList,
+    normalizeFromBoolList,
+    refineFromBoolVector,
+    normalizeFromBoolVector,
+  )
+where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.Bits as Bits
@@ -33,7 +46,7 @@ instance (TypeLits.KnownNat numBits) => Arbitrary (Bit numBits) where
   arbitrary = do
     let len = fromIntegral (TypeLits.natVal (Proxy @numBits))
     boolList <- QuickCheck.vectorOf len (arbitrary @Bool)
-    case maybeFrom boolList of
+    case refineFromBoolList boolList of
       Nothing -> error "Arbitrary Bit: Generated bit string has incorrect length"
       Just bit -> pure bit
 
@@ -97,106 +110,106 @@ instance (TypeLits.KnownNat numBits) => IsScalar (Bit numBits) where
       chunksOf _ [] = []
       chunksOf n xs = take n xs : chunksOf n (drop n xs)
 
--- | Convert from a bit string (as a list of Bool) to a Bit.
--- The bit string must have exactly the length specified by the type parameter.
--- The bit string is packed into bytes.
-instance (TypeLits.KnownNat numBits) => IsSome [Bool] (Bit numBits) where
-  to (Bit bytes) =
-    let len = fromIntegral (TypeLits.natVal (Proxy @numBits))
-        bits = concatMap byteToBits (ByteString.unpack bytes)
-        trimmedBits = take len bits
-     in trimmedBits
-    where
-      byteToBits :: Word8 -> [Bool]
-      byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
-  maybeFrom bits =
-    let len = length bits
-        expectedLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
-     in if len == expectedLen
-          then
-            let numBytes = (len + 7) `div` 8
-                paddedBits = bits ++ replicate (numBytes * 8 - len) False
-                bytes = map boolsToByte (chunksOf 8 paddedBits)
-             in Just (Bit (ByteString.pack bytes))
-          else Nothing
-    where
-      boolsToByte :: [Bool] -> Word8
-      boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
-      chunksOf :: Int -> [a] -> [[a]]
-      chunksOf _ [] = []
-      chunksOf n xs = take n xs : chunksOf n (drop n xs)
+-- * Accessors
 
--- | Direct conversion from bit list to Bit.
+-- | Extract the bit string as a list of Bool.
+toBoolList :: forall numBits. (TypeLits.KnownNat numBits) => Bit numBits -> [Bool]
+toBoolList (Bit bytes) =
+  let len = fromIntegral (TypeLits.natVal (Proxy @numBits))
+      bits = concatMap byteToBits (ByteString.unpack bytes)
+      trimmedBits = take len bits
+   in trimmedBits
+  where
+    byteToBits :: Word8 -> [Bool]
+    byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
+
+-- | Extract the bit string as an unboxed vector of Bool.
+toBoolVector :: forall numBits. (TypeLits.KnownNat numBits) => Bit numBits -> VU.Vector Bool
+toBoolVector (Bit bytes) =
+  let len = fromIntegral (TypeLits.natVal (Proxy @numBits))
+      bits = concatMap byteToBits (ByteString.unpack bytes)
+      trimmedBits = take len bits
+   in VU.fromList trimmedBits
+  where
+    byteToBits :: Word8 -> [Bool]
+    byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
+
+-- * Constructors
+
+-- | Construct a PostgreSQL 'Bit' from a list of Bool with validation.
+-- Returns 'Nothing' if the list length doesn't match the expected length.
+refineFromBoolList :: forall numBits. (TypeLits.KnownNat numBits) => [Bool] -> Maybe (Bit numBits)
+refineFromBoolList bits =
+  let len = length bits
+      expectedLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
+   in if len == expectedLen
+        then
+          let numBytes = (len + 7) `div` 8
+              paddedBits = bits ++ replicate (numBytes * 8 - len) False
+              bytes = map boolsToByte (chunksOf 8 paddedBits)
+           in Just (Bit (ByteString.pack bytes))
+        else Nothing
+  where
+    boolsToByte :: [Bool] -> Word8
+    boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
+    chunksOf :: Int -> [a] -> [[a]]
+    chunksOf _ [] = []
+    chunksOf n xs = take n xs : chunksOf n (drop n xs)
+
+-- | Construct a PostgreSQL 'Bit' from a list of Bool.
 -- Truncates or pads to match the type-level length.
-instance (TypeLits.KnownNat numBits) => IsMany [Bool] (Bit numBits) where
-  onfrom bits =
-    let expectedLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
-        -- Truncate or pad to the expected length
-        adjustedBits = take expectedLen (bits ++ repeat False)
-        numBytes = (expectedLen + 7) `div` 8
-        paddedBits = adjustedBits ++ replicate (numBytes * 8 - expectedLen) False
-        bytes = map boolsToByte (chunksOf 8 paddedBits)
-     in Bit (ByteString.pack bytes)
-    where
-      boolsToByte :: [Bool] -> Word8
-      boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
-      chunksOf :: Int -> [a] -> [[a]]
-      chunksOf _ [] = []
-      chunksOf n xs = take n xs : chunksOf n (drop n xs)
+normalizeFromBoolList :: forall numBits. (TypeLits.KnownNat numBits) => [Bool] -> Bit numBits
+normalizeFromBoolList bits =
+  let expectedLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
+      -- Truncate or pad to the expected length
+      adjustedBits = take expectedLen (bits ++ repeat False)
+      numBytes = (expectedLen + 7) `div` 8
+      paddedBits = adjustedBits ++ replicate (numBytes * 8 - expectedLen) False
+      bytes = map boolsToByte (chunksOf 8 paddedBits)
+   in Bit (ByteString.pack bytes)
+  where
+    boolsToByte :: [Bool] -> Word8
+    boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
+    chunksOf :: Int -> [a] -> [[a]]
+    chunksOf _ [] = []
+    chunksOf n xs = take n xs : chunksOf n (drop n xs)
 
--- | Convert from an unboxed vector of Bool to a Bit.
---
--- This provides an efficient conversion from 'Data.Vector.Unboxed.Vector' 'Bool'
--- to PostgreSQL @bit@ type. The boolean vector must have exactly the length specified
--- by the type parameter. The boolean vector is packed into bytes with proper
--- padding to align to byte boundaries.
---
--- This instance allows using unboxed vectors for high-performance bit operations
--- while maintaining compatibility with PostgreSQL's bit string format.
-instance (TypeLits.KnownNat numBits) => IsSome (VU.Vector Bool) (Bit numBits) where
-  to (Bit bytes) =
-    let len = fromIntegral (TypeLits.natVal (Proxy @numBits))
-        bits = concatMap byteToBits (ByteString.unpack bytes)
-        trimmedBits = take len bits
-     in VU.fromList trimmedBits
-    where
-      byteToBits :: Word8 -> [Bool]
-      byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
-  maybeFrom bitVector =
-    let len = VU.length bitVector
-        expectedLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
-     in if len == expectedLen
-          then
-            let bits = VU.toList bitVector
-                numBytes = (len + 7) `div` 8
-                paddedBits = bits ++ replicate (numBytes * 8 - len) False
-                bytes = map boolsToByte (chunksOf 8 paddedBits)
-             in Just (Bit (ByteString.pack bytes))
-          else Nothing
-    where
-      boolsToByte :: [Bool] -> Word8
-      boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
-      chunksOf :: Int -> [a] -> [[a]]
-      chunksOf _ [] = []
-      chunksOf n xs = take n xs : chunksOf n (drop n xs)
+-- | Construct a PostgreSQL 'Bit' from an unboxed vector of Bool with validation.
+-- Returns 'Nothing' if the vector length doesn't match the expected length.
+refineFromBoolVector :: forall numBits. (TypeLits.KnownNat numBits) => VU.Vector Bool -> Maybe (Bit numBits)
+refineFromBoolVector bitVector =
+  let len = VU.length bitVector
+      expectedLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
+   in if len == expectedLen
+        then
+          let bits = VU.toList bitVector
+              numBytes = (len + 7) `div` 8
+              paddedBits = bits ++ replicate (numBytes * 8 - len) False
+              bytes = map boolsToByte (chunksOf 8 paddedBits)
+           in Just (Bit (ByteString.pack bytes))
+        else Nothing
+  where
+    boolsToByte :: [Bool] -> Word8
+    boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
+    chunksOf :: Int -> [a] -> [[a]]
+    chunksOf _ [] = []
+    chunksOf n xs = take n xs : chunksOf n (drop n xs)
 
--- | Direct conversion from unboxed bit vector to Bit.
---
--- This is a total conversion that truncates or pads to match the type-level length.
--- The boolean vector is efficiently packed into the PostgreSQL @bit@ format.
-instance (TypeLits.KnownNat numBits) => IsMany (VU.Vector Bool) (Bit numBits) where
-  onfrom bitVector =
-    let expectedLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
-        bits = VU.toList bitVector
-        -- Truncate or pad to the expected length
-        adjustedBits = take expectedLen (bits ++ repeat False)
-        numBytes = (expectedLen + 7) `div` 8
-        paddedBits = adjustedBits ++ replicate (numBytes * 8 - expectedLen) False
-        bytes = map boolsToByte (chunksOf 8 paddedBits)
-     in Bit (ByteString.pack bytes)
-    where
-      boolsToByte :: [Bool] -> Word8
-      boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
-      chunksOf :: Int -> [a] -> [[a]]
-      chunksOf _ [] = []
-      chunksOf n xs = take n xs : chunksOf n (drop n xs)
+-- | Construct a PostgreSQL 'Bit' from an unboxed vector of Bool.
+-- Truncates or pads to match the type-level length.
+normalizeFromBoolVector :: forall numBits. (TypeLits.KnownNat numBits) => VU.Vector Bool -> Bit numBits
+normalizeFromBoolVector bitVector =
+  let expectedLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
+      bits = VU.toList bitVector
+      -- Truncate or pad to the expected length
+      adjustedBits = take expectedLen (bits ++ repeat False)
+      numBytes = (expectedLen + 7) `div` 8
+      paddedBits = adjustedBits ++ replicate (numBytes * 8 - expectedLen) False
+      bytes = map boolsToByte (chunksOf 8 paddedBits)
+   in Bit (ByteString.pack bytes)
+  where
+    boolsToByte :: [Bool] -> Word8
+    boolsToByte bs = foldl (\acc (i, b) -> if b then Bits.setBit acc i else acc) 0 (zip [7, 6, 5, 4, 3, 2, 1, 0] bs)
+    chunksOf :: Int -> [a] -> [[a]]
+    chunksOf _ [] = []
+    chunksOf n xs = take n xs : chunksOf n (drop n xs)
