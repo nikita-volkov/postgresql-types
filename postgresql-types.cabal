@@ -108,6 +108,7 @@ library
   hs-source-dirs: src/library
   exposed-modules:
     PostgresqlTypes
+    PostgresqlTypes.Types.Inet
     PostgresqlTypes.Types.Interval
     PostgresqlTypes.Types.Numeric
     PostgresqlTypes.Types.Timetz
@@ -128,7 +129,6 @@ library
     PostgresqlTypes.Types.Float4
     PostgresqlTypes.Types.Float8
     PostgresqlTypes.Types.Hstore
-    PostgresqlTypes.Types.Inet
     PostgresqlTypes.Types.Int2
     PostgresqlTypes.Types.Int4
     PostgresqlTypes.Types.Int8
@@ -252,6 +252,7 @@ test-suite unit-tests
   hs-source-dirs: src/unit-tests
   main-is: Main.hs
   other-modules:
+    InetSpec
     IntervalSpec
     NumericSpec
     TimetzSpec

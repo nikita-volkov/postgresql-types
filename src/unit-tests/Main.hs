@@ -17,6 +17,7 @@ import Data.Vector (Vector)
 import qualified Data.Vector.Unboxed
 import qualified Data.Vector.Unboxed as VU
 import Data.Word
+import qualified InetSpec
 import qualified IntervalSpec
 import qualified LawfulConversions
 import qualified NumericSpec
@@ -89,7 +90,6 @@ main = hspec $ parallel do
   testIsScalar @PostgresqlTypes.Uuid Proxy
   testIsScalar @(PostgresqlTypes.Varbit 128) Proxy
   testIsScalar @(PostgresqlTypes.Varchar 255) Proxy
-  testIs @PostgresqlTypes.Inet @(PostgresqlTypes.Ip, Word8) Proxy Proxy
   testIs @PostgresqlTypes.Bool @Bool Proxy Proxy
   testIs @PostgresqlTypes.Bytea @ByteString Proxy Proxy
   testIs @PostgresqlTypes.Float4 @Float Proxy Proxy
@@ -156,6 +156,7 @@ main = hspec $ parallel do
   testIsSome @PostgresqlTypes.Polygon @(Data.Vector.Unboxed.Vector (Double, Double)) Proxy Proxy
   testIsSome @PostgresqlTypes.Polygon @[(Double, Double)] Proxy Proxy
   testIsSomeBounded @PostgresqlTypes.Time @TimeOfDay Proxy Proxy
+  describe "Inet" InetSpec.spec
   describe "Interval" IntervalSpec.spec
   describe "Numeric" NumericSpec.spec
   describe "Timetz" TimetzSpec.spec
