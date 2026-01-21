@@ -1,4 +1,13 @@
-module PostgresqlTypes.Json (Json) where
+module PostgresqlTypes.Json
+  ( Json,
+
+    -- * Accessors
+    toValue,
+
+    -- * Constructors
+    fromValue,
+  )
+where
 
 import qualified Data.Aeson as Aeson
 import qualified Data.Aeson.Key as Aeson.Key
@@ -63,21 +72,17 @@ instance IsScalar Json where
       Left err -> fail err
       Right value -> pure (Json value)
 
-instance IsSome Aeson.Value Json where
-  to = toAesonValue
-  maybeFrom value =
-    let normalized = fromAesonValue value
-     in if toAesonValue normalized == value then Just normalized else Nothing
+-- * Accessors
 
-instance IsMany Aeson.Value Json where
-  onfrom = fromAesonValue
+-- | Extract the underlying 'Aeson.Value'.
+toValue :: Json -> Aeson.Value
+toValue (Json value) = value
 
-toAesonValue :: Json -> Aeson.Value
-toAesonValue (Json value) = value
+-- * Constructors
 
 -- | Construct from Aeson Value by filtering out null characters from every string and object key.
-fromAesonValue :: Aeson.Value -> Json
-fromAesonValue = Json . updateValue
+fromValue :: Aeson.Value -> Json
+fromValue = Json . updateValue
   where
     updateValue = \case
       Aeson.String string -> Aeson.String (updateText string)
@@ -88,3 +93,10 @@ fromAesonValue = Json . updateValue
     updateObject = Aeson.KeyMap.mapKeyVal updateKey updateValue
     updateArray = fmap updateValue
     updateKey = Aeson.Key.fromText . updateText . Aeson.Key.toText
+
+-- Legacy names for backward compatibility
+toAesonValue :: Json -> Aeson.Value
+toAesonValue = toValue
+
+fromAesonValue :: Aeson.Value -> Json
+fromAesonValue = fromValue

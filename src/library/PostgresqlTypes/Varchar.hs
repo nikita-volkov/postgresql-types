@@ -1,4 +1,14 @@
-module PostgresqlTypes.Varchar (Varchar) where
+module PostgresqlTypes.Varchar
+  ( Varchar,
+
+    -- * Accessors
+    toText,
+
+    -- * Constructors
+    refineFromText,
+    normalizeFromText,
+  )
+where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.Text as Text
@@ -81,21 +91,32 @@ instance (TypeLits.KnownNat maxLen) => IsScalar (Varchar maxLen) where
       then pure (Varchar text)
       else fail ("Varchar string length " <> show len <> " exceeds maximum " <> show maxLen)
 
-instance (TypeLits.KnownNat maxLen) => IsSome Text.Text (Varchar maxLen) where
-  to (Varchar text) = text
-  maybeFrom text =
-    let len = Text.length text
-        maxLen = fromIntegral (TypeLits.natVal (Proxy @maxLen))
-     in if Text.elem '\NUL' text
-          then Nothing
-          else
-            if len <= maxLen
-              then Just (Varchar text)
-              else Nothing
+-- * Accessors
 
-instance (TypeLits.KnownNat maxLen) => IsMany Text.Text (Varchar maxLen) where
-  onfrom text =
-    let maxLen = fromIntegral (TypeLits.natVal (Proxy @maxLen))
-        cleanedText = Text.replace "\NUL" "" text
-        truncatedText = Text.take maxLen cleanedText
-     in Varchar truncatedText
+-- | Extract the underlying 'Text' value.
+toText :: forall maxLen. (TypeLits.KnownNat maxLen) => Varchar maxLen -> Text
+toText (Varchar text) = text
+
+-- * Constructors
+
+-- | Construct a PostgreSQL 'Varchar' from 'Text' with validation.
+-- Returns 'Nothing' if the text contains NUL characters or exceeds the maximum length.
+refineFromText :: forall maxLen. (TypeLits.KnownNat maxLen) => Text -> Maybe (Varchar maxLen)
+refineFromText text =
+  let len = Text.length text
+      maxLen = fromIntegral (TypeLits.natVal (Proxy @maxLen))
+   in if Text.elem '\NUL' text
+        then Nothing
+        else
+          if len <= maxLen
+            then Just (Varchar text)
+            else Nothing
+
+-- | Construct a PostgreSQL 'Varchar' from 'Text', normalizing invalid values.
+-- Removes NUL characters and truncates to the maximum length.
+normalizeFromText :: forall maxLen. (TypeLits.KnownNat maxLen) => Text -> Varchar maxLen
+normalizeFromText text =
+  let maxLen = fromIntegral (TypeLits.natVal (Proxy @maxLen))
+      cleanedText = Text.replace "\NUL" "" text
+      truncatedText = Text.take maxLen cleanedText
+   in Varchar truncatedText

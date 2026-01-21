@@ -1,4 +1,14 @@
-module PostgresqlTypes.Jsonb (Jsonb) where
+module PostgresqlTypes.Jsonb
+  ( Jsonb,
+
+    -- * Accessors
+    toValue,
+
+    -- * Constructors
+    refineFromValue,
+    normalizeFromValue,
+  )
+where
 
 import qualified Data.Aeson as Aeson
 import qualified Data.Aeson.Key as Aeson.Key
@@ -75,33 +85,17 @@ instance IsScalar Jsonb where
       Left err -> fail err
       Right value -> pure (Jsonb value)
 
-instance IsSome Aeson.Value Jsonb where
-  to = toAesonValue
-  maybeFrom = maybeFromAesonValue
+-- * Accessors
 
-instance IsMany Aeson.Value Jsonb where
-  onfrom = fromAesonValue
+-- | Extract the underlying 'Aeson.Value'.
+toValue :: Jsonb -> Aeson.Value
+toValue (Jsonb value) = value
 
-toAesonValue :: Jsonb -> Aeson.Value
-toAesonValue (Jsonb value) = value
-
--- | Construct from Aeson Value by filtering out null characters from every string and object key.
-fromAesonValue :: Aeson.Value -> Jsonb
-fromAesonValue = Jsonb . updateValue
-  where
-    updateValue = \case
-      Aeson.String string -> Aeson.String (updateText string)
-      Aeson.Object object -> Aeson.Object (updateObject object)
-      Aeson.Array array -> Aeson.Array (updateArray array)
-      other -> other
-    updateText = Text.replace "\NUL" ""
-    updateObject = Aeson.KeyMap.mapKeyVal updateKey updateValue
-    updateArray = fmap updateValue
-    updateKey = Aeson.Key.fromText . updateText . Aeson.Key.toText
+-- * Constructors
 
 -- | Construct from Aeson Value while failing if any of its strings or object keys contain null characters.
-maybeFromAesonValue :: Aeson.Value -> Maybe Jsonb
-maybeFromAesonValue = fmap Jsonb . validateValue
+refineFromValue :: Aeson.Value -> Maybe Jsonb
+refineFromValue = fmap Jsonb . validateValue
   where
     validateValue = \case
       Aeson.String string -> Aeson.String <$> validateText string
@@ -115,3 +109,27 @@ maybeFromAesonValue = fmap Jsonb . validateValue
     validateObject = Aeson.KeyMap.traverseWithKey (\key value -> validateKey key *> validateValue value)
     validateArray = traverse validateValue
     validateKey = fmap Aeson.Key.fromText . validateText . Aeson.Key.toText
+
+-- | Construct from Aeson Value by filtering out null characters from every string and object key.
+normalizeFromValue :: Aeson.Value -> Jsonb
+normalizeFromValue = Jsonb . updateValue
+  where
+    updateValue = \case
+      Aeson.String string -> Aeson.String (updateText string)
+      Aeson.Object object -> Aeson.Object (updateObject object)
+      Aeson.Array array -> Aeson.Array (updateArray array)
+      other -> other
+    updateText = Text.replace "\NUL" ""
+    updateObject = Aeson.KeyMap.mapKeyVal updateKey updateValue
+    updateArray = fmap updateValue
+    updateKey = Aeson.Key.fromText . updateText . Aeson.Key.toText
+
+-- Legacy names for backward compatibility
+toAesonValue :: Jsonb -> Aeson.Value
+toAesonValue = toValue
+
+maybeFromAesonValue :: Aeson.Value -> Maybe Jsonb
+maybeFromAesonValue = refineFromValue
+
+fromAesonValue :: Aeson.Value -> Jsonb
+fromAesonValue = normalizeFromValue

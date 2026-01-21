@@ -1,4 +1,17 @@
-module PostgresqlTypes.Char (Char) where
+module PostgresqlTypes.Char
+  ( Char,
+
+    -- * Accessors
+    toWord8,
+    toChar,
+
+    -- * Constructors
+    refineFromWord8,
+    normalizeFromWord8,
+    refineFromChar,
+    normalizeFromChar,
+  )
+where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.Char
@@ -57,24 +70,41 @@ instance IsScalar Char where
           then fail "Invalid char: value > 127"
           else pure (Char (fromIntegral charOrd))
 
-instance IsSome Word8 Char where
-  to = coerce
-  maybeFrom word8 =
-    if word8 > 127
-      then Nothing
-      else Just (Char word8)
+-- * Accessors
 
-instance IsMany Word8 Char where
-  onfrom word8 = Char (clearBit word8 7)
+-- | Extract the underlying 'Word8' value.
+toWord8 :: Char -> Word8
+toWord8 = coerce
 
-instance IsSome Data.Char.Char Char where
-  to (Char word8) = Data.Char.chr (fromIntegral word8)
-  maybeFrom char =
-    let ord = Data.Char.ord char
-     in if ord > 127
-          then Nothing
-          else Just (Char (fromIntegral ord))
+-- | Convert PostgreSQL 'Char' to Haskell 'Data.Char.Char'.
+toChar :: Char -> Data.Char.Char
+toChar (Char word8) = Data.Char.chr (fromIntegral word8)
 
--- | Turns invalid chars into '\NUL'.
-instance IsMany Data.Char.Char Char where
-  onfrom = fromMaybe (Char 0) . maybeFrom
+-- * Constructors
+
+-- | Construct a PostgreSQL 'Char' from 'Word8' with validation.
+-- Returns 'Nothing' if the value is greater than 127.
+refineFromWord8 :: Word8 -> Maybe Char
+refineFromWord8 word8 =
+  if word8 > 127
+    then Nothing
+    else Just (Char word8)
+
+-- | Construct a PostgreSQL 'Char' from 'Word8', clamping to valid range.
+-- Values greater than 127 have the high bit cleared.
+normalizeFromWord8 :: Word8 -> Char
+normalizeFromWord8 word8 = Char (clearBit word8 7)
+
+-- | Construct a PostgreSQL 'Char' from Haskell 'Data.Char.Char' with validation.
+-- Returns 'Nothing' if the character's code point is greater than 127.
+refineFromChar :: Data.Char.Char -> Maybe Char
+refineFromChar char =
+  let ord = Data.Char.ord char
+   in if ord > 127
+        then Nothing
+        else Just (Char (fromIntegral ord))
+
+-- | Construct a PostgreSQL 'Char' from Haskell 'Data.Char.Char'.
+-- Turns invalid chars into '\NUL'.
+normalizeFromChar :: Data.Char.Char -> Char
+normalizeFromChar = fromMaybe (Char 0) . refineFromChar
