@@ -155,18 +155,20 @@ spec = do
       describe "fold" do
         it "handles IPv4 case" do
           let inet = Inet.normalizeFromV4 0x7F000001 8
-              result = Inet.fold
-                (\addr netmask -> Left (addr, netmask))
-                (\_ _ _ _ _ -> Right ())
-                inet
+              result =
+                Inet.fold
+                  (\addr netmask -> Left (addr, netmask))
+                  (\_ _ _ _ _ -> Right ())
+                  inet
           result `shouldBe` Left (0x7F000001, 8)
 
         it "handles IPv6 case" do
           let inet = Inet.normalizeFromV6 0x20010DB8 0x00000000 0x00000000 0x00000001 64
-              result = Inet.fold
-                (\_ _ -> Left ())
-                (\w1 w2 w3 w4 netmask -> Right (w1, w2, w3, w4, netmask))
-                inet
+              result =
+                Inet.fold
+                  (\_ _ -> Left ())
+                  (\w1 w2 w3 w4 netmask -> Right (w1, w2, w3, w4, netmask))
+                  inet
           result `shouldBe` Right (0x20010DB8, 0x00000000, 0x00000000, 0x00000001, 64)
 
     describe "Property Tests" do
