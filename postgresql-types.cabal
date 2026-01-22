@@ -249,29 +249,45 @@ test-suite unit-tests
   hs-source-dirs: src/unit-tests
   main-is: Main.hs
   other-modules:
+    BitSpec
     BoolSpec
+    BoxSpec
+    BpcharSpec
     ByteaSpec
+    CharSpec
     CidrSpec
+    CircleSpec
     DateSpec
     Float4Spec
     Float8Spec
+    HstoreSpec
     InetSpec
     Int2Spec
     Int4Spec
     Int8Spec
     IntervalSpec
+    JsonbSpec
     JsonSpec
+    LineSpec
+    LsegSpec
+    Macaddr8Spec
     MacaddrSpec
     MoneySpec
+    MultirangeSpec
     NumericSpec
     OidSpec
+    PathSpec
     PointSpec
+    PolygonSpec
+    RangeSpec
     TextSpec
     TimeSpec
     TimestampSpec
     TimestamptzSpec
     TimetzSpec
     UuidSpec
+    VarbitSpec
+    VarcharSpec
 
   build-depends:
     QuickCheck >=2.14 && <3,
@@ -279,6 +295,7 @@ test-suite unit-tests
     attoparsec >=0.14 && <0.15,
     base >=4.11 && <5,
     bytestring >=0.10 && <0.13,
+    containers >=0.6 && <0.9,
     hspec >=2.11 && <3,
     lawful-conversions ^>=0.3.1,
     postgresql-types,

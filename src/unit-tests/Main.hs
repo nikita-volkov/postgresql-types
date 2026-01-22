@@ -1,8 +1,13 @@
 module Main (main) where
 
+import qualified BitSpec
 import qualified BoolSpec
+import qualified BoxSpec
+import qualified BpcharSpec
 import qualified ByteaSpec
+import qualified CharSpec
 import qualified CidrSpec
+import qualified CircleSpec
 import qualified Data.Attoparsec.Text
 import Data.Proxy
 import Data.Tagged
@@ -11,21 +16,30 @@ import Data.Typeable
 import qualified DateSpec
 import qualified Float4Spec
 import qualified Float8Spec
+import qualified HstoreSpec
 import qualified InetSpec
 import qualified Int2Spec
 import qualified Int4Spec
 import qualified Int8Spec
 import qualified IntervalSpec
+import qualified JsonbSpec
 import qualified JsonSpec
+import qualified LineSpec
+import qualified LsegSpec
+import qualified Macaddr8Spec
 import qualified MacaddrSpec
 import qualified MoneySpec
+import qualified MultirangeSpec
 import qualified NumericSpec
 import qualified OidSpec
+import qualified PathSpec
 import qualified PointSpec
+import qualified PolygonSpec
 import qualified PostgresqlTypes
 import qualified PostgresqlTypes.Algebra
 import qualified PtrPeeker
 import qualified PtrPoker.Write
+import qualified RangeSpec
 import Test.Hspec
 import Test.QuickCheck
 import qualified Test.QuickCheck as QuickCheck
@@ -36,6 +50,8 @@ import qualified TimestampSpec
 import qualified TimestamptzSpec
 import qualified TimetzSpec
 import qualified UuidSpec
+import qualified VarbitSpec
+import qualified VarcharSpec
 import Prelude
 
 main :: IO ()
@@ -96,29 +112,45 @@ main = hspec $ parallel do
   testIsScalar @(PostgresqlTypes.Varbit 128) Proxy
   testIsScalar @(PostgresqlTypes.Varchar 255) Proxy
   -- Lawful-conversions tests removed as we migrated to type-specific APIs
+  describe "Bit" BitSpec.spec
   describe "Bool" BoolSpec.spec
+  describe "Box" BoxSpec.spec
+  describe "Bpchar" BpcharSpec.spec
   describe "Bytea" ByteaSpec.spec
+  describe "Char" CharSpec.spec
   describe "Cidr" CidrSpec.spec
+  describe "Circle" CircleSpec.spec
   describe "Date" DateSpec.spec
   describe "Float4" Float4Spec.spec
   describe "Float8" Float8Spec.spec
+  describe "Hstore" HstoreSpec.spec
   describe "Inet" InetSpec.spec
   describe "Int2" Int2Spec.spec
   describe "Int4" Int4Spec.spec
   describe "Int8" Int8Spec.spec
   describe "Interval" IntervalSpec.spec
   describe "Json" JsonSpec.spec
+  describe "Jsonb" JsonbSpec.spec
+  describe "Line" LineSpec.spec
+  describe "Lseg" LsegSpec.spec
   describe "Macaddr" MacaddrSpec.spec
+  describe "Macaddr8" Macaddr8Spec.spec
   describe "Money" MoneySpec.spec
+  describe "Multirange" MultirangeSpec.spec
   describe "Numeric" NumericSpec.spec
   describe "Oid" OidSpec.spec
+  describe "Path" PathSpec.spec
   describe "Point" PointSpec.spec
+  describe "Polygon" PolygonSpec.spec
+  describe "Range" RangeSpec.spec
   describe "Text" TextSpec.spec
   describe "Time" TimeSpec.spec
   describe "Timestamp" TimestampSpec.spec
   describe "Timestamptz" TimestamptzSpec.spec
   describe "Timetz" TimetzSpec.spec
   describe "Uuid" UuidSpec.spec
+  describe "Varbit" VarbitSpec.spec
+  describe "Varchar" VarcharSpec.spec
 
 -- | Test textual encoder/decoder roundtrip
 testIsScalar ::
