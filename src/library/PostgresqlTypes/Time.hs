@@ -99,9 +99,10 @@ normalizeFromMicroseconds :: Int64 -> Time
 normalizeFromMicroseconds microseconds =
   if microseconds < 0
     then Time 0
-    else if microseconds > 86_400_000_000
-      then Time 86_400_000_000
-      else Time microseconds
+    else
+      if microseconds > 86_400_000_000
+        then Time 86_400_000_000
+        else Time microseconds
 
 -- | Convert from 'Time.TimeOfDay' to PostgreSQL 'Time' with validation.
 -- Returns 'Nothing' if the value is outside the valid range.
