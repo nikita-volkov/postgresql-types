@@ -1,5 +1,6 @@
 module PostgresqlTypes.IntervalSpec (spec) where
 
+import Data.Data (Proxy (Proxy))
 import Data.Int
 import Data.Maybe
 import qualified Data.Time as Time
@@ -8,53 +9,56 @@ import qualified PostgresqlTypes.Interval as Interval
 import Test.Hspec
 import Test.QuickCheck
 import qualified Test.QuickCheck as QuickCheck
+import qualified UnitTests.Scripts as Scripts
 import Prelude
 
 spec :: Spec
 spec = do
-  describe "Interval" do
-    describe "Constructors" do
-      describe "normalizeFromMonthsDaysAndMicroseconds" do
-        it "clamps months values below minimum" do
-          -- Use a value that's actually below minBound, not overflowed
-          let minMonths = Interval.toMonths (minBound :: Interval.Interval)
-              interval = Interval.normalizeFromMonthsDaysAndMicroseconds (minMonths - 1000) 0 0
-          Interval.toMonths interval `shouldBe` minMonths
+  describe "IsScalar" do
+    Scripts.testIsScalar (Proxy @Interval.Interval)
 
-        it "clamps months values above maximum" do
-          -- Use a value that's actually above maxBound, not overflowed
-          let maxMonths = Interval.toMonths (maxBound :: Interval.Interval)
-              interval = Interval.normalizeFromMonthsDaysAndMicroseconds (maxMonths + 1000) 0 0
-          Interval.toMonths interval `shouldBe` maxMonths
+  describe "Constructors" do
+    describe "normalizeFromMonthsDaysAndMicroseconds" do
+      it "clamps months values below minimum" do
+        -- Use a value that's actually below minBound, not overflowed
+        let minMonths = Interval.toMonths (minBound :: Interval.Interval)
+            interval = Interval.normalizeFromMonthsDaysAndMicroseconds (minMonths - 1000) 0 0
+        Interval.toMonths interval `shouldBe` minMonths
 
-        it "accepts valid values within range" do
-          let interval = Interval.normalizeFromMonthsDaysAndMicroseconds 12 5 1_000_000
-          Interval.toMonths interval `shouldBe` 12
-          Interval.toDays interval `shouldBe` 5
-          Interval.toMicroseconds interval `shouldBe` 1_000_000
+      it "clamps months values above maximum" do
+        -- Use a value that's actually above maxBound, not overflowed
+        let maxMonths = Interval.toMonths (maxBound :: Interval.Interval)
+            interval = Interval.normalizeFromMonthsDaysAndMicroseconds (maxMonths + 1000) 0 0
+        Interval.toMonths interval `shouldBe` maxMonths
 
-      describe "refineFromMonthsDaysAndMicroseconds" do
-        it "rejects months values below minimum" do
-          let minMonths = Interval.toMonths (minBound :: Interval.Interval)
-          Interval.refineFromMonthsDaysAndMicroseconds (minMonths - 1) 0 0 `shouldBe` Nothing
+      it "accepts valid values within range" do
+        let interval = Interval.normalizeFromMonthsDaysAndMicroseconds 12 5 1_000_000
+        Interval.toMonths interval `shouldBe` 12
+        Interval.toDays interval `shouldBe` 5
+        Interval.toMicroseconds interval `shouldBe` 1_000_000
 
-        it "rejects months values above maximum" do
-          let maxMonths = Interval.toMonths (maxBound :: Interval.Interval)
-          Interval.refineFromMonthsDaysAndMicroseconds (maxMonths + 1) 0 0 `shouldBe` Nothing
+    describe "refineFromMonthsDaysAndMicroseconds" do
+      it "rejects months values below minimum" do
+        let minMonths = Interval.toMonths (minBound :: Interval.Interval)
+        Interval.refineFromMonthsDaysAndMicroseconds (minMonths - 1) 0 0 `shouldBe` Nothing
 
-        it "accepts minimum months value" do
-          let minMonths = Interval.toMonths (minBound :: Interval.Interval)
-              result = Interval.refineFromMonthsDaysAndMicroseconds minMonths 0 0
-          result `shouldSatisfy` isJust
+      it "rejects months values above maximum" do
+        let maxMonths = Interval.toMonths (maxBound :: Interval.Interval)
+        Interval.refineFromMonthsDaysAndMicroseconds (maxMonths + 1) 0 0 `shouldBe` Nothing
 
-        it "accepts maximum months value" do
-          let maxMonths = Interval.toMonths (maxBound :: Interval.Interval)
-              result = Interval.refineFromMonthsDaysAndMicroseconds maxMonths 0 0
-          result `shouldSatisfy` isJust
+      it "accepts minimum months value" do
+        let minMonths = Interval.toMonths (minBound :: Interval.Interval)
+            result = Interval.refineFromMonthsDaysAndMicroseconds minMonths 0 0
+        result `shouldSatisfy` isJust
 
-        it "accepts valid values within range" do
-          let result = Interval.refineFromMonthsDaysAndMicroseconds 12 5 1_000_000
-          result `shouldSatisfy` isJust
+      it "accepts maximum months value" do
+        let maxMonths = Interval.toMonths (maxBound :: Interval.Interval)
+            result = Interval.refineFromMonthsDaysAndMicroseconds maxMonths 0 0
+        result `shouldSatisfy` isJust
+
+      it "accepts valid values within range" do
+        let result = Interval.refineFromMonthsDaysAndMicroseconds 12 5 1_000_000
+        result `shouldSatisfy` isJust
 
       describe "normalizeFromMicrosecondsInTotal" do
         it "clamps values below minimum" do

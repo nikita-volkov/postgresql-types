@@ -1,5 +1,6 @@
 module PostgresqlTypes.TimetzSpec (spec) where
 
+import Data.Data (Proxy (Proxy))
 import Data.Int
 import Data.Maybe
 import qualified Data.Time as Time
@@ -8,58 +9,61 @@ import qualified PostgresqlTypes.Timetz as Timetz
 import Test.Hspec
 import Test.QuickCheck
 import qualified Test.QuickCheck as QuickCheck
+import qualified UnitTests.Scripts as Scripts
 import Prelude
 
 spec :: Spec
 spec = do
-  describe "Timetz" do
-    describe "Constructors" do
-      describe "normalizeFromTimeInMicrosecondsAndOffsetInSeconds" do
-        it "clamps time values below minimum" do
-          let timetz = Timetz.normalizeFromTimeInMicrosecondsAndOffsetInSeconds (-100) 0
-          Timetz.toTimeInMicroseconds timetz `shouldBe` 0
+  describe "IsScalar" do
+    Scripts.testIsScalar (Proxy @Timetz.Timetz)
 
-        it "clamps time values above maximum" do
-          let timetz = Timetz.normalizeFromTimeInMicrosecondsAndOffsetInSeconds 90_000_000_000 0
-          Timetz.toTimeInMicroseconds timetz `shouldBe` 86_400_000_000
+  describe "Constructors" do
+    describe "normalizeFromTimeInMicrosecondsAndOffsetInSeconds" do
+      it "clamps time values below minimum" do
+        let timetz = Timetz.normalizeFromTimeInMicrosecondsAndOffsetInSeconds (-100) 0
+        Timetz.toTimeInMicroseconds timetz `shouldBe` 0
 
-        it "clamps offset values below minimum" do
-          let timetz = Timetz.normalizeFromTimeInMicrosecondsAndOffsetInSeconds 0 (-60_000)
-          Timetz.toTimeZoneInSeconds timetz `shouldBe` (-57_599)
+      it "clamps time values above maximum" do
+        let timetz = Timetz.normalizeFromTimeInMicrosecondsAndOffsetInSeconds 90_000_000_000 0
+        Timetz.toTimeInMicroseconds timetz `shouldBe` 86_400_000_000
 
-        it "clamps offset values above maximum" do
-          let timetz = Timetz.normalizeFromTimeInMicrosecondsAndOffsetInSeconds 0 60_000
-          Timetz.toTimeZoneInSeconds timetz `shouldBe` 57_599
+      it "clamps offset values below minimum" do
+        let timetz = Timetz.normalizeFromTimeInMicrosecondsAndOffsetInSeconds 0 (-60_000)
+        Timetz.toTimeZoneInSeconds timetz `shouldBe` (-57_599)
 
-        it "accepts valid values within range" do
-          let timetz = Timetz.normalizeFromTimeInMicrosecondsAndOffsetInSeconds 43_200_000_000 3600
-          Timetz.toTimeInMicroseconds timetz `shouldBe` 43_200_000_000
-          Timetz.toTimeZoneInSeconds timetz `shouldBe` 3600
+      it "clamps offset values above maximum" do
+        let timetz = Timetz.normalizeFromTimeInMicrosecondsAndOffsetInSeconds 0 60_000
+        Timetz.toTimeZoneInSeconds timetz `shouldBe` 57_599
 
-      describe "refineFromTimeInMicrosecondsAndOffsetInSeconds" do
-        it "rejects time values below minimum" do
-          Timetz.refineFromTimeInMicrosecondsAndOffsetInSeconds (-1) 0 `shouldBe` Nothing
+      it "accepts valid values within range" do
+        let timetz = Timetz.normalizeFromTimeInMicrosecondsAndOffsetInSeconds 43_200_000_000 3600
+        Timetz.toTimeInMicroseconds timetz `shouldBe` 43_200_000_000
+        Timetz.toTimeZoneInSeconds timetz `shouldBe` 3600
 
-        it "rejects time values above maximum" do
-          Timetz.refineFromTimeInMicrosecondsAndOffsetInSeconds 86_400_000_001 0 `shouldBe` Nothing
+    describe "refineFromTimeInMicrosecondsAndOffsetInSeconds" do
+      it "rejects time values below minimum" do
+        Timetz.refineFromTimeInMicrosecondsAndOffsetInSeconds (-1) 0 `shouldBe` Nothing
 
-        it "rejects offset values below minimum" do
-          Timetz.refineFromTimeInMicrosecondsAndOffsetInSeconds 0 (-57_600) `shouldBe` Nothing
+      it "rejects time values above maximum" do
+        Timetz.refineFromTimeInMicrosecondsAndOffsetInSeconds 86_400_000_001 0 `shouldBe` Nothing
 
-        it "rejects offset values above maximum" do
-          Timetz.refineFromTimeInMicrosecondsAndOffsetInSeconds 0 57_600 `shouldBe` Nothing
+      it "rejects offset values below minimum" do
+        Timetz.refineFromTimeInMicrosecondsAndOffsetInSeconds 0 (-57_600) `shouldBe` Nothing
 
-        it "accepts minimum time and offset" do
-          let result = Timetz.refineFromTimeInMicrosecondsAndOffsetInSeconds 0 (-57_599)
-          result `shouldSatisfy` isJust
+      it "rejects offset values above maximum" do
+        Timetz.refineFromTimeInMicrosecondsAndOffsetInSeconds 0 57_600 `shouldBe` Nothing
 
-        it "accepts maximum time and offset" do
-          let result = Timetz.refineFromTimeInMicrosecondsAndOffsetInSeconds 86_400_000_000 57_599
-          result `shouldSatisfy` isJust
+      it "accepts minimum time and offset" do
+        let result = Timetz.refineFromTimeInMicrosecondsAndOffsetInSeconds 0 (-57_599)
+        result `shouldSatisfy` isJust
 
-        it "accepts valid values within range" do
-          let result = Timetz.refineFromTimeInMicrosecondsAndOffsetInSeconds 43_200_000_000 3600
-          result `shouldSatisfy` isJust
+      it "accepts maximum time and offset" do
+        let result = Timetz.refineFromTimeInMicrosecondsAndOffsetInSeconds 86_400_000_000 57_599
+        result `shouldSatisfy` isJust
+
+      it "accepts valid values within range" do
+        let result = Timetz.refineFromTimeInMicrosecondsAndOffsetInSeconds 43_200_000_000 3600
+        result `shouldSatisfy` isJust
 
       describe "normalizeFromTimeOfDayAndTimeZone" do
         it "clamps invalid TimeOfDay to valid range" do

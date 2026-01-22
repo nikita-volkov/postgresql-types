@@ -1,7 +1,5 @@
 module Main (main) where
 
-import Data.Proxy
-import qualified PostgresqlTypes
 import qualified PostgresqlTypes.BitSpec
 import qualified PostgresqlTypes.BoolSpec
 import qualified PostgresqlTypes.BoxSpec
@@ -42,67 +40,10 @@ import qualified PostgresqlTypes.UuidSpec
 import qualified PostgresqlTypes.VarbitSpec
 import qualified PostgresqlTypes.VarcharSpec
 import Test.Hspec
-import UnitTests.Scripts (testIsScalar)
 import Prelude
 
 main :: IO ()
 main = hspec $ parallel do
-  testIsScalar @(PostgresqlTypes.Bit 0) Proxy
-  testIsScalar @(PostgresqlTypes.Bit 1) Proxy
-  testIsScalar @(PostgresqlTypes.Bit 64) Proxy
-  testIsScalar @PostgresqlTypes.Bool Proxy
-  testIsScalar @PostgresqlTypes.Box Proxy
-  testIsScalar @PostgresqlTypes.Bytea Proxy
-  testIsScalar @PostgresqlTypes.Char Proxy
-  testIsScalar @(PostgresqlTypes.Bpchar 1) Proxy
-  testIsScalar @(PostgresqlTypes.Bpchar 42) Proxy
-  testIsScalar @PostgresqlTypes.Cidr Proxy
-  testIsScalar @PostgresqlTypes.Circle Proxy
-  testIsScalar @PostgresqlTypes.Date Proxy
-  testIsScalar @PostgresqlTypes.Float4 Proxy
-  testIsScalar @PostgresqlTypes.Float8 Proxy
-  testIsScalar @PostgresqlTypes.Hstore Proxy
-  testIsScalar @PostgresqlTypes.Inet Proxy
-  testIsScalar @PostgresqlTypes.Int2 Proxy
-  testIsScalar @PostgresqlTypes.Int4 Proxy
-  testIsScalar @PostgresqlTypes.Int8 Proxy
-  testIsScalar @PostgresqlTypes.Interval Proxy
-  testIsScalar @PostgresqlTypes.Json Proxy
-  testIsScalar @PostgresqlTypes.Jsonb Proxy
-  testIsScalar @PostgresqlTypes.Line Proxy
-  testIsScalar @PostgresqlTypes.Lseg Proxy
-  testIsScalar @PostgresqlTypes.Macaddr Proxy
-  testIsScalar @PostgresqlTypes.Macaddr8 Proxy
-  testIsScalar @PostgresqlTypes.Money Proxy
-  testIsScalar @(PostgresqlTypes.Numeric 0 0) Proxy
-  testIsScalar @(PostgresqlTypes.Numeric 10 0) Proxy
-  testIsScalar @(PostgresqlTypes.Numeric 10 2) Proxy
-  testIsScalar @(PostgresqlTypes.Numeric 10 7) Proxy
-  testIsScalar @PostgresqlTypes.Oid Proxy
-  testIsScalar @PostgresqlTypes.Path Proxy
-  testIsScalar @PostgresqlTypes.Point Proxy
-  testIsScalar @PostgresqlTypes.Polygon Proxy
-  testIsScalar @(PostgresqlTypes.Range PostgresqlTypes.Int4) Proxy
-  testIsScalar @(PostgresqlTypes.Range PostgresqlTypes.Int8) Proxy
-  testIsScalar @(PostgresqlTypes.Range (PostgresqlTypes.Numeric 0 0)) Proxy
-  testIsScalar @(PostgresqlTypes.Range PostgresqlTypes.Timestamp) Proxy
-  testIsScalar @(PostgresqlTypes.Range PostgresqlTypes.Timestamptz) Proxy
-  testIsScalar @(PostgresqlTypes.Range PostgresqlTypes.Date) Proxy
-  testIsScalar @(PostgresqlTypes.Multirange PostgresqlTypes.Int4) Proxy
-  testIsScalar @(PostgresqlTypes.Multirange PostgresqlTypes.Int8) Proxy
-  testIsScalar @(PostgresqlTypes.Multirange (PostgresqlTypes.Numeric 0 0)) Proxy
-  testIsScalar @(PostgresqlTypes.Multirange PostgresqlTypes.Timestamp) Proxy
-  testIsScalar @(PostgresqlTypes.Multirange PostgresqlTypes.Timestamptz) Proxy
-  testIsScalar @(PostgresqlTypes.Multirange PostgresqlTypes.Date) Proxy
-  testIsScalar @PostgresqlTypes.Text Proxy
-  testIsScalar @PostgresqlTypes.Time Proxy
-  testIsScalar @PostgresqlTypes.Timestamp Proxy
-  testIsScalar @PostgresqlTypes.Timestamptz Proxy
-  testIsScalar @PostgresqlTypes.Timetz Proxy
-  testIsScalar @PostgresqlTypes.Uuid Proxy
-  testIsScalar @(PostgresqlTypes.Varbit 128) Proxy
-  testIsScalar @(PostgresqlTypes.Varchar 255) Proxy
-  -- Lawful-conversions tests removed as we migrated to type-specific APIs
   describe "Bit" PostgresqlTypes.BitSpec.spec
   describe "Bool" PostgresqlTypes.BoolSpec.spec
   describe "Box" PostgresqlTypes.BoxSpec.spec

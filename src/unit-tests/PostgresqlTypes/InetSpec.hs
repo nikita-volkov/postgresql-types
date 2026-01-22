@@ -1,61 +1,65 @@
 module PostgresqlTypes.InetSpec (spec) where
 
+import Data.Data (Proxy (Proxy))
 import Data.Maybe
 import Data.Word
 import qualified PostgresqlTypes.Inet as Inet
 import Test.Hspec
 import Test.QuickCheck
 import qualified Test.QuickCheck as QuickCheck
+import qualified UnitTests.Scripts as Scripts
 import Prelude
 
 spec :: Spec
 spec = do
-  describe "Inet" do
-    describe "IPv4 Constructors" do
-      describe "normalizeFromV4" do
-        it "clamps netmask values above maximum (32)" do
-          let inet = Inet.normalizeFromV4 0x7F000001 50
-              (_, netmask) = fromJust (Inet.refineToV4 inet)
-          netmask `shouldBe` 32
+  describe "IsScalar" do
+    Scripts.testIsScalar (Proxy @Inet.Inet)
 
-        it "accepts netmask at maximum (32)" do
-          let inet = Inet.normalizeFromV4 0x7F000001 32
-              (_, netmask) = fromJust (Inet.refineToV4 inet)
-          netmask `shouldBe` 32
+  describe "IPv4 Constructors" do
+    describe "normalizeFromV4" do
+      it "clamps netmask values above maximum (32)" do
+        let inet = Inet.normalizeFromV4 0x7F000001 50
+            (_, netmask) = fromJust (Inet.refineToV4 inet)
+        netmask `shouldBe` 32
 
-        it "accepts netmask at minimum (0)" do
-          let inet = Inet.normalizeFromV4 0x7F000001 0
-              (_, netmask) = fromJust (Inet.refineToV4 inet)
-          netmask `shouldBe` 0
+      it "accepts netmask at maximum (32)" do
+        let inet = Inet.normalizeFromV4 0x7F000001 32
+            (_, netmask) = fromJust (Inet.refineToV4 inet)
+        netmask `shouldBe` 32
 
-        it "preserves address and netmask within valid range" do
-          let addr = 0xC0A80001 -- 192.168.0.1
-              inet = Inet.normalizeFromV4 addr 24
-              (addr', netmask) = fromJust (Inet.refineToV4 inet)
-          addr' `shouldBe` addr
-          netmask `shouldBe` 24
+      it "accepts netmask at minimum (0)" do
+        let inet = Inet.normalizeFromV4 0x7F000001 0
+            (_, netmask) = fromJust (Inet.refineToV4 inet)
+        netmask `shouldBe` 0
 
-      describe "refineFromV4" do
-        it "rejects netmask values above maximum (32)" do
-          Inet.refineFromV4 0x7F000001 33 `shouldBe` Nothing
+      it "preserves address and netmask within valid range" do
+        let addr = 0xC0A80001 -- 192.168.0.1
+            inet = Inet.normalizeFromV4 addr 24
+            (addr', netmask) = fromJust (Inet.refineToV4 inet)
+        addr' `shouldBe` addr
+        netmask `shouldBe` 24
 
-        it "accepts netmask at maximum (32)" do
-          let result = Inet.refineFromV4 0x7F000001 32
-          result `shouldSatisfy` isJust
+    describe "refineFromV4" do
+      it "rejects netmask values above maximum (32)" do
+        Inet.refineFromV4 0x7F000001 33 `shouldBe` Nothing
 
-        it "accepts netmask at minimum (0)" do
-          let result = Inet.refineFromV4 0x7F000001 0
-          result `shouldSatisfy` isJust
+      it "accepts netmask at maximum (32)" do
+        let result = Inet.refineFromV4 0x7F000001 32
+        result `shouldSatisfy` isJust
 
-        it "preserves address and netmask for valid values" do
-          let addr = 0xC0A80001 -- 192.168.0.1
-              result = Inet.refineFromV4 addr 24
-          case result of
-            Just inet -> do
-              let (addr', netmask) = fromJust (Inet.refineToV4 inet)
-              addr' `shouldBe` addr
-              netmask `shouldBe` 24
-            Nothing -> expectationFailure "Expected Just but got Nothing"
+      it "accepts netmask at minimum (0)" do
+        let result = Inet.refineFromV4 0x7F000001 0
+        result `shouldSatisfy` isJust
+
+      it "preserves address and netmask for valid values" do
+        let addr = 0xC0A80001 -- 192.168.0.1
+            result = Inet.refineFromV4 addr 24
+        case result of
+          Just inet -> do
+            let (addr', netmask) = fromJust (Inet.refineToV4 inet)
+            addr' `shouldBe` addr
+            netmask `shouldBe` 24
+          Nothing -> expectationFailure "Expected Just but got Nothing"
 
     describe "IPv6 Constructors" do
       describe "normalizeFromV6" do
