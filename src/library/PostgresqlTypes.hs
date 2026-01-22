@@ -52,7 +52,6 @@
 -- * @'Cidr'@ - IPv4 or IPv6 network address (@cidr@)
 -- * @'Macaddr'@ - MAC address (@macaddr@)
 -- * @'Macaddr8'@ - MAC address (EUI-64 format) (@macaddr8@)
--- * @'Ip'@ - Generic IP address type
 --
 -- == Geometric Types
 --
