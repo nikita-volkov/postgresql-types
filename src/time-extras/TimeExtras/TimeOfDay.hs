@@ -5,8 +5,8 @@ import Data.Fixed
 import Data.Time
 import Prelude
 
-convertFromMicroseconds :: Int -> TimeOfDay
-convertFromMicroseconds microseconds =
+fromMicroseconds :: Int -> TimeOfDay
+fromMicroseconds microseconds =
   -- Handle the special case of 24:00:00 (86400000000 microseconds)
   if microseconds == 86_400_000_000
     then TimeOfDay 24 0 0

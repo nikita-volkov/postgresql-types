@@ -3,8 +3,8 @@ module TimeExtras.TimeZone where
 import Data.Time
 import Prelude
 
-convertFromMinutes :: Int -> TimeZone
-convertFromMinutes = minutesToTimeZone
+fromMinutes :: Int -> TimeZone
+fromMinutes = minutesToTimeZone
 
 -- |
 -- Normalize, canonicalize, compress.
@@ -16,7 +16,7 @@ normalizeFromSeconds seconds =
   where
     fromSignerAndAbsSeconds signer seconds =
       let minutes = signer (div seconds 60)
-       in convertFromMinutes minutes
+       in fromMinutes minutes
 
 -- |
 -- Compile, distill, rectify seconds. Extract from seconds.
@@ -29,12 +29,12 @@ refineFromSeconds seconds =
     fromSignerAndAbsSeconds signer seconds =
       let (minutes, remainder) = divMod seconds 60
        in if remainder == 0
-            then Just (convertFromMinutes (signer minutes))
+            then Just (fromMinutes (signer minutes))
             else Nothing
 
-convertToMinutes :: TimeZone -> Int
-convertToMinutes (TimeZone minutes _ _) = minutes
+toMinutes :: TimeZone -> Int
+toMinutes (TimeZone minutes _ _) = minutes
 
 -- | Dilute.
-convertToSeconds :: TimeZone -> Int
-convertToSeconds (TimeZone minutes _ _) = minutes * 60
+toSeconds :: TimeZone -> Int
+toSeconds (TimeZone minutes _ _) = minutes * 60

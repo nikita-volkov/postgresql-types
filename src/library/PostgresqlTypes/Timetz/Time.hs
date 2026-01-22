@@ -25,7 +25,7 @@ toMicroseconds (TimetzTime microseconds) = microseconds
 
 toTimeOfDay :: TimetzTime -> Time.TimeOfDay
 toTimeOfDay =
-  TimeOfDay.convertFromMicroseconds . fromIntegral . toMicroseconds
+  TimeOfDay.fromMicroseconds . fromIntegral . toMicroseconds
 
 refineFromMicroseconds :: Int64 -> Maybe TimetzTime
 refineFromMicroseconds microseconds
