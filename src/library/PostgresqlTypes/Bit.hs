@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
-
 module PostgresqlTypes.Bit
   ( Bit,
 
@@ -19,7 +17,7 @@ import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.Bits as Bits
 import qualified Data.ByteString as ByteString
 import qualified Data.Text as Text
-import qualified Data.Vector.Unboxed as VU
+import qualified Data.Vector.Generic as Vg
 import qualified GHC.TypeLits as TypeLits
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
@@ -35,10 +33,10 @@ import qualified TextBuilder
 --
 -- The type parameter @numBits@ specifies the static length of the bit string.
 -- Only bit strings with exactly this length can be represented by this type.
-data Bit (numBits :: TypeLits.Nat) = Bit
-  { -- | Bit data (packed into bytes)
-    bytes :: ByteString
-  }
+newtype Bit (numBits :: TypeLits.Nat)
+  = Bit
+      -- | Bit data (packed into bytes)
+      ByteString
   deriving stock (Eq, Ord)
   deriving (Show) via (ViaIsScalar (Bit numBits))
 
@@ -123,13 +121,13 @@ toBoolList (Bit bytes) =
     byteToBits :: Word8 -> [Bool]
     byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
 
--- | Extract the bit string as an unboxed vector of Bool.
-toBoolVector :: forall numBits. (TypeLits.KnownNat numBits) => Bit numBits -> VU.Vector Bool
+-- | Extract the bit string as any vector of Bool.
+toBoolVector :: forall numBits vec. (TypeLits.KnownNat numBits, Vg.Vector vec Bool) => Bit numBits -> vec Bool
 toBoolVector (Bit bytes) =
   let len = fromIntegral (TypeLits.natVal (Proxy @numBits))
       bits = concatMap byteToBits (ByteString.unpack bytes)
       trimmedBits = take len bits
-   in VU.fromList trimmedBits
+   in Vg.fromList trimmedBits
   where
     byteToBits :: Word8 -> [Bool]
     byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
@@ -176,13 +174,13 @@ normalizeFromBoolList bits =
 
 -- | Construct a PostgreSQL 'Bit' from an unboxed vector of Bool with validation.
 -- Returns 'Nothing' if the vector length doesn't match the expected length.
-refineFromBoolVector :: forall numBits. (TypeLits.KnownNat numBits) => VU.Vector Bool -> Maybe (Bit numBits)
+refineFromBoolVector :: forall numBits vec. (TypeLits.KnownNat numBits, Vg.Vector vec Bool) => vec Bool -> Maybe (Bit numBits)
 refineFromBoolVector bitVector =
-  let len = VU.length bitVector
+  let len = Vg.length bitVector
       expectedLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
    in if len == expectedLen
         then
-          let bits = VU.toList bitVector
+          let bits = Vg.toList bitVector
               numBytes = (len + 7) `div` 8
               paddedBits = bits ++ replicate (numBytes * 8 - len) False
               bytes = map boolsToByte (chunksOf 8 paddedBits)
@@ -197,10 +195,10 @@ refineFromBoolVector bitVector =
 
 -- | Construct a PostgreSQL 'Bit' from an unboxed vector of Bool.
 -- Truncates or pads to match the type-level length.
-normalizeFromBoolVector :: forall numBits. (TypeLits.KnownNat numBits) => VU.Vector Bool -> Bit numBits
+normalizeFromBoolVector :: forall numBits vec. (TypeLits.KnownNat numBits, Vg.Vector vec Bool) => vec Bool -> Bit numBits
 normalizeFromBoolVector bitVector =
   let expectedLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
-      bits = VU.toList bitVector
+      bits = Vg.toList bitVector
       -- Truncate or pad to the expected length
       adjustedBits = take expectedLen (bits ++ repeat False)
       numBytes = (expectedLen + 7) `div` 8
