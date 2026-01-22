@@ -134,8 +134,6 @@ library
     PostgresqlTypes.Money
     PostgresqlTypes.Multirange
     PostgresqlTypes.Numeric
-    PostgresqlTypes.Numeric.Integer
-    PostgresqlTypes.Numeric.Scientific
     PostgresqlTypes.Oid
     PostgresqlTypes.Path
     PostgresqlTypes.Point
@@ -146,14 +144,16 @@ library
     PostgresqlTypes.Timestamp
     PostgresqlTypes.Timestamptz
     PostgresqlTypes.Timetz
-    PostgresqlTypes.Timetz.Offset
-    PostgresqlTypes.Timetz.Time
     PostgresqlTypes.Uuid
     PostgresqlTypes.Varbit
     PostgresqlTypes.Varchar
 
   other-modules:
+    PostgresqlTypes.Numeric.Integer
+    PostgresqlTypes.Numeric.Scientific
     PostgresqlTypes.Prelude
+    PostgresqlTypes.Timetz.Offset
+    PostgresqlTypes.Timetz.Time
     PostgresqlTypes.Via
     PostgresqlTypes.Via.IsScalar
 
