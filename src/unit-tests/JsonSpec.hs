@@ -1,9 +1,6 @@
 module JsonSpec (spec) where
 
 import qualified Data.Aeson as Aeson
-import qualified Data.Aeson.Key as Key
-import qualified Data.Aeson.KeyMap as KeyMap
-import qualified Data.Text as Text
 import qualified Data.Vector as Vector
 import qualified PostgresqlTypes.Json as Json
 import Test.Hspec

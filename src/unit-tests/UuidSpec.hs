@@ -4,7 +4,6 @@ import qualified Data.UUID as UUID
 import qualified PostgresqlTypes.Uuid as Uuid
 import Test.Hspec
 import Test.QuickCheck
-import Prelude
 
 spec :: Spec
 spec = do

@@ -4,7 +4,6 @@ import Data.Word
 import qualified PostgresqlTypes.Macaddr as Macaddr
 import Test.Hspec
 import Test.QuickCheck
-import Prelude
 
 spec :: Spec
 spec = do

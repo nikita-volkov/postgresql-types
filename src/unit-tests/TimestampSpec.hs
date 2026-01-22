@@ -1,11 +1,9 @@
 module TimestampSpec (spec) where
 
-import Data.Maybe
 import qualified Data.Time as Time
 import qualified PostgresqlTypes.Timestamp as Timestamp
 import Test.Hspec
 import Test.QuickCheck
-import Prelude
 
 spec :: Spec
 spec = do

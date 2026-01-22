@@ -4,7 +4,6 @@ import qualified Data.Time as Time
 import qualified PostgresqlTypes.Timestamptz as Timestamptz
 import Test.Hspec
 import Test.QuickCheck
-import Prelude
 
 spec :: Spec
 spec = do

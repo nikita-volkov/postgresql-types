@@ -4,7 +4,6 @@ import Data.Word
 import qualified PostgresqlTypes.Oid as Oid
 import Test.Hspec
 import Test.QuickCheck
-import Prelude
 
 spec :: Spec
 spec = do

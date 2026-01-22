@@ -4,7 +4,6 @@ import Data.Int
 import qualified PostgresqlTypes.Int2 as Int2
 import Test.Hspec
 import Test.QuickCheck
-import Prelude
 
 spec :: Spec
 spec = do

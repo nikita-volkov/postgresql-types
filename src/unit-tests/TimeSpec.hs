@@ -1,6 +1,5 @@
 module TimeSpec (spec) where
 
-import Data.Int
 import Data.Maybe
 import qualified Data.Time as Time
 import qualified PostgresqlTypes.Time as PgTime

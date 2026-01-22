@@ -4,7 +4,6 @@ import Data.Int
 import qualified PostgresqlTypes.Int8 as Int8
 import Test.Hspec
 import Test.QuickCheck
-import Prelude hiding (Int8)
 
 spec :: Spec
 spec = do

@@ -4,7 +4,6 @@ import qualified Data.ByteString as ByteString
 import qualified PostgresqlTypes.Bytea as Bytea
 import Test.Hspec
 import Test.QuickCheck
-import Prelude
 
 spec :: Spec
 spec = do
