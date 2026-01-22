@@ -32,13 +32,21 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-net-types.html#DATATYPE-MACADDR8).
 data Macaddr8
   = Macaddr8
+      -- | First byte
       Word8
+      -- | Second byte
       Word8
+      -- | Third byte
       Word8
+      -- | Fourth byte
       Word8
+      -- | Fifth byte
       Word8
+      -- | Sixth byte
       Word8
+      -- | Seventh byte
       Word8
+      -- | Eighth byte
       Word8
   deriving stock (Eq, Ord)
   deriving (Show) via (ViaIsScalar Macaddr8)

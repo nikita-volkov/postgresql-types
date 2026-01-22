@@ -25,11 +25,17 @@ spec = do
 
       it "creates Macaddr from all zeros" do
         let macaddr = Macaddr.fromBytes 0 0 0 0 0 0
-        (Macaddr.toByte1 macaddr, Macaddr.toByte2 macaddr, Macaddr.toByte3 macaddr, Macaddr.toByte4 macaddr, Macaddr.toByte5 macaddr, Macaddr.toByte6 macaddr) `shouldBe` (0, 0, 0, 0, 0, 0)
+        (Macaddr.toByte1 macaddr, Macaddr.toByte2 macaddr, Macaddr.toByte3 macaddr)
+          `shouldBe` (0, 0, 0)
+        (Macaddr.toByte4 macaddr, Macaddr.toByte5 macaddr, Macaddr.toByte6 macaddr)
+          `shouldBe` (0, 0, 0)
 
       it "creates Macaddr from all 0xFF" do
         let macaddr = Macaddr.fromBytes 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
-        (Macaddr.toByte1 macaddr, Macaddr.toByte2 macaddr, Macaddr.toByte3 macaddr, Macaddr.toByte4 macaddr, Macaddr.toByte5 macaddr, Macaddr.toByte6 macaddr) `shouldBe` (0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF)
+        (Macaddr.toByte1 macaddr, Macaddr.toByte2 macaddr, Macaddr.toByte3 macaddr)
+          `shouldBe` (0xFF, 0xFF, 0xFF)
+        (Macaddr.toByte4 macaddr, Macaddr.toByte5 macaddr, Macaddr.toByte6 macaddr)
+          `shouldBe` (0xFF, 0xFF, 0xFF)
 
   describe "Accessors" do
     it "extracts individual bytes" do
