@@ -20,21 +20,24 @@ Adapter packages provide integrations for major PostgreSQL client libraries:
 
 ### Supported Types
 
-This package provides support for nearly all PostgreSQL data types, including but not limited to:
+This package provides support for nearly all PostgreSQL data types, including:
 
-- Numeric types: `Int2`, `Int4`, `Int8`, `Float4`, `Float8`, `Numeric`
-- Character types: `Char`, `Varchar`, `Text`
-- Boolean type: `Bool`
-- Date/time types: `Date`, `Time`, `Timestamp`, `Timestamptz`, `Interval`
-- Network address types: `Inet`, `Cidr`, `Macaddr`, `Macaddr8`
-- Geometric types: `Point`, `Line`, `Lseg`, `Box`, `Path`, `Polygon`, `Circle`
-- Bit string types: `Bit`, `Varbit`
-- UUID type: `Uuid`
-- JSON types: `Json`, `Jsonb`
-- Key-value types: `Hstore`
-- Range types: `Int4Range`, `Int8Range`, `NumRange`, `TsRange`, `TstzRange`, `DateRange`
-- Multirange types: `Int4Multirange`, `Int8Multirange`, `NumMultirange`, `TsMultirange`, `TstzMultirange`, `DateMultirange`
-- Array types for all of the above
+- **Numeric types**: Int2, Int4, Int8, Float4, Float8, Numeric, Money, Oid
+- **Character types**: Char, Varchar, Text, Bpchar
+- **Boolean type**: Bool
+- **Binary data**: Bytea
+- **Date/time types**: Date, Time, Timestamp, Timestamptz, Timetz, Interval
+- **Network address types**: Inet, Cidr, Macaddr, Macaddr8
+- **Geometric types**: Point, Line, Lseg, Box, Path, Polygon, Circle
+- **Bit string types**: Bit, Varbit
+- **UUID type**: Uuid
+- **JSON types**: Json, Jsonb
+- **Key-value types**: Hstore
+- **Range types**: Range (supporting int4range, int8range, numrange, tsrange, tstzrange, daterange)
+- **Multirange types**: Multirange (supporting int4multirange, int8multirange, etc.)
+- **Array types** for all of the above
+
+For detailed information about each type, see the [package documentation](https://hackage.haskell.org/package/postgresql-types).
 
 ### Type Safety & Valid Ranges
 
@@ -44,10 +47,11 @@ Values can only be created through explicit constructor functions, guaranteeing 
 
 ### Type-Safe Constructors
 
-The library provides two types of constructors for each type:
+The library provides three types of functions for working with PostgreSQL types:
 
 - **Normalizing constructors** (prefix: `normalizeFrom*`) - Always succeed by clamping or canonicalizing input values to valid ranges
 - **Refining constructors** (prefix: `refineFrom*`) - Return `Maybe`, failing if the input is out of range
+- **Accessor functions** (prefix: `to*`) - Extract values from PostgreSQL types to common Haskell types
 
 This approach ensures that:
 - Type constructors remain hidden to protect invariants
