@@ -15,13 +15,13 @@ spec = do
     Scripts.testIsScalar (Proxy @PgTime.Time)
 
   describe "Constructors" do
-    describe "fromMicroseconds" do
+    describe "normalizeFromMicroseconds" do
       it "creates Time from microseconds" do
-        let pgTime = PgTime.fromMicroseconds 43_200_000_000 -- noon
+        let pgTime = PgTime.normalizeFromMicroseconds 43_200_000_000 -- noon
         PgTime.toMicroseconds pgTime `shouldBe` 43_200_000_000
 
       it "creates Time from zero (midnight)" do
-        let pgTime = PgTime.fromMicroseconds 0
+        let pgTime = PgTime.normalizeFromMicroseconds 0
         PgTime.toMicroseconds pgTime `shouldBe` 0
 
     describe "normalizeFromTimeOfDay" do
@@ -50,20 +50,20 @@ spec = do
   describe "Accessors" do
     describe "toMicroseconds" do
       it "extracts microseconds value" do
-        let pgTime = PgTime.fromMicroseconds 3661_000_000 -- 1 hour, 1 minute, 1 second
+        let pgTime = PgTime.normalizeFromMicroseconds 3661_000_000 -- 1 hour, 1 minute, 1 second
         PgTime.toMicroseconds pgTime `shouldBe` 3661_000_000
 
     describe "toTimeOfDay" do
       it "converts to TimeOfDay" do
-        let pgTime = PgTime.fromMicroseconds 43_200_000_000 -- noon
+        let pgTime = PgTime.normalizeFromMicroseconds 43_200_000_000 -- noon
             tod = PgTime.toTimeOfDay pgTime
         tod `shouldBe` Time.TimeOfDay 12 0 0
 
   describe "Property Tests" do
-    it "roundtrips through toMicroseconds and fromMicroseconds" do
+    it "roundtrips through toMicroseconds and normalizeFromMicroseconds" do
       property \(pgTime :: PgTime.Time) ->
         let micros = PgTime.toMicroseconds pgTime
-            pgTime' = PgTime.fromMicroseconds micros
+            pgTime' = PgTime.normalizeFromMicroseconds micros
          in pgTime' === pgTime
 
     it "normalizeFromTimeOfDay is idempotent" do

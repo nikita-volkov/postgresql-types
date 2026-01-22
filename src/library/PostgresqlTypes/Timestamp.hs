@@ -1,11 +1,13 @@
 module PostgresqlTypes.Timestamp
-  ( Timestamp (..),
+  ( Timestamp,
 
     -- * Accessors
+    toMicroseconds,
     toLocalTime,
 
     -- * Constructors
-    fromLocalTime,
+    normalizeFromMicroseconds,
+    normalizeFromLocalTime,
   )
 where
 
@@ -32,12 +34,7 @@ newtype Timestamp = Timestamp Int64
   deriving (Show) via (ViaIsScalar Timestamp)
 
 instance Arbitrary Timestamp where
-  arbitrary = Timestamp <$> QuickCheck.choose (pgTimestampMin, pgTimestampMax)
-    where
-      -- PostgreSQL's actual documented timestamp range: 4713 BC to 294276 AD
-      -- Do not artificially restrict to avoid edge cases - let the tests expose real issues
-      pgTimestampMin = -210866803200000000 -- 4713 BC January 1 00:00:00
-      pgTimestampMax = 9214646400000000000 -- 294276 AD December 31 23:59:59.999999
+  arbitrary = Timestamp <$> QuickCheck.choose (minMicroseconds, maxMicroseconds)
 
 instance IsScalar Timestamp where
   typeName = Tagged "timestamp"
@@ -73,7 +70,7 @@ instance IsScalar Timestamp where
       Just day -> do
         let timeOfDay = Time.TimeOfDay h mi (fromIntegral s + fromIntegral micros / 1_000_000)
             localTime = Time.LocalTime day timeOfDay
-        pure (fromLocalTime localTime)
+        pure (normalizeFromLocalTime localTime)
       Nothing ->
         -- For extreme dates, compute directly from PostgreSQL epoch
         -- This is a simplified calculation for extreme timestamps
@@ -124,11 +121,11 @@ instance IsMultirangeElement Timestamp where
   multirangeBaseOid = Tagged (Just 4533)
   multirangeArrayOid = Tagged (Just 6152)
 
--- PostgreSQL timestamp epoch is 2000-01-01 00:00:00
-postgresTimestampEpoch :: Time.LocalTime
-postgresTimestampEpoch = Time.LocalTime (Time.fromGregorian 2000 1 1) Time.midnight
-
 -- * Accessors
+
+-- | Convert PostgreSQL 'Timestamp' to microseconds since epoch.
+toMicroseconds :: Timestamp -> Int64
+toMicroseconds (Timestamp micros) = micros
 
 -- | Convert PostgreSQL 'Timestamp' to 'Time.LocalTime'.
 toLocalTime :: Timestamp -> Time.LocalTime
@@ -138,12 +135,22 @@ toLocalTime (Timestamp micros) =
 
 -- * Constructors
 
+-- | Construct a PostgreSQL 'Timestamp' from microseconds since epoch by clamping the values out of range.
+normalizeFromMicroseconds :: Int64 -> Timestamp
+normalizeFromMicroseconds micros =
+  if micros < minMicroseconds
+    then Timestamp minMicroseconds
+    else
+      if micros > maxMicroseconds
+        then Timestamp maxMicroseconds
+        else Timestamp micros
+
 -- | Construct a PostgreSQL 'Timestamp' from 'Time.LocalTime'.
-fromLocalTime :: Time.LocalTime -> Timestamp
-fromLocalTime localTime =
+normalizeFromLocalTime :: Time.LocalTime -> Timestamp
+normalizeFromLocalTime localTime =
   let diffTime = Time.diffLocalTime localTime postgresTimestampEpoch
       micros = round (diffTime * 1_000_000)
-   in Timestamp micros
+   in normalizeFromMicroseconds micros
 
 -- | Format a LocalTime for PostgreSQL timestamp text format.
 -- PostgreSQL requires specific formatting for extreme dates:
@@ -215,3 +222,17 @@ formatTimestampForPostgreSQL localTime =
                   ".",
                   TextBuilder.fixedLengthDecimal 6 micros
                 ]
+
+-- * Constants
+
+-- PostgreSQL timestamp epoch is 2000-01-01 00:00:00
+postgresTimestampEpoch :: Time.LocalTime
+postgresTimestampEpoch = Time.LocalTime (Time.fromGregorian 2000 1 1) Time.midnight
+
+-- PostgreSQL's actual documented timestamp range: 4713 BC to 294276 AD
+-- Do not artificially restrict to avoid edge cases - let the tests expose real issues
+minMicroseconds :: Int64
+minMicroseconds = -210866803200000000 -- 4713 BC January 1 00:00:00
+
+maxMicroseconds :: Int64
+maxMicroseconds = 9214646400000000000 -- 294276 AD December 31 23:59:59.999999

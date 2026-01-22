@@ -17,7 +17,7 @@ import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.Bits as Bits
 import qualified Data.ByteString as ByteString
 import qualified Data.Text as Text
-import qualified Data.Vector.Unboxed as VU
+import qualified Data.Vector.Generic as Vg
 import qualified GHC.TypeLits as TypeLits
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
@@ -125,11 +125,11 @@ toBoolList (Varbit len bytes) =
     byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
 
 -- | Extract the bit string as an unboxed vector of Bool.
-toBoolVector :: forall maxLen. (TypeLits.KnownNat maxLen) => Varbit maxLen -> VU.Vector Bool
+toBoolVector :: forall maxLen vec. (TypeLits.KnownNat maxLen, Vg.Vector vec Bool) => Varbit maxLen -> vec Bool
 toBoolVector (Varbit len bytes) =
   let bits = concatMap byteToBits (ByteString.unpack bytes)
       trimmedBits = take (fromIntegral len) bits
-   in VU.fromList trimmedBits
+   in Vg.fromList trimmedBits
   where
     byteToBits :: Word8 -> [Bool]
     byteToBits byte = [Bits.testBit byte i | i <- [7, 6, 5, 4, 3, 2, 1, 0]]
@@ -176,10 +176,10 @@ normalizeFromBoolList bits =
 
 -- | Construct a PostgreSQL 'Varbit' from an unboxed vector of Bool with validation.
 -- Returns 'Nothing' if the vector length exceeds the maximum length.
-refineFromBoolVector :: forall maxLen. (TypeLits.KnownNat maxLen) => VU.Vector Bool -> Maybe (Varbit maxLen)
+refineFromBoolVector :: forall maxLen vec. (TypeLits.KnownNat maxLen, Vg.Vector vec Bool) => vec Bool -> Maybe (Varbit maxLen)
 refineFromBoolVector bitVector =
-  let bits = VU.toList bitVector
-      len = fromIntegral (VU.length bitVector)
+  let bits = Vg.toList bitVector
+      len = fromIntegral (Vg.length bitVector)
       maxLen = fromIntegral (TypeLits.natVal (Proxy @maxLen))
    in if len <= maxLen
         then
@@ -197,10 +197,10 @@ refineFromBoolVector bitVector =
 
 -- | Construct a PostgreSQL 'Varbit' from an unboxed vector of Bool.
 -- Truncates to the maximum length if necessary.
-normalizeFromBoolVector :: forall maxLen. (TypeLits.KnownNat maxLen) => VU.Vector Bool -> Varbit maxLen
+normalizeFromBoolVector :: forall maxLen vec. (TypeLits.KnownNat maxLen, Vg.Vector vec Bool) => vec Bool -> Varbit maxLen
 normalizeFromBoolVector bitVector =
   let maxLen = fromIntegral (TypeLits.natVal (Proxy @maxLen))
-      bits = VU.toList bitVector
+      bits = Vg.toList bitVector
       truncatedBits = take maxLen bits
       actualLen = length truncatedBits
       numBytes = (actualLen + 7) `div` 8

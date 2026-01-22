@@ -53,11 +53,11 @@ spec = do
           let varbit = Varbit.normalizeFromBoolList @16 [True, True, False]
           Varbit.toBoolList varbit `shouldBe` [True, True, False]
 
-      describe "toBoolVector" do
-        it "extracts Bool vector" do
+      describe "toBoolList" do
+        it "extracts Bool list" do
           let bools = [True, False, True, False]
               varbit = Varbit.normalizeFromBoolList @16 bools
-          VU.toList (Varbit.toBoolVector varbit) `shouldBe` bools
+          Varbit.toBoolList varbit `shouldBe` bools
 
     describe "Property Tests" do
       it "roundtrips through toBoolList and normalizeFromBoolList" do
@@ -66,8 +66,8 @@ spec = do
               varbit' = Varbit.normalizeFromBoolList @16 bools
            in varbit' === varbit
 
-      it "roundtrips through toBoolVector and normalizeFromBoolVector" do
+      it "roundtrips through toBoolList and normalizeFromBoolVector" do
         property \(varbit :: Varbit.Varbit 16) ->
-          let vec = Varbit.toBoolVector varbit
+          let vec = Varbit.toBoolVector @_ @VU.Vector varbit
               varbit' = Varbit.normalizeFromBoolVector @16 vec
            in varbit' === varbit

@@ -1,5 +1,5 @@
 module PostgresqlTypes.Polygon
-  ( Polygon (..),
+  ( Polygon,
 
     -- * Accessors
     toPointList,

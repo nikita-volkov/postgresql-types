@@ -1,11 +1,13 @@
 module PostgresqlTypes.Timestamptz
-  ( Timestamptz (..),
+  ( Timestamptz,
 
     -- * Accessors
+    toMicroseconds,
     toUtcTime,
 
     -- * Constructors
-    fromUtcTime,
+    normalizeFromMicroseconds,
+    normalizeFromUtcTime,
   )
 where
 
@@ -32,12 +34,7 @@ newtype Timestamptz = Timestamptz Int64
   deriving (Show) via (ViaIsScalar Timestamptz)
 
 instance Arbitrary Timestamptz where
-  arbitrary = Timestamptz <$> QuickCheck.choose (pgTimestampMin, pgTimestampMax)
-    where
-      -- PostgreSQL's actual documented timestamptz range: 4713 BC to 294276 AD
-      -- Do not artificially restrict to avoid edge cases - let the tests expose real issues
-      pgTimestampMin = -210866803200000000 -- 4713 BC January 1 00:00:00 UTC
-      pgTimestampMax = 9214646400000000000 -- 294276 AD December 31 23:59:59.999999 UTC
+  arbitrary = Timestamptz <$> QuickCheck.choose (minMicroseconds, maxMicroseconds)
 
 instance IsScalar Timestamptz where
   typeName = Tagged "timestamptz"
@@ -77,7 +74,7 @@ instance IsScalar Timestamptz where
             localTime = Time.LocalTime day timeOfDay
             timeZone = Time.minutesToTimeZone tzOffsetMinutes
             utcTime = Time.localTimeToUTC timeZone localTime
-        pure (fromUtcTime utcTime)
+        pure (normalizeFromUtcTime utcTime)
       Nothing ->
         -- For extreme dates, compute directly from PostgreSQL epoch
         let yearsSinceEpoch = year - 2000
@@ -135,11 +132,11 @@ instance IsMultirangeElement Timestamptz where
   multirangeBaseOid = Tagged (Just 4534)
   multirangeArrayOid = Tagged (Just 6153)
 
--- PostgreSQL timestamptz epoch is 2000-01-01 00:00:00 UTC
-postgresUtcEpoch :: Time.UTCTime
-postgresUtcEpoch = Time.UTCTime (Time.fromGregorian 2000 1 1) 0
-
 -- * Accessors
+
+-- | Convert PostgreSQL 'Timestamptz' to microseconds since epoch.
+toMicroseconds :: Timestamptz -> Int64
+toMicroseconds (Timestamptz micros) = micros
 
 -- | Convert PostgreSQL 'Timestamptz' to 'Time.UTCTime'.
 toUtcTime :: Timestamptz -> Time.UTCTime
@@ -149,12 +146,22 @@ toUtcTime (Timestamptz micros) =
 
 -- * Constructors
 
+-- | Construct a PostgreSQL 'Timestamptz' from microseconds since epoch by clamping the values out of range.
+normalizeFromMicroseconds :: Int64 -> Timestamptz
+normalizeFromMicroseconds micros =
+  if micros < minMicroseconds
+    then Timestamptz minMicroseconds
+    else
+      if micros > maxMicroseconds
+        then Timestamptz maxMicroseconds
+        else Timestamptz micros
+
 -- | Construct a PostgreSQL 'Timestamptz' from 'Time.UTCTime'.
-fromUtcTime :: Time.UTCTime -> Timestamptz
-fromUtcTime utcTime =
+normalizeFromUtcTime :: Time.UTCTime -> Timestamptz
+normalizeFromUtcTime utcTime =
   let diffTime = Time.diffUTCTime utcTime postgresUtcEpoch
       micros = round (diffTime * 1_000_000)
-   in Timestamptz micros
+   in normalizeFromMicroseconds micros
 
 -- | Format a UTCTime for PostgreSQL timestamptz text format.
 -- PostgreSQL requires specific formatting for extreme dates:
@@ -226,3 +233,17 @@ formatTimestamptzForPostgreSQL utcTime =
               timeBuilder,
               "+0000"
             ]
+
+-- * Constants
+
+-- PostgreSQL timestamptz epoch is 2000-01-01 00:00:00 UTC
+postgresUtcEpoch :: Time.UTCTime
+postgresUtcEpoch = Time.UTCTime (Time.fromGregorian 2000 1 1) 0
+
+-- PostgreSQL's actual documented timestamptz range: 4713 BC to 294276 AD
+-- Do not artificially restrict to avoid edge cases - let the tests expose real issues
+minMicroseconds :: Int64
+minMicroseconds = -210866803200000000 -- 4713 BC January 1 00:00:00 UTC
+
+maxMicroseconds :: Int64
+maxMicroseconds = 9214646400000000000 -- 294276 AD December 31 23:59:59.999999 UTC

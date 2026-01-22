@@ -6,7 +6,7 @@ module PostgresqlTypes.Time
     toTimeOfDay,
 
     -- * Constructors
-    fromMicroseconds,
+    normalizeFromMicroseconds,
     refineFromTimeOfDay,
     normalizeFromTimeOfDay,
   )
@@ -94,9 +94,10 @@ toTimeOfDay (Time microseconds) =
 
 -- * Constructors
 
--- | Construct a PostgreSQL 'Time' from microseconds.
-fromMicroseconds :: Int64 -> Time
-fromMicroseconds = Time
+-- | Construct a PostgreSQL 'Time' from microseconds, wrapping values around 24-hour period
+normalizeFromMicroseconds :: Int64 -> Time
+normalizeFromMicroseconds microseconds =
+  Time (microseconds `mod` 86_400_000_000)
 
 -- | Convert from 'Time.TimeOfDay' to PostgreSQL 'Time' with validation.
 -- Returns 'Nothing' if the value is outside the valid range.
@@ -109,7 +110,7 @@ refineFromTimeOfDay timeOfDay =
         then Just time
         else Nothing
 
--- | Convert from 'Time.TimeOfDay' to PostgreSQL 'Time', wrapping negative values around 24-hour period.
+-- | Convert from 'Time.TimeOfDay' to PostgreSQL 'Time', wrapping values around 24-hour period.
 normalizeFromTimeOfDay :: Time.TimeOfDay -> Time
 normalizeFromTimeOfDay timeOfDay =
   let diffTime = Time.timeOfDayToTime timeOfDay

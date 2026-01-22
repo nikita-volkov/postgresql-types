@@ -1,5 +1,5 @@
 module PostgresqlTypes.Path
-  ( Path (..),
+  ( Path,
 
     -- * Accessors
     toClosed,
