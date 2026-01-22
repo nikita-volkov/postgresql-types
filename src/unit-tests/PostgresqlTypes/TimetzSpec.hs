@@ -4,7 +4,6 @@ import Data.Data (Proxy (Proxy))
 import Data.Int
 import Data.Maybe
 import qualified Data.Time as Time
-import qualified LawfulConversions
 import qualified PostgresqlTypes.Timetz as Timetz
 import Test.Hspec
 import Test.QuickCheck
@@ -180,30 +179,27 @@ spec = do
     describe "Conversion instances" do
       describe "IsSome (Int64, Int32) Timetz" do
         it "converts valid values" do
-          let tuple = (43_200_000_000, 3600)
-              result = LawfulConversions.maybeFrom @(Int64, Int32) @(Timetz.Timetz) tuple
+          let result = Timetz.refineFromTimeInMicrosecondsAndOffsetInSeconds 43_200_000_000 3600
           result `shouldSatisfy` isJust
 
         it "rejects invalid time values" do
-          let tuple = (90_000_000_000, 0)
-              result = LawfulConversions.maybeFrom @(Int64, Int32) @(Timetz.Timetz) tuple
+          let result = Timetz.refineFromTimeInMicrosecondsAndOffsetInSeconds 90_000_000_000 0
           result `shouldBe` Nothing
 
         it "rejects invalid offset values" do
-          let tuple = (0, 60_000)
-              result = LawfulConversions.maybeFrom @(Int64, Int32) @(Timetz.Timetz) tuple
+          let result = Timetz.refineFromTimeInMicrosecondsAndOffsetInSeconds 0 60_000
           result `shouldBe` Nothing
 
         it "roundtrips valid values" do
           QuickCheck.property \(timetz :: Timetz.Timetz) ->
-            let tuple = LawfulConversions.to @(Int64, Int32) timetz
-                restored = LawfulConversions.maybeFrom @(Int64, Int32) @(Timetz.Timetz) tuple
+            let microseconds = Timetz.toTimeInMicroseconds timetz
+                seconds = Timetz.toTimeZoneInSeconds timetz
+                restored = Timetz.refineFromTimeInMicrosecondsAndOffsetInSeconds microseconds seconds
              in restored === Just timetz
 
       describe "IsMany (Int64, Int32) Timetz" do
         it "normalizes out-of-range values" do
-          let tuple = (90_000_000_000, 60_000)
-              timetz = LawfulConversions.onfrom @(Int64, Int32) @(Timetz.Timetz) tuple
+          let timetz = Timetz.normalizeFromTimeInMicrosecondsAndOffsetInSeconds 90_000_000_000 60_000
           -- Values should be clamped
           Timetz.toTimeInMicroseconds timetz `shouldBe` 86_400_000_000
           Timetz.toTimeZoneInSeconds timetz `shouldBe` 57_599

@@ -90,53 +90,52 @@
 -- = Type Conversions
 --
 -- These types do not necessarily have direct mappings to common Haskell types,
--- but they provide lawful conversions to and from them using the
--- [lawful-conversions](https://hackage.haskell.org/package/lawful-conversions) library.
+-- but they provide explicit constructors and accessors for safe conversions.
 --
--- The library provides several conversion typeclasses:
+-- The library provides two types of constructors for each type:
 --
--- * 'IsSome' - Partial conversion that may fail (like @Text -> Maybe PostgresqlTypes.Text@)
--- * 'IsMany' - Total conversion that always succeeds (like @Int32 -> PostgresqlTypes.Int4@)
--- * 'Is' - Bidirectional conversion combining both directions
+-- * __Normalizing constructors__ (prefix: @normalizeFrom*@) - Always succeed by clamping or canonicalizing input values to valid ranges
+-- * __Refining constructors__ (prefix: @refineFrom*@) - Return 'Maybe', failing if the input is out of range
+-- * __Accessor functions__ (prefix: @to*@) - Extract values from PostgreSQL types
 --
 -- Each type also implements 'IsScalar' which provides binary and textual
 -- encoding/decoding according to PostgreSQL's wire protocol specification.
 --
 -- = Usage Examples
 --
--- > import LawfulConversions
 -- > import qualified Data.Text as Text
 -- > import qualified Data.Time as Time
--- > import qualified PostgresqlTypes.Types as PG
+-- > import qualified PostgresqlTypes.Int4 as Int4
+-- > import qualified PostgresqlTypes.Date as Date
+-- > import qualified PostgresqlTypes.Text as PgText
 -- >
--- > -- Total conversion (IsMany): Int32 -> Int4 (always succeeds)
--- > pgInt :: PG.Int4
--- > pgInt = from @Int32 42
+-- > -- Normalizing conversion: Int32 -> Int4 (always succeeds, clamping if needed)
+-- > pgInt :: Int4.Int4
+-- > pgInt = Int4.normalizeFromInt32 42
 -- >
 -- > -- Extract Int32 from Int4
 -- > hsInt :: Int32
--- > hsInt = to @Int32 pgInt
+-- > hsInt = Int4.toInt32 pgInt
 -- >
--- > -- Partial conversion (IsSome): Text -> PostgreSQL Text. May fail if contains NUL-bytes, because PostgreSQL does not allow NUL-bytes in text fields.
--- > pgTextMaybe :: Maybe PG.Text
--- > pgTextMaybe = maybeFrom @PG.Text (Text.pack "Hello")
+-- > -- Refining conversion: Text -> PostgreSQL Text. May fail if contains NUL-bytes.
+-- > pgTextMaybe :: Maybe PgText.Text
+-- > pgTextMaybe = PgText.refineFromText (Text.pack "Hello")
 -- >
--- > -- Same conversion done using (IsMany), which canonicalizes the input text by throwing away the NUL-bytes, because PostgreSQL Text cannot contain NULs.
--- > pgText :: PG.Text
--- > pgText = onfrom @PG.Text (Text.pack "Hello")
+-- > -- Normalizing conversion which removes NUL-bytes from input
+-- > pgText :: PgText.Text
+-- > pgText = PgText.normalizeFromText (Text.pack "Hello")
 -- >
--- > -- Total conversion with normalization: Day -> Date (clamps to valid range)
--- > pgDate :: PG.Date
--- > pgDate = onfrom @Time.Day (Time.fromGregorian 2024 1 15)
+-- > -- Normalizing conversion with clamping: Day -> Date (clamps to valid range)
+-- > pgDate :: Date.Date
+-- > pgDate = Date.normalizeFromDay (Time.fromGregorian 2024 1 15)
 -- >
 -- > -- Extract Day from Date
 -- > hsDay :: Time.Day
--- > hsDay = to @Time.Day pgDate
+-- > hsDay = Date.toDay pgDate
 --
 -- For more information:
 --
 -- * [PostgreSQL type documentation](https://www.postgresql.org/docs/current/datatype.html)
--- * [lawful-conversions library](https://hackage.haskell.org/package/lawful-conversions)
 module PostgresqlTypes
   ( Bit,
     Bool,
