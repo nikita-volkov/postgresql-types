@@ -94,10 +94,14 @@ toTimeOfDay (Time microseconds) =
 
 -- * Constructors
 
--- | Construct a PostgreSQL 'Time' from microseconds, wrapping values around 24-hour period
+-- | Construct a PostgreSQL 'Time' from microseconds, clamping to valid range.
 normalizeFromMicroseconds :: Int64 -> Time
 normalizeFromMicroseconds microseconds =
-  Time (microseconds `mod` 86_400_000_000)
+  if microseconds < 0
+    then Time 0
+    else if microseconds > 86_400_000_000
+      then Time 86_400_000_000
+      else Time microseconds
 
 -- | Convert from 'Time.TimeOfDay' to PostgreSQL 'Time' with validation.
 -- Returns 'Nothing' if the value is outside the valid range.
@@ -110,11 +114,9 @@ refineFromTimeOfDay timeOfDay =
         then Just time
         else Nothing
 
--- | Convert from 'Time.TimeOfDay' to PostgreSQL 'Time', wrapping values around 24-hour period.
+-- | Convert from 'Time.TimeOfDay' to PostgreSQL 'Time', clamping to valid range.
 normalizeFromTimeOfDay :: Time.TimeOfDay -> Time
 normalizeFromTimeOfDay timeOfDay =
   let diffTime = Time.timeOfDayToTime timeOfDay
       microseconds = round (diffTime * 1_000_000)
-      -- Wrap around 24-hour period for negative values
-      wrappedMicroseconds = microseconds `mod` 86_400_000_000
-   in Time wrappedMicroseconds
+   in normalizeFromMicroseconds microseconds
