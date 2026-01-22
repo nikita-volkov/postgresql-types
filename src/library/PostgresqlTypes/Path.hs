@@ -13,6 +13,7 @@ module PostgresqlTypes.Path
 where
 
 import qualified Data.Attoparsec.Text as Attoparsec
+import Data.Hashable (Hashable (..))
 import qualified Data.Vector.Unboxed as UnboxedVector
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
 import PostgresqlTypes.Algebra
@@ -50,6 +51,10 @@ instance Arbitrary Path where
     | (closed', points') <- shrink (closed, points),
       UnboxedVector.length points' >= 1
     ]
+
+instance Hashable Path where
+  hashWithSalt salt (Path closed points) =
+    salt `hashWithSalt` closed `hashWithSalt` UnboxedVector.toList points
 
 instance IsScalar Path where
   typeName = Tagged "path"

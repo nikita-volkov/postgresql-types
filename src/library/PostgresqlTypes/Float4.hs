@@ -10,6 +10,7 @@ module PostgresqlTypes.Float4
 where
 
 import qualified Data.Attoparsec.Text as Attoparsec
+import Data.Hashable (Hashable)
 import GHC.Float (castFloatToWord32, castWord32ToFloat)
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
@@ -22,7 +23,7 @@ import qualified TextBuilder
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-numeric.html#DATATYPE-FLOAT).
 newtype Float4 = Float4 Float
-  deriving newtype (Eq, Ord, Arbitrary)
+  deriving newtype (Eq, Ord, Hashable, Arbitrary)
   deriving (Show, Read, IsString) via (ViaIsScalar Float4)
 
 instance IsScalar Float4 where

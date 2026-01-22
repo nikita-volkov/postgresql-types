@@ -15,6 +15,7 @@ where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.Char
+import Data.Hashable (Hashable)
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude hiding (Char)
 import PostgresqlTypes.Via
@@ -41,7 +42,7 @@ import qualified TextBuilder
 -- @'PostgresqlTypes.Bpchar.Bpchar' 1@ in Haskell. Despite the similar names,
 -- these are entirely different types in PostgreSQL.
 newtype Char = Char Word8
-  deriving newtype (Eq, Ord)
+  deriving newtype (Eq, Ord, Hashable)
   deriving (Show, Read, IsString) via (ViaIsScalar Char)
 
 instance Arbitrary Char where

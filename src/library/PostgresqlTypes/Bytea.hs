@@ -11,6 +11,7 @@ where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.ByteString as ByteString
+import Data.Hashable (Hashable)
 import qualified Data.Text as Text
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
@@ -23,7 +24,7 @@ import qualified TextBuilder
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-binary.html).
 newtype Bytea = Bytea ByteString
-  deriving newtype (Eq, Ord, Arbitrary)
+  deriving newtype (Eq, Ord, Hashable, Arbitrary)
   deriving (Show, Read, IsString) via (ViaIsScalar Bytea)
 
 instance IsScalar Bytea where

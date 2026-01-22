@@ -10,6 +10,7 @@ module PostgresqlTypes.Money
 where
 
 import qualified Data.Attoparsec.Text as Attoparsec
+import Data.Hashable (Hashable)
 import qualified Data.Text as Text
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
@@ -30,7 +31,7 @@ import qualified TextBuilder
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-money.html).
 newtype Money = Money Int64
-  deriving newtype (Eq, Ord, Arbitrary)
+  deriving newtype (Eq, Ord, Hashable, Arbitrary)
   deriving (Show, Read, IsString) via (ViaIsScalar Money)
 
 instance IsScalar Money where

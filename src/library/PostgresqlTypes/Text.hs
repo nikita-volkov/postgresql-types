@@ -11,6 +11,7 @@ module PostgresqlTypes.Text
 where
 
 import qualified Data.Attoparsec.Text as Attoparsec
+import Data.Hashable (Hashable)
 import Data.String
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text.Encoding
@@ -26,7 +27,7 @@ import qualified TextBuilder
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-character.html).
 newtype Text = Text Text.Text
-  deriving newtype (Eq, Ord)
+  deriving newtype (Eq, Ord, Hashable)
   deriving (Show, Read, IsString) via (ViaIsScalar Text)
 
 instance Arbitrary Text where

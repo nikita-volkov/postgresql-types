@@ -15,6 +15,7 @@ import qualified Data.Aeson.Key as Aeson.Key
 import qualified Data.Aeson.KeyMap as Aeson.KeyMap
 import qualified Data.Aeson.Text as Aeson.Text
 import qualified Data.Attoparsec.Text as Attoparsec
+import Data.Hashable (Hashable (..))
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text.Encoding
 import qualified Jsonifier
@@ -38,6 +39,9 @@ newtype Jsonb = Jsonb Aeson.Value
 instance Arbitrary Jsonb where
   arbitrary = normalizeFromAesonValue <$> arbitrary
   shrink = fmap Jsonb . shrink . toAesonValue
+
+instance Hashable Jsonb where
+  hashWithSalt salt (Jsonb value) = hashWithSalt salt value
 
 instance IsScalar Jsonb where
   typeName = Tagged "jsonb"

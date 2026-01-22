@@ -13,6 +13,7 @@ module PostgresqlTypes.Lseg
 where
 
 import qualified Data.Attoparsec.Text as Attoparsec
+import Data.Hashable (Hashable (..))
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
@@ -44,6 +45,13 @@ instance Arbitrary Lseg where
   arbitrary = Lseg <$> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary
   shrink (Lseg x1 y1 x2 y2) =
     [Lseg x1' y1' x2' y2' | (x1', y1', x2', y2') <- shrink (x1, y1, x2, y2)]
+
+instance Hashable Lseg where
+  hashWithSalt salt (Lseg x1 y1 x2 y2) =
+    salt `hashWithSalt` castDoubleToWord64 x1
+      `hashWithSalt` castDoubleToWord64 y1
+      `hashWithSalt` castDoubleToWord64 x2
+      `hashWithSalt` castDoubleToWord64 y2
 
 instance IsScalar Lseg where
   typeName = Tagged "lseg"

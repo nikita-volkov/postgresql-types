@@ -12,6 +12,7 @@ where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.ByteString as ByteString
+import Data.Hashable (Hashable (..))
 import qualified Data.Map.Strict as Map
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text.Encoding
@@ -48,6 +49,9 @@ instance Arbitrary Hstore where
     pure (Hstore (Map.fromList pairs))
   shrink (Hstore base) =
     Hstore . Map.fromList <$> shrink (Map.toList base)
+
+instance Hashable Hstore where
+  hashWithSalt salt (Hstore m) = hashWithSalt salt (Map.toList m)
 
 instance IsScalar Hstore where
   typeName = Tagged "hstore"

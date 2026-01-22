@@ -13,6 +13,7 @@ module PostgresqlTypes.Time
 where
 
 import qualified Data.Attoparsec.Text as Attoparsec
+import Data.Hashable (Hashable)
 import qualified Data.Text as Text
 import qualified Data.Time as Time
 import PostgresqlTypes.Algebra
@@ -31,7 +32,7 @@ import qualified TextBuilder
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-datetime.html#DATATYPE-TIME).
 newtype Time = Time Int64
-  deriving newtype (Eq, Ord)
+  deriving newtype (Eq, Ord, Hashable)
   deriving (Show, Read, IsString) via (ViaIsScalar Time)
 
 instance Arbitrary Time where

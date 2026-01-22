@@ -11,6 +11,7 @@ module PostgresqlTypes.Varchar
 where
 
 import qualified Data.Attoparsec.Text as Attoparsec
+import Data.Hashable (Hashable (..))
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text.Encoding
 import qualified GHC.TypeLits as TypeLits
@@ -43,6 +44,9 @@ instance (TypeLits.KnownNat maxLen) => Arbitrary (Varchar maxLen) where
     let maxLen = fromIntegral (TypeLits.natVal (Proxy @maxLen))
         shrunk = Text.pack <$> shrink (Text.unpack base)
      in [Varchar txt | txt <- shrunk, Text.length txt <= maxLen]
+
+instance Hashable (Varchar maxLen) where
+  hashWithSalt salt (Varchar txt) = hashWithSalt salt txt
 
 instance (TypeLits.KnownNat maxLen) => IsScalar (Varchar maxLen) where
   typeName = Tagged "varchar"
