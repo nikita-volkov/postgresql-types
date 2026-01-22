@@ -1,5 +1,5 @@
 module PostgresqlTypes.Int4
-  ( Int4 (..),
+  ( Int4,
 
     -- * Accessors
     toInt32,

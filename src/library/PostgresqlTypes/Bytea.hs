@@ -1,5 +1,5 @@
 module PostgresqlTypes.Bytea
-  ( Bytea (..),
+  ( Bytea,
 
     -- * Accessors
     toByteString,

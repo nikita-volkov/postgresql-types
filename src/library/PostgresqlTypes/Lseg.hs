@@ -1,5 +1,5 @@
 module PostgresqlTypes.Lseg
-  ( Lseg (..),
+  ( Lseg,
 
     -- * Accessors
     toX1,

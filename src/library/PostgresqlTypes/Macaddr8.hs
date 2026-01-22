@@ -1,5 +1,5 @@
 module PostgresqlTypes.Macaddr8
-  ( Macaddr8 (..),
+  ( Macaddr8,
 
     -- * Accessors
     toByte1,

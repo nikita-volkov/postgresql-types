@@ -1,5 +1,5 @@
 module PostgresqlTypes.Point
-  ( Point (..),
+  ( Point,
 
     -- * Accessors
     toX,

@@ -1,5 +1,5 @@
 module PostgresqlTypes.Float4
-  ( Float4 (..),
+  ( Float4,
 
     -- * Accessors
     toFloat,

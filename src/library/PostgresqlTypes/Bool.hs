@@ -1,5 +1,5 @@
 module PostgresqlTypes.Bool
-  ( Bool (..),
+  ( Bool,
 
     -- * Accessors
     toBool,

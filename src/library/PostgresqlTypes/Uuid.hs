@@ -1,5 +1,5 @@
 module PostgresqlTypes.Uuid
-  ( Uuid (..),
+  ( Uuid,
 
     -- * Accessors
     toUUID,
