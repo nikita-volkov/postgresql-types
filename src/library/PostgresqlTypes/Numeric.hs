@@ -108,7 +108,7 @@ instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => Arbitrary (Nu
 instance Hashable (Numeric precision scale) where
   hashWithSalt salt = \case
     NegInfinityNumeric -> salt `hashWithSalt` (0 :: Int)
-    ScientificNumeric s -> salt `hashWithSalt` (1 :: Int) `hashWithSalt` Scientific.coefficient s `hashWithSalt` Scientific.base10Exponent s
+    ScientificNumeric s -> salt `hashWithSalt` (1 :: Int) `hashWithSalt` s
     PosInfinityNumeric -> salt `hashWithSalt` (2 :: Int)
     NanNumeric -> salt `hashWithSalt` (3 :: Int)
 
