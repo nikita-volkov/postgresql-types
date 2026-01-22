@@ -7,9 +7,9 @@
 --
 -- E.g., any @text@ value from PostgreSQL makes valid 'Data.Text.Text' values in Haskell, but not every Haskell 'Data.Text.Text` value makes valid PostgreSQL @text@, because PostgreSQL does not allow NUL-bytes in text fields, but Haskell's 'Data.Text.Text' does. In case of dates the supported date ranges may differ between PostgreSQL and Haskell's \"time\" library. Therefore, conversions between these types and common Haskell types may be partial and may fail if the data cannot be represented in the target type.
 --
--- = Type Categories
+-- = Supported Types
 --
--- The types are organized into the following categories:
+-- This package provides support for nearly all PostgreSQL data types, organized by category:
 --
 -- == Numeric Types
 --
@@ -18,16 +18,16 @@
 -- * @'Int8'@ - 8-byte signed integer (@int8@ \/ @bigint@)
 -- * @'Float4'@ - Single-precision floating point (@float4@ \/ @real@)
 -- * @'Float8'@ - Double-precision floating point (@float8@ \/ @double precision@)
--- * @'Numeric' precision scale@ - Arbitrary and precise precision numeric (@numeric@ \/ @decimal@)
+-- * @'Numeric'@ - Arbitrary precision numeric (@numeric@ \/ @decimal@)
 -- * @'Money'@ - Currency amount (@money@)
 -- * @'Oid'@ - Object identifier (@oid@)
 --
 -- == Character Types
 --
 -- * @'Text'@ - Variable-length character string (@text@)
--- * @'Varchar' limit@ - Variable-length with limit (@varchar@)
+-- * @'Varchar'@ - Variable-length with limit (@varchar@)
 -- * @'Char'@ - Single ASCII character (@char@)
--- * @'Bpchar' length@ - Fixed-length character string (@char(n)@, @character(n)@, or @bpchar(n)@)
+-- * @'Bpchar'@ - Fixed-length character string (@char(n)@, @character(n)@, or @bpchar(n)@)
 --
 -- == Boolean Type
 --
@@ -65,8 +65,8 @@
 --
 -- == Bit String Types
 --
--- * @'Bit' length@ - Fixed-length bit string (@bit@)
--- * @'Varbit' limit@ - Variable-length bit string (@varbit@)
+-- * @'Bit'@ - Fixed-length bit string (@bit@)
+-- * @'Varbit'@ - Variable-length bit string (@varbit@)
 --
 -- == UUID Type
 --
@@ -83,21 +83,27 @@
 --
 -- == Range Types
 --
--- * @'Range'@ - Generic range type (@int4range@, @int8range@, @numrange@, @tsrange@, @tstzrange@, @daterange@)
--- * @'Multirange'@ - Generic multirange type (@int4multirange@, @int8multirange@, etc.)
+-- * @'Range'@ - Generic range type supporting int4range, int8range, numrange, tsrange, tstzrange, daterange
+-- * @'Multirange'@ - Generic multirange type supporting int4multirange, int8multirange, etc.
 --
--- = Type Conversions
+-- == Array Types
+--
+-- Array types are available for all of the above types.
+--
+-- = Function Naming Conventions
 --
 -- These types do not necessarily have direct mappings to common Haskell types,
 -- but they provide explicit constructors and accessors for safe conversions.
 --
--- The library provides two types of constructors for each type:
+-- The library provides three types of functions for working with PostgreSQL types:
 --
--- * __Normalizing constructors__ (prefix: @normalizeFrom*@) - Always succeed by clamping or canonicalizing input values to valid ranges
--- * __Refining constructors__ (prefix: @refineFrom*@) - Return 'Maybe', failing if the input is out of range
--- * __Accessor functions__ (prefix: @to*@) - Extract values from PostgreSQL types
+-- * __Normalizing constructors__ (prefix: @normalizeFrom*@) - Always succeed by clamping or canonicalizing input values to valid ranges. Use these when you want to ensure a value is valid by transforming invalid inputs into valid ones (e.g., removing NUL bytes from text, clamping dates to PostgreSQL's supported range).
 --
--- Each type also implements 'IsScalar' which provides binary and textual
+-- * __Refining constructors__ (prefix: @refineFrom*@) - Return 'Maybe', failing if the input is out of range or invalid. Use these when you want to validate that input data is already within valid PostgreSQL constraints.
+--
+-- * __Accessor functions__ (prefix: @to*@) - Extract values from PostgreSQL types to common Haskell types. These conversions are always safe and total.
+--
+-- Each type module also implements 'IsScalar' which provides binary and textual
 -- encoding/decoding according to PostgreSQL's wire protocol specification.
 --
 -- = Usage Examples
