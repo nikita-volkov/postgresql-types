@@ -260,10 +260,16 @@ test-suite unit-tests
     Int4Spec
     Int8Spec
     IntervalSpec
+    JsonSpec
+    MacaddrSpec
     MoneySpec
     NumericSpec
     OidSpec
+    PointSpec
     TextSpec
+    TimeSpec
+    TimestampSpec
+    TimestamptzSpec
     TimetzSpec
     UuidSpec
 

@@ -16,9 +16,12 @@ import qualified Int2Spec
 import qualified Int4Spec
 import qualified Int8Spec
 import qualified IntervalSpec
+import qualified JsonSpec
+import qualified MacaddrSpec
 import qualified MoneySpec
 import qualified NumericSpec
 import qualified OidSpec
+import qualified PointSpec
 import qualified PostgresqlTypes
 import qualified PostgresqlTypes.Algebra
 import qualified PtrPeeker
@@ -28,6 +31,9 @@ import Test.QuickCheck
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 import qualified TextSpec
+import qualified TimeSpec
+import qualified TimestampSpec
+import qualified TimestamptzSpec
 import qualified TimetzSpec
 import qualified UuidSpec
 import Prelude
@@ -101,10 +107,16 @@ main = hspec $ parallel do
   describe "Int4" Int4Spec.spec
   describe "Int8" Int8Spec.spec
   describe "Interval" IntervalSpec.spec
+  describe "Json" JsonSpec.spec
+  describe "Macaddr" MacaddrSpec.spec
   describe "Money" MoneySpec.spec
   describe "Numeric" NumericSpec.spec
   describe "Oid" OidSpec.spec
+  describe "Point" PointSpec.spec
   describe "Text" TextSpec.spec
+  describe "Time" TimeSpec.spec
+  describe "Timestamp" TimestampSpec.spec
+  describe "Timestamptz" TimestamptzSpec.spec
   describe "Timetz" TimetzSpec.spec
   describe "Uuid" UuidSpec.spec
 
