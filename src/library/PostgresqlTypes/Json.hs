@@ -1,11 +1,12 @@
 module PostgresqlTypes.Json
-  ( Json (..),
+  ( Json,
 
     -- * Accessors
-    toValue,
+    toAesonValue,
 
     -- * Constructors
-    fromValue,
+    normalizeFromAesonValue,
+    refineFromAesonValue,
   )
 where
 
@@ -37,7 +38,7 @@ newtype Json = Json Aeson.Value
   deriving (Show) via (ViaIsScalar Json)
 
 instance Arbitrary Json where
-  arbitrary = fromAesonValue <$> arbitrary
+  arbitrary = normalizeFromAesonValue <$> arbitrary
   shrink = fmap Json . shrink . toAesonValue
 
 instance IsScalar Json where
@@ -75,14 +76,31 @@ instance IsScalar Json where
 -- * Accessors
 
 -- | Extract the underlying 'Aeson.Value'.
-toValue :: Json -> Aeson.Value
-toValue (Json value) = value
+toAesonValue :: Json -> Aeson.Value
+toAesonValue (Json value) = value
 
 -- * Constructors
 
+-- | Construct from Aeson Value while failing if any of its strings or object keys contain null characters.
+refineFromAesonValue :: Aeson.Value -> Maybe Json
+refineFromAesonValue = fmap Json . validateValue
+  where
+    validateValue = \case
+      Aeson.String string -> Aeson.String <$> validateText string
+      Aeson.Object object -> Aeson.Object <$> validateObject object
+      Aeson.Array array -> Aeson.Array <$> validateArray array
+      other -> pure other
+    validateText text =
+      if Text.elem '\NUL' text
+        then Nothing
+        else Just text
+    validateObject = Aeson.KeyMap.traverseWithKey (\key value -> validateKey key *> validateValue value)
+    validateArray = traverse validateValue
+    validateKey = fmap Aeson.Key.fromText . validateText . Aeson.Key.toText
+
 -- | Construct from Aeson Value by filtering out null characters from every string and object key.
-fromValue :: Aeson.Value -> Json
-fromValue = Json . updateValue
+normalizeFromAesonValue :: Aeson.Value -> Json
+normalizeFromAesonValue = Json . updateValue
   where
     updateValue = \case
       Aeson.String string -> Aeson.String (updateText string)
@@ -93,10 +111,3 @@ fromValue = Json . updateValue
     updateObject = Aeson.KeyMap.mapKeyVal updateKey updateValue
     updateArray = fmap updateValue
     updateKey = Aeson.Key.fromText . updateText . Aeson.Key.toText
-
--- Legacy names for backward compatibility
-toAesonValue :: Json -> Aeson.Value
-toAesonValue = toValue
-
-fromAesonValue :: Aeson.Value -> Json
-fromAesonValue = fromValue

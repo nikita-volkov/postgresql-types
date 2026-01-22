@@ -17,41 +17,41 @@ spec = do
   describe "Constructors" do
     describe "fromValue" do
       it "creates Json from Aeson Value (Null)" do
-        let jsonVal = Json.fromValue Aeson.Null
-        Json.toValue jsonVal `shouldBe` Aeson.Null
+        let jsonVal = Json.normalizeFromAesonValue Aeson.Null
+        Json.toAesonValue jsonVal `shouldBe` Aeson.Null
 
       it "creates Json from Aeson Value (Bool)" do
-        let jsonVal = Json.fromValue (Aeson.Bool True)
-        Json.toValue jsonVal `shouldBe` Aeson.Bool True
+        let jsonVal = Json.normalizeFromAesonValue (Aeson.Bool True)
+        Json.toAesonValue jsonVal `shouldBe` Aeson.Bool True
 
       it "creates Json from Aeson Value (Number)" do
-        let jsonVal = Json.fromValue (Aeson.Number 42)
-        Json.toValue jsonVal `shouldBe` Aeson.Number 42
+        let jsonVal = Json.normalizeFromAesonValue (Aeson.Number 42)
+        Json.toAesonValue jsonVal `shouldBe` Aeson.Number 42
 
       it "creates Json from Aeson Value (String)" do
-        let jsonVal = Json.fromValue (Aeson.String "hello")
-        Json.toValue jsonVal `shouldBe` Aeson.String "hello"
+        let jsonVal = Json.normalizeFromAesonValue (Aeson.String "hello")
+        Json.toAesonValue jsonVal `shouldBe` Aeson.String "hello"
 
       it "creates Json from Aeson Value (Array)" do
         let value = Aeson.Array (Vector.fromList [Aeson.Number 1, Aeson.Number 2])
-            jsonVal = Json.fromValue value
-        Json.toValue jsonVal `shouldBe` value
+            jsonVal = Json.normalizeFromAesonValue value
+        Json.toAesonValue jsonVal `shouldBe` value
 
       it "creates Json from Aeson Value (Object)" do
         let value = Aeson.object ["key" Aeson..= ("value" :: String)]
-            jsonVal = Json.fromValue value
-        Json.toValue jsonVal `shouldBe` value
+            jsonVal = Json.normalizeFromAesonValue value
+        Json.toAesonValue jsonVal `shouldBe` value
 
   describe "Accessors" do
     describe "toValue" do
       it "extracts Aeson Value" do
         let value = Aeson.object ["test" Aeson..= (123 :: Int)]
-            jsonVal = Json.fromValue value
-        Json.toValue jsonVal `shouldBe` value
+            jsonVal = Json.normalizeFromAesonValue value
+        Json.toAesonValue jsonVal `shouldBe` value
 
   describe "Property Tests" do
     it "roundtrips through fromValue and toValue" do
       property \(jsonVal :: Json.Json) ->
-        let value = Json.toValue jsonVal
-            jsonVal' = Json.fromValue value
+        let value = Json.toAesonValue jsonVal
+            jsonVal' = Json.normalizeFromAesonValue value
          in jsonVal' === jsonVal

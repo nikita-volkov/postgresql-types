@@ -1,12 +1,12 @@
 module PostgresqlTypes.Jsonb
-  ( Jsonb (..),
+  ( Jsonb,
 
     -- * Accessors
-    toValue,
+    toAesonValue,
 
     -- * Constructors
-    refineFromValue,
-    normalizeFromValue,
+    normalizeFromAesonValue,
+    refineFromAesonValue,
   )
 where
 
@@ -36,7 +36,7 @@ newtype Jsonb = Jsonb Aeson.Value
   deriving (Show) via (ViaIsScalar Jsonb)
 
 instance Arbitrary Jsonb where
-  arbitrary = fromAesonValue <$> arbitrary
+  arbitrary = normalizeFromAesonValue <$> arbitrary
   shrink = fmap Jsonb . shrink . toAesonValue
 
 instance IsScalar Jsonb where
@@ -88,14 +88,14 @@ instance IsScalar Jsonb where
 -- * Accessors
 
 -- | Extract the underlying 'Aeson.Value'.
-toValue :: Jsonb -> Aeson.Value
-toValue (Jsonb value) = value
+toAesonValue :: Jsonb -> Aeson.Value
+toAesonValue (Jsonb value) = value
 
 -- * Constructors
 
 -- | Construct from Aeson Value while failing if any of its strings or object keys contain null characters.
-refineFromValue :: Aeson.Value -> Maybe Jsonb
-refineFromValue = fmap Jsonb . validateValue
+refineFromAesonValue :: Aeson.Value -> Maybe Jsonb
+refineFromAesonValue = fmap Jsonb . validateValue
   where
     validateValue = \case
       Aeson.String string -> Aeson.String <$> validateText string
@@ -111,8 +111,8 @@ refineFromValue = fmap Jsonb . validateValue
     validateKey = fmap Aeson.Key.fromText . validateText . Aeson.Key.toText
 
 -- | Construct from Aeson Value by filtering out null characters from every string and object key.
-normalizeFromValue :: Aeson.Value -> Jsonb
-normalizeFromValue = Jsonb . updateValue
+normalizeFromAesonValue :: Aeson.Value -> Jsonb
+normalizeFromAesonValue = Jsonb . updateValue
   where
     updateValue = \case
       Aeson.String string -> Aeson.String (updateText string)
@@ -123,10 +123,3 @@ normalizeFromValue = Jsonb . updateValue
     updateObject = Aeson.KeyMap.mapKeyVal updateKey updateValue
     updateArray = fmap updateValue
     updateKey = Aeson.Key.fromText . updateText . Aeson.Key.toText
-
--- Legacy names for backward compatibility
-toAesonValue :: Jsonb -> Aeson.Value
-toAesonValue = toValue
-
-fromAesonValue :: Aeson.Value -> Jsonb
-fromAesonValue = normalizeFromValue
