@@ -1,6 +1,6 @@
 cabal-version: 3.0
 name: postgresql-types
-version: 0
+version: 0.1
 category: PostgreSQL, Codecs
 synopsis: Precise PostgreSQL types representation and driver-agnostic codecs
 description:
