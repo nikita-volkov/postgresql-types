@@ -6,7 +6,6 @@ module PostgresqlTypes.Box
     toY1,
     toX2,
     toY2,
-    toCorners,
 
     -- * Constructors
     normalizeFromCorners,
@@ -120,10 +119,6 @@ toX2 (Box _ _ x2 _) = x2
 -- | Extract the upper-right y coordinate.
 toY2 :: Box -> Double
 toY2 (Box _ _ _ y2) = y2
-
--- | Extract the box corners as (lowerX, lowerY, upperX, upperY).
-toCorners :: Box -> (Double, Double, Double, Double)
-toCorners (Box x1 y1 x2 y2) = (x1, y1, x2, y2)
 
 -- * Constructors
 
