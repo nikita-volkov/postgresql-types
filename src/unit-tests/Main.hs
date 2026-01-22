@@ -1,14 +1,24 @@
 module Main (main) where
 
+import qualified BoolSpec
+import qualified ByteaSpec
 import qualified CidrSpec
 import qualified Data.Attoparsec.Text
 import Data.Proxy
 import Data.Tagged
 import qualified Data.Text as Text
 import Data.Typeable
+import qualified DateSpec
+import qualified Float4Spec
+import qualified Float8Spec
 import qualified InetSpec
+import qualified Int2Spec
+import qualified Int4Spec
+import qualified Int8Spec
 import qualified IntervalSpec
+import qualified MoneySpec
 import qualified NumericSpec
+import qualified OidSpec
 import qualified PostgresqlTypes
 import qualified PostgresqlTypes.Algebra
 import qualified PtrPeeker
@@ -17,7 +27,9 @@ import Test.Hspec
 import Test.QuickCheck
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
+import qualified TextSpec
 import qualified TimetzSpec
+import qualified UuidSpec
 import Prelude
 
 main :: IO ()
@@ -78,11 +90,23 @@ main = hspec $ parallel do
   testIsScalar @(PostgresqlTypes.Varbit 128) Proxy
   testIsScalar @(PostgresqlTypes.Varchar 255) Proxy
   -- Lawful-conversions tests removed as we migrated to type-specific APIs
+  describe "Bool" BoolSpec.spec
+  describe "Bytea" ByteaSpec.spec
   describe "Cidr" CidrSpec.spec
+  describe "Date" DateSpec.spec
+  describe "Float4" Float4Spec.spec
+  describe "Float8" Float8Spec.spec
   describe "Inet" InetSpec.spec
+  describe "Int2" Int2Spec.spec
+  describe "Int4" Int4Spec.spec
+  describe "Int8" Int8Spec.spec
   describe "Interval" IntervalSpec.spec
+  describe "Money" MoneySpec.spec
   describe "Numeric" NumericSpec.spec
+  describe "Oid" OidSpec.spec
+  describe "Text" TextSpec.spec
   describe "Timetz" TimetzSpec.spec
+  describe "Uuid" UuidSpec.spec
 
 -- Lawful-conversions test functions removed as we migrated to type-specific APIs
 {-

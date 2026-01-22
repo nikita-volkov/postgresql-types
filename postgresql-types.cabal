@@ -108,27 +108,23 @@ library
   hs-source-dirs: src/library
   exposed-modules:
     PostgresqlTypes
-    PostgresqlTypes.Cidr
-    PostgresqlTypes.Inet
-    PostgresqlTypes.Interval
-    PostgresqlTypes.Numeric
-    PostgresqlTypes.Timetz
-
-  other-modules:
     PostgresqlTypes.Bit
     PostgresqlTypes.Bool
     PostgresqlTypes.Box
     PostgresqlTypes.Bpchar
     PostgresqlTypes.Bytea
     PostgresqlTypes.Char
+    PostgresqlTypes.Cidr
     PostgresqlTypes.Circle
     PostgresqlTypes.Date
     PostgresqlTypes.Float4
     PostgresqlTypes.Float8
     PostgresqlTypes.Hstore
+    PostgresqlTypes.Inet
     PostgresqlTypes.Int2
     PostgresqlTypes.Int4
     PostgresqlTypes.Int8
+    PostgresqlTypes.Interval
     PostgresqlTypes.Json
     PostgresqlTypes.Jsonb
     PostgresqlTypes.Line
@@ -137,24 +133,28 @@ library
     PostgresqlTypes.Macaddr8
     PostgresqlTypes.Money
     PostgresqlTypes.Multirange
+    PostgresqlTypes.Numeric
     PostgresqlTypes.Numeric.Integer
     PostgresqlTypes.Numeric.Scientific
     PostgresqlTypes.Oid
     PostgresqlTypes.Path
     PostgresqlTypes.Point
     PostgresqlTypes.Polygon
-    PostgresqlTypes.Prelude
-    PostgresqlTypes.Prelude.LawfulConversions
     PostgresqlTypes.Range
     PostgresqlTypes.Text
     PostgresqlTypes.Time
     PostgresqlTypes.Timestamp
     PostgresqlTypes.Timestamptz
+    PostgresqlTypes.Timetz
     PostgresqlTypes.Timetz.Offset
     PostgresqlTypes.Timetz.Time
     PostgresqlTypes.Uuid
     PostgresqlTypes.Varbit
     PostgresqlTypes.Varchar
+
+  other-modules:
+    PostgresqlTypes.Prelude
+    PostgresqlTypes.Prelude.LawfulConversions
     PostgresqlTypes.Via
     PostgresqlTypes.Via.IsMany
     PostgresqlTypes.Via.IsScalar
@@ -249,11 +249,23 @@ test-suite unit-tests
   hs-source-dirs: src/unit-tests
   main-is: Main.hs
   other-modules:
+    BoolSpec
+    ByteaSpec
     CidrSpec
+    DateSpec
+    Float4Spec
+    Float8Spec
     InetSpec
+    Int2Spec
+    Int4Spec
+    Int8Spec
     IntervalSpec
+    MoneySpec
     NumericSpec
+    OidSpec
+    TextSpec
     TimetzSpec
+    UuidSpec
 
   build-depends:
     QuickCheck >=2.14 && <3,
