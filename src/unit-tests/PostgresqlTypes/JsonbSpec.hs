@@ -11,7 +11,10 @@ import Prelude
 
 spec :: Spec
 spec = do
-  describe "IsScalar" do
+  describe "Show/Read laws" do
+    Scripts.testShowRead (Proxy @Jsonb.Jsonb)
+
+  describe "IsScalar laws" do
     Scripts.testIsScalar (Proxy @Jsonb.Jsonb)
 
   describe "Constructors" do

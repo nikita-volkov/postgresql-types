@@ -12,7 +12,10 @@ import Prelude
 
 spec :: Spec
 spec = do
-  describe "IsScalar" do
+  describe "Show/Read laws" do
+    Scripts.testShowRead (Proxy @Cidr.Cidr)
+
+  describe "IsScalar laws" do
     Scripts.testIsScalar (Proxy @Cidr.Cidr)
 
   describe "IPv4 Constructors" do

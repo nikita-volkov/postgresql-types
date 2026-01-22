@@ -9,7 +9,10 @@ import qualified UnitTests.Scripts as Scripts
 
 spec :: Spec
 spec = do
-  describe "IsScalar" do
+  describe "Show/Read laws" do
+    Scripts.testShowRead (Proxy @Macaddr8.Macaddr8)
+
+  describe "IsScalar laws" do
     Scripts.testIsScalar (Proxy @Macaddr8.Macaddr8)
 
   describe "Constructors" do

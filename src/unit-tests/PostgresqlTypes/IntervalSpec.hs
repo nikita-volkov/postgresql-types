@@ -13,7 +13,10 @@ import Prelude
 
 spec :: Spec
 spec = do
-  describe "IsScalar" do
+  describe "Show/Read laws" do
+    Scripts.testShowRead (Proxy @Interval.Interval)
+
+  describe "IsScalar laws" do
     Scripts.testIsScalar (Proxy @Interval.Interval)
 
   describe "Constructors" do

@@ -11,7 +11,10 @@ import Prelude
 
 spec :: Spec
 spec = do
-  describe "IsScalar" do
+  describe "Show/Read laws" do
+    Scripts.testShowRead (Proxy @PgText.Text)
+
+  describe "IsScalar laws" do
     Scripts.testIsScalar (Proxy @PgText.Text)
 
   describe "Constructors" do

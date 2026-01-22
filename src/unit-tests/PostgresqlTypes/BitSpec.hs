@@ -11,7 +11,12 @@ import Prelude
 
 spec :: Spec
 spec = do
-  describe "IsScalar" do
+  describe "Show/Read laws" do
+    Scripts.testShowRead (Proxy @(Bit.Bit 0))
+    Scripts.testShowRead (Proxy @(Bit.Bit 1))
+    Scripts.testShowRead (Proxy @(Bit.Bit 8))
+
+  describe "IsScalar laws" do
     Scripts.testIsScalar (Proxy @(Bit.Bit 0))
     Scripts.testIsScalar (Proxy @(Bit.Bit 1))
     Scripts.testIsScalar (Proxy @(Bit.Bit 64))

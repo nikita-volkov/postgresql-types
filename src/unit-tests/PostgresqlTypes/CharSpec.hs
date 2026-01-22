@@ -11,7 +11,10 @@ import Prelude hiding (Char)
 
 spec :: Spec
 spec = do
-  describe "IsScalar" do
+  describe "Show/Read laws" do
+    Scripts.testShowRead (Proxy @PgChar.Char)
+
+  describe "IsScalar laws" do
     Scripts.testIsScalar (Proxy @PgChar.Char)
 
   describe "Constructors" do

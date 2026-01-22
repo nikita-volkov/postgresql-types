@@ -11,7 +11,10 @@ import Prelude
 
 spec :: Spec
 spec = do
-  describe "IsScalar" do
+  describe "Show/Read laws" do
+    Scripts.testShowRead (Proxy @(Varchar.Varchar 10))
+
+  describe "IsScalar laws" do
     Scripts.testIsScalar (Proxy @(Varchar.Varchar 10))
 
   describe "Varchar 10" do

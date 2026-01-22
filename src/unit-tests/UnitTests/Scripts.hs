@@ -25,7 +25,7 @@ testIsScalar ::
   ) =>
   Proxy a ->
   Spec
-testIsScalar proxy =
+testIsScalar _ =
   let name = Text.unpack (untag (PostgresqlTypes.Algebra.typeSignature @a))
       binEnc = PostgresqlTypes.Algebra.binaryEncoder @a
       binDec = PostgresqlTypes.Algebra.binaryDecoder @a
@@ -49,6 +49,7 @@ testIsScalar proxy =
                     decoding = PtrPeeker.runVariableOnByteString binDec encoded
                  in decoding === Right (Right value)
 
-        describe "Show/Read laws" do
-          forM_ (Laws.lawsProperties (Laws.showReadLaws proxy)) \(name, property) ->
-            it name property
+testShowRead :: (Show a, Read a, Eq a, Arbitrary a) => Proxy a -> SpecWith ()
+testShowRead proxy =
+  forM_ (Laws.lawsProperties (Laws.showReadLaws proxy)) \(name, property) ->
+    it name property

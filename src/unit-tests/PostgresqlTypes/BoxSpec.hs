@@ -9,7 +9,10 @@ import Prelude
 
 spec :: Spec
 spec = do
-  describe "IsScalar" do
+  describe "Show/Read laws" do
+    Scripts.testShowRead (Proxy @Box.Box)
+
+  describe "IsScalar laws" do
     Scripts.testIsScalar (Proxy @Box.Box)
 
   describe "Constructors" do

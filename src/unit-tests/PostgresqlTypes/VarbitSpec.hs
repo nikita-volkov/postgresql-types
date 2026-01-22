@@ -11,7 +11,10 @@ import Prelude
 
 spec :: Spec
 spec = do
-  describe "IsScalar" do
+  describe "Show/Read laws" do
+    Scripts.testShowRead (Proxy @(Varbit.Varbit 16))
+
+  describe "IsScalar laws" do
     Scripts.testIsScalar (Proxy @(Varbit.Varbit 16))
 
   describe "Varbit 16" do

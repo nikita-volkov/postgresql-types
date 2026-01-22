@@ -11,7 +11,10 @@ import Prelude
 
 spec :: Spec
 spec = do
-  describe "IsScalar" do
+  describe "Show/Read laws" do
+    Scripts.testShowRead (Proxy @PgTime.Time)
+
+  describe "IsScalar laws" do
     Scripts.testIsScalar (Proxy @PgTime.Time)
 
   describe "Constructors" do
