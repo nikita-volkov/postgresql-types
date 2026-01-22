@@ -4,20 +4,19 @@ version: 0
 category: PostgreSQL, Codecs
 synopsis: Precise PostgreSQL types representation and driver-agnostic codecs
 description:
-  Haskell representation of PostgreSQL data types with mappings to and from both
-  binary and textual formats of the PostgreSQL wire protocol. The types are implemented in their canonical forms that directly correspond to their PostgreSQL counterparts. The philosophy is that nuance matters. So all special values are represented without data loss or compromise.
+  This package provides a Haskell representation of PostgreSQL data types, with mappings to and from both binary and textual formats of the PostgreSQL wire protocol. The types are implemented in their canonical forms, directly corresponding to their PostgreSQL counterparts. The philosophy is that nuance matters, so all special values are represented without data loss or compromise.
 
-  The types presented by this package do not necessarily have direct mappings to the common Haskell types. Canonicalizing conversions and smart constructors are provided to address that.
+  The types presented by this package do not necessarily have direct mappings to common Haskell types. Canonicalizing conversions and smart constructors are provided to address this.
 
-  E.g., any @text@ value from PostgreSQL makes valid 'Data.Text.Text' values in Haskell, but not every Haskell 'Data.Text.Text` value makes valid PostgreSQL @text@, because PostgreSQL does not allow NUL-bytes in text fields, but Haskell's 'Data.Text.Text' does. In case of dates the supported date ranges may differ between PostgreSQL and Haskell's \"time\" library. Therefore, conversions between these types and common Haskell types may be partial and may fail if the data cannot be represented in the target type.
+  For example, any @text@ value from PostgreSQL produces a valid 'Data.Text.Text' value in Haskell, but not every Haskell 'Data.Text.Text' value produces a valid PostgreSQL @text@, because PostgreSQL does not allow NUL bytes in text fields, whereas Haskell's 'Data.Text.Text' does. In the case of dates, the supported date ranges may differ between PostgreSQL and Haskell's "time" library. Therefore, conversions between these types and common Haskell types may be partial and may fail if the data cannot be represented in the target type.
 
-  All of the types supply 'Test.QuickCheck.Arbitrary' instances that cover the full range of valid PostgreSQL values. Every type is property-tested to validate round-trip conversions between binary and textual formats against PostgreSQL of version 9 to 18.
+  All types supply 'Test.QuickCheck.Arbitrary' instances that cover the full range of valid PostgreSQL values. Every type is property-tested to validate round-trip conversions between binary and textual formats against PostgreSQL versions 9 to 18.
 
   The library can be used as the basis for various PostgreSQL libraries. Ecosystem integration adapters are available for:
 
-  * hasql: <https://hackage-content.haskell.org/package/hasql-postgresql-types>
+  * hasql: <https://hackage.haskell.org/package/hasql-postgresql-types>
 
-  * postgresql-simple: <https://hackage-content.haskell.org/package/postgresql-simple-postgresql-types>
+  * postgresql-simple: <https://hackage.haskell.org/package/postgresql-simple-postgresql-types>
 
 homepage: https://github.com/nikita-volkov/postgresql-types
 bug-reports: https://github.com/nikita-volkov/postgresql-types/issues
