@@ -9,6 +9,16 @@ Precise Haskell representations of PostgreSQL data types with mappings to and fr
 
 In active development, but already working and exhaustively tested.
 
+## Documentation
+
+- **[Architecture Analysis](ARCHITECTURE_ANALYSIS.md)** - Comprehensive analysis of codebase design, strengths, and areas for improvement
+- **[Contributing Guide](CONTRIBUTING.md)** - Guidelines for contributors, coding conventions, and how to add new types
+- **[Implementation Roadmap](IMPLEMENTATION_ROADMAP.md)** - Detailed plan for ongoing improvements and standardization
+- **[Architectural Decision Records (ADRs)](docs/ADR/)** - Design decisions and their rationale
+  - [ADR 001: Constructor Patterns](docs/ADR/001-constructor-patterns.md)
+  - [ADR 002: Naming Conventions](docs/ADR/002-naming-conventions.md)
+  - [ADR 003: Testing Strategy](docs/ADR/003-testing-strategy.md)
+
 ## Key Features
 
 ### Ecosystem Integration
