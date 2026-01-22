@@ -14,7 +14,6 @@ module PostgresqlTypes.Box
 where
 
 import qualified Data.Attoparsec.Text as Attoparsec
-import Data.Hashable (Hashable (..))
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
@@ -58,7 +57,8 @@ instance Arbitrary Box where
 
 instance Hashable Box where
   hashWithSalt salt (Box x1 y1 x2 y2) =
-    salt `hashWithSalt` castDoubleToWord64 x1
+    salt
+      `hashWithSalt` castDoubleToWord64 x1
       `hashWithSalt` castDoubleToWord64 y1
       `hashWithSalt` castDoubleToWord64 x2
       `hashWithSalt` castDoubleToWord64 y2

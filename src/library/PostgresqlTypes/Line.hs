@@ -13,7 +13,6 @@ module PostgresqlTypes.Line
 where
 
 import qualified Data.Attoparsec.Text as Attoparsec
-import Data.Hashable (Hashable (..))
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
@@ -57,7 +56,8 @@ instance Arbitrary Line where
 
 instance Hashable Line where
   hashWithSalt salt (Line a b c) =
-    salt `hashWithSalt` castDoubleToWord64 a
+    salt
+      `hashWithSalt` castDoubleToWord64 a
       `hashWithSalt` castDoubleToWord64 b
       `hashWithSalt` castDoubleToWord64 c
 

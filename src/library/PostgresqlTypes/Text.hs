@@ -11,7 +11,6 @@ module PostgresqlTypes.Text
 where
 
 import qualified Data.Attoparsec.Text as Attoparsec
-import Data.Hashable (Hashable)
 import Data.String
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text.Encoding

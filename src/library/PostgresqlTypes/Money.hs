@@ -10,7 +10,6 @@ module PostgresqlTypes.Money
 where
 
 import qualified Data.Attoparsec.Text as Attoparsec
-import Data.Hashable (Hashable)
 import qualified Data.Text as Text
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude

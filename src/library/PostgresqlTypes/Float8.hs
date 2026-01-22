@@ -10,7 +10,6 @@ module PostgresqlTypes.Float8
 where
 
 import qualified Data.Attoparsec.Text as Attoparsec
-import Data.Hashable (Hashable)
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude

@@ -12,7 +12,6 @@ module PostgresqlTypes.Timestamp
 where
 
 import qualified Data.Attoparsec.Text as Attoparsec
-import Data.Hashable (Hashable)
 import qualified Data.Text as Text
 import qualified Data.Time as Time
 import PostgresqlTypes.Algebra

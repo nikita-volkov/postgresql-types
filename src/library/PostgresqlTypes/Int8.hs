@@ -10,7 +10,6 @@ module PostgresqlTypes.Int8
 where
 
 import qualified Data.Attoparsec.Text as Attoparsec
-import Data.Hashable (Hashable)
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude hiding (Int8)
 import PostgresqlTypes.Via

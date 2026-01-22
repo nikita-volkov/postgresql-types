@@ -13,7 +13,6 @@ module PostgresqlTypes.Lseg
 where
 
 import qualified Data.Attoparsec.Text as Attoparsec
-import Data.Hashable (Hashable (..))
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
@@ -48,7 +47,8 @@ instance Arbitrary Lseg where
 
 instance Hashable Lseg where
   hashWithSalt salt (Lseg x1 y1 x2 y2) =
-    salt `hashWithSalt` castDoubleToWord64 x1
+    salt
+      `hashWithSalt` castDoubleToWord64 x1
       `hashWithSalt` castDoubleToWord64 y1
       `hashWithSalt` castDoubleToWord64 x2
       `hashWithSalt` castDoubleToWord64 y2

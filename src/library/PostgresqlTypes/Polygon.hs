@@ -12,7 +12,6 @@ module PostgresqlTypes.Polygon
 where
 
 import qualified Data.Attoparsec.Text as Attoparsec
-import Data.Hashable (Hashable (..))
 import qualified Data.Vector.Unboxed as UnboxedVector
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
 import PostgresqlTypes.Algebra

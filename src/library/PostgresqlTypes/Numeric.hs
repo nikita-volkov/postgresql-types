@@ -21,7 +21,6 @@ module PostgresqlTypes.Numeric
 where
 
 import qualified Data.Attoparsec.Text as Attoparsec
-import Data.Hashable (Hashable (..))
 import qualified Data.Scientific as Scientific
 import qualified Data.Text as Text
 import qualified GHC.TypeLits as TypeLits

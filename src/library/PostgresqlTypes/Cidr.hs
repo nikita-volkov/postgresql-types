@@ -16,7 +16,6 @@ where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import Data.Bits
-import Data.Hashable (Hashable (..))
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude hiding (fold)
 import PostgresqlTypes.Via

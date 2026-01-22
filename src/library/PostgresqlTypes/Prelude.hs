@@ -33,6 +33,7 @@ import Data.Functor as Exports hiding (unzip)
 import Data.Functor.Contravariant as Exports
 import Data.Functor.Identity as Exports
 import Data.Functor.Invariant as Exports
+import Data.Hashable as Exports (Hashable (..))
 import Data.IORef as Exports
 import Data.Int as Exports
 import Data.Ix as Exports

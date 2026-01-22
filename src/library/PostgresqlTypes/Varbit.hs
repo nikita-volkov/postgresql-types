@@ -16,7 +16,6 @@ where
 import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.Bits as Bits
 import qualified Data.ByteString as ByteString
-import Data.Hashable (Hashable (..))
 import qualified Data.Text as Text
 import qualified Data.Vector.Generic as Vg
 import qualified GHC.TypeLits as TypeLits

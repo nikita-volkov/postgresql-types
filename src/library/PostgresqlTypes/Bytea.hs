@@ -11,7 +11,6 @@ where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.ByteString as ByteString
-import Data.Hashable (Hashable)
 import qualified Data.Text as Text
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude

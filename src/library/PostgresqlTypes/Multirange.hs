@@ -13,7 +13,6 @@ where
 
 import qualified BaseExtras.List
 import qualified Data.Attoparsec.Text as Attoparsec
-import Data.Hashable (Hashable (..))
 import qualified Data.Set as Set
 import qualified Data.Vector as Vector
 import PostgresqlTypes.Algebra

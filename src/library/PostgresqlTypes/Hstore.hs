@@ -12,7 +12,6 @@ where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.ByteString as ByteString
-import Data.Hashable (Hashable (..))
 import qualified Data.Map.Strict as Map
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text.Encoding
@@ -32,7 +31,7 @@ import qualified TextBuilder
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/hstore.html).
 newtype Hstore = Hstore (Map.Map Text (Maybe Text))
-  deriving newtype (Eq, Ord)
+  deriving newtype (Eq, Ord, Hashable)
   deriving (Show, Read, IsString) via (ViaIsScalar Hstore)
 
 instance Arbitrary Hstore where
@@ -49,9 +48,6 @@ instance Arbitrary Hstore where
     pure (Hstore (Map.fromList pairs))
   shrink (Hstore base) =
     Hstore . Map.fromList <$> shrink (Map.toList base)
-
-instance Hashable Hstore where
-  hashWithSalt salt (Hstore m) = hashWithSalt salt (Map.toList m)
 
 instance IsScalar Hstore where
   schemaName = Tagged Nothing

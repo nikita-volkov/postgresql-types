@@ -10,7 +10,6 @@ module PostgresqlTypes.Uuid
 where
 
 import qualified Data.Attoparsec.Text as Attoparsec
-import Data.Hashable (Hashable)
 import qualified Data.UUID
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude

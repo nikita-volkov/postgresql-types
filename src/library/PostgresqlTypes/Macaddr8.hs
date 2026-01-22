@@ -17,7 +17,6 @@ module PostgresqlTypes.Macaddr8
 where
 
 import qualified Data.Attoparsec.Text as Attoparsec
-import Data.Hashable (Hashable (..))
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
 import PostgresqlTypes.Via
@@ -69,8 +68,15 @@ instance Arbitrary Macaddr8 where
 
 instance Hashable Macaddr8 where
   hashWithSalt salt (Macaddr8 a b c d e f g h) =
-    salt `hashWithSalt` a `hashWithSalt` b `hashWithSalt` c `hashWithSalt` d
-      `hashWithSalt` e `hashWithSalt` f `hashWithSalt` g `hashWithSalt` h
+    salt
+      `hashWithSalt` a
+      `hashWithSalt` b
+      `hashWithSalt` c
+      `hashWithSalt` d
+      `hashWithSalt` e
+      `hashWithSalt` f
+      `hashWithSalt` g
+      `hashWithSalt` h
 
 instance IsScalar Macaddr8 where
   schemaName = Tagged Nothing

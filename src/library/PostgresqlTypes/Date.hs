@@ -11,7 +11,6 @@ module PostgresqlTypes.Date
 where
 
 import qualified Data.Attoparsec.Text as Attoparsec
-import Data.Hashable (Hashable)
 import qualified Data.Time as Time
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude

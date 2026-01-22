@@ -17,7 +17,6 @@ module PostgresqlTypes.Range
 where
 
 import qualified Data.Attoparsec.Text as Attoparsec
-import Data.Hashable (Hashable (..))
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude hiding (empty, fold)
 import PostgresqlTypes.Via

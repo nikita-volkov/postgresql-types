@@ -15,7 +15,6 @@ import qualified Data.Aeson.Key as Aeson.Key
 import qualified Data.Aeson.KeyMap as Aeson.KeyMap
 import qualified Data.Aeson.Text as Aeson.Text
 import qualified Data.Attoparsec.Text as Attoparsec
-import Data.Hashable (Hashable (..))
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text.Encoding
 import qualified Jsonifier
@@ -33,15 +32,12 @@ import qualified TextBuilder
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-json.html).
 newtype Jsonb = Jsonb Aeson.Value
-  deriving newtype (Eq, Ord)
+  deriving newtype (Eq, Ord, Hashable)
   deriving (Show, Read, IsString) via (ViaIsScalar Jsonb)
 
 instance Arbitrary Jsonb where
   arbitrary = normalizeFromAesonValue <$> arbitrary
   shrink = fmap Jsonb . shrink . toAesonValue
-
-instance Hashable Jsonb where
-  hashWithSalt salt (Jsonb value) = hashWithSalt salt value
 
 instance IsScalar Jsonb where
   schemaName = Tagged Nothing
