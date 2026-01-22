@@ -290,6 +290,9 @@ test-suite unit-tests
     PostgresqlTypes.VarcharSpec
     UnitTests.Scripts
 
+  build-tool-depends:
+    hspec-discover:hspec-discover >=2 && <3
+
   build-depends:
     QuickCheck >=2.14 && <3,
     aeson >=2.2 && <3,
