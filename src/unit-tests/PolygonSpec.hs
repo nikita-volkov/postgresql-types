@@ -26,8 +26,7 @@ spec = do
       describe "toPointList" do
         it "extracts list of points" do
           let points = [(1.0, 2.0), (3.0, 4.0), (5.0, 6.0), (7.0, 8.0)]
-              Just polygon = Polygon.refineFromPointList points
-          Polygon.toPointList polygon `shouldBe` points
+          Polygon.toPointList <$> Polygon.refineFromPointList points `shouldBe` Just points
 
     describe "Property Tests" do
       it "roundtrips through toPointList and refineFromPointList" do

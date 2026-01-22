@@ -1,9 +1,7 @@
 module MultirangeSpec (spec) where
 
-import qualified Data.Vector as Vector
 import qualified PostgresqlTypes.Int4 as Int4
 import qualified PostgresqlTypes.Multirange as Multirange
-import qualified PostgresqlTypes.Range as Range
 import Test.Hspec
 import Test.QuickCheck
 import Prelude

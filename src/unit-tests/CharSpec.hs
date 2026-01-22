@@ -19,7 +19,6 @@ spec = do
         it "clears bit 7 for values above 127" do
           let pgChar = PgChar.normalizeFromWord8 200 -- Binary: 11001000
           PgChar.toWord8 pgChar `shouldBe` 72 -- Binary: 01001000 (bit 7 cleared)
-
       describe "refineFromWord8" do
         it "accepts ASCII values (0-127)" do
           let result = PgChar.refineFromWord8 65

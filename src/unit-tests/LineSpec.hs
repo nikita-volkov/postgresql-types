@@ -18,7 +18,7 @@ spec = do
 
         it "normalizes invalid equations (A=0, B=0)" do
           let line = Line.normalizeFromEquation (0.0, 0.0, 5.0)
-              (a, b, c) = Line.toEquation line
+              (a, b, _) = Line.toEquation line
           -- PostgreSQL normalizes to A=1, B=0, C=0 for invalid lines
           a /= 0 || b /= 0 `shouldBe` True
 

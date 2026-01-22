@@ -2,7 +2,6 @@ module JsonbSpec (spec) where
 
 import qualified Data.Aeson as Aeson
 import Data.Maybe
-import qualified Data.Vector as Vector
 import qualified PostgresqlTypes.Jsonb as Jsonb
 import Test.Hspec
 import Test.QuickCheck

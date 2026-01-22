@@ -3,7 +3,6 @@ module LsegSpec (spec) where
 import qualified PostgresqlTypes.Lseg as Lseg
 import Test.Hspec
 import Test.QuickCheck
-import Prelude
 
 spec :: Spec
 spec = do

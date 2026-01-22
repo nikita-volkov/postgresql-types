@@ -22,8 +22,8 @@ import qualified Int2Spec
 import qualified Int4Spec
 import qualified Int8Spec
 import qualified IntervalSpec
-import qualified JsonbSpec
 import qualified JsonSpec
+import qualified JsonbSpec
 import qualified LineSpec
 import qualified LsegSpec
 import qualified Macaddr8Spec

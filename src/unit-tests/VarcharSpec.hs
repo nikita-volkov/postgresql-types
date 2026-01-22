@@ -1,7 +1,6 @@
 module VarcharSpec (spec) where
 
 import Data.Maybe
-import Data.Proxy
 import qualified Data.Text as Text
 import qualified PostgresqlTypes.Varchar as Varchar
 import Test.Hspec

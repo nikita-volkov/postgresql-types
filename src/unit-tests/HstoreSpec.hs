@@ -1,7 +1,6 @@
 module HstoreSpec (spec) where
 
 import qualified Data.Map.Strict as Map
-import qualified Data.Text as Text
 import qualified PostgresqlTypes.Hstore as Hstore
 import Test.Hspec
 import Test.QuickCheck

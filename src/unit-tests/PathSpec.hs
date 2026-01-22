@@ -28,8 +28,10 @@ spec = do
       describe "toPointList" do
         it "extracts closed flag and points" do
           let points = [(1.0, 2.0), (3.0, 4.0), (5.0, 6.0)]
-              Just path = Path.refineFromPointList (False, points)
-              (isClosed, extractedPoints) = Path.toPointList path
+          path <- case Path.refineFromPointList (False, points) of
+            Just p -> return p
+            Nothing -> error "Failed to create Path"
+          let (isClosed, extractedPoints) = Path.toPointList path
           isClosed `shouldBe` False
           extractedPoints `shouldBe` points
 
