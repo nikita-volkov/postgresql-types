@@ -13,6 +13,7 @@ where
 
 import qualified BaseExtras.List
 import qualified Data.Attoparsec.Text as Attoparsec
+import Data.Hashable (Hashable (..))
 import qualified Data.Set as Set
 import qualified Data.Vector as Vector
 import PostgresqlTypes.Algebra
@@ -124,6 +125,9 @@ instance (IsRangeElement a, Arbitrary a, Ord a) => Arbitrary (Multirange a) wher
               (Multirange (Vector.fromList ranges))
         )
       ]
+
+instance (Hashable a) => Hashable (Multirange a) where
+  hashWithSalt salt (Multirange ranges) = hashWithSalt salt (Vector.toList ranges)
 
 -- | Create a list of ranges from a multirange.
 toRangeList :: Multirange a -> [Range a]

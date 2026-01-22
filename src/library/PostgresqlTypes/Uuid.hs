@@ -10,6 +10,7 @@ module PostgresqlTypes.Uuid
 where
 
 import qualified Data.Attoparsec.Text as Attoparsec
+import Data.Hashable (Hashable)
 import qualified Data.UUID
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
@@ -24,7 +25,7 @@ import qualified TextBuilder
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-uuid.html).
 newtype Uuid = Uuid Data.UUID.UUID
-  deriving newtype (Eq, Ord, Arbitrary)
+  deriving newtype (Eq, Ord, Hashable, Arbitrary)
   deriving (Show, Read, IsString) via (ViaIsScalar Uuid)
 
 instance IsScalar Uuid where

@@ -11,6 +11,7 @@ module PostgresqlTypes.Date
 where
 
 import qualified Data.Attoparsec.Text as Attoparsec
+import Data.Hashable (Hashable)
 import qualified Data.Time as Time
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
@@ -28,7 +29,7 @@ import qualified TextBuilder
 newtype Date
   = -- | Days since PostgreSQL epoch (2000-01-01).
     Date Int32
-  deriving newtype (Eq, Ord)
+  deriving newtype (Eq, Ord, Hashable)
   deriving (Show, Read, IsString) via (ViaIsScalar Date)
 
 -- | PostgreSQL date range: 4713 BC to 5874897 AD.

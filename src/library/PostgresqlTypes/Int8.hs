@@ -10,6 +10,7 @@ module PostgresqlTypes.Int8
 where
 
 import qualified Data.Attoparsec.Text as Attoparsec
+import Data.Hashable (Hashable)
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude hiding (Int8)
 import PostgresqlTypes.Via
@@ -23,7 +24,7 @@ import qualified TextBuilder
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-numeric.html#DATATYPE-INT).
 newtype Int8 = Int8 Int64
-  deriving newtype (Eq, Ord, Arbitrary)
+  deriving newtype (Eq, Ord, Hashable, Arbitrary)
   deriving (Show, Read, IsString) via (ViaIsScalar Int8)
 
 instance IsScalar Int8 where

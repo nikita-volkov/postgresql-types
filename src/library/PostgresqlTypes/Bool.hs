@@ -11,6 +11,7 @@ where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.Bool
+import Data.Hashable (Hashable)
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude hiding (Bool)
 import PostgresqlTypes.Via
@@ -21,7 +22,7 @@ import qualified PtrPoker.Write as Write
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-boolean.html).
 newtype Bool = Bool Data.Bool.Bool
-  deriving newtype (Eq, Ord, Arbitrary)
+  deriving newtype (Eq, Ord, Hashable, Arbitrary)
   deriving (Show, Read, IsString) via (ViaIsScalar Bool)
 
 instance IsScalar Bool where

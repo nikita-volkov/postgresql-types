@@ -12,6 +12,7 @@ module PostgresqlTypes.Polygon
 where
 
 import qualified Data.Attoparsec.Text as Attoparsec
+import Data.Hashable (Hashable (..))
 import qualified Data.Vector.Unboxed as UnboxedVector
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
 import PostgresqlTypes.Algebra
@@ -43,6 +44,10 @@ instance Arbitrary Polygon where
     pure (Polygon points)
 
   shrink (Polygon points) = [Polygon points' | points' <- shrink points, UnboxedVector.length points' >= 3]
+
+instance Hashable Polygon where
+  hashWithSalt salt (Polygon points) =
+    salt `hashWithSalt` UnboxedVector.toList points
 
 instance IsScalar Polygon where
   schemaName = Tagged Nothing

@@ -16,6 +16,7 @@ where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import Data.Bits
+import Data.Hashable (Hashable (..))
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude hiding (fold)
 import PostgresqlTypes.Via
@@ -81,6 +82,11 @@ instance Arbitrary Cidr where
         netmask' <- shrink netmask,
         netmask' <= 128
       ]
+
+instance Hashable Cidr where
+  hashWithSalt salt = \case
+    V4Cidr addr netmask -> salt `hashWithSalt` (0 :: Int) `hashWithSalt` addr `hashWithSalt` netmask
+    V6Cidr w1 w2 w3 w4 netmask -> salt `hashWithSalt` (1 :: Int) `hashWithSalt` w1 `hashWithSalt` w2 `hashWithSalt` w3 `hashWithSalt` w4 `hashWithSalt` netmask
 
 instance IsScalar Cidr where
   schemaName = Tagged Nothing

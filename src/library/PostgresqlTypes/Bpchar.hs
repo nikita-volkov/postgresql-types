@@ -14,6 +14,7 @@ module PostgresqlTypes.Bpchar
 where
 
 import qualified Data.Attoparsec.Text as Attoparsec
+import Data.Hashable (Hashable (..))
 import Data.String
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text.Encoding
@@ -54,6 +55,9 @@ instance (TypeLits.KnownNat numChars) => Arbitrary (Bpchar numChars) where
     case refineFromString charList of
       Nothing -> error "Arbitrary Bpchar: Generated string has incorrect length"
       Just char -> pure char
+
+instance Hashable (Bpchar numChars) where
+  hashWithSalt salt (Bpchar txt) = hashWithSalt salt txt
 
 instance (TypeLits.KnownNat numChars) => IsScalar (Bpchar numChars) where
   schemaName = Tagged Nothing

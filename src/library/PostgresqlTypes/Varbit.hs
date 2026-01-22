@@ -16,6 +16,7 @@ where
 import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.Bits as Bits
 import qualified Data.ByteString as ByteString
+import Data.Hashable (Hashable (..))
 import qualified Data.Text as Text
 import qualified Data.Vector.Generic as Vg
 import qualified GHC.TypeLits as TypeLits
@@ -57,6 +58,9 @@ instance (TypeLits.KnownNat maxLen) => Arbitrary (Varbit maxLen) where
         bits = toBoolList varbit
         shrunkBitsList = shrink bits
      in mapMaybe refineFromBoolList [b | b <- shrunkBitsList, length b <= maxLen]
+
+instance Hashable (Varbit maxLen) where
+  hashWithSalt salt (Varbit len bytes) = salt `hashWithSalt` len `hashWithSalt` bytes
 
 instance (TypeLits.KnownNat maxLen) => IsScalar (Varbit maxLen) where
   schemaName = Tagged Nothing

@@ -17,6 +17,7 @@ module PostgresqlTypes.Range
 where
 
 import qualified Data.Attoparsec.Text as Attoparsec
+import Data.Hashable (Hashable (..))
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude hiding (empty, fold)
 import PostgresqlTypes.Via
@@ -168,6 +169,11 @@ instance (Arbitrary a, Ord a) => Arbitrary (Range a) where
             pure if value1 < value2 then BoundedRange value1 value2 else BoundedRange value2 value1
         )
       ]
+
+instance (Hashable a) => Hashable (Range a) where
+  hashWithSalt salt = \case
+    EmptyRange -> salt `hashWithSalt` (0 :: Int)
+    BoundedRange lower upper -> salt `hashWithSalt` (1 :: Int) `hashWithSalt` lower `hashWithSalt` upper
 
 instance (Ord a) => Ord (Range a) where
   compare EmptyRange EmptyRange = EQ

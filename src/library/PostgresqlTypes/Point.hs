@@ -11,6 +11,7 @@ module PostgresqlTypes.Point
 where
 
 import qualified Data.Attoparsec.Text as Attoparsec
+import Data.Hashable (Hashable (..))
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
@@ -37,6 +38,10 @@ data Point
 instance Arbitrary Point where
   arbitrary = Point <$> arbitrary <*> arbitrary
   shrink (Point x y) = [Point x' y' | (x', y') <- shrink (x, y)]
+
+instance Hashable Point where
+  hashWithSalt salt (Point x y) =
+    salt `hashWithSalt` castDoubleToWord64 x `hashWithSalt` castDoubleToWord64 y
 
 instance IsScalar Point where
   schemaName = Tagged Nothing

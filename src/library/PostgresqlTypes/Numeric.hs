@@ -21,6 +21,7 @@ module PostgresqlTypes.Numeric
 where
 
 import qualified Data.Attoparsec.Text as Attoparsec
+import Data.Hashable (Hashable (..))
 import qualified Data.Scientific as Scientific
 import qualified Data.Text as Text
 import qualified GHC.TypeLits as TypeLits
@@ -103,6 +104,13 @@ instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => Arbitrary (Nu
                         pure (ScientificNumeric scientific)
                     )
                   ]
+
+instance Hashable (Numeric precision scale) where
+  hashWithSalt salt = \case
+    NegInfinityNumeric -> salt `hashWithSalt` (0 :: Int)
+    ScientificNumeric s -> salt `hashWithSalt` (1 :: Int) `hashWithSalt` s
+    PosInfinityNumeric -> salt `hashWithSalt` (2 :: Int)
+    NanNumeric -> salt `hashWithSalt` (3 :: Int)
 
 instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsScalar (Numeric precision scale) where
   schemaName = Tagged Nothing

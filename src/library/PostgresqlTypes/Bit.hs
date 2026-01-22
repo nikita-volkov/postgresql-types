@@ -16,6 +16,7 @@ where
 import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.Bits as Bits
 import qualified Data.ByteString as ByteString
+import Data.Hashable (Hashable (..))
 import qualified Data.Text as Text
 import qualified Data.Vector.Generic as Vg
 import qualified GHC.TypeLits as TypeLits
@@ -47,6 +48,9 @@ instance (TypeLits.KnownNat numBits) => Arbitrary (Bit numBits) where
     case refineFromBoolList boolList of
       Nothing -> error "Arbitrary Bit: Generated bit string has incorrect length"
       Just bit -> pure bit
+
+instance Hashable (Bit numBits) where
+  hashWithSalt salt (Bit bytes) = hashWithSalt salt bytes
 
 instance (TypeLits.KnownNat numBits) => IsScalar (Bit numBits) where
   schemaName = Tagged Nothing

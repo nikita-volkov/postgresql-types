@@ -19,6 +19,7 @@ module PostgresqlTypes.Interval
 where
 
 import qualified Data.Attoparsec.Text as Attoparsec
+import Data.Hashable (Hashable (..))
 import qualified Data.Text as Text
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
@@ -59,6 +60,10 @@ instance Arbitrary Interval where
     days <- QuickCheck.choose (-daysPerMonth, daysPerMonth)
     months <- QuickCheck.choose (toMonths (minBound @Interval), toMonths (maxBound @Interval))
     pure (max minBound (min maxBound (Interval months days micros)))
+
+instance Hashable Interval where
+  hashWithSalt salt (Interval months days micros) =
+    salt `hashWithSalt` months `hashWithSalt` days `hashWithSalt` micros
 
 instance IsScalar Interval where
   schemaName = Tagged Nothing

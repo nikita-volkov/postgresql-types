@@ -13,6 +13,7 @@ module PostgresqlTypes.Line
 where
 
 import qualified Data.Attoparsec.Text as Attoparsec
+import Data.Hashable (Hashable (..))
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
@@ -53,6 +54,12 @@ instance Arbitrary Line where
     | (a', b', c') <- shrink (a, b, c),
       not (a' == 0 && b' == 0) -- Ensure shrunk values are also valid
     ]
+
+instance Hashable Line where
+  hashWithSalt salt (Line a b c) =
+    salt `hashWithSalt` castDoubleToWord64 a
+      `hashWithSalt` castDoubleToWord64 b
+      `hashWithSalt` castDoubleToWord64 c
 
 instance IsScalar Line where
   schemaName = Tagged Nothing

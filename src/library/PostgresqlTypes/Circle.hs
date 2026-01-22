@@ -13,6 +13,7 @@ module PostgresqlTypes.Circle
 where
 
 import qualified Data.Attoparsec.Text as Attoparsec
+import Data.Hashable (Hashable (..))
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
@@ -50,6 +51,12 @@ instance Arbitrary Circle where
     y' <- shrink y
     r' <- abs <$> shrink r
     pure (Circle x' y' r')
+
+instance Hashable Circle where
+  hashWithSalt salt (Circle x y r) =
+    salt `hashWithSalt` castDoubleToWord64 x
+      `hashWithSalt` castDoubleToWord64 y
+      `hashWithSalt` castDoubleToWord64 r
 
 instance IsScalar Circle where
   schemaName = Tagged Nothing

@@ -17,6 +17,7 @@ module PostgresqlTypes.Timetz
 where
 
 import qualified Data.Attoparsec.Text as Attoparsec
+import Data.Hashable (Hashable (..))
 import qualified Data.Text as Text
 import qualified Data.Time as TimeLib
 import PostgresqlTypes.Algebra
@@ -47,6 +48,10 @@ instance Arbitrary Timetz where
     time <- arbitrary
     offset <- arbitrary
     pure (Timetz time offset)
+
+instance Hashable Timetz where
+  hashWithSalt salt (Timetz time offset) =
+    salt `hashWithSalt` Time.toMicroseconds time `hashWithSalt` Offset.toSeconds offset
 
 instance IsScalar Timetz where
   schemaName = Tagged Nothing
