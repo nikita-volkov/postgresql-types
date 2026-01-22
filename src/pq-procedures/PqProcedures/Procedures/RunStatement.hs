@@ -11,10 +11,9 @@ import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text.Encoding
 import Data.Word
 import qualified Database.PostgreSQL.LibPQ as Pq
-import LawfulConversions
 import PqProcedures.Algebra
 import TextBuilder (TextBuilder)
-import TextBuilderLawfulConversions ()
+import qualified TextBuilder
 import Prelude
 
 data RunStatementParams = RunStatementParams
@@ -44,14 +43,14 @@ instance Procedure RunStatementParams RunStatementResult where
     result <- case result of
       Nothing -> do
         m <- Pq.errorMessage connection
-        failWithSql "No result" (maybe "" onto m)
+        failWithSql "No result" (maybe "" Text.Encoding.decodeUtf8 m)
       Just result -> pure result
     resultErrorField <- Pq.resultErrorField result Pq.DiagMessagePrimary
     case resultErrorField of
       Nothing -> pure ()
-      Just err -> failWithSql "Error field present" (onto err)
+      Just err -> failWithSql "Error field present" (Text.Encoding.decodeUtf8 err)
     pure result
     where
       failWithSql :: Text -> Text -> IO a
       failWithSql msg reason =
-        fail (from @TextBuilder (from @Text msg <> "\nDue to:\n\t\t" <> from @Text reason <> "\nQuery:\n\t\t" <> from @Text sql))
+        fail (Text.unpack (msg <> "\nDue to:\n\t\t" <> reason <> "\nQuery:\n\t\t" <> sql))

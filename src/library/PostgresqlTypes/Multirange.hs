@@ -1,4 +1,15 @@
-module PostgresqlTypes.Multirange (Multirange) where
+module PostgresqlTypes.Multirange
+  ( Multirange,
+
+    -- * Accessors
+    toRangeList,
+    toRangeVector,
+
+    -- * Constructors
+    normalizeFromRangeList,
+    refineFromRangeList,
+  )
+where
 
 import qualified BaseExtras.List
 import qualified Data.Attoparsec.Text as Attoparsec
@@ -7,6 +18,7 @@ import qualified Data.Vector as Vector
 import PostgresqlTypes.Algebra
 import PostgresqlTypes.Prelude
 import PostgresqlTypes.Range (Range)
+import qualified PostgresqlTypes.Range as Range
 import PostgresqlTypes.Via
 import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
@@ -105,102 +117,55 @@ instance (IsRangeElement a, Arbitrary a, Ord a) => Arbitrary (Multirange a) wher
                 pairs =
                   BaseExtras.List.toPairs preparedBounds
                 ranges =
-                  fmap (onfrom . Just) pairs :: [Range a]
+                  fmap (uncurry Range.normalizeBounded) pairs :: [Range a]
 
             pure
               (Multirange (Vector.fromList ranges))
         )
       ]
 
--- |
--- Direct conversion to and from Vector.
-instance (Ord a) => IsSome (Vector (Range a)) (Multirange a) where
-  to (Multirange ranges) = ranges
+-- | Create a list of ranges from a multirange.
+toRangeList :: Multirange a -> [Range a]
+toRangeList (Multirange ranges) = Vector.toList ranges
 
-  maybeFrom unnormalized =
-    let Multirange normalized = normalizeMultirange (Vector.toList unnormalized)
-     in if unnormalized == normalized
-          then Just (Multirange normalized)
-          else Nothing
-
-instance (Ord a) => IsMany (Vector (Range a)) (Multirange a) where
-  onfrom = normalizeMultirange . Vector.toList
+-- | Create a vector of ranges from a multirange.
+toRangeVector :: Multirange a -> Vector (Range a)
+toRangeVector (Multirange ranges) = ranges
 
 -- | Create a multirange from a list of ranges.
 -- Performs the same normalization as PostgreSQL:
 -- 1. Removes empty ranges
 -- 2. Sorts ranges by their lower bounds
 -- 3. Merges overlapping and adjacent ranges
-normalizeMultirange :: (Ord a) => [Range a] -> Multirange a
-normalizeMultirange = Multirange . Vector.fromList . mergeRanges . sortRanges . filterNonEmpty
+normalizeFromRangeList :: (Ord a) => [Range a] -> Multirange a
+normalizeFromRangeList = Multirange . Vector.fromList . mergeRanges . sortRanges . filterNonEmpty
   where
     -- Step 1: Remove empty ranges
-    filterNonEmpty = filter (not . isEmptyRange)
+    filterNonEmpty = filter (not . Range.isEmpty)
 
     -- Step 2: Sort ranges by their lower bound
-    sortRanges = sortBy compareRanges
+    sortRanges = sort
 
     -- Step 3: Merge overlapping and adjacent ranges
     mergeRanges [] = []
     mergeRanges [r] = [r]
     mergeRanges (r1 : r2 : rs) =
-      case mergeTwo r1 r2 of
+      case Range.mergeIfOverlappingOrAdjacent r1 r2 of
         Just merged -> mergeRanges (merged : rs)
         Nothing -> r1 : mergeRanges (r2 : rs)
 
--- | Check if a range is empty
-isEmptyRange :: (Ord a) => Range a -> Bool
-isEmptyRange range = isNothing (rangeToBounds range)
-
--- | Convert range to bounds tuple
-rangeToBounds :: (Ord a) => Range a -> Maybe (Maybe a, Maybe a)
-rangeToBounds = to
-
--- | Convert bounds tuple to range
-boundsToRange :: (Ord a) => Maybe (Maybe a, Maybe a) -> Maybe (Range a)
-boundsToRange = maybeFrom
-
--- | Compare ranges by their lower bounds for sorting
-compareRanges :: (Ord a) => Range a -> Range a -> Ordering
-compareRanges r1 r2 =
-  case (rangeToBounds r1, rangeToBounds r2) of
-    (Nothing, Nothing) -> EQ -- Both empty
-    (Nothing, Just _) -> LT -- Empty range comes first
-    (Just _, Nothing) -> GT -- Empty range comes first
-    (Just (lower1, _), Just (lower2, _)) -> compare lower1 lower2
-
--- | Merge two ranges if they are overlapping or adjacent
-mergeTwo :: (Ord a) => Range a -> Range a -> Maybe (Range a)
-mergeTwo r1 r2 =
-  case (rangeToBounds r1, rangeToBounds r2) of
-    (Nothing, _) -> Just r2 -- First range is empty, keep second
-    (_, Nothing) -> Just r1 -- Second range is empty, keep first
-    (Just (lower1, upper1), Just (lower2, upper2)) ->
-      if areOverlappingOrAdjacent (lower1, upper1) (lower2, upper2)
-        then boundsToRange (Just (minRangeBound lower1 lower2, maxRangeBound upper1 upper2))
+-- | Attempt to create a multirange from a list of ranges.
+-- Returns 'Nothing' if the input list is not already normalized.
+refineFromRangeList :: (Ord a) => [Range a] -> Maybe (Multirange a)
+refineFromRangeList ranges =
+  -- Check if the input is already normalized by comparing against the normalized version.
+  -- A more efficient implementation would check properties directly:
+  -- 1. No empty ranges
+  -- 2. Ranges are sorted
+  -- 3. No adjacent or overlapping ranges
+  -- However, the current approach is simpler and correct.
+  let Multirange normalized = normalizeFromRangeList ranges
+      unnormalized = Vector.fromList ranges
+   in if unnormalized == normalized
+        then Just (Multirange normalized)
         else Nothing
-
--- | Check if two range bounds are overlapping or adjacent
-areOverlappingOrAdjacent :: (Ord a) => (Maybe a, Maybe a) -> (Maybe a, Maybe a) -> Bool
-areOverlappingOrAdjacent (lower1, upper1) (lower2, upper2) =
-  -- Ranges are overlapping or adjacent if the end of one is >= start of the other
-  case (upper1, lower2) of
-    (Nothing, _) -> True -- First range extends to infinity
-    (_, Nothing) -> True -- Second range starts from negative infinity
-    (Just u1, Just l2) ->
-      u1 >= l2 && case (lower1, upper2) of
-        (Nothing, _) -> True -- First range starts from negative infinity
-        (_, Nothing) -> True -- Second range extends to infinity
-        (Just l1, Just u2) -> l1 <= u2
-
--- | Get the minimum of two bounds (Nothing represents infinity)
-minRangeBound :: (Ord a) => Maybe a -> Maybe a -> Maybe a
-minRangeBound Nothing _ = Nothing
-minRangeBound _ Nothing = Nothing
-minRangeBound (Just a) (Just b) = Just (min a b)
-
--- | Get the maximum of two bounds (Nothing represents infinity)
-maxRangeBound :: (Ord a) => Maybe a -> Maybe a -> Maybe a
-maxRangeBound Nothing _ = Nothing
-maxRangeBound _ Nothing = Nothing
-maxRangeBound (Just a) (Just b) = Just (max a b)

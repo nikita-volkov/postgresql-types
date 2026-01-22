@@ -1,4 +1,17 @@
-module PostgresqlTypes.Bpchar (Bpchar) where
+module PostgresqlTypes.Bpchar
+  ( Bpchar,
+
+    -- * Accessors
+    toText,
+    toString,
+
+    -- * Constructors
+    refineFromText,
+    normalizeFromText,
+    refineFromString,
+    normalizeFromString,
+  )
+where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import Data.String
@@ -38,7 +51,7 @@ instance (TypeLits.KnownNat numChars) => Arbitrary (Bpchar numChars) where
     let len = fromIntegral (TypeLits.natVal (Proxy @numChars))
     charList <- QuickCheck.vectorOf len do
       QuickCheck.suchThat arbitrary (\char -> char /= '\NUL')
-    case maybeFrom charList of
+    case refineFromString charList of
       Nothing -> error "Arbitrary Bpchar: Generated string has incorrect length"
       Just char -> pure char
 
@@ -107,52 +120,55 @@ instance (TypeLits.KnownNat numChars) => IsScalar (Bpchar numChars) where
             else txt <> Text.replicate (expectedLen - len) " "
     pure (Bpchar paddedTxt)
 
--- | Convert from a character string (as String) to a Bpchar.
--- The string must have exactly the length specified by the type parameter.
-instance (TypeLits.KnownNat numChars) => IsSome String (Bpchar numChars) where
-  to (Bpchar txt) = Text.unpack txt
-  maybeFrom str =
-    let len = length str
-        expectedLen = fromIntegral (TypeLits.natVal (Proxy @numChars))
-     in if len == expectedLen
-          then Just (Bpchar (Text.pack str))
-          else Nothing
+-- * Accessors
 
--- | Direct conversion from String to Bpchar.
+-- | Extract the underlying 'Text' value.
+toText :: forall numChars. (TypeLits.KnownNat numChars) => Bpchar numChars -> Text
+toText (Bpchar txt) = txt
+
+-- | Convert the Bpchar to a String.
+toString :: forall numChars. (TypeLits.KnownNat numChars) => Bpchar numChars -> String
+toString (Bpchar txt) = Text.unpack txt
+
+-- * Constructors
+
+-- | Construct a PostgreSQL 'Bpchar' from 'Text' with validation.
+-- Returns 'Nothing' if the text length doesn't exactly match the expected length.
+refineFromText :: forall numChars. (TypeLits.KnownNat numChars) => Text -> Maybe (Bpchar numChars)
+refineFromText txt =
+  let len = Text.length txt
+      expectedLen = fromIntegral (TypeLits.natVal (Proxy @numChars))
+   in if len == expectedLen
+        then Just (Bpchar txt)
+        else Nothing
+
+-- | Construct a PostgreSQL 'Bpchar' from 'Text'.
 -- Truncates or pads with spaces to match the type-level length.
-instance (TypeLits.KnownNat numChars) => IsMany String (Bpchar numChars) where
-  onfrom str =
-    let expectedLen = fromIntegral (TypeLits.natVal (Proxy @numChars))
-        -- Truncate or pad with spaces to the expected length
-        adjustedStr = take expectedLen (str ++ repeat ' ')
-     in Bpchar (Text.pack adjustedStr)
+normalizeFromText :: forall numChars. (TypeLits.KnownNat numChars) => Text -> Bpchar numChars
+normalizeFromText txt =
+  let expectedLen = fromIntegral (TypeLits.natVal (Proxy @numChars))
+      len = Text.length txt
+      adjustedTxt =
+        if len >= expectedLen
+          then Text.take expectedLen txt
+          else txt <> Text.replicate (expectedLen - len) " "
+   in Bpchar adjustedTxt
 
--- | Convert from a character string (as Text) to a Bpchar.
---
--- This provides an efficient conversion from 'Data.Text.Text' to PostgreSQL @bpchar(n)@ type.
--- The text must have exactly the length specified by the type parameter.
---
--- This instance allows using Text for high-performance string operations
--- while maintaining compatibility with PostgreSQL's fixed-length character format.
-instance (TypeLits.KnownNat numChars) => IsSome Text (Bpchar numChars) where
-  to (Bpchar txt) = txt
-  maybeFrom txt =
-    let len = Text.length txt
-        expectedLen = fromIntegral (TypeLits.natVal (Proxy @numChars))
-     in if len == expectedLen
-          then Just (Bpchar txt)
-          else Nothing
+-- | Construct a PostgreSQL 'Bpchar' from 'String' with validation.
+-- Returns 'Nothing' if the string length doesn't exactly match the expected length.
+refineFromString :: forall numChars. (TypeLits.KnownNat numChars) => String -> Maybe (Bpchar numChars)
+refineFromString str =
+  let len = length str
+      expectedLen = fromIntegral (TypeLits.natVal (Proxy @numChars))
+   in if len == expectedLen
+        then Just (Bpchar (Text.pack str))
+        else Nothing
 
--- | Direct conversion from Text to Bpchar.
---
--- This is a total conversion that truncates or pads with spaces to match the type-level length.
--- The text is efficiently stored in the PostgreSQL @bpchar(n)@ format.
-instance (TypeLits.KnownNat numChars) => IsMany Text (Bpchar numChars) where
-  onfrom txt =
-    let expectedLen = fromIntegral (TypeLits.natVal (Proxy @numChars))
-        len = Text.length txt
-        adjustedTxt =
-          if len >= expectedLen
-            then Text.take expectedLen txt
-            else txt <> Text.replicate (expectedLen - len) " "
-     in Bpchar adjustedTxt
+-- | Construct a PostgreSQL 'Bpchar' from 'String'.
+-- Truncates or pads with spaces to match the type-level length.
+normalizeFromString :: forall numChars. (TypeLits.KnownNat numChars) => String -> Bpchar numChars
+normalizeFromString str =
+  let expectedLen = fromIntegral (TypeLits.natVal (Proxy @numChars))
+      -- Truncate or pad with spaces to the expected length
+      adjustedStr = take expectedLen (str ++ repeat ' ')
+   in Bpchar (Text.pack adjustedStr)

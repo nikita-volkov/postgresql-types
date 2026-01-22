@@ -1,4 +1,14 @@
-module PostgresqlTypes.Date (Date) where
+module PostgresqlTypes.Date
+  ( Date,
+
+    -- * Accessors
+    toDay,
+
+    -- * Constructors
+    refineFromDay,
+    normalizeFromDay,
+  )
+where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.Time as Time
@@ -130,22 +140,17 @@ instance IsMultirangeElement Date where
   multirangeBaseOid = Tagged (Just 4535)
   multirangeArrayOid = Tagged (Just 6155)
 
--- | Conversion to 'Data.Time.Day'.
-instance IsSome Time.Day Date where
-  to = toDay
-  maybeFrom = refineFromDay
-
--- | Conversion from 'Data.Time.Day'.
-instance IsMany Time.Day Date where
-  onfrom = normalizeFromDay
-
 -- | PostgreSQL epoch is 2000-01-01
 postgresEpoch :: Time.Day
 postgresEpoch = Time.fromGregorian 2000 1 1
 
+-- * Accessors
+
 -- | Convert Date to Day
 toDay :: Date -> Time.Day
 toDay (Date days) = Time.addDays (fromIntegral days) postgresEpoch
+
+-- * Constructors
 
 refineFromDay :: Time.Day -> Maybe Date
 refineFromDay day

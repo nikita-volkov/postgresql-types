@@ -1,4 +1,4 @@
-module NumericSpec (spec) where
+module PostgresqlTypes.NumericSpec (spec) where
 
 import Control.Monad
 import Data.Proxy (Proxy (..))
@@ -9,10 +9,14 @@ import qualified PostgresqlTypes.Numeric as Numeric
 import Test.Hspec
 import Test.QuickCheck
 import qualified Test.QuickCheck as QuickCheck
+import qualified UnitTests.Scripts as Scripts
 import Prelude
 
 spec :: Spec
 spec = do
+  describe "IsScalar" do
+    Scripts.testIsScalar (Proxy @(Numeric.Numeric 0 0))
+
   describe "By precision and scale" do
     byPrecisionAndScale (Proxy @0) (Proxy @0)
     byPrecisionAndScale (Proxy @10) (Proxy @4)

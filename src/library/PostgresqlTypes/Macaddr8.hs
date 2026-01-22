@@ -1,6 +1,20 @@
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
+module PostgresqlTypes.Macaddr8
+  ( Macaddr8 (..),
 
-module PostgresqlTypes.Macaddr8 (Macaddr8) where
+    -- * Accessors
+    toByte1,
+    toByte2,
+    toByte3,
+    toByte4,
+    toByte5,
+    toByte6,
+    toByte7,
+    toByte8,
+
+    -- * Constructors
+    fromBytes,
+  )
+where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import PostgresqlTypes.Algebra
@@ -16,16 +30,24 @@ import qualified TextBuilder
 -- Example: @01:23:45:67:89:ab:cd:ef@
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-net-types.html#DATATYPE-MACADDR8).
-data Macaddr8 = Macaddr8
-  { macaddr8Byte1 :: Word8,
-    macaddr8Byte2 :: Word8,
-    macaddr8Byte3 :: Word8,
-    macaddr8Byte4 :: Word8,
-    macaddr8Byte5 :: Word8,
-    macaddr8Byte6 :: Word8,
-    macaddr8Byte7 :: Word8,
-    macaddr8Byte8 :: Word8
-  }
+data Macaddr8
+  = Macaddr8
+      -- | First byte
+      Word8
+      -- | Second byte
+      Word8
+      -- | Third byte
+      Word8
+      -- | Fourth byte
+      Word8
+      -- | Fifth byte
+      Word8
+      -- | Sixth byte
+      Word8
+      -- | Seventh byte
+      Word8
+      -- | Eighth byte
+      Word8
   deriving stock (Eq, Ord)
   deriving (Show) via (ViaIsScalar Macaddr8)
 
@@ -118,25 +140,42 @@ instance IsScalar Macaddr8 where
           <|> (\c -> fromIntegral (ord c - ord 'A' + 10))
             <$> Attoparsec.satisfy (\c -> c >= 'A' && c <= 'F')
 
--- | Convert from a tuple of 8 Word8s to Macaddr8.
-instance IsSome (Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) Macaddr8 where
-  to (Macaddr8 a b c d e f g h) = (a, b, c, d, e, f, g, h)
-  maybeFrom (a, b, c, d, e, f, g, h) = Just (Macaddr8 a b c d e f g h)
+-- * Accessors
 
--- | Convert from Macaddr8 to a tuple of 8 Word8s.
-instance IsSome Macaddr8 (Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) where
-  to (a, b, c, d, e, f, g, h) = Macaddr8 a b c d e f g h
-  maybeFrom (Macaddr8 a b c d e f g h) = Just (a, b, c, d, e, f, g, h)
+-- | Extract the first byte of the MAC address.
+toByte1 :: Macaddr8 -> Word8
+toByte1 (Macaddr8 a _ _ _ _ _ _ _) = a
 
--- | Convert from a tuple of 8 Word8s to Macaddr8.
-instance IsMany (Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) Macaddr8 where
-  onfrom (a, b, c, d, e, f, g, h) = Macaddr8 a b c d e f g h
+-- | Extract the second byte of the MAC address.
+toByte2 :: Macaddr8 -> Word8
+toByte2 (Macaddr8 _ b _ _ _ _ _ _) = b
 
--- | Convert from Macaddr8 to a tuple of 8 Word8s.
-instance IsMany Macaddr8 (Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) where
-  onfrom (Macaddr8 a b c d e f g h) = (a, b, c, d, e, f, g, h)
+-- | Extract the third byte of the MAC address.
+toByte3 :: Macaddr8 -> Word8
+toByte3 (Macaddr8 _ _ c _ _ _ _ _) = c
 
--- | Bidirectional conversion between tuple and Macaddr8.
-instance Is (Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) Macaddr8
+-- | Extract the fourth byte of the MAC address.
+toByte4 :: Macaddr8 -> Word8
+toByte4 (Macaddr8 _ _ _ d _ _ _ _) = d
 
-instance Is Macaddr8 (Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8)
+-- | Extract the fifth byte of the MAC address.
+toByte5 :: Macaddr8 -> Word8
+toByte5 (Macaddr8 _ _ _ _ e _ _ _) = e
+
+-- | Extract the sixth byte of the MAC address.
+toByte6 :: Macaddr8 -> Word8
+toByte6 (Macaddr8 _ _ _ _ _ f _ _) = f
+
+-- | Extract the seventh byte of the MAC address.
+toByte7 :: Macaddr8 -> Word8
+toByte7 (Macaddr8 _ _ _ _ _ _ g _) = g
+
+-- | Extract the eighth byte of the MAC address.
+toByte8 :: Macaddr8 -> Word8
+toByte8 (Macaddr8 _ _ _ _ _ _ _ h) = h
+
+-- * Constructors
+
+-- | Construct a PostgreSQL 'Macaddr8' from 8 bytes.
+fromBytes :: Word8 -> Word8 -> Word8 -> Word8 -> Word8 -> Word8 -> Word8 -> Word8 -> Macaddr8
+fromBytes = Macaddr8

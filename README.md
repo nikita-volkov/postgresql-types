@@ -40,15 +40,20 @@ This package provides support for nearly all PostgreSQL data types, including bu
 
 All PostgreSQL types are represented with hidden constructors, ensuring that only valid PostgreSQL values can be constructed. This design prevents invalid data from being represented at the type level.
 
-Values can only be created through lawful conversions, guaranteeing adherence to PostgreSQL's constraints (e.g., dates within PostgreSQL's supported range, text without NUL bytes).
+Values can only be created through explicit constructor functions, guaranteeing adherence to PostgreSQL's constraints (e.g., dates within PostgreSQL's supported range, text without NUL bytes).
 
-### Lawful Conversions
+### Type-Safe Constructors
 
-The library uses the [lawful-conversions](https://hackage.haskell.org/package/lawful-conversions) library to provide safe, well-defined transformations between Haskell and PostgreSQL types. This approach ensures that:
+The library provides two types of constructors for each type:
+
+- **Normalizing constructors** (prefix: `normalizeFrom*`) - Always succeed by clamping or canonicalizing input values to valid ranges
+- **Refining constructors** (prefix: `refineFrom*`) - Return `Maybe`, failing if the input is out of range
+
+This approach ensures that:
 - Type constructors remain hidden to protect invariants
-- All conversions are explicit and lawful
-- Invalid data is either rejected or canonicalized (e.g., removing NUL bytes from text)
-- Round-trip properties are maintained
+- All conversions are explicit and type-safe
+- Invalid data is either rejected or canonicalized (e.g., removing NUL bytes from text, clamping dates to valid range)
+- Round-trip properties are maintained via accessor functions
 
 ### Complete Range Coverage with Property Testing
 
@@ -67,7 +72,7 @@ The library employs a rigorous multi-layered testing strategy:
 
 #### Unit Tests
 - **Encoder/Decoder Round-trips**: Every type is tested for round-trip fidelity through both binary and textual encodings
-- **Lawful Conversion Properties**: All conversion instances are validated against their lawful properties using property-based testing
+- **Constructor Properties**: All constructor functions are validated for proper normalization and refinement behavior using property-based testing
 - **Cross-format Validation**: Binary encoders are tested against textual decoders and vice versa
 
 #### Integration Tests

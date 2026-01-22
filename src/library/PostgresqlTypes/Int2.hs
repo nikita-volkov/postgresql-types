@@ -1,4 +1,13 @@
-module PostgresqlTypes.Int2 (Int2) where
+module PostgresqlTypes.Int2
+  ( Int2 (..),
+
+    -- * Accessors
+    toInt16,
+
+    -- * Constructors
+    fromInt16,
+  )
+where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import PostgresqlTypes.Algebra
@@ -27,29 +36,14 @@ instance IsScalar Int2 where
   textualEncoder (Int2 x) = TextBuilder.decimal x
   textualDecoder = Int2 <$> Attoparsec.signed Attoparsec.decimal
 
--- | Direct conversion from 'Int16'.
--- This is always safe since both types represent 16-bit signed integers identically.
-instance IsSome Int16 Int2 where
-  to (Int2 i) = i
-  maybeFrom = Just . Int2
+-- * Accessors
 
--- | Direct conversion from PostgreSQL Int2 to 'Int16'.
--- This is always safe since both types represent 16-bit signed integers identically.
-instance IsSome Int2 Int16 where
-  to i = Int2 i
-  maybeFrom (Int2 i) = Just i
+-- | Extract the underlying 'Int16' value.
+toInt16 :: Int2 -> Int16
+toInt16 (Int2 i) = i
 
--- | Direct conversion from 'Int16'.
--- This is a total conversion as it always succeeds.
-instance IsMany Int16 Int2 where
-  onfrom = Int2
+-- * Constructors
 
--- | Direct conversion from PostgreSQL Int2 to 'Int16'.
--- This is a total conversion as it always succeeds.
-instance IsMany Int2 Int16 where
-  onfrom (Int2 i) = i
-
--- | Bidirectional conversion between 'Int16' and PostgreSQL Int2.
-instance Is Int16 Int2
-
-instance Is Int2 Int16
+-- | Construct a PostgreSQL 'Int2' from an 'Int16' value.
+fromInt16 :: Int16 -> Int2
+fromInt16 = Int2

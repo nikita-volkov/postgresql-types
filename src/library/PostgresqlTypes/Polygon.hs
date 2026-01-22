@@ -1,6 +1,15 @@
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
+module PostgresqlTypes.Polygon
+  ( Polygon,
 
-module PostgresqlTypes.Polygon (Polygon) where
+    -- * Accessors
+    toPointList,
+    toPointVector,
+
+    -- * Constructors
+    refineFromPointList,
+    refineFromPointVector,
+  )
+where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.Vector.Unboxed as UnboxedVector
@@ -20,9 +29,8 @@ import qualified TextBuilder
 -- Stored as the number of points followed by the point coordinates.
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-geometric.html#DATATYPE-POLYGON).
-newtype Polygon = Polygon
-  { polygonPoints :: UnboxedVector.Vector (Double, Double)
-  }
+newtype Polygon
+  = Polygon (UnboxedVector.Vector (Double, Double))
   deriving stock (Eq, Ord)
   deriving (Show) via (ViaIsScalar Polygon)
 
@@ -82,15 +90,27 @@ instance IsScalar Polygon where
         _ <- Attoparsec.char ')'
         pure (x, y)
 
--- | Conversion to a list of points. At least 3 points are required to form a valid polygon.
-instance IsSome (UnboxedVector.Vector (Double, Double)) Polygon where
-  to (Polygon points) = points
-  maybeFrom vector =
-    if UnboxedVector.length vector >= 3
-      then Just (Polygon vector)
-      else Nothing
+-- * Accessors
 
--- | Conversion to a list of points. At least 3 points are required to form a valid polygon.
-instance IsSome [(Double, Double)] Polygon where
-  to (Polygon points) = UnboxedVector.toList points
-  maybeFrom = maybeFrom . UnboxedVector.fromList
+-- | Extract the polygon points as a list.
+toPointList :: Polygon -> [(Double, Double)]
+toPointList (Polygon points) = UnboxedVector.toList points
+
+-- | Extract the polygon points as an unboxed vector.
+toPointVector :: Polygon -> UnboxedVector.Vector (Double, Double)
+toPointVector (Polygon points) = points
+
+-- * Constructors
+
+-- | Construct a PostgreSQL 'Polygon' from a list of points with validation.
+-- Returns 'Nothing' if there are fewer than 3 points.
+refineFromPointList :: [(Double, Double)] -> Maybe Polygon
+refineFromPointList = refineFromPointVector . UnboxedVector.fromList
+
+-- | Construct a PostgreSQL 'Polygon' from an unboxed vector of points with validation.
+-- Returns 'Nothing' if there are fewer than 3 points.
+refineFromPointVector :: UnboxedVector.Vector (Double, Double) -> Maybe Polygon
+refineFromPointVector vector =
+  if UnboxedVector.length vector >= 3
+    then Just (Polygon vector)
+    else Nothing

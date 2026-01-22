@@ -1,4 +1,13 @@
-module PostgresqlTypes.Int8 (Int8) where
+module PostgresqlTypes.Int8
+  ( Int8 (..),
+
+    -- * Accessors
+    toInt64,
+
+    -- * Constructors
+    fromInt64,
+  )
+where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import PostgresqlTypes.Algebra
@@ -39,29 +48,14 @@ instance IsMultirangeElement Int8 where
   multirangeBaseOid = Tagged (Just 4536)
   multirangeArrayOid = Tagged (Just 6157)
 
--- | Direct conversion from 'Int64'.
--- This is always safe since both types represent 64-bit signed integers identically.
-instance IsSome Int64 Int8 where
-  to (Int8 i) = i
-  maybeFrom = Just . Int8
+-- * Accessors
 
--- | Direct conversion from PostgreSQL Int8 to 'Int64'.
--- This is always safe since both types represent 64-bit signed integers identically.
-instance IsSome Int8 Int64 where
-  to i = Int8 i
-  maybeFrom (Int8 i) = Just i
+-- | Extract the underlying 'Int64' value.
+toInt64 :: Int8 -> Int64
+toInt64 (Int8 i) = i
 
--- | Direct conversion from 'Int64'.
--- This is a total conversion as it always succeeds.
-instance IsMany Int64 Int8 where
-  onfrom = Int8
+-- * Constructors
 
--- | Direct conversion from PostgreSQL Int8 to 'Int64'.
--- This is a total conversion as it always succeeds.
-instance IsMany Int8 Int64 where
-  onfrom (Int8 i) = i
-
--- | Bidirectional conversion between 'Int64' and PostgreSQL Int8.
-instance Is Int64 Int8
-
-instance Is Int8 Int64
+-- | Construct a PostgreSQL 'Int8' from an 'Int64' value.
+fromInt64 :: Int64 -> Int8
+fromInt64 = Int8

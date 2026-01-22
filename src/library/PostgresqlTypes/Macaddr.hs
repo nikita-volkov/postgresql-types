@@ -1,4 +1,18 @@
-module PostgresqlTypes.Macaddr (Macaddr) where
+module PostgresqlTypes.Macaddr
+  ( Macaddr (..),
+
+    -- * Accessors
+    toByte1,
+    toByte2,
+    toByte3,
+    toByte4,
+    toByte5,
+    toByte6,
+
+    -- * Constructors
+    fromBytes,
+  )
+where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import PostgresqlTypes.Algebra
@@ -106,29 +120,34 @@ instance IsScalar Macaddr where
           <|> (\c -> fromIntegral (ord c - ord 'A' + 10))
             <$> Attoparsec.satisfy (\c -> c >= 'A' && c <= 'F')
 
--- | Direct conversion from 6-tuple of Word8 to Macaddr.
--- This is always safe since both represent the same MAC address.
-instance IsSome (Word8, Word8, Word8, Word8, Word8, Word8) Macaddr where
-  to (Macaddr a b c d e f) = (a, b, c, d, e, f)
-  maybeFrom (a, b, c, d, e, f) = Just (Macaddr a b c d e f)
+-- * Accessors
 
--- | Direct conversion from Macaddr to 6-tuple of Word8.
--- This is always safe since both represent the same MAC address.
-instance IsSome Macaddr (Word8, Word8, Word8, Word8, Word8, Word8) where
-  to (a, b, c, d, e, f) = Macaddr a b c d e f
-  maybeFrom (Macaddr a b c d e f) = Just (a, b, c, d, e, f)
+-- | Extract the first byte of the MAC address.
+toByte1 :: Macaddr -> Word8
+toByte1 (Macaddr a _ _ _ _ _) = a
 
--- | Direct conversion from 6-tuple of Word8 to Macaddr.
--- This is a total conversion as it always succeeds.
-instance IsMany (Word8, Word8, Word8, Word8, Word8, Word8) Macaddr where
-  onfrom (a, b, c, d, e, f) = Macaddr a b c d e f
+-- | Extract the second byte of the MAC address.
+toByte2 :: Macaddr -> Word8
+toByte2 (Macaddr _ b _ _ _ _) = b
 
--- | Direct conversion from Macaddr to 6-tuple of Word8.
--- This is a total conversion as it always succeeds.
-instance IsMany Macaddr (Word8, Word8, Word8, Word8, Word8, Word8) where
-  onfrom (Macaddr a b c d e f) = (a, b, c, d, e, f)
+-- | Extract the third byte of the MAC address.
+toByte3 :: Macaddr -> Word8
+toByte3 (Macaddr _ _ c _ _ _) = c
 
--- | Bidirectional conversion between 6-tuple of Word8 and Macaddr.
-instance Is (Word8, Word8, Word8, Word8, Word8, Word8) Macaddr
+-- | Extract the fourth byte of the MAC address.
+toByte4 :: Macaddr -> Word8
+toByte4 (Macaddr _ _ _ d _ _) = d
 
-instance Is Macaddr (Word8, Word8, Word8, Word8, Word8, Word8)
+-- | Extract the fifth byte of the MAC address.
+toByte5 :: Macaddr -> Word8
+toByte5 (Macaddr _ _ _ _ e _) = e
+
+-- | Extract the sixth byte of the MAC address.
+toByte6 :: Macaddr -> Word8
+toByte6 (Macaddr _ _ _ _ _ f) = f
+
+-- * Constructors
+
+-- | Construct a PostgreSQL 'Macaddr' from 6 bytes.
+fromBytes :: Word8 -> Word8 -> Word8 -> Word8 -> Word8 -> Word8 -> Macaddr
+fromBytes = Macaddr

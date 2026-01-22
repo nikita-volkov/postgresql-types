@@ -1,6 +1,16 @@
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
+module PostgresqlTypes.Lseg
+  ( Lseg (..),
 
-module PostgresqlTypes.Lseg (Lseg) where
+    -- * Accessors
+    toX1,
+    toY1,
+    toX2,
+    toY2,
+
+    -- * Constructors
+    fromEndpoints,
+  )
+where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
@@ -17,12 +27,16 @@ import qualified TextBuilder
 -- Stored as four @64@-bit floating point numbers: (@x1@, @y1@, @x2@, @y2@).
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-geometric.html#DATATYPE-LSEG).
-data Lseg = Lseg
-  { lsegX1 :: Double,
-    lsegY1 :: Double,
-    lsegX2 :: Double,
-    lsegY2 :: Double
-  }
+data Lseg
+  = Lseg
+      -- | X coordinate of first endpoint
+      Double
+      -- | Y coordinate of first endpoint
+      Double
+      -- | X coordinate of second endpoint
+      Double
+      -- | Y coordinate of second endpoint
+      Double
   deriving stock (Eq, Ord)
   deriving (Show) via (ViaIsScalar Lseg)
 
@@ -76,28 +90,26 @@ instance IsScalar Lseg where
     _ <- Attoparsec.char ']'
     pure (Lseg x1 y1 x2 y2)
 
--- | Convert from a 4-tuple to an Lseg.
--- This is always safe since both represent the same data.
-instance IsSome (Double, Double, Double, Double) Lseg where
-  to (Lseg x1 y1 x2 y2) = (x1, y1, x2, y2)
-  maybeFrom (x1, y1, x2, y2) = Just (Lseg x1 y1 x2 y2)
+-- * Accessors
 
--- | Convert from an Lseg to a 4-tuple.
--- This is always safe since both represent the same data.
-instance IsSome Lseg (Double, Double, Double, Double) where
-  to (x1, y1, x2, y2) = Lseg x1 y1 x2 y2
-  maybeFrom (Lseg x1 y1 x2 y2) = Just (x1, y1, x2, y2)
+-- | Extract the X coordinate of the first endpoint.
+toX1 :: Lseg -> Double
+toX1 (Lseg x1 _ _ _) = x1
 
--- | Direct conversion from 4-tuple to Lseg.
--- This is a total conversion as it always succeeds.
-instance IsMany (Double, Double, Double, Double) Lseg where
-  onfrom (x1, y1, x2, y2) = Lseg x1 y1 x2 y2
+-- | Extract the Y coordinate of the first endpoint.
+toY1 :: Lseg -> Double
+toY1 (Lseg _ y1 _ _) = y1
 
--- | Direct conversion from Lseg to 4-tuple.
--- This is a total conversion as it always succeeds.
-instance IsMany Lseg (Double, Double, Double, Double) where
-  onfrom (Lseg x1 y1 x2 y2) = (x1, y1, x2, y2)
+-- | Extract the X coordinate of the second endpoint.
+toX2 :: Lseg -> Double
+toX2 (Lseg _ _ x2 _) = x2
 
-instance Is (Double, Double, Double, Double) Lseg
+-- | Extract the Y coordinate of the second endpoint.
+toY2 :: Lseg -> Double
+toY2 (Lseg _ _ _ y2) = y2
 
-instance Is Lseg (Double, Double, Double, Double)
+-- * Constructors
+
+-- | Construct a PostgreSQL 'Lseg' from endpoint coordinates.
+fromEndpoints :: Double -> Double -> Double -> Double -> Lseg
+fromEndpoints x1 y1 x2 y2 = Lseg x1 y1 x2 y2

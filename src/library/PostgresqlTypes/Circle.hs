@@ -1,6 +1,16 @@
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
+module PostgresqlTypes.Circle
+  ( Circle,
 
-module PostgresqlTypes.Circle (Circle) where
+    -- * Accessors
+    toCenterX,
+    toCenterY,
+    toRadius,
+
+    -- * Constructors
+    refineFromCenterAndRadius,
+    normalizeFromCenterAndRadius,
+  )
+where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
@@ -18,14 +28,14 @@ import qualified TextBuilder
 -- Gets stored as three @64@-bit floating point numbers (@x@,@y@,@radius@) in PostgreSQL.
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-geometric.html#DATATYPE-CIRCLE).
-data Circle = Circle
-  { -- | Center x coordinate
-    centerX :: Double,
-    -- | Center y coordinate
-    centerY :: Double,
-    -- | Circle radius (must be non-negative)
-    radius :: Double
-  }
+data Circle
+  = Circle
+      -- | Center x coordinate
+      Double
+      -- | Center y coordinate
+      Double
+      -- | Circle radius (must be non-negative)
+      Double
   deriving stock (Eq, Ord)
   deriving (Show) via (ViaIsScalar Circle)
 
@@ -79,16 +89,31 @@ instance IsScalar Circle where
     _ <- Attoparsec.char '>'
     pure (Circle x y r)
 
--- | Conversion from (x, y, radius) to Circle.
--- The radius is validated to be non-negative.
-instance IsSome (Double, Double, Double) Circle where
-  to (Circle x y r) = (x, y, r)
-  maybeFrom (x, y, r) =
-    if r < 0
-      then Nothing
-      else Just (Circle x y r)
+-- * Accessors
 
--- | Conversion from (x, y, radius) to Circle.
--- The radius is made non-negative by taking the absolute value.
-instance IsMany (Double, Double, Double) Circle where
-  onfrom (x, y, r) = Circle x y (abs r)
+-- | Extract the center x coordinate.
+toCenterX :: Circle -> Double
+toCenterX (Circle x _ _) = x
+
+-- | Extract the center y coordinate.
+toCenterY :: Circle -> Double
+toCenterY (Circle _ y _) = y
+
+-- | Extract the radius.
+toRadius :: Circle -> Double
+toRadius (Circle _ _ r) = r
+
+-- * Constructors
+
+-- | Construct a PostgreSQL 'Circle' from (x, y, radius) with validation.
+-- Returns 'Nothing' if radius is negative.
+refineFromCenterAndRadius :: Double -> Double -> Double -> Maybe Circle
+refineFromCenterAndRadius x y r =
+  if r < 0
+    then Nothing
+    else Just (Circle x y r)
+
+-- | Construct a PostgreSQL 'Circle' from (x, y, radius).
+-- Makes radius non-negative by taking absolute value.
+normalizeFromCenterAndRadius :: Double -> Double -> Double -> Circle
+normalizeFromCenterAndRadius x y r = Circle x y (abs r)

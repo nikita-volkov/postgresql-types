@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
-
 module PostgresqlTypes.Interval
   ( Interval,
 
@@ -285,26 +283,6 @@ instance IsScalar Interval where
                   'S' -> parseTimePart hours mins (secs + (sign * n)) micros
                   _ -> fail "Unexpected time designator"
           _ -> pure (hours, mins, secs, micros)
-
--- | Safe conversion from tuple representation (months, days, microseconds) to Interval.
--- Validates that the input values are within PostgreSQL's valid range for intervals.
-instance IsSome (Int32, Int32, Int64) Interval where
-  to (Interval {..}) = (months, days, micros)
-  maybeFrom (months, days, micros) =
-    let interval = Interval {..}
-     in if interval >= minBound && interval <= maxBound
-          then Just interval
-          else Nothing
-
--- | Total conversion from tuple representation (months, days, microseconds) to Interval.
--- Preserves the structured representation while clamping to valid ranges.
-instance IsMany (Int32, Int32, Int64) Interval where
-  onfrom (months, days, micros) =
-    let interval = Interval {..}
-     in -- First try the direct interval, then clamp to bounds if needed
-        if interval >= minBound && interval <= maxBound
-          then interval
-          else max minBound (min maxBound interval)
 
 -- * Accessors
 

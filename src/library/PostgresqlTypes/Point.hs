@@ -1,6 +1,14 @@
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
+module PostgresqlTypes.Point
+  ( Point (..),
 
-module PostgresqlTypes.Point (Point) where
+    -- * Accessors
+    toX,
+    toY,
+
+    -- * Constructors
+    fromCoordinates,
+  )
+where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
@@ -17,10 +25,12 @@ import qualified TextBuilder
 -- Stored as two @64@-bit floating point numbers (@float8@) in PostgreSQL.
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-geometric.html#DATATYPE-GEOMETRIC-POINTS).
-data Point = Point
-  { pointX :: Double,
-    pointY :: Double
-  }
+data Point
+  = Point
+      -- | X coordinate
+      Double
+      -- | Y coordinate
+      Double
   deriving stock (Eq, Ord)
   deriving (Show) via (ViaIsScalar Point)
 
@@ -52,29 +62,18 @@ instance IsScalar Point where
     _ <- Attoparsec.char ')'
     pure (Point x y)
 
--- | Convert from a tuple of doubles to a Point.
--- This is always safe since both represent the same data.
-instance IsSome (Double, Double) Point where
-  to (Point x y) = (x, y)
-  maybeFrom (x, y) = Just (Point x y)
+-- * Accessors
 
--- | Convert from a Point to a tuple of doubles.
--- This is always safe since both represent the same data.
-instance IsSome Point (Double, Double) where
-  to (x, y) = Point x y
-  maybeFrom (Point x y) = Just (x, y)
+-- | Extract the x coordinate.
+toX :: Point -> Double
+toX (Point x _) = x
 
--- | Direct conversion from tuple to Point.
--- This is a total conversion as it always succeeds.
-instance IsMany (Double, Double) Point where
-  onfrom (x, y) = Point x y
+-- | Extract the y coordinate.
+toY :: Point -> Double
+toY (Point _ y) = y
 
--- | Direct conversion from Point to tuple.
--- This is a total conversion as it always succeeds.
-instance IsMany Point (Double, Double) where
-  onfrom (Point x y) = (x, y)
+-- * Constructors
 
--- | Bidirectional conversion between tuple and Point.
-instance Is (Double, Double) Point
-
-instance Is Point (Double, Double)
+-- | Construct a PostgreSQL 'Point' from coordinates x and y.
+fromCoordinates :: Double -> Double -> Point
+fromCoordinates x y = Point x y

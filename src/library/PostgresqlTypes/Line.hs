@@ -1,6 +1,16 @@
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
+module PostgresqlTypes.Line
+  ( Line,
 
-module PostgresqlTypes.Line (Line) where
+    -- * Accessors
+    toA,
+    toB,
+    toC,
+
+    -- * Constructors
+    refineFromEquation,
+    normalizeFromEquation,
+  )
+where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import GHC.Float (castDoubleToWord64, castWord64ToDouble)
@@ -18,11 +28,14 @@ import qualified TextBuilder
 -- Stored as three @64@-bit floating point numbers (@A@, @B@, @C@).
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-geometric.html#DATATYPE-LINE).
-data Line = Line
-  { lineA :: Double,
-    lineB :: Double,
-    lineC :: Double
-  }
+data Line
+  = Line
+      -- | A coefficient
+      Double
+      -- | B coefficient
+      Double
+      -- | C coefficient
+      Double
   deriving stock (Eq, Ord)
   deriving (Show) via (ViaIsScalar Line)
 
@@ -75,19 +88,33 @@ instance IsScalar Line where
     _ <- Attoparsec.char '}'
     pure (Line a b c)
 
--- | Convert from a tuple of three doubles to a Line.
--- This is always safe since both represent the same data.
-instance IsSome (Double, Double, Double) Line where
-  to (Line a b c) = (a, b, c)
-  maybeFrom (a, b, c) = do
-    when (a == 0 && b == 0) empty
-    pure (Line a b c)
+-- * Accessors
 
--- | Direct conversion from tuple to Line.
---
--- Defaults to vertical line, when A and B equal 0.
-instance IsMany (Double, Double, Double) Line where
-  onfrom (a, b, c) =
-    if a == 0 && b == 0
-      then Line 1 0 c
-      else Line a b c
+-- | Extract the A coefficient from Ax + By + C = 0.
+toA :: Line -> Double
+toA (Line a _ _) = a
+
+-- | Extract the B coefficient from Ax + By + C = 0.
+toB :: Line -> Double
+toB (Line _ b _) = b
+
+-- | Extract the C coefficient from Ax + By + C = 0.
+toC :: Line -> Double
+toC (Line _ _ c) = c
+
+-- * Constructors
+
+-- | Construct a PostgreSQL 'Line' from equation coefficients A, B, C with validation.
+-- Returns 'Nothing' if both A and B are zero (invalid line).
+refineFromEquation :: Double -> Double -> Double -> Maybe Line
+refineFromEquation a b c = do
+  when (a == 0 && b == 0) empty
+  pure (Line a b c)
+
+-- | Construct a PostgreSQL 'Line' from equation coefficients A, B, C.
+-- Defaults to vertical line when A and B equal 0.
+normalizeFromEquation :: Double -> Double -> Double -> Line
+normalizeFromEquation a b c =
+  if a == 0 && b == 0
+    then Line 1 0 c
+    else Line a b c

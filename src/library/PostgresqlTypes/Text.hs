@@ -1,4 +1,14 @@
-module PostgresqlTypes.Text (Text) where
+module PostgresqlTypes.Text
+  ( Text,
+
+    -- * Accessors
+    toText,
+
+    -- * Constructors
+    normalizeFromText,
+    refineFromText,
+  )
+where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import Data.String
@@ -53,16 +63,25 @@ instance IsScalar Text where
   textualEncoder (Text base) = TextBuilder.text base
   textualDecoder = Text <$> Attoparsec.takeText
 
--- | Conversion from Haskell 'Data.Text.Text'.
--- Fails if the text contains null characters (not supported by PostgreSQL).
-instance IsSome Text.Text Text where
-  to (Text t) = t
-  maybeFrom text =
-    if Text.elem '\NUL' text
-      then Nothing
-      else Just (Text text)
+-- * Accessors
 
--- | Total conversion from Haskell 'Data.Text.Text'.
+-- | Extract the underlying 'Data.Text.Text' value.
+toText :: Text -> Text.Text
+toText (Text t) = t
+
+-- * Constructors
+
+-- | Construct a PostgreSQL 'Text' from a 'Data.Text.Text' value.
+--
 -- Strips null characters to ensure PostgreSQL compatibility.
-instance IsMany Text.Text Text where
-  onfrom = Text . Text.replace "\NUL" ""
+normalizeFromText :: Text.Text -> Text
+normalizeFromText = Text . Text.replace "\NUL" ""
+
+-- | Construct a PostgreSQL 'Text' from a 'Data.Text.Text' value.
+--
+-- Returns 'Nothing' if the text contains null characters (not supported by PostgreSQL).
+refineFromText :: Text.Text -> Maybe Text
+refineFromText text =
+  if Text.elem '\NUL' text
+    then Nothing
+    else Just (Text text)
