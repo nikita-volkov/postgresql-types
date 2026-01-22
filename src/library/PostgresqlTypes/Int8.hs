@@ -1,5 +1,5 @@
 module PostgresqlTypes.Int8
-  ( Int8,
+  ( Int8 (..),
 
     -- * Accessors
     toInt64,

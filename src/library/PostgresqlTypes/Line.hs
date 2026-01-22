@@ -1,10 +1,12 @@
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
 module PostgresqlTypes.Line
-  ( Line (..),
+  ( Line,
 
     -- * Accessors
-    toEquation,
+    toA,
+    toB,
+    toC,
 
     -- * Constructors
     refineFromEquation,
@@ -28,11 +30,14 @@ import qualified TextBuilder
 -- Stored as three @64@-bit floating point numbers (@A@, @B@, @C@).
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-geometric.html#DATATYPE-LINE).
-data Line = Line
-  { lineA :: Double,
-    lineB :: Double,
-    lineC :: Double
-  }
+data Line
+  = Line
+      -- | A coefficient
+      Double
+      -- | B coefficient
+      Double
+      -- | C coefficient
+      Double
   deriving stock (Eq, Ord)
   deriving (Show) via (ViaIsScalar Line)
 
@@ -87,23 +92,31 @@ instance IsScalar Line where
 
 -- * Accessors
 
--- | Extract the line equation coefficients (A, B, C) from Ax + By + C = 0.
-toEquation :: Line -> (Double, Double, Double)
-toEquation (Line a b c) = (a, b, c)
+-- | Extract the A coefficient from Ax + By + C = 0.
+toA :: Line -> Double
+toA (Line a _ _) = a
+
+-- | Extract the B coefficient from Ax + By + C = 0.
+toB :: Line -> Double
+toB (Line _ b _) = b
+
+-- | Extract the C coefficient from Ax + By + C = 0.
+toC :: Line -> Double
+toC (Line _ _ c) = c
 
 -- * Constructors
 
--- | Construct a PostgreSQL 'Line' from equation coefficients (A, B, C) with validation.
+-- | Construct a PostgreSQL 'Line' from equation coefficients A, B, C with validation.
 -- Returns 'Nothing' if both A and B are zero (invalid line).
-refineFromEquation :: (Double, Double, Double) -> Maybe Line
-refineFromEquation (a, b, c) = do
+refineFromEquation :: Double -> Double -> Double -> Maybe Line
+refineFromEquation a b c = do
   when (a == 0 && b == 0) empty
   pure (Line a b c)
 
--- | Construct a PostgreSQL 'Line' from equation coefficients (A, B, C).
+-- | Construct a PostgreSQL 'Line' from equation coefficients A, B, C.
 -- Defaults to vertical line when A and B equal 0.
-normalizeFromEquation :: (Double, Double, Double) -> Line
-normalizeFromEquation (a, b, c) =
+normalizeFromEquation :: Double -> Double -> Double -> Line
+normalizeFromEquation a b c =
   if a == 0 && b == 0
     then Line 1 0 c
     else Line a b c

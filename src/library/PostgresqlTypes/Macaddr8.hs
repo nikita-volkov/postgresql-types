@@ -1,10 +1,15 @@
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
-
 module PostgresqlTypes.Macaddr8
   ( Macaddr8 (..),
 
     -- * Accessors
-    toBytes,
+    toByte1,
+    toByte2,
+    toByte3,
+    toByte4,
+    toByte5,
+    toByte6,
+    toByte7,
+    toByte8,
 
     -- * Constructors
     fromBytes,
@@ -25,16 +30,16 @@ import qualified TextBuilder
 -- Example: @01:23:45:67:89:ab:cd:ef@
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-net-types.html#DATATYPE-MACADDR8).
-data Macaddr8 = Macaddr8
-  { macaddr8Byte1 :: Word8,
-    macaddr8Byte2 :: Word8,
-    macaddr8Byte3 :: Word8,
-    macaddr8Byte4 :: Word8,
-    macaddr8Byte5 :: Word8,
-    macaddr8Byte6 :: Word8,
-    macaddr8Byte7 :: Word8,
-    macaddr8Byte8 :: Word8
-  }
+data Macaddr8
+  = Macaddr8
+      Word8
+      Word8
+      Word8
+      Word8
+      Word8
+      Word8
+      Word8
+      Word8
   deriving stock (Eq, Ord)
   deriving (Show) via (ViaIsScalar Macaddr8)
 
@@ -129,12 +134,40 @@ instance IsScalar Macaddr8 where
 
 -- * Accessors
 
--- | Extract the 8-tuple of Word8 representing the MAC address.
-toBytes :: Macaddr8 -> (Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8)
-toBytes (Macaddr8 a b c d e f g h) = (a, b, c, d, e, f, g, h)
+-- | Extract the first byte of the MAC address.
+toByte1 :: Macaddr8 -> Word8
+toByte1 (Macaddr8 a _ _ _ _ _ _ _) = a
+
+-- | Extract the second byte of the MAC address.
+toByte2 :: Macaddr8 -> Word8
+toByte2 (Macaddr8 _ b _ _ _ _ _ _) = b
+
+-- | Extract the third byte of the MAC address.
+toByte3 :: Macaddr8 -> Word8
+toByte3 (Macaddr8 _ _ c _ _ _ _ _) = c
+
+-- | Extract the fourth byte of the MAC address.
+toByte4 :: Macaddr8 -> Word8
+toByte4 (Macaddr8 _ _ _ d _ _ _ _) = d
+
+-- | Extract the fifth byte of the MAC address.
+toByte5 :: Macaddr8 -> Word8
+toByte5 (Macaddr8 _ _ _ _ e _ _ _) = e
+
+-- | Extract the sixth byte of the MAC address.
+toByte6 :: Macaddr8 -> Word8
+toByte6 (Macaddr8 _ _ _ _ _ f _ _) = f
+
+-- | Extract the seventh byte of the MAC address.
+toByte7 :: Macaddr8 -> Word8
+toByte7 (Macaddr8 _ _ _ _ _ _ g _) = g
+
+-- | Extract the eighth byte of the MAC address.
+toByte8 :: Macaddr8 -> Word8
+toByte8 (Macaddr8 _ _ _ _ _ _ _ h) = h
 
 -- * Constructors
 
--- | Construct a PostgreSQL 'Macaddr8' from an 8-tuple of Word8.
-fromBytes :: (Word8, Word8, Word8, Word8, Word8, Word8, Word8, Word8) -> Macaddr8
-fromBytes (a, b, c, d, e, f, g, h) = Macaddr8 a b c d e f g h
+-- | Construct a PostgreSQL 'Macaddr8' from 8 bytes.
+fromBytes :: Word8 -> Word8 -> Word8 -> Word8 -> Word8 -> Word8 -> Word8 -> Word8 -> Macaddr8
+fromBytes = Macaddr8

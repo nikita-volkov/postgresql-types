@@ -1,5 +1,5 @@
 module PostgresqlTypes.Timestamp
-  ( Timestamp,
+  ( Timestamp (..),
 
     -- * Accessors
     toLocalTime,

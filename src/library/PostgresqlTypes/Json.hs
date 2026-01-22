@@ -1,5 +1,5 @@
 module PostgresqlTypes.Json
-  ( Json,
+  ( Json (..),
 
     -- * Accessors
     toValue,

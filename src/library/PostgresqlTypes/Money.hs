@@ -1,5 +1,5 @@
 module PostgresqlTypes.Money
-  ( Money,
+  ( Money (..),
 
     -- * Accessors
     toInt64,

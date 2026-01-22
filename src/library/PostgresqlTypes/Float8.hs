@@ -1,5 +1,5 @@
 module PostgresqlTypes.Float8
-  ( Float8,
+  ( Float8 (..),
 
     -- * Accessors
     toDouble,

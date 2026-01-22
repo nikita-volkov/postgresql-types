@@ -4,7 +4,8 @@ module PostgresqlTypes.Point
   ( Point (..),
 
     -- * Accessors
-    toCoordinates,
+    toX,
+    toY,
 
     -- * Constructors
     fromCoordinates,
@@ -26,10 +27,12 @@ import qualified TextBuilder
 -- Stored as two @64@-bit floating point numbers (@float8@) in PostgreSQL.
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-geometric.html#DATATYPE-GEOMETRIC-POINTS).
-data Point = Point
-  { pointX :: Double,
-    pointY :: Double
-  }
+data Point
+  = Point
+      -- | X coordinate
+      Double
+      -- | Y coordinate
+      Double
   deriving stock (Eq, Ord)
   deriving (Show) via (ViaIsScalar Point)
 
@@ -63,12 +66,16 @@ instance IsScalar Point where
 
 -- * Accessors
 
--- | Extract the coordinates as a tuple (x, y).
-toCoordinates :: Point -> (Double, Double)
-toCoordinates (Point x y) = (x, y)
+-- | Extract the x coordinate.
+toX :: Point -> Double
+toX (Point x _) = x
+
+-- | Extract the y coordinate.
+toY :: Point -> Double
+toY (Point _ y) = y
 
 -- * Constructors
 
--- | Construct a PostgreSQL 'Point' from coordinates (x, y).
-fromCoordinates :: (Double, Double) -> Point
-fromCoordinates (x, y) = Point x y
+-- | Construct a PostgreSQL 'Point' from coordinates x and y.
+fromCoordinates :: Double -> Double -> Point
+fromCoordinates x y = Point x y

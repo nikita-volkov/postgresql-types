@@ -1,5 +1,5 @@
 module PostgresqlTypes.Jsonb
-  ( Jsonb,
+  ( Jsonb (..),
 
     -- * Accessors
     toValue,

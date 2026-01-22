@@ -1,5 +1,5 @@
 module PostgresqlTypes.Oid
-  ( Oid,
+  ( Oid (..),
 
     -- * Accessors
     toWord32,

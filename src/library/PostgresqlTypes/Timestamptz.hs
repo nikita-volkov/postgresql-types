@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
 module PostgresqlTypes.Timestamptz
-  ( Timestamptz,
+  ( Timestamptz (..),
 
     -- * Accessors
     toUtcTime,

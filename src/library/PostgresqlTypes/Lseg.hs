@@ -4,7 +4,10 @@ module PostgresqlTypes.Lseg
   ( Lseg (..),
 
     -- * Accessors
-    toEndpoints,
+    toX1,
+    toY1,
+    toX2,
+    toY2,
 
     -- * Constructors
     fromEndpoints,
@@ -26,12 +29,16 @@ import qualified TextBuilder
 -- Stored as four @64@-bit floating point numbers: (@x1@, @y1@, @x2@, @y2@).
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-geometric.html#DATATYPE-LSEG).
-data Lseg = Lseg
-  { lsegX1 :: Double,
-    lsegY1 :: Double,
-    lsegX2 :: Double,
-    lsegY2 :: Double
-  }
+data Lseg
+  = Lseg
+      -- | X coordinate of first endpoint
+      Double
+      -- | Y coordinate of first endpoint
+      Double
+      -- | X coordinate of second endpoint
+      Double
+      -- | Y coordinate of second endpoint
+      Double
   deriving stock (Eq, Ord)
   deriving (Show) via (ViaIsScalar Lseg)
 
@@ -87,12 +94,24 @@ instance IsScalar Lseg where
 
 -- * Accessors
 
--- | Extract the endpoints as a 4-tuple (x1, y1, x2, y2).
-toEndpoints :: Lseg -> (Double, Double, Double, Double)
-toEndpoints (Lseg x1 y1 x2 y2) = (x1, y1, x2, y2)
+-- | Extract the X coordinate of the first endpoint.
+toX1 :: Lseg -> Double
+toX1 (Lseg x1 _ _ _) = x1
+
+-- | Extract the Y coordinate of the first endpoint.
+toY1 :: Lseg -> Double
+toY1 (Lseg _ y1 _ _) = y1
+
+-- | Extract the X coordinate of the second endpoint.
+toX2 :: Lseg -> Double
+toX2 (Lseg _ _ x2 _) = x2
+
+-- | Extract the Y coordinate of the second endpoint.
+toY2 :: Lseg -> Double
+toY2 (Lseg _ _ _ y2) = y2
 
 -- * Constructors
 
--- | Construct a PostgreSQL 'Lseg' from endpoints (x1, y1, x2, y2).
-fromEndpoints :: (Double, Double, Double, Double) -> Lseg
-fromEndpoints (x1, y1, x2, y2) = Lseg x1 y1 x2 y2
+-- | Construct a PostgreSQL 'Lseg' from endpoint coordinates.
+fromEndpoints :: Double -> Double -> Double -> Double -> Lseg
+fromEndpoints x1 y1 x2 y2 = Lseg x1 y1 x2 y2

@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
-
 module PostgresqlTypes.Polygon
   ( Polygon (..),
 
@@ -31,9 +29,8 @@ import qualified TextBuilder
 -- Stored as the number of points followed by the point coordinates.
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-geometric.html#DATATYPE-POLYGON).
-newtype Polygon = Polygon
-  { polygonPoints :: UnboxedVector.Vector (Double, Double)
-  }
+newtype Polygon
+  = Polygon (UnboxedVector.Vector (Double, Double))
   deriving stock (Eq, Ord)
   deriving (Show) via (ViaIsScalar Polygon)
 

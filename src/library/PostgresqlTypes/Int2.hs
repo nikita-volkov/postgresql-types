@@ -1,5 +1,5 @@
 module PostgresqlTypes.Int2
-  ( Int2,
+  ( Int2 (..),
 
     -- * Accessors
     toInt16,
