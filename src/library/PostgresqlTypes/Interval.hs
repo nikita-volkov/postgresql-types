@@ -44,7 +44,7 @@ data Interval = Interval
     micros :: Int64
   }
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsScalar Interval)
+  deriving (Show, Read, IsString) via (ViaIsScalar Interval)
 
 instance Bounded Interval where
   minBound =

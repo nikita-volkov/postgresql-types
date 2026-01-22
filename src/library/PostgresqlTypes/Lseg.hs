@@ -38,7 +38,7 @@ data Lseg
       -- | Y coordinate of second endpoint
       Double
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsScalar Lseg)
+  deriving (Show, Read, IsString) via (ViaIsScalar Lseg)
 
 instance Arbitrary Lseg where
   arbitrary = Lseg <$> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary

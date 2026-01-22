@@ -44,7 +44,7 @@ import qualified TextBuilder
 -- 'PostgresqlTypes.Char.Char' in Haskell. These are completely different types in PostgreSQL.
 data Bpchar (numChars :: TypeLits.Nat) = Bpchar Text
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsScalar (Bpchar numChars))
+  deriving (Show, Read, IsString) via (ViaIsScalar (Bpchar numChars))
 
 instance (TypeLits.KnownNat numChars) => Arbitrary (Bpchar numChars) where
   arbitrary = do

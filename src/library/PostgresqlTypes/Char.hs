@@ -42,7 +42,7 @@ import qualified TextBuilder
 -- these are entirely different types in PostgreSQL.
 newtype Char = Char Word8
   deriving newtype (Eq, Ord)
-  deriving (Show) via (ViaIsScalar Char)
+  deriving (Show, Read, IsString) via (ViaIsScalar Char)
 
 instance Arbitrary Char where
   arbitrary =

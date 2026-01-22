@@ -35,7 +35,7 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-json.html).
 newtype Json = Json Aeson.Value
   deriving newtype (Eq, Ord)
-  deriving (Show) via (ViaIsScalar Json)
+  deriving (Show, Read, IsString) via (ViaIsScalar Json)
 
 instance Arbitrary Json where
   arbitrary = normalizeFromAesonValue <$> arbitrary

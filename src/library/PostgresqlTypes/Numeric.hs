@@ -53,7 +53,7 @@ data Numeric (precision :: TypeLits.Nat) (scale :: TypeLits.Nat)
   | PosInfinityNumeric
   | NanNumeric
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsScalar (Numeric precision scale))
+  deriving (Show, Read, IsString) via (ViaIsScalar (Numeric precision scale))
 
 instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => Arbitrary (Numeric precision scale) where
   arbitrary =

@@ -32,7 +32,7 @@ data Point
       -- | Y coordinate
       Double
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsScalar Point)
+  deriving (Show, Read, IsString) via (ViaIsScalar Point)
 
 instance Arbitrary Point where
   arbitrary = Point <$> arbitrary <*> arbitrary

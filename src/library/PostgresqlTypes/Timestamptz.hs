@@ -31,7 +31,7 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-datetime.html#DATATYPE-TIMEZONES).
 newtype Timestamptz = Timestamptz Int64
   deriving newtype (Eq, Ord)
-  deriving (Show) via (ViaIsScalar Timestamptz)
+  deriving (Show, Read, IsString) via (ViaIsScalar Timestamptz)
 
 instance Arbitrary Timestamptz where
   arbitrary = Timestamptz <$> QuickCheck.choose (minMicroseconds, maxMicroseconds)

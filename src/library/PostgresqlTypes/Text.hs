@@ -27,7 +27,7 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-character.html).
 newtype Text = Text Text.Text
   deriving newtype (Eq, Ord)
-  deriving (Show) via (ViaIsScalar Text)
+  deriving (Show, Read, IsString) via (ViaIsScalar Text)
 
 instance Arbitrary Text where
   arbitrary =

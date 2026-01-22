@@ -42,7 +42,7 @@ data Varbit (maxLen :: TypeLits.Nat)
       -- | Bit data (packed into bytes)
       ByteString
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsScalar (Varbit maxLen))
+  deriving (Show, Read, IsString) via (ViaIsScalar (Varbit maxLen))
 
 instance (TypeLits.KnownNat maxLen) => Arbitrary (Varbit maxLen) where
   arbitrary = do

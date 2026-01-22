@@ -32,7 +32,7 @@ import qualified TextBuilder
 newtype Polygon
   = Polygon (UnboxedVector.Vector (Double, Double))
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsScalar Polygon)
+  deriving (Show, Read, IsString) via (ViaIsScalar Polygon)
 
 instance Arbitrary Polygon where
   arbitrary = do

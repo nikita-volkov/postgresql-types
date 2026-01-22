@@ -23,7 +23,7 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-numeric.html#DATATYPE-FLOAT).
 newtype Float4 = Float4 Float
   deriving newtype (Eq, Ord, Arbitrary)
-  deriving (Show) via (ViaIsScalar Float4)
+  deriving (Show, Read, IsString) via (ViaIsScalar Float4)
 
 instance IsScalar Float4 where
   typeName = Tagged "float4"

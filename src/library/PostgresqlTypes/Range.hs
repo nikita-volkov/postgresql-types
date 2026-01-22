@@ -48,7 +48,7 @@ data Range a
   = EmptyRange
   | BoundedRange (Maybe a) (Maybe a)
   deriving stock (Eq, Functor)
-  deriving (Show) via (ViaIsScalar (Range a))
+  deriving (Show, Read, IsString) via (ViaIsScalar (Range a))
 
 instance (IsRangeElement a) => IsScalar (Range a) where
   typeName = retag (rangeTypeName @a)

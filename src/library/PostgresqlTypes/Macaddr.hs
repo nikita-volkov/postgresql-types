@@ -38,7 +38,7 @@ data Macaddr
       Word8
       Word8
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsScalar Macaddr)
+  deriving (Show, Read, IsString) via (ViaIsScalar Macaddr)
 
 instance Arbitrary Macaddr where
   arbitrary = do

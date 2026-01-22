@@ -49,7 +49,7 @@ data Macaddr8
       -- | Eighth byte
       Word8
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsScalar Macaddr8)
+  deriving (Show, Read, IsString) via (ViaIsScalar Macaddr8)
 
 instance Arbitrary Macaddr8 where
   arbitrary = do

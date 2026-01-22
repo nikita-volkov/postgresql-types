@@ -50,7 +50,7 @@ data Cidr
       -- | Network mask length (0-128).
       Word8
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsScalar Cidr)
+  deriving (Show, Read, IsString) via (ViaIsScalar Cidr)
 
 instance Arbitrary Cidr where
   arbitrary = do

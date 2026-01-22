@@ -49,7 +49,7 @@ data Inet
       -- | Network mask length (0-128).
       Word8
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsScalar Inet)
+  deriving (Show, Read, IsString) via (ViaIsScalar Inet)
 
 instance Arbitrary Inet where
   arbitrary = do

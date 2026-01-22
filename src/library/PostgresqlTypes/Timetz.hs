@@ -40,7 +40,7 @@ data Timetz
       -- | Timezone offset in seconds (positive is east of UTC, negative is west of UTC)
       Offset.TimetzOffset
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsScalar Timetz)
+  deriving (Show, Read, IsString) via (ViaIsScalar Timetz)
 
 instance Arbitrary Timetz where
   arbitrary = do

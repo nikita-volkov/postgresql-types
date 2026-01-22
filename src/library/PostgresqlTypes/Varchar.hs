@@ -30,7 +30,7 @@ import qualified TextBuilder
 -- Character strings up to this length can be represented by this type.
 data Varchar (maxLen :: TypeLits.Nat) = Varchar Text.Text
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsScalar (Varchar maxLen))
+  deriving (Show, Read, IsString) via (ViaIsScalar (Varchar maxLen))
 
 instance (TypeLits.KnownNat maxLen) => Arbitrary (Varchar maxLen) where
   arbitrary = do

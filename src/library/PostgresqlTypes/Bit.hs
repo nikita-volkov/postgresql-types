@@ -38,7 +38,7 @@ newtype Bit (numBits :: TypeLits.Nat)
       -- | Bit data (packed into bytes)
       ByteString
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsScalar (Bit numBits))
+  deriving (Show, Read, IsString) via (ViaIsScalar (Bit numBits))
 
 instance (TypeLits.KnownNat numBits) => Arbitrary (Bit numBits) where
   arbitrary = do

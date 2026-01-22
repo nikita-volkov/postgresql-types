@@ -32,7 +32,7 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-datetime.html#DATATYPE-TIME).
 newtype Time = Time Int64
   deriving newtype (Eq, Ord)
-  deriving (Show) via (ViaIsScalar Time)
+  deriving (Show, Read, IsString) via (ViaIsScalar Time)
 
 instance Arbitrary Time where
   arbitrary = Time <$> QuickCheck.choose (toMicroseconds minBound, toMicroseconds maxBound)

@@ -40,7 +40,7 @@ data Box
       -- | Upper-right y coordinate
       Double
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsScalar Box)
+  deriving (Show, Read, IsString) via (ViaIsScalar Box)
 
 instance Arbitrary Box where
   arbitrary = do

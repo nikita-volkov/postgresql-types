@@ -35,7 +35,7 @@ data Path
       -- | Points in the path
       (UnboxedVector.Vector (Double, Double))
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsScalar Path)
+  deriving (Show, Read, IsString) via (ViaIsScalar Path)
 
 instance Arbitrary Path where
   arbitrary = do

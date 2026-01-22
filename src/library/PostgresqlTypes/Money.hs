@@ -31,7 +31,7 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-money.html).
 newtype Money = Money Int64
   deriving newtype (Eq, Ord, Arbitrary)
-  deriving (Show) via (ViaIsScalar Money)
+  deriving (Show, Read, IsString) via (ViaIsScalar Money)
 
 instance IsScalar Money where
   typeName = Tagged "money"

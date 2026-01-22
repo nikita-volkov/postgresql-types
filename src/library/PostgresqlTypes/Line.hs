@@ -37,7 +37,7 @@ data Line
       -- | C coefficient
       Double
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsScalar Line)
+  deriving (Show, Read, IsString) via (ViaIsScalar Line)
 
 instance Arbitrary Line where
   arbitrary = do

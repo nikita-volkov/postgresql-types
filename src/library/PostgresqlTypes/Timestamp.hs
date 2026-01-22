@@ -31,7 +31,7 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-datetime.html#DATATYPE-DATETIME).
 newtype Timestamp = Timestamp Int64
   deriving newtype (Eq, Ord)
-  deriving (Show) via (ViaIsScalar Timestamp)
+  deriving (Show, Read, IsString) via (ViaIsScalar Timestamp)
 
 instance Arbitrary Timestamp where
   arbitrary = Timestamp <$> QuickCheck.choose (minMicroseconds, maxMicroseconds)

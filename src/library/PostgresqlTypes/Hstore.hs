@@ -32,7 +32,7 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/hstore.html).
 newtype Hstore = Hstore (Map.Map Text (Maybe Text))
   deriving newtype (Eq, Ord)
-  deriving (Show) via (ViaIsScalar Hstore)
+  deriving (Show, Read, IsString) via (ViaIsScalar Hstore)
 
 instance Arbitrary Hstore where
   arbitrary = do

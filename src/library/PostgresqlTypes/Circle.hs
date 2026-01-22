@@ -37,7 +37,7 @@ data Circle
       -- | Circle radius (must be non-negative)
       Double
   deriving stock (Eq, Ord)
-  deriving (Show) via (ViaIsScalar Circle)
+  deriving (Show, Read, IsString) via (ViaIsScalar Circle)
 
 instance Arbitrary Circle where
   arbitrary = do

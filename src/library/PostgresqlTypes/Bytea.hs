@@ -24,7 +24,7 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-binary.html).
 newtype Bytea = Bytea ByteString
   deriving newtype (Eq, Ord, Arbitrary)
-  deriving (Show) via (ViaIsScalar Bytea)
+  deriving (Show, Read, IsString) via (ViaIsScalar Bytea)
 
 instance IsScalar Bytea where
   typeName = Tagged "bytea"
