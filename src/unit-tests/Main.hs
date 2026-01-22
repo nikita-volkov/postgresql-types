@@ -1,57 +1,57 @@
 module Main (main) where
 
-import qualified BitSpec
-import qualified BoolSpec
-import qualified BoxSpec
-import qualified BpcharSpec
-import qualified ByteaSpec
-import qualified CharSpec
-import qualified CidrSpec
-import qualified CircleSpec
 import qualified Data.Attoparsec.Text
 import Data.Proxy
 import Data.Tagged
 import qualified Data.Text as Text
 import Data.Typeable
-import qualified DateSpec
-import qualified Float4Spec
-import qualified Float8Spec
-import qualified HstoreSpec
-import qualified InetSpec
-import qualified Int2Spec
-import qualified Int4Spec
-import qualified Int8Spec
-import qualified IntervalSpec
-import qualified JsonSpec
-import qualified JsonbSpec
-import qualified LineSpec
-import qualified LsegSpec
-import qualified Macaddr8Spec
-import qualified MacaddrSpec
-import qualified MoneySpec
-import qualified MultirangeSpec
-import qualified NumericSpec
-import qualified OidSpec
-import qualified PathSpec
-import qualified PointSpec
-import qualified PolygonSpec
 import qualified PostgresqlTypes
 import qualified PostgresqlTypes.Algebra
+import qualified PostgresqlTypes.BitSpec
+import qualified PostgresqlTypes.BoolSpec
+import qualified PostgresqlTypes.BoxSpec
+import qualified PostgresqlTypes.BpcharSpec
+import qualified PostgresqlTypes.ByteaSpec
+import qualified PostgresqlTypes.CharSpec
+import qualified PostgresqlTypes.CidrSpec
+import qualified PostgresqlTypes.CircleSpec
+import qualified PostgresqlTypes.DateSpec
+import qualified PostgresqlTypes.Float4Spec
+import qualified PostgresqlTypes.Float8Spec
+import qualified PostgresqlTypes.HstoreSpec
+import qualified PostgresqlTypes.InetSpec
+import qualified PostgresqlTypes.Int2Spec
+import qualified PostgresqlTypes.Int4Spec
+import qualified PostgresqlTypes.Int8Spec
+import qualified PostgresqlTypes.IntervalSpec
+import qualified PostgresqlTypes.JsonSpec
+import qualified PostgresqlTypes.JsonbSpec
+import qualified PostgresqlTypes.LineSpec
+import qualified PostgresqlTypes.LsegSpec
+import qualified PostgresqlTypes.Macaddr8Spec
+import qualified PostgresqlTypes.MacaddrSpec
+import qualified PostgresqlTypes.MoneySpec
+import qualified PostgresqlTypes.MultirangeSpec
+import qualified PostgresqlTypes.NumericSpec
+import qualified PostgresqlTypes.OidSpec
+import qualified PostgresqlTypes.PathSpec
+import qualified PostgresqlTypes.PointSpec
+import qualified PostgresqlTypes.PolygonSpec
+import qualified PostgresqlTypes.RangeSpec
+import qualified PostgresqlTypes.TextSpec
+import qualified PostgresqlTypes.TimeSpec
+import qualified PostgresqlTypes.TimestampSpec
+import qualified PostgresqlTypes.TimestamptzSpec
+import qualified PostgresqlTypes.TimetzSpec
+import qualified PostgresqlTypes.UuidSpec
+import qualified PostgresqlTypes.VarbitSpec
+import qualified PostgresqlTypes.VarcharSpec
 import qualified PtrPeeker
 import qualified PtrPoker.Write
-import qualified RangeSpec
 import Test.Hspec
 import Test.QuickCheck
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
-import qualified TextSpec
-import qualified TimeSpec
-import qualified TimestampSpec
-import qualified TimestamptzSpec
-import qualified TimetzSpec
-import qualified UuidSpec
-import qualified VarbitSpec
-import qualified VarcharSpec
 import Prelude
 
 main :: IO ()
@@ -112,45 +112,45 @@ main = hspec $ parallel do
   testIsScalar @(PostgresqlTypes.Varbit 128) Proxy
   testIsScalar @(PostgresqlTypes.Varchar 255) Proxy
   -- Lawful-conversions tests removed as we migrated to type-specific APIs
-  describe "Bit" BitSpec.spec
-  describe "Bool" BoolSpec.spec
-  describe "Box" BoxSpec.spec
-  describe "Bpchar" BpcharSpec.spec
-  describe "Bytea" ByteaSpec.spec
-  describe "Char" CharSpec.spec
-  describe "Cidr" CidrSpec.spec
-  describe "Circle" CircleSpec.spec
-  describe "Date" DateSpec.spec
-  describe "Float4" Float4Spec.spec
-  describe "Float8" Float8Spec.spec
-  describe "Hstore" HstoreSpec.spec
-  describe "Inet" InetSpec.spec
-  describe "Int2" Int2Spec.spec
-  describe "Int4" Int4Spec.spec
-  describe "Int8" Int8Spec.spec
-  describe "Interval" IntervalSpec.spec
-  describe "Json" JsonSpec.spec
-  describe "Jsonb" JsonbSpec.spec
-  describe "Line" LineSpec.spec
-  describe "Lseg" LsegSpec.spec
-  describe "Macaddr" MacaddrSpec.spec
-  describe "Macaddr8" Macaddr8Spec.spec
-  describe "Money" MoneySpec.spec
-  describe "Multirange" MultirangeSpec.spec
-  describe "Numeric" NumericSpec.spec
-  describe "Oid" OidSpec.spec
-  describe "Path" PathSpec.spec
-  describe "Point" PointSpec.spec
-  describe "Polygon" PolygonSpec.spec
-  describe "Range" RangeSpec.spec
-  describe "Text" TextSpec.spec
-  describe "Time" TimeSpec.spec
-  describe "Timestamp" TimestampSpec.spec
-  describe "Timestamptz" TimestamptzSpec.spec
-  describe "Timetz" TimetzSpec.spec
-  describe "Uuid" UuidSpec.spec
-  describe "Varbit" VarbitSpec.spec
-  describe "Varchar" VarcharSpec.spec
+  describe "Bit" PostgresqlTypes.BitSpec.spec
+  describe "Bool" PostgresqlTypes.BoolSpec.spec
+  describe "Box" PostgresqlTypes.BoxSpec.spec
+  describe "Bpchar" PostgresqlTypes.BpcharSpec.spec
+  describe "Bytea" PostgresqlTypes.ByteaSpec.spec
+  describe "Char" PostgresqlTypes.CharSpec.spec
+  describe "Cidr" PostgresqlTypes.CidrSpec.spec
+  describe "Circle" PostgresqlTypes.CircleSpec.spec
+  describe "Date" PostgresqlTypes.DateSpec.spec
+  describe "Float4" PostgresqlTypes.Float4Spec.spec
+  describe "Float8" PostgresqlTypes.Float8Spec.spec
+  describe "Hstore" PostgresqlTypes.HstoreSpec.spec
+  describe "Inet" PostgresqlTypes.InetSpec.spec
+  describe "Int2" PostgresqlTypes.Int2Spec.spec
+  describe "Int4" PostgresqlTypes.Int4Spec.spec
+  describe "Int8" PostgresqlTypes.Int8Spec.spec
+  describe "Interval" PostgresqlTypes.IntervalSpec.spec
+  describe "Json" PostgresqlTypes.JsonSpec.spec
+  describe "Jsonb" PostgresqlTypes.JsonbSpec.spec
+  describe "Line" PostgresqlTypes.LineSpec.spec
+  describe "Lseg" PostgresqlTypes.LsegSpec.spec
+  describe "Macaddr" PostgresqlTypes.MacaddrSpec.spec
+  describe "Macaddr8" PostgresqlTypes.Macaddr8Spec.spec
+  describe "Money" PostgresqlTypes.MoneySpec.spec
+  describe "Multirange" PostgresqlTypes.MultirangeSpec.spec
+  describe "Numeric" PostgresqlTypes.NumericSpec.spec
+  describe "Oid" PostgresqlTypes.OidSpec.spec
+  describe "Path" PostgresqlTypes.PathSpec.spec
+  describe "Point" PostgresqlTypes.PointSpec.spec
+  describe "Polygon" PostgresqlTypes.PolygonSpec.spec
+  describe "Range" PostgresqlTypes.RangeSpec.spec
+  describe "Text" PostgresqlTypes.TextSpec.spec
+  describe "Time" PostgresqlTypes.TimeSpec.spec
+  describe "Timestamp" PostgresqlTypes.TimestampSpec.spec
+  describe "Timestamptz" PostgresqlTypes.TimestamptzSpec.spec
+  describe "Timetz" PostgresqlTypes.TimetzSpec.spec
+  describe "Uuid" PostgresqlTypes.UuidSpec.spec
+  describe "Varbit" PostgresqlTypes.VarbitSpec.spec
+  describe "Varchar" PostgresqlTypes.VarcharSpec.spec
 
 -- | Test textual encoder/decoder roundtrip
 testIsScalar ::
