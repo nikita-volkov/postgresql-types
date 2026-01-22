@@ -1,14 +1,16 @@
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
-
 module PostgresqlTypes.Box
-  ( Box (..),
+  ( Box,
 
     -- * Accessors
+    toX1,
+    toY1,
+    toX2,
+    toY2,
     toCorners,
 
     -- * Constructors
-    refineFromCorners,
     normalizeFromCorners,
+    refineFromCorners,
   )
 where
 
@@ -28,16 +30,16 @@ import qualified TextBuilder
 -- The box is normalized so that @x1 <= x2@ and @y1 <= y2@.
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-geometric.html#DATATYPE-GEOMETRIC-BOXES).
-data Box = Box
-  { -- | Lower-left x coordinate
-    boxX1 :: Double,
-    -- | Lower-left y coordinate
-    boxY1 :: Double,
-    -- | Upper-right x coordinate
-    boxX2 :: Double,
-    -- | Upper-right y coordinate
-    boxY2 :: Double
-  }
+data Box
+  = Box
+      -- | Lower-left x coordinate
+      Double
+      -- | Lower-left y coordinate
+      Double
+      -- | Upper-right x coordinate
+      Double
+      -- | Upper-right y coordinate
+      Double
   deriving stock (Eq, Ord)
   deriving (Show) via (ViaIsScalar Box)
 
@@ -47,11 +49,10 @@ instance Arbitrary Box where
     y1 <- arbitrary
     x2 <- arbitrary
     y2 <- arbitrary
-    -- Normalize the box so x1 <= x2 and y1 <= y2
-    pure (Box (min x1 x2) (min y1 y2) (max x1 x2) (max y1 y2))
+    pure (normalizeFromCorners x1 y1 x2 y2)
 
   shrink (Box x1 y1 x2 y2) =
-    [ Box (min x1' x2') (min y1' y2') (max x1' x2') (max y1' y2')
+    [ normalizeFromCorners x1' y1' x2' y2'
     | (x1', y1', x2', y2') <- shrink (x1, y1, x2, y2)
     ]
 
@@ -100,9 +101,25 @@ instance IsScalar Box where
     y2 <- Attoparsec.double
     _ <- Attoparsec.char ')'
     -- PostgreSQL may return coordinates in any order, normalize to ensure x1 <= x2 and y1 <= y2
-    pure (Box (min x1 x2) (min y1 y2) (max x1 x2) (max y1 y2))
+    pure (normalizeFromCorners x1 y1 x2 y2)
 
 -- * Accessors
+
+-- | Extract the lower-left x coordinate.
+toX1 :: Box -> Double
+toX1 (Box x1 _ _ _) = x1
+
+-- | Extract the lower-left y coordinate.
+toY1 :: Box -> Double
+toY1 (Box _ y1 _ _) = y1
+
+-- | Extract the upper-right x coordinate.
+toX2 :: Box -> Double
+toX2 (Box _ _ x2 _) = x2
+
+-- | Extract the upper-right y coordinate.
+toY2 :: Box -> Double
+toY2 (Box _ _ _ y2) = y2
 
 -- | Extract the box corners as (lowerX, lowerY, upperX, upperY).
 toCorners :: Box -> (Double, Double, Double, Double)
@@ -110,15 +127,24 @@ toCorners (Box x1 y1 x2 y2) = (x1, y1, x2, y2)
 
 -- * Constructors
 
+-- | Construct a PostgreSQL 'Box' from corners (x1, y1, x2, y2).
+-- Normalizes coordinates to ensure lowerX <= upperX and lowerY <= upperY.
+normalizeFromCorners :: Double -> Double -> Double -> Double -> Box
+normalizeFromCorners x1 y1 x2 y2 =
+  if x1 <= x2
+    then
+      if y1 <= y2
+        then Box x1 y1 x2 y2
+        else Box x1 y2 x2 y1
+    else
+      if y1 <= y2
+        then Box x2 y1 x1 y2
+        else Box x2 y2 x1 y1
+
 -- | Construct a PostgreSQL 'Box' from corners (lowerX, lowerY, upperX, upperY) with validation.
 -- Returns 'Nothing' if lowerX > upperX or lowerY > upperY.
-refineFromCorners :: (Double, Double, Double, Double) -> Maybe Box
-refineFromCorners (x1, y1, x2, y2) =
+refineFromCorners :: Double -> Double -> Double -> Double -> Maybe Box
+refineFromCorners x1 y1 x2 y2 =
   if x1 <= x2 && y1 <= y2
     then Just (Box x1 y1 x2 y2)
     else Nothing
-
--- | Construct a PostgreSQL 'Box' from corners (x1, y1, x2, y2).
--- Normalizes coordinates to ensure lowerX <= upperX and lowerY <= upperY.
-normalizeFromCorners :: (Double, Double, Double, Double) -> Box
-normalizeFromCorners (x1, y1, x2, y2) = Box (min x1 x2) (min y1 y2) (max x1 x2) (max y1 y2)
