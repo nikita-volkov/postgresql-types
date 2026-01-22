@@ -4,7 +4,6 @@ import Data.Data (Proxy (Proxy))
 import Data.Int
 import Data.Maybe
 import qualified Data.Time as Time
-import qualified LawfulConversions
 import qualified PostgresqlTypes.Interval as Interval
 import Test.Hspec
 import Test.QuickCheck
@@ -184,27 +183,26 @@ spec = do
     describe "Conversion instances" do
       describe "IsSome (Int32, Int32, Int64) Interval" do
         it "converts valid values" do
-          let tuple = (12, 5, 1_000_000)
-              result = LawfulConversions.maybeFrom @(Int32, Int32, Int64) @(Interval.Interval) tuple
+          let result = Interval.refineFromMonthsDaysAndMicroseconds 12 5 1_000_000
           result `shouldSatisfy` isJust
 
         it "rejects out-of-range values" do
           let maxMonths = Interval.toMonths (maxBound :: Interval.Interval)
-              tuple = (maxMonths + 1, 0, 0)
-              result = LawfulConversions.maybeFrom @(Int32, Int32, Int64) @(Interval.Interval) tuple
+              result = Interval.refineFromMonthsDaysAndMicroseconds (maxMonths + 1) 0 0
           result `shouldBe` Nothing
 
         it "roundtrips valid values" do
           QuickCheck.property \(interval :: Interval.Interval) ->
-            let tuple = LawfulConversions.to @(Int32, Int32, Int64) interval
-                restored = LawfulConversions.maybeFrom @(Int32, Int32, Int64) @(Interval.Interval) tuple
+            let months = Interval.toMonths interval
+                days = Interval.toDays interval
+                microseconds = Interval.toMicroseconds interval
+                restored = Interval.refineFromMonthsDaysAndMicroseconds months days microseconds
              in restored === Just interval
 
       describe "IsMany (Int32, Int32, Int64) Interval" do
         it "normalizes out-of-range values" do
           let maxMonths = Interval.toMonths (maxBound :: Interval.Interval)
-              tuple = (maxMonths + 100, 0, 0)
-              interval = LawfulConversions.onfrom @(Int32, Int32, Int64) @(Interval.Interval) tuple
+              interval = Interval.normalizeFromMonthsDaysAndMicroseconds (maxMonths + 100) 0 0
           -- Value should be clamped
           Interval.toMonths interval `shouldBe` maxMonths
 

@@ -105,34 +105,6 @@ instance IsScalar Timetz where
             micros = foldl' (\acc c -> acc * 10 + fromIntegral (digitToInt c)) 0 paddedDigits
         pure micros
 
--- | Convert from a tuple of time in microseconds and time zone offset in seconds to Timetz.
-instance IsSome (Int64, Int32) Timetz where
-  to (Timetz time offset) =
-    (Time.toMicroseconds time, Offset.toSeconds offset)
-  maybeFrom (microseconds, offset) = do
-    time <- Time.refineFromMicroseconds microseconds
-    offset <- Offset.refineFromSeconds offset
-    pure (Timetz time offset)
-
--- | Normalize from time in microseconds and time zone offset in seconds, ensuring valid time range.
-instance IsMany (Int64, Int32) Timetz where
-  onfrom (time, offset) =
-    Timetz (Time.normalizeFromMicroseconds time) (Offset.normalizeFromSeconds offset)
-
-instance IsSome (Time.TimetzTime, Offset.TimetzOffset) Timetz where
-  to (Timetz time offset) = (time, offset)
-
-instance IsSome Timetz (Time.TimetzTime, Offset.TimetzOffset) where
-  to (time, offset) = Timetz time offset
-
-instance IsMany (Time.TimetzTime, Offset.TimetzOffset) Timetz
-
-instance IsMany Timetz (Time.TimetzTime, Offset.TimetzOffset)
-
-instance Is (Time.TimetzTime, Offset.TimetzOffset) Timetz
-
-instance Is Timetz (Time.TimetzTime, Offset.TimetzOffset)
-
 -- * Accessors
 
 -- | Extract time in microseconds since midnight.

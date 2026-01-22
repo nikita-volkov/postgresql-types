@@ -1,8 +1,24 @@
-module PostgresqlTypes.Range (Range) where
+module PostgresqlTypes.Range
+  ( Range,
+
+    -- * Accessors
+    isEmpty,
+    fold,
+
+    -- * Constructors
+    empty,
+    unbounded,
+    normalizeBounded,
+    refineBounded,
+
+    -- ** Combinators
+    mergeIfOverlappingOrAdjacent,
+  )
+where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import PostgresqlTypes.Algebra
-import PostgresqlTypes.Prelude
+import PostgresqlTypes.Prelude hiding (empty, fold)
 import PostgresqlTypes.Via
 import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
@@ -152,27 +168,106 @@ instance (Arbitrary a, Ord a) => Arbitrary (Range a) where
         )
       ]
 
--- |
--- Interprets values of @(Maybe (Maybe a, Maybe a))@ in the following way:
+instance (Ord a) => Ord (Range a) where
+  compare EmptyRange EmptyRange = EQ
+  compare EmptyRange (BoundedRange _ _) = LT
+  compare (BoundedRange _ _) EmptyRange = GT
+  compare (BoundedRange lower1 upper1) (BoundedRange lower2 upper2) =
+    case compareBounds lower1 lower2 of
+      EQ -> compareBounds upper1 upper2
+      other -> other
+    where
+      compareBounds Nothing Nothing = EQ
+      compareBounds Nothing (Just _) = LT
+      compareBounds (Just _) Nothing = GT
+      compareBounds (Just v1) (Just v2) = compare v1 v2
+
+isEmpty :: Range a -> Bool
+isEmpty = \case
+  EmptyRange -> True
+  BoundedRange _ _ -> False
+
+-- | Pattern matching on 'Range'.
+fold ::
+  -- | Empty range case.
+  b ->
+  -- | Bounded range case.
+  (Maybe a -> Maybe a -> b) ->
+  (Range a -> b)
+fold emptyCase boundedCase = \case
+  EmptyRange -> emptyCase
+  BoundedRange lower upper -> boundedCase lower upper
+
+-- | Constructs an empty range.
+empty :: Range a
+empty = EmptyRange
+
+-- | Constructs a range without bounds (infinity to infinity).
+unbounded :: Range a
+unbounded = BoundedRange Nothing Nothing
+
+-- | Constructs a bounded range normalizing the bounds.
+-- If the lower bound is not less than the upper bound, returns 'empty'.
+normalizeBounded :: (Ord a) => Maybe a -> Maybe a -> Range a
+normalizeBounded = \case
+  Just lower -> \case
+    Just upper ->
+      if lower < upper
+        then BoundedRange (Just lower) (Just upper)
+        else EmptyRange
+    Nothing -> BoundedRange (Just lower) Nothing
+  Nothing -> \case
+    Just upper -> BoundedRange Nothing (Just upper)
+    Nothing -> BoundedRange Nothing Nothing
+
+-- | Constructs a bounded range refining the bounds.
+-- If the lower bound is not less than the upper bound, returns 'Nothing'.
+refineBounded :: (Ord a) => Maybe a -> Maybe a -> Maybe (Range a)
+refineBounded = \case
+  Just lower -> \case
+    Just upper ->
+      if lower < upper
+        then Just (BoundedRange (Just lower) (Just upper))
+        else Nothing
+    Nothing -> Just (BoundedRange (Just lower) Nothing)
+  Nothing -> \case
+    Just upper -> Just (BoundedRange Nothing (Just upper))
+    Nothing -> Just (BoundedRange Nothing Nothing)
+
+-- | Merge two ranges if they are overlapping or adjacent.
+-- Returns 'Just' the merged range if they overlap or are adjacent, 'Nothing' otherwise.
 --
--- - @Nothing@ - empty range (@empty@)
--- - @Just (Nothing, Nothing)@ - infinity to infinity (@(,)@)
--- - @Just (Just lower, Just upper)@ - bounded range (@[lower, upper)@)
--- - @Just (Just lower, Nothing)@ - half-open range (@[lower,)@)
--- - @Just (Nothing, Just upper)@ - half-open range (@(,upper)@)
-instance (Ord a) => IsSome (Maybe (Maybe a, Maybe a)) (Range a) where
-  to = \case
-    EmptyRange -> Nothing
-    BoundedRange lower upper -> Just (lower, upper)
-
-  maybeFrom = \case
-    Just (Just lower, Just upper) -> if lower < upper then Just (BoundedRange (Just lower) (Just upper)) else Nothing
-    Just (lower, upper) -> Just (BoundedRange lower upper)
-    Nothing -> Just EmptyRange
-
--- | Normalizes ranges with invalid bounds (lower >= upper) to empty range.
-instance (Ord a) => IsMany (Maybe (Maybe a, Maybe a)) (Range a) where
-  onfrom = \case
-    Just (Just lower, Just upper) -> if lower < upper then BoundedRange (Just lower) (Just upper) else EmptyRange
-    Just (lower, upper) -> BoundedRange lower upper
-    Nothing -> EmptyRange
+-- Ranges are normalized as [lower, upper) (inclusive lower, exclusive upper).
+-- Two ranges are adjacent if one ends exactly where the other begins.
+-- Two ranges overlap if they share any values.
+mergeIfOverlappingOrAdjacent :: (Ord a) => Range a -> Range a -> Maybe (Range a)
+mergeIfOverlappingOrAdjacent = \case
+  EmptyRange -> Just
+  BoundedRange lower1 upper1 -> \case
+    EmptyRange -> Just (BoundedRange lower1 upper1)
+    BoundedRange lower2 upper2 ->
+      -- Check if ranges overlap or are adjacent:
+      -- r1 = [lower1, upper1), r2 = [lower2, upper2)
+      -- They overlap or are adjacent if upper1 >= lower2
+      case (upper1, lower2) of
+        -- r1 extends to infinity, so always overlaps with or is adjacent to r2
+        (Nothing, _) -> Just (BoundedRange lower1 Nothing)
+        -- r2 starts from -infinity
+        -- If we're processing in sorted order, this shouldn't happen
+        -- (lower1 can't be >= -infinity when lower2 is -infinity)
+        (Just _, Nothing) ->
+          -- However, if it does occur, these ranges must overlap
+          -- Result is (-infinity, max(upper1, upper2))
+          Just (BoundedRange Nothing (maxBound upper1 upper2))
+        (Just u1, Just l2) ->
+          -- Both bounds are finite
+          -- Overlapping: u1 > l2 (r1 extends into r2)
+          -- Adjacent: u1 == l2 (r1 ends exactly where r2 begins)
+          if u1 >= l2
+            then Just (BoundedRange lower1 (maxBound upper1 upper2))
+            else Nothing
+  where
+    -- Helper to get the max of two Maybe bounds (Nothing represents infinity)
+    maxBound Nothing _ = Nothing
+    maxBound _ Nothing = Nothing
+    maxBound (Just a) (Just b) = Just (max a b)

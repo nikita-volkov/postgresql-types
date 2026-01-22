@@ -9,7 +9,6 @@ import Data.Tagged
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text.Encoding
 import qualified Database.PostgreSQL.LibPQ as Pq
-import LawfulConversions
 import qualified PostgresqlTypes.Algebra
 import qualified PqProcedures as Procedures
 import qualified PtrPeeker
@@ -42,13 +41,13 @@ mappingSpec _ =
             result <- Procedures.run connection Procedures.GetTypeInfoByNameParams {name = typeName}
             let baseOid = case maybeBaseOid of
                   Just oid -> oid
-                  Nothing -> fromMaybe (error $ "Base OID not found for type: " <> to typeName) result.baseOid
+                  Nothing -> fromMaybe (error $ "Base OID not found for type: " <> Text.unpack typeName) result.baseOid
                 arrayOid = case maybeArrayOid of
                   Just oid -> oid
-                  Nothing -> fromMaybe (error $ "Array OID not found for type: " <> to typeName) result.arrayOid
+                  Nothing -> fromMaybe (error $ "Array OID not found for type: " <> Text.unpack typeName) result.arrayOid
             pure (baseOid, arrayOid)
    in describe "IsScalar" do
-        describe (to typeName) do
+        describe (Text.unpack typeName) do
           describe "Encoding via textualEncoder" do
             describe "And decoding via textualDecoder" do
               it "Should produce the original value" \(connection :: Pq.Connection) ->
@@ -70,7 +69,7 @@ mappingSpec _ =
                         decoding = Data.Attoparsec.Text.parseOnly txtDec serverProducedText
                     pure
                       ( QuickCheck.counterexample
-                          ( to
+                          ( Text.unpack
                               ( Text.intercalate
                                   "\n"
                                   [ "serverProducedText: " <> serverProducedText,
