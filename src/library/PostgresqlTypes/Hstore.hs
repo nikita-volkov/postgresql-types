@@ -50,6 +50,7 @@ instance Arbitrary Hstore where
     Hstore . Map.fromList <$> shrink (Map.toList base)
 
 instance IsScalar Hstore where
+  schemaName = Tagged Nothing
   typeName = Tagged "hstore"
   baseOid = Tagged Nothing
   arrayOid = Tagged Nothing

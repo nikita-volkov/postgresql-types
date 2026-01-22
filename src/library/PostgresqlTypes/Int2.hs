@@ -27,6 +27,7 @@ newtype Int2 = Int2 Int16
   deriving (Show, Read, IsString) via (ViaIsScalar Int2)
 
 instance IsScalar Int2 where
+  schemaName = Tagged Nothing
   typeName = Tagged "int2"
   baseOid = Tagged (Just 21)
   arrayOid = Tagged (Just 1005)

@@ -40,6 +40,7 @@ instance Arbitrary Jsonb where
   shrink = fmap Jsonb . shrink . toAesonValue
 
 instance IsScalar Jsonb where
+  schemaName = Tagged Nothing
   typeName = Tagged "jsonb"
   baseOid = Tagged (Just 3802)
   arrayOid = Tagged (Just 3807)

@@ -60,6 +60,7 @@ instance Arbitrary Date where
       ]
 
 instance IsScalar Date where
+  schemaName = Tagged Nothing
   typeName = Tagged "date"
   baseOid = Tagged (Just 1082)
   arrayOid = Tagged (Just 1182)

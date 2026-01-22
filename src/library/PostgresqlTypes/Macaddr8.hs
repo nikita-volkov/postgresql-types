@@ -67,6 +67,7 @@ instance Arbitrary Macaddr8 where
     ]
 
 instance IsScalar Macaddr8 where
+  schemaName = Tagged Nothing
   typeName = Tagged "macaddr8"
   baseOid = Tagged (Just 774)
   arrayOid = Tagged (Just 775)

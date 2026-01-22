@@ -59,6 +59,7 @@ instance (TypeLits.KnownNat maxLen) => Arbitrary (Varbit maxLen) where
      in mapMaybe refineFromBoolList [b | b <- shrunkBitsList, length b <= maxLen]
 
 instance (TypeLits.KnownNat maxLen) => IsScalar (Varbit maxLen) where
+  schemaName = Tagged Nothing
   typeName = Tagged "varbit"
   baseOid = Tagged (Just 1562)
   arrayOid = Tagged (Just 1563)

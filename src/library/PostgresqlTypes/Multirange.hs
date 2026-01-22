@@ -49,6 +49,7 @@ newtype Multirange a = Multirange (Vector (Range a))
   deriving (Show, Read, IsString) via (ViaIsScalar (Multirange a))
 
 instance (IsMultirangeElement a) => IsScalar (Multirange a) where
+  schemaName = Tagged Nothing
   typeName = retag (multirangeTypeName @a)
   baseOid = retag (multirangeBaseOid @a)
   arrayOid = retag (multirangeArrayOid @a)

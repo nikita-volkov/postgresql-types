@@ -37,6 +37,7 @@ instance Arbitrary Timestamptz where
   arbitrary = Timestamptz <$> QuickCheck.choose (minMicroseconds, maxMicroseconds)
 
 instance IsScalar Timestamptz where
+  schemaName = Tagged Nothing
   typeName = Tagged "timestamptz"
   baseOid = Tagged (Just 1184)
   arrayOid = Tagged (Just 1185)

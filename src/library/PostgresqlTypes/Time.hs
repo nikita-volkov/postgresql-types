@@ -38,6 +38,7 @@ instance Arbitrary Time where
   arbitrary = Time <$> QuickCheck.choose (toMicroseconds minBound, toMicroseconds maxBound)
 
 instance IsScalar Time where
+  schemaName = Tagged Nothing
   typeName = Tagged "time"
   baseOid = Tagged (Just 1083)
   arrayOid = Tagged (Just 1183)

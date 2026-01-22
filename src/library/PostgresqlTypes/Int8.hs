@@ -27,6 +27,7 @@ newtype Int8 = Int8 Int64
   deriving (Show, Read, IsString) via (ViaIsScalar Int8)
 
 instance IsScalar Int8 where
+  schemaName = Tagged Nothing
   typeName = Tagged "int8"
   baseOid = Tagged (Just 20)
   arrayOid = Tagged (Just 1016)

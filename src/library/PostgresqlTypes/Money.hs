@@ -34,6 +34,7 @@ newtype Money = Money Int64
   deriving (Show, Read, IsString) via (ViaIsScalar Money)
 
 instance IsScalar Money where
+  schemaName = Tagged Nothing
   typeName = Tagged "money"
   baseOid = Tagged (Just 790)
   arrayOid = Tagged (Just 791)

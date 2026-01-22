@@ -39,6 +39,7 @@ instance Arbitrary Text where
     Text . Text.pack <$> shrink (Text.unpack base)
 
 instance IsScalar Text where
+  schemaName = Tagged Nothing
   typeName = Tagged "text"
   baseOid = Tagged (Just 25)
   arrayOid = Tagged (Just 1009)

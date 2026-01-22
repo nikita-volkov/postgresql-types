@@ -27,6 +27,7 @@ newtype Int4 = Int4 Int32
   deriving (Show, Read, IsString) via (ViaIsScalar Int4)
 
 instance IsScalar Int4 where
+  schemaName = Tagged Nothing
   typeName = Tagged "int4"
   baseOid = Tagged (Just 23)
   arrayOid = Tagged (Just 1007)

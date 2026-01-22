@@ -26,6 +26,7 @@ newtype Float8 = Float8 Double
   deriving (Show, Read, IsString) via (ViaIsScalar Float8)
 
 instance IsScalar Float8 where
+  schemaName = Tagged Nothing
   typeName = Tagged "float8"
   baseOid = Tagged (Just 701)
   arrayOid = Tagged (Just 1022)

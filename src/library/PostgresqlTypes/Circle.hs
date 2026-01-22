@@ -52,6 +52,7 @@ instance Arbitrary Circle where
     pure (Circle x' y' r')
 
 instance IsScalar Circle where
+  schemaName = Tagged Nothing
   typeName = Tagged "circle"
   baseOid = Tagged (Just 718)
   arrayOid = Tagged (Just 719)

@@ -38,13 +38,17 @@ mappingSpec _ =
           (Just baseOid, Just arrayOid) ->
             pure (baseOid, arrayOid)
           _ -> do
-            result <- Procedures.run connection Procedures.GetTypeInfoByNameParams {name = typeName}
-            let baseOid = case maybeBaseOid of
-                  Just oid -> oid
-                  Nothing -> fromMaybe (error $ "Base OID not found for type: " <> Text.unpack typeName) result.baseOid
-                arrayOid = case maybeArrayOid of
-                  Just oid -> oid
-                  Nothing -> fromMaybe (error $ "Array OID not found for type: " <> Text.unpack typeName) result.arrayOid
+            Procedures.GetTypeInfoByNameResult {..} <- Procedures.run connection Procedures.GetTypeInfoByNameParams {name = typeName}
+            baseOid <- case maybeBaseOid of
+              Just oid -> pure oid
+              Nothing -> case baseOid of
+                Just oid -> pure oid
+                Nothing -> fail $ "Base OID not found for type: " <> Text.unpack typeName
+            arrayOid <- case maybeArrayOid of
+              Just oid -> pure oid
+              Nothing -> case arrayOid of
+                Just oid -> pure oid
+                Nothing -> fail $ "Array OID not found for type: " <> Text.unpack typeName
             pure (baseOid, arrayOid)
    in describe "IsScalar" do
         describe (Text.unpack typeName) do
@@ -206,12 +210,12 @@ mappingSpec _ =
 
           describe "Metadata" do
             it "Should match the DB catalogue" \(connection :: Pq.Connection) -> do
-              result <- Procedures.run connection Procedures.GetTypeInfoByNameParams {name = typeName}
+              Procedures.GetTypeInfoByNameResult {..} <- Procedures.run connection Procedures.GetTypeInfoByNameParams {name = typeName}
               case (maybeBaseOid, maybeArrayOid) of
                 (Just expectedBaseOid, Just expectedArrayOid) -> do
-                  shouldBe (Just expectedBaseOid) result.baseOid
-                  shouldBe (Just expectedArrayOid) result.arrayOid
+                  shouldBe baseOid (Just expectedBaseOid)
+                  shouldBe arrayOid (Just expectedArrayOid)
                 _ -> do
                   -- For types without stable OIDs, just verify the OIDs exist
-                  shouldSatisfy result.baseOid isJust
-                  shouldSatisfy result.arrayOid isJust
+                  shouldSatisfy baseOid isJust
+                  shouldSatisfy arrayOid isJust

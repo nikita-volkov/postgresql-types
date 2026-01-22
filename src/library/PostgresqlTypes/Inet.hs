@@ -82,6 +82,7 @@ instance Arbitrary Inet where
       ]
 
 instance IsScalar Inet where
+  schemaName = Tagged Nothing
   typeName = Tagged "inet"
   baseOid = Tagged (Just 869)
   arrayOid = Tagged (Just 1041)

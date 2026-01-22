@@ -49,6 +49,7 @@ instance Arbitrary Timetz where
     pure (Timetz time offset)
 
 instance IsScalar Timetz where
+  schemaName = Tagged Nothing
   typeName = Tagged "timetz"
   baseOid = Tagged (Just 1266)
   arrayOid = Tagged (Just 1270)

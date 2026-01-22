@@ -55,6 +55,7 @@ instance Arbitrary Line where
     ]
 
 instance IsScalar Line where
+  schemaName = Tagged Nothing
   typeName = Tagged "line"
   baseOid = Tagged (Just 628)
   arrayOid = Tagged (Just 629)

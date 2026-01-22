@@ -52,6 +52,7 @@ instance Arbitrary Path where
     ]
 
 instance IsScalar Path where
+  schemaName = Tagged Nothing
   typeName = Tagged "path"
   baseOid = Tagged (Just 602)
   arrayOid = Tagged (Just 1019)

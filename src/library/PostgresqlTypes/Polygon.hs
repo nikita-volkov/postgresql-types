@@ -45,6 +45,7 @@ instance Arbitrary Polygon where
   shrink (Polygon points) = [Polygon points' | points' <- shrink points, UnboxedVector.length points' >= 3]
 
 instance IsScalar Polygon where
+  schemaName = Tagged Nothing
   typeName = Tagged "polygon"
   baseOid = Tagged (Just 604)
   arrayOid = Tagged (Just 1027)

@@ -45,6 +45,7 @@ instance (TypeLits.KnownNat maxLen) => Arbitrary (Varchar maxLen) where
      in [Varchar txt | txt <- shrunk, Text.length txt <= maxLen]
 
 instance (TypeLits.KnownNat maxLen) => IsScalar (Varchar maxLen) where
+  schemaName = Tagged Nothing
   typeName = Tagged "varchar"
   baseOid = Tagged (Just 1043)
   arrayOid = Tagged (Just 1015)

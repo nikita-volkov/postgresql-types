@@ -38,52 +38,46 @@ import qualified TextBuilder
 -- Range: @-178000000@ years to @178000000@ years.
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-datetime.html#DATATYPE-INTERVAL-INPUT).
-data Interval = Interval
-  { months :: Int32,
-    days :: Int32,
-    micros :: Int64
-  }
+data Interval
+  = Interval
+      -- | Months.
+      Int32
+      -- | Days.
+      Int32
+      -- | Microseconds.
+      Int64
   deriving stock (Eq, Ord)
   deriving (Show, Read, IsString) via (ViaIsScalar Interval)
 
 instance Bounded Interval where
-  minBound =
-    Interval
-      { months = -178000000 * 12,
-        days = 0,
-        micros = 0
-      }
-  maxBound =
-    Interval
-      { months = 178000000 * 12,
-        days = 0,
-        micros = 0
-      }
+  minBound = Interval (-178000000 * 12) 0 0
+  maxBound = Interval (178000000 * 12) 0 0
 
 instance Arbitrary Interval where
   arbitrary = do
     micros <- QuickCheck.choose (-999_999, 999_999)
     days <- QuickCheck.choose (-daysPerMonth, daysPerMonth)
-    months <- QuickCheck.choose ((minBound @Interval).months, (maxBound @Interval).months)
-    pure (max minBound (min maxBound (Interval {..})))
+    months <- QuickCheck.choose (toMonths (minBound @Interval), toMonths (maxBound @Interval))
+    pure (max minBound (min maxBound (Interval months days micros)))
 
 instance IsScalar Interval where
+  schemaName = Tagged Nothing
   typeName = Tagged "interval"
   baseOid = Tagged (Just 1186)
   arrayOid = Tagged (Just 1187)
   typeParams = Tagged []
-  binaryEncoder (Interval {..}) =
+  binaryEncoder (Interval months days micros) =
     mconcat [Write.bInt64 micros, Write.bInt32 days, Write.bInt32 months]
   binaryDecoder = PtrPeeker.fixed do
     micros <- PtrPeeker.beSignedInt8
     days <- PtrPeeker.beSignedInt4
     months <- PtrPeeker.beSignedInt4
-    pure (Right (Interval {..}))
+    pure (Right (Interval months days micros))
 
   -- Renders in "format with designators" of ISO-8601 as per [the Postgres documentation](https://www.postgresql.org/docs/current/datatype-datetime.html#DATATYPE-INTERVAL-INPUT).
   --
   -- >P quantity unit [ quantity unit ...] [ T [ quantity unit ...]]
-  textualEncoder (Interval {..}) =
+  textualEncoder (Interval months days micros) =
     let monthsSign = if months < 0 then "-" else ""
         daysSign = if days < 0 then "-" else ""
         microsSign = if micros < 0 then "-" else ""
@@ -288,19 +282,19 @@ instance IsScalar Interval where
 
 -- | Extract the months component.
 toMonths :: Interval -> Int32
-toMonths Interval {..} = months
+toMonths (Interval months _ _) = months
 
 -- | Extract the days component.
 toDays :: Interval -> Int32
-toDays Interval {..} = days
+toDays (Interval _ days _) = days
 
 -- | Extract the microseconds component.
 toMicroseconds :: Interval -> Int64
-toMicroseconds Interval {..} = micros
+toMicroseconds (Interval _ _ micros) = micros
 
 -- | Convert interval to total microseconds, approximating months as 30 days and days as 24 hours.
 normalizeToMicrosecondsInTotal :: Interval -> Integer
-normalizeToMicrosecondsInTotal Interval {..} =
+normalizeToMicrosecondsInTotal (Interval months days micros) =
   fromIntegral micros + microsPerDay * (fromIntegral days + daysPerMonth * fromIntegral months)
 
 -- | Convert interval to 'DiffTime', approximating months as 30 days and days as 24 hours.
@@ -312,13 +306,13 @@ normalizeToDiffTime = picosecondsToDiffTime . (1_000_000 *) . normalizeToMicrose
 -- | Construct 'Interval' from months, days, and microseconds components, clamping to valid range.
 normalizeFromMonthsDaysAndMicroseconds :: Int32 -> Int32 -> Int64 -> Interval
 normalizeFromMonthsDaysAndMicroseconds months days micros =
-  let interval = Interval {..}
+  let interval = Interval months days micros
    in max minBound (min maxBound interval)
 
 -- | Try to construct 'Interval' from months, days, and microseconds components, failing if out of range.
 refineFromMonthsDaysAndMicroseconds :: Int32 -> Int32 -> Int64 -> Maybe Interval
 refineFromMonthsDaysAndMicroseconds months days micros =
-  let interval = Interval {..}
+  let interval = Interval months days micros
    in if interval >= minBound && interval <= maxBound
         then Just interval
         else Nothing
@@ -358,7 +352,7 @@ unsafeFromMicrosecondsInTotal =
     micros <- fromIntegral <$> state (swap . flip divMod microsPerDay)
     days <- fromIntegral <$> state (swap . flip divMod daysPerMonth)
     months <- fromIntegral <$> get
-    pure Interval {..}
+    pure (Interval months days micros)
 
 microsPerDay :: (Num a) => a
 microsPerDay = 1_000_000 * 60 * 60 * 24

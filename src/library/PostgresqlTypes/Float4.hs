@@ -26,6 +26,7 @@ newtype Float4 = Float4 Float
   deriving (Show, Read, IsString) via (ViaIsScalar Float4)
 
 instance IsScalar Float4 where
+  schemaName = Tagged Nothing
   typeName = Tagged "float4"
   baseOid = Tagged (Just 700)
   arrayOid = Tagged (Just 1021)

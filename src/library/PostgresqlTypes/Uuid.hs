@@ -28,6 +28,7 @@ newtype Uuid = Uuid Data.UUID.UUID
   deriving (Show, Read, IsString) via (ViaIsScalar Uuid)
 
 instance IsScalar Uuid where
+  schemaName = Tagged Nothing
   typeName = Tagged "uuid"
   baseOid = Tagged (Just 2950)
   arrayOid = Tagged (Just 2951)

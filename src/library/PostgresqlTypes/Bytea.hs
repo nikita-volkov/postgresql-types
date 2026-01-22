@@ -27,6 +27,7 @@ newtype Bytea = Bytea ByteString
   deriving (Show, Read, IsString) via (ViaIsScalar Bytea)
 
 instance IsScalar Bytea where
+  schemaName = Tagged Nothing
   typeName = Tagged "bytea"
   baseOid = Tagged (Just 17)
   arrayOid = Tagged (Just 1001)

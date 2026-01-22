@@ -51,6 +51,7 @@ data Range a
   deriving (Show, Read, IsString) via (ViaIsScalar (Range a))
 
 instance (IsRangeElement a) => IsScalar (Range a) where
+  schemaName = Tagged Nothing
   typeName = retag (rangeTypeName @a)
   baseOid = retag (rangeBaseOid @a)
   arrayOid = retag (rangeArrayOid @a)

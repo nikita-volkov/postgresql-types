@@ -49,6 +49,7 @@ instance Arbitrary Char where
     Char <$> QuickCheck.choose (0, 127)
 
 instance IsScalar Char where
+  schemaName = Tagged Nothing
   typeName = Tagged "char"
   baseOid = Tagged (Just 18)
   arrayOid = Tagged (Just 1002)

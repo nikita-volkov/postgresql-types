@@ -56,6 +56,7 @@ instance (TypeLits.KnownNat numChars) => Arbitrary (Bpchar numChars) where
       Just char -> pure char
 
 instance (TypeLits.KnownNat numChars) => IsScalar (Bpchar numChars) where
+  schemaName = Tagged Nothing
   typeName = Tagged "bpchar"
   baseOid = Tagged (Just 1042)
   arrayOid = Tagged (Just 1014)

@@ -42,6 +42,7 @@ instance Arbitrary Json where
   shrink = fmap Json . shrink . toAesonValue
 
 instance IsScalar Json where
+  schemaName = Tagged Nothing
   typeName = Tagged "json"
   baseOid = Tagged (Just 114)
   arrayOid = Tagged (Just 199)

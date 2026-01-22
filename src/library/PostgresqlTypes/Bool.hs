@@ -25,6 +25,7 @@ newtype Bool = Bool Data.Bool.Bool
   deriving (Show, Read, IsString) via (ViaIsScalar Bool)
 
 instance IsScalar Bool where
+  schemaName = Tagged Nothing
   typeName = Tagged "bool"
   baseOid = Tagged (Just 16)
   arrayOid = Tagged (Just 1000)

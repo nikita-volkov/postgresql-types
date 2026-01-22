@@ -4,8 +4,3 @@ allow-newer:
   *:base,
   *:ghc,
   *:template-haskell,
-
-source-repository-package
-  type: git
-  location: https://github.com/nikita-volkov/postgresql-types-algebra
-  tag: c37ff6c7b43bb9e89e58c308b5023305b931577c

@@ -83,6 +83,7 @@ instance Arbitrary Cidr where
       ]
 
 instance IsScalar Cidr where
+  schemaName = Tagged Nothing
   typeName = Tagged "cidr"
   baseOid = Tagged (Just 650)
   arrayOid = Tagged (Just 651)

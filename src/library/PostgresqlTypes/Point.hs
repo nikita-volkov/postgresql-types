@@ -39,6 +39,7 @@ instance Arbitrary Point where
   shrink (Point x y) = [Point x' y' | (x', y') <- shrink (x, y)]
 
 instance IsScalar Point where
+  schemaName = Tagged Nothing
   typeName = Tagged "point"
   baseOid = Tagged (Just 600)
   arrayOid = Tagged (Just 1017)

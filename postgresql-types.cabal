@@ -63,11 +63,9 @@ common base
     MultiParamTypeClasses
     MultiWayIf
     NamedFieldPuns
-    NoFieldSelectors
     NoImplicitPrelude
     NoMonomorphismRestriction
     NumericUnderscores
-    OverloadedRecordDot
     OverloadedStrings
     ParallelListComp
     PatternGuards
@@ -167,7 +165,7 @@ library
     postgresql-types:base-extras,
     postgresql-types:jsonifier-aeson,
     postgresql-types:time-extras,
-    postgresql-types-algebra,
+    postgresql-types-algebra ^>=0.1,
     profunctors ^>=5.6 && <6,
     ptr-peeker ^>=0.1,
     ptr-poker ^>=0.1.3,

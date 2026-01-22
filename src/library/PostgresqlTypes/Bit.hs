@@ -49,6 +49,7 @@ instance (TypeLits.KnownNat numBits) => Arbitrary (Bit numBits) where
       Just bit -> pure bit
 
 instance (TypeLits.KnownNat numBits) => IsScalar (Bit numBits) where
+  schemaName = Tagged Nothing
   typeName = Tagged "bit"
   baseOid = Tagged (Just 1560)
   arrayOid = Tagged (Just 1561)

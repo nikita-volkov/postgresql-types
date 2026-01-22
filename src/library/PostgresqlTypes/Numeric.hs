@@ -105,6 +105,7 @@ instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => Arbitrary (Nu
                   ]
 
 instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsScalar (Numeric precision scale) where
+  schemaName = Tagged Nothing
   typeName = Tagged "numeric"
   baseOid = Tagged (Just 1700)
   arrayOid = Tagged (Just 1231)

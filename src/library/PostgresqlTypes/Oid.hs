@@ -27,6 +27,7 @@ newtype Oid = Oid Word32
   deriving (Show, Read, IsString) via (ViaIsScalar Oid)
 
 instance IsScalar Oid where
+  schemaName = Tagged Nothing
   typeName = Tagged "oid"
   baseOid = Tagged (Just 26)
   arrayOid = Tagged (Just 1028)

@@ -56,6 +56,7 @@ instance Arbitrary Box where
     ]
 
 instance IsScalar Box where
+  schemaName = Tagged Nothing
   typeName = Tagged "box"
   baseOid = Tagged (Just 603)
   arrayOid = Tagged (Just 1020)
