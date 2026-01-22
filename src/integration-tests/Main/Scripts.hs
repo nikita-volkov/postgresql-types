@@ -99,7 +99,7 @@ mappingSpec _ =
                     let decoding = PtrPeeker.runVariableOnByteString binDec bytes
                     pure
                       ( QuickCheck.counterexample
-                          ( to
+                          ( Text.unpack
                               ( Text.intercalate
                                   "\n"
                                   [ "encoded: " <> valueText
