@@ -128,8 +128,5 @@ normalizeFromValue = Jsonb . updateValue
 toAesonValue :: Jsonb -> Aeson.Value
 toAesonValue = toValue
 
-maybeFromAesonValue :: Aeson.Value -> Maybe Jsonb
-maybeFromAesonValue = refineFromValue
-
 fromAesonValue :: Aeson.Value -> Jsonb
 fromAesonValue = normalizeFromValue

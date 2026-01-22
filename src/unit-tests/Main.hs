@@ -1,33 +1,19 @@
 module Main (main) where
 
 import qualified CidrSpec
-import qualified Data.Aeson as Aeson
 import qualified Data.Attoparsec.Text
-import Data.ByteString (ByteString)
-import Data.Foldable
-import Data.Int
-import qualified Data.Map.Strict as Map
 import Data.Proxy
 import Data.Tagged
-import Data.Text (Text)
 import qualified Data.Text as Text
-import Data.Time
 import Data.Typeable
-import qualified Data.UUID as UUID
-import Data.Vector (Vector)
-import qualified Data.Vector.Unboxed
-import qualified Data.Vector.Unboxed as VU
-import Data.Word
 import qualified InetSpec
 import qualified IntervalSpec
-import qualified LawfulConversions
 import qualified NumericSpec
 import qualified PostgresqlTypes
 import qualified PostgresqlTypes.Algebra
 import qualified PtrPeeker
 import qualified PtrPoker.Write
 import Test.Hspec
-import Test.Hspec.QuickCheck
 import Test.QuickCheck
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
@@ -209,7 +195,6 @@ testIs projection primitive =
           (uncurry prop)
           (LawfulConversions.isProperties primitive projection)
 -}
-
 
 -- | Test textual encoder/decoder roundtrip
 testIsScalar ::
