@@ -6,6 +6,7 @@ import qualified Data.Text as Text
 import qualified PostgresqlTypes.Text as PgText
 import Test.Hspec
 import Test.QuickCheck
+import Test.QuickCheck.Instances ()
 import qualified UnitTests.Scripts as Scripts
 import Prelude
 

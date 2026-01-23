@@ -67,7 +67,7 @@ instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => Arbitrary (Nu
               [ (1, pure NanNumeric),
                 (1, pure NegInfinityNumeric),
                 (1, pure PosInfinityNumeric),
-                (47, ScientificNumeric . Scientific.normalize <$> arbitrary)
+                (47, ScientificNumeric <$> (Scientific.scientific <$> arbitrary <*> arbitrary))
               ]
           else
             if sc > prec

@@ -11,11 +11,11 @@ module PostgresqlTypes.Multirange
   )
 where
 
-import qualified BaseExtras.List
 import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.Set as Set
 import qualified Data.Vector as Vector
 import PostgresqlTypes.Algebra
+import qualified PostgresqlTypes.Multirange.List
 import PostgresqlTypes.Prelude
 import PostgresqlTypes.Range (Range)
 import qualified PostgresqlTypes.Range as Range
@@ -116,7 +116,7 @@ instance (IsRangeElement a, Arbitrary a, Ord a) => Arbitrary (Multirange a) wher
                       if upperInfinity then [Nothing] else []
                     ]
                 pairs =
-                  BaseExtras.List.toPairs preparedBounds
+                  PostgresqlTypes.Multirange.List.toPairs preparedBounds
                 ranges =
                   fmap (uncurry Range.normalizeBounded) pairs :: [Range a]
 

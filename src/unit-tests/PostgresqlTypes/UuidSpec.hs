@@ -5,6 +5,7 @@ import qualified Data.UUID as UUID
 import qualified PostgresqlTypes.Uuid as Uuid
 import Test.Hspec
 import Test.QuickCheck
+import Test.QuickCheck.Instances ()
 import qualified UnitTests.Scripts as Scripts
 
 spec :: Spec

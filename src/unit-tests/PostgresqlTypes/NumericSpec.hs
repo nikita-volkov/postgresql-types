@@ -9,6 +9,7 @@ import qualified PostgresqlTypes.Numeric as Numeric
 import Test.Hspec
 import Test.QuickCheck
 import qualified Test.QuickCheck as QuickCheck
+import Test.QuickCheck.Instances ()
 import qualified UnitTests.Scripts as Scripts
 import Prelude
 

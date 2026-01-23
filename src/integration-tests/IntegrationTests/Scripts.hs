@@ -1,4 +1,4 @@
-module Main.Scripts where
+module IntegrationTests.Scripts where
 
 import Control.Monad
 import qualified Data.Attoparsec.Text

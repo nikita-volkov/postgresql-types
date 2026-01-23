@@ -24,8 +24,16 @@ import qualified TextBuilder
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-uuid.html).
 newtype Uuid = Uuid Data.UUID.UUID
-  deriving newtype (Eq, Ord, Hashable, Arbitrary)
+  deriving newtype (Eq, Ord, Hashable)
   deriving (Show, Read, IsString) via (ViaIsScalar Uuid)
+
+instance Arbitrary Uuid where
+  arbitrary = Uuid <$> (Data.UUID.fromWords64 <$> arbitrary <*> arbitrary)
+  shrink (Uuid uuid) =
+    [ Uuid (Data.UUID.fromWords64 w1 w2)
+    | let (w1, w2) = Data.UUID.toWords64 uuid,
+      (w1, w2) <- shrink (w1, w2)
+    ]
 
 instance IsScalar Uuid where
   schemaName = Tagged Nothing

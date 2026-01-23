@@ -38,7 +38,24 @@ instance Arbitrary Hstore where
   arbitrary = do
     -- Generate a list of key-value pairs
     pairs <- QuickCheck.listOf do
-      key <- Text.pack <$> QuickCheck.listOf1 (QuickCheck.suchThat arbitrary (\c -> c /= '\NUL' && c /= '=' && c /= '>' && c /= '"' && c /= '\\' && c /= ' ' && c /= ',' && c /= '\n' && c /= '\r' && c /= '\t'))
+      key <-
+        Text.pack
+          <$> QuickCheck.listOf1
+            ( QuickCheck.suchThat
+                arbitrary
+                ( \c ->
+                    c /= '\NUL'
+                      && c /= '='
+                      && c /= '>'
+                      && c /= '"'
+                      && c /= '\\'
+                      && c /= ' '
+                      && c /= ','
+                      && c /= '\n'
+                      && c /= '\r'
+                      && c /= '\t'
+                )
+            )
       value <-
         QuickCheck.oneof
           [ pure Nothing,
@@ -46,8 +63,19 @@ instance Arbitrary Hstore where
           ]
       pure (key, value)
     pure (Hstore (Map.fromList pairs))
-  shrink (Hstore base) =
-    Hstore . Map.fromList <$> shrink (Map.toList base)
+  shrink =
+    QuickCheck.shrinkMapBy
+      (Hstore . Map.fromList)
+      (Map.toList . coerce)
+      ( QuickCheck.shrinkList
+          ( \(key, value) -> do
+              shrunkenKey <- QuickCheck.shrinkMap Text.pack Text.unpack key
+              shrunkenValue <- case value of
+                Nothing -> [Nothing]
+                Just v -> Just <$> QuickCheck.shrinkMap Text.pack Text.unpack v
+              pure (shrunkenKey, shrunkenValue)
+          )
+      )
 
 instance IsScalar Hstore where
   schemaName = Tagged Nothing

@@ -46,9 +46,10 @@ instance Arbitrary Path where
     points <- UnboxedVector.replicateM numPoints arbitrary
     pure (Path closed points)
   shrink (Path closed points) =
-    [ Path closed' points'
-    | (closed', points') <- shrink (closed, points),
-      UnboxedVector.length points' >= 1
+    [ Path closed' points''
+    | (closed', points') <- shrink (closed, UnboxedVector.toList points),
+      let points'' = UnboxedVector.fromList points',
+      UnboxedVector.length points'' >= 1
     ]
 
 instance Hashable Path where

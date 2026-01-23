@@ -6,6 +6,7 @@ import qualified Data.Time as Time
 import qualified PostgresqlTypes.Date as Date
 import Test.Hspec
 import Test.QuickCheck
+import Test.QuickCheck.Instances ()
 import qualified UnitTests.Scripts as Scripts
 import Prelude
 
