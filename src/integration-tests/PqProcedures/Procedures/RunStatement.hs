@@ -12,8 +12,6 @@ import qualified Data.Text.Encoding as Text.Encoding
 import Data.Word
 import qualified Database.PostgreSQL.LibPQ as Pq
 import PqProcedures.Algebra
-import TextBuilder (TextBuilder)
-import qualified TextBuilder
 import Prelude
 
 data RunStatementParams = RunStatementParams

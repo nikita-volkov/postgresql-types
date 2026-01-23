@@ -210,27 +210,6 @@ library base-extras
   exposed-modules:
     BaseExtras.List
 
-library pq-procedures
-  import: base
-  hs-source-dirs: src/pq-procedures
-  exposed-modules:
-    PqProcedures
-    PqProcedures.Algebra
-    PqProcedures.Procedures
-
-  other-modules:
-    PqProcedures.Procedures.GetTypeInfoByName
-    PqProcedures.Procedures.RunRoundtripQuery
-    PqProcedures.Procedures.RunStatement
-
-  build-depends:
-    base >=4.11 && <5,
-    bytestring >=0.10 && <0.13,
-    postgresql-libpq >=0.10 && <0.12,
-    ptr-peeker ^>=0.1,
-    text >=1.2 && <3,
-    text-builder ^>=1.0.0.4,
-
 test-suite unit-tests
   import: test
   type: exitcode-stdio-1.0
@@ -311,6 +290,12 @@ test-suite integration-tests
   other-modules:
     IntegrationTests.Scopes
     IntegrationTests.Scripts
+    PqProcedures
+    PqProcedures.Algebra
+    PqProcedures.Procedures
+    PqProcedures.Procedures.GetTypeInfoByName
+    PqProcedures.Procedures.RunRoundtripQuery
+    PqProcedures.Procedures.RunStatement
 
   build-depends:
     QuickCheck >=2.14 && <3,
@@ -321,7 +306,6 @@ test-suite integration-tests
     hspec >=2.11 && <3,
     postgresql-libpq >=0.10 && <0.12,
     postgresql-types,
-    postgresql-types:pq-procedures,
     postgresql-types-algebra ^>=0.1,
     ptr-peeker ^>=0.1,
     ptr-poker ^>=0.1.2.16,
