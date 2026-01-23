@@ -23,8 +23,12 @@ import qualified TextBuilder
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-binary.html).
 newtype Bytea = Bytea ByteString
-  deriving newtype (Eq, Ord, Hashable, Arbitrary)
+  deriving newtype (Eq, Ord, Hashable)
   deriving (Show, Read, IsString) via (ViaIsScalar Bytea)
+
+instance Arbitrary Bytea where
+  arbitrary = Bytea . ByteString.pack <$> arbitrary
+  shrink (Bytea bytes) = Bytea . ByteString.pack <$> shrink (ByteString.unpack bytes)
 
 instance IsScalar Bytea where
   schemaName = Tagged Nothing

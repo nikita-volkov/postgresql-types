@@ -5,6 +5,7 @@ import Data.Data (Proxy (Proxy))
 import qualified PostgresqlTypes.Bytea as Bytea
 import Test.Hspec
 import Test.QuickCheck
+import Test.QuickCheck.Instances ()
 import qualified UnitTests.Scripts as Scripts
 
 spec :: Spec

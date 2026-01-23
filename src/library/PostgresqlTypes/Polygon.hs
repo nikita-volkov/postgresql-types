@@ -42,7 +42,12 @@ instance Arbitrary Polygon where
     points <- UnboxedVector.fromList <$> QuickCheck.vectorOf numPoints arbitrary
     pure (Polygon points)
 
-  shrink (Polygon points) = [Polygon points' | points' <- shrink points, UnboxedVector.length points' >= 3]
+  shrink (Polygon points) =
+    [ Polygon points''
+    | points' <- shrink (UnboxedVector.toList points),
+      let points'' = UnboxedVector.fromList points',
+      UnboxedVector.length points'' >= 3
+    ]
 
 instance Hashable Polygon where
   hashWithSalt salt (Polygon points) =
