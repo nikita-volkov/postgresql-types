@@ -143,6 +143,7 @@ library
     PostgresqlTypes.Varchar
 
   other-modules:
+    PostgresqlTypes.Multirange.List
     PostgresqlTypes.Numeric.Integer
     PostgresqlTypes.Numeric.Scientific
     PostgresqlTypes.Prelude
@@ -162,7 +163,6 @@ library
     invariant ^>=0.6.4,
     jsonifier ^>=0.2.1.3,
     mtl >=2.2 && <3,
-    postgresql-types:base-extras,
     postgresql-types:jsonifier-aeson,
     postgresql-types:time-extras,
     postgresql-types-algebra ^>=0.1,
@@ -203,12 +203,6 @@ library time-extras
   build-depends:
     base >=4.11 && <5,
     time >=1.12 && <2,
-
-library base-extras
-  import: base
-  hs-source-dirs: src/base-extras
-  exposed-modules:
-    BaseExtras.List
 
 test-suite unit-tests
   import: test

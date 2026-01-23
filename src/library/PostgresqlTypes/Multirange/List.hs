@@ -1,4 +1,4 @@
-module BaseExtras.List where
+module PostgresqlTypes.Multirange.List where
 
 toPairs :: [a] -> [(a, a)]
 toPairs [] = []
