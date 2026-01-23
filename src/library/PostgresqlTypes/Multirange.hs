@@ -16,13 +16,13 @@ import qualified Data.Set as Set
 import qualified Data.Vector as Vector
 import PostgresqlTypes.Algebra
 import qualified PostgresqlTypes.Multirange.List
+import qualified PostgresqlTypes.Multirange.QuickCheckGen as QuickCheckGen
 import PostgresqlTypes.Prelude
 import PostgresqlTypes.Range (Range)
 import qualified PostgresqlTypes.Range as Range
 import PostgresqlTypes.Via
 import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
-import qualified QuickCheckExtras.Gen
 import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
@@ -108,7 +108,7 @@ instance (IsRangeElement a, Arbitrary a, Ord a) => Arbitrary (Multirange a) wher
             numRanges <- QuickCheck.chooseInt (0, max 0 size)
             let numBounds =
                   numRanges * 2 + bool 1 0 lowerInfinity + bool 1 0 upperInfinity
-            bounds <- QuickCheckExtras.Gen.setOfSize numBounds (arbitrary @a)
+            bounds <- QuickCheckGen.setOfSize numBounds (arbitrary @a)
             let preparedBounds =
                   mconcat
                     [ if lowerInfinity then [Nothing] else [],
