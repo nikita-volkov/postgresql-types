@@ -1,4 +1,4 @@
-module Main.Scopes where
+module IntegrationTests.Scopes where
 
 import Control.Concurrent.Async
 import Control.Concurrent.STM
