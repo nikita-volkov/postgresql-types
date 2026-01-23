@@ -32,7 +32,6 @@ import Data.Function as Exports hiding (id, (.))
 import Data.Functor as Exports hiding (unzip)
 import Data.Functor.Contravariant as Exports
 import Data.Functor.Identity as Exports
-import Data.Functor.Invariant as Exports
 import Data.Hashable as Exports (Hashable (..))
 import Data.IORef as Exports
 import Data.Int as Exports
@@ -41,7 +40,6 @@ import Data.List as Exports hiding (all, and, any, concat, concatMap, elem, find
 import Data.Maybe as Exports
 import Data.Monoid as Exports hiding (First (..), Last (..), (<>))
 import Data.Ord as Exports
-import Data.Profunctor as Exports (Profunctor (..))
 import Data.Proxy as Exports
 import Data.Ratio as Exports
 import Data.STRef as Exports
