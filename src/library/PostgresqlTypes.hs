@@ -60,6 +60,9 @@ module PostgresqlTypes
     -- * Key-Value Types
     Hstore,
 
+    -- * Full-Text Search Types
+    Tsvector,
+
     -- * Range Types
     Range,
     Multirange,
@@ -98,6 +101,7 @@ import PostgresqlTypes.Point
 import PostgresqlTypes.Polygon
 import PostgresqlTypes.Range
 import PostgresqlTypes.Text
+import PostgresqlTypes.Tsvector
 import PostgresqlTypes.Time
 import PostgresqlTypes.Timestamp
 import PostgresqlTypes.Timestamptz

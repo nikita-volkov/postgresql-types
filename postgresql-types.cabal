@@ -134,6 +134,7 @@ library
     PostgresqlTypes.Polygon
     PostgresqlTypes.Range
     PostgresqlTypes.Text
+    PostgresqlTypes.Tsvector
     PostgresqlTypes.Time
     PostgresqlTypes.Timestamp
     PostgresqlTypes.Timestamptz

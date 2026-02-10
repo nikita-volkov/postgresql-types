@@ -32,6 +32,7 @@ This package provides support for nearly all PostgreSQL data types, including:
 - **Bit string types**: Bit, Varbit
 - **UUID type**: Uuid
 - **JSON types**: Json, Jsonb
+- **Full-text search types**: Tsvector
 - **Key-value types**: Hstore
 - **Range types**: Range (supporting int4range, int8range, numrange, tsrange, tstzrange, daterange)
 - **Multirange types**: Multirange (supporting int4multirange, int8multirange, etc.)
