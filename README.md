@@ -5,10 +5,6 @@
 
 Precise Haskell representations of PostgreSQL data types with mappings to and from both binary and textual formats.
 
-## Status
-
-In active development, but already working and exhaustively tested.
-
 ## Key Features
 
 ### Ecosystem Integration
