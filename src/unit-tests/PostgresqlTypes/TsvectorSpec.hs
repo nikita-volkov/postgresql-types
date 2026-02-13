@@ -78,31 +78,31 @@ spec = do
   describe "Textual encoding" do
     it "encodes empty tsvector" do
       let Just tsvec = Tsvector.fromLexemeList []
-        in show tsvec `shouldBe` "\"\""
+       in show tsvec `shouldBe` "\"\""
 
     it "encodes lexeme without positions" do
       let Just tsvec = Tsvector.fromLexemeList [("hello", [])]
-        in show tsvec `shouldBe` "\"'hello'\""
+       in show tsvec `shouldBe` "\"'hello'\""
 
     it "encodes lexeme with single weighted position" do
       let Just tsvec = Tsvector.fromLexemeList [("hello", [(1, Tsvector.WeightA)])]
-        in show tsvec `shouldBe` "\"'hello':1A\""
+       in show tsvec `shouldBe` "\"'hello':1A\""
 
     it "encodes lexeme with default weight (D) by omitting it" do
       let Just tsvec = Tsvector.fromLexemeList [("hello", [(1, Tsvector.WeightD)])]
-        in show tsvec `shouldBe` "\"'hello':1\""
+       in show tsvec `shouldBe` "\"'hello':1\""
 
     it "encodes multiple lexemes" do
       let Just tsvec = Tsvector.fromLexemeList [("apple", [(1, Tsvector.WeightA)]), ("banana", [(2, Tsvector.WeightB)])]
-        in show tsvec `shouldBe` "\"'apple':1A 'banana':2B\""
+       in show tsvec `shouldBe` "\"'apple':1A 'banana':2B\""
 
     it "escapes single quotes in lexemes" do
       let Just tsvec = Tsvector.fromLexemeList [("it's", [(1, Tsvector.WeightA)])]
-        in show tsvec `shouldBe` "\"'it''s':1A\""
+       in show tsvec `shouldBe` "\"'it''s':1A\""
 
     it "escapes backslashes in lexemes" do
       let Just tsvec = Tsvector.fromLexemeList [("back\\slash", [(1, Tsvector.WeightA)])]
-        in show tsvec `shouldBe` "\"'back\\\\\\\\slash':1A\""
+       in show tsvec `shouldBe` "\"'back\\\\\\\\slash':1A\""
 
   describe "Textual decoding" do
     it "decodes empty string" do

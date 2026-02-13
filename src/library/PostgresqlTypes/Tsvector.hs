@@ -54,16 +54,19 @@ instance Arbitrary Tsvector where
   arbitrary = do
     size <- QuickCheck.getSize
     numLexemes <- QuickCheck.choose (0, max 0 size)
-    lexemeMap <- Map.fromList <$> QuickCheck.vectorOf numLexemes do
-      -- Generate a non-empty lexeme token without NUL characters
-      token <- Text.pack <$> QuickCheck.listOf1
-        (QuickCheck.suchThat arbitrary (\c -> c /= '\NUL'))
-      numPositions <- QuickCheck.choose (0, 3)
-      positions <- QuickCheck.vectorOf numPositions do
-        pos <- QuickCheck.choose (1, 16383)
-        weight <- arbitrary
-        pure (pos, weight)
-      pure (token, positions)
+    lexemeMap <-
+      Map.fromList <$> QuickCheck.vectorOf numLexemes do
+        -- Generate a non-empty lexeme token without NUL characters
+        token <-
+          Text.pack
+            <$> QuickCheck.listOf1
+              (QuickCheck.suchThat arbitrary (\c -> c /= '\NUL'))
+        numPositions <- QuickCheck.choose (0, 3)
+        positions <- QuickCheck.vectorOf numPositions do
+          pos <- QuickCheck.choose (1, 16383)
+          weight <- arbitrary
+          pure (pos, weight)
+        pure (token, positions)
     -- Sort by lexeme (Map.toAscList) and deduplicate (Map guarantees unique keys)
     let sorted = Map.toAscList lexemeMap
     pure (Tsvector (Vector.fromList (map (\(t, ps) -> (t, Vector.fromList ps)) sorted)))
@@ -134,16 +137,17 @@ instance IsScalar Tsvector where
               )
           Right token -> do
             numPositions <- lift $ PtrPeeker.fixed PtrPeeker.beUnsignedInt2
-            positions <- Vector.fromList <$> replicateM (fromIntegral numPositions) do
-              posWord <- lift $ PtrPeeker.fixed PtrPeeker.beUnsignedInt2
-              let weightBits = (posWord `shiftR` 14) .&. 0x3
-              let weight = case weightBits of
-                    3 -> WeightA
-                    2 -> WeightB
-                    1 -> WeightC
-                    _ -> WeightD
-              let pos = posWord .&. 0x3FFF
-              pure (pos, weight)
+            positions <-
+              Vector.fromList <$> replicateM (fromIntegral numPositions) do
+                posWord <- lift $ PtrPeeker.fixed PtrPeeker.beUnsignedInt2
+                let weightBits = (posWord `shiftR` 14) .&. 0x3
+                let weight = case weightBits of
+                      3 -> WeightA
+                      2 -> WeightB
+                      1 -> WeightC
+                      _ -> WeightD
+                let pos = posWord .&. 0x3FFF
+                pure (pos, weight)
             pure (token, positions)
 
   -- Text format: 'lexeme1':1A,2B 'lexeme2':3C

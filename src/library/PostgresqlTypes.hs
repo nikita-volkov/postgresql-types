@@ -101,11 +101,11 @@ import PostgresqlTypes.Point
 import PostgresqlTypes.Polygon
 import PostgresqlTypes.Range
 import PostgresqlTypes.Text
-import PostgresqlTypes.Tsvector
 import PostgresqlTypes.Time
 import PostgresqlTypes.Timestamp
 import PostgresqlTypes.Timestamptz
 import PostgresqlTypes.Timetz
+import PostgresqlTypes.Tsvector
 import PostgresqlTypes.Uuid
 import PostgresqlTypes.Varbit
 import PostgresqlTypes.Varchar

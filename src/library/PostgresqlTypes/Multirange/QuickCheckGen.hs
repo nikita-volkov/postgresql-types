@@ -1,9 +1,8 @@
-module PostgresqlTypes.Multirange.QuickCheckGen
-where
+module PostgresqlTypes.Multirange.QuickCheckGen where
 
+import qualified Data.Set as Set
 import PostgresqlTypes.Prelude
 import Test.QuickCheck
-import qualified Data.Set as Set
 
 -- | Attention. This generator may run indefinitely if the 'elementGen' has too small variety of possible values.
 setOfSize :: (Ord a) => Int -> Gen a -> Gen (Set.Set a)
