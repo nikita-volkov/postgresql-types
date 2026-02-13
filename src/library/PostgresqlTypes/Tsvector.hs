@@ -63,10 +63,11 @@ instance Arbitrary Tsvector where
             <$> QuickCheck.listOf1
               (QuickCheck.suchThat arbitrary (\c -> c /= '\NUL'))
         numPositions <- QuickCheck.choose (0, 3)
-        positions <- sortAndDedupPositions <$> QuickCheck.vectorOf numPositions do
-          pos <- QuickCheck.choose (1, 16383)
-          weight <- arbitrary
-          pure (pos, weight)
+        positions <-
+          sortAndDedupPositions <$> QuickCheck.vectorOf numPositions do
+            pos <- QuickCheck.choose (1, 16383)
+            weight <- arbitrary
+            pure (pos, weight)
         pure (token, positions)
     -- Sort by lexeme (Map.toAscList) and deduplicate (Map guarantees unique keys)
     let sorted = Map.toAscList lexemeMap
