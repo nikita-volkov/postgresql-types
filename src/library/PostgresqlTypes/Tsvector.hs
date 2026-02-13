@@ -14,6 +14,7 @@ module PostgresqlTypes.Tsvector
 where
 
 import qualified Data.Attoparsec.Text as Attoparsec
+import qualified Data.List as List
 import qualified Data.Map.Strict as Map
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text.Encoding
@@ -62,7 +63,7 @@ instance Arbitrary Tsvector where
             <$> QuickCheck.listOf1
               (QuickCheck.suchThat arbitrary (\c -> c /= '\NUL'))
         numPositions <- QuickCheck.choose (0, 3)
-        positions <- QuickCheck.vectorOf numPositions do
+        positions <- sortAndDedupPositions <$> QuickCheck.vectorOf numPositions do
           pos <- QuickCheck.choose (1, 16383)
           weight <- arbitrary
           pure (pos, weight)
@@ -81,11 +82,21 @@ instance Arbitrary Tsvector where
         (map (\(t, ps) -> (t, Vector.toList ps)) (Vector.toList lexemes))
 
 -- | Sort lexemes alphabetically and deduplicate by lexeme text, merging positions.
+-- Positions within each lexeme are sorted by position number and deduplicated
+-- (keeping the highest weight for duplicate positions), matching PostgreSQL's canonical form.
 normalizeLexemes :: [(Text, Vector (Word16, Weight))] -> Tsvector
 normalizeLexemes lexemes =
   let m = Map.fromListWith (<>) (map (\(t, ps) -> (t, Vector.toList ps)) lexemes)
       sorted = Map.toAscList m
-   in Tsvector (Vector.fromList (map (\(t, ps) -> (t, Vector.fromList ps)) sorted))
+   in Tsvector (Vector.fromList (map (\(t, ps) -> (t, Vector.fromList (sortAndDedupPositions ps))) sorted))
+
+-- | Sort positions by position number ascending, deduplicating by position
+-- (keeping the minimum weight, i.e. highest priority: A < B < C < D).
+sortAndDedupPositions :: [(Word16, Weight)] -> [(Word16, Weight)]
+sortAndDedupPositions =
+  map (foldr1 (\(p, w1) (_, w2) -> (p, min w1 w2)))
+    . List.groupBy (\a b -> fst a == fst b)
+    . List.sortOn fst
 
 instance IsScalar Tsvector where
   schemaName = Tagged Nothing
