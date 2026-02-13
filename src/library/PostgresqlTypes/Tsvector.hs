@@ -128,12 +128,27 @@ instance IsScalar Tsvector where
               WeightB -> 2
               WeightC -> 1
               WeightD -> 0
-         in Write.bWord16 ((weightBits `shiftL` 14) .|. (pos .&. 0x3FFF))
+            -- PostgreSQL tsvector positions must be in the range 1..16383.
+            -- Clamp here to avoid silent truncation by bit masking.
+            posClamped = max 1 (min 16383 pos)
+         in Write.bWord16 ((weightBits `shiftL` 14) .|. posClamped)
 
   binaryDecoder = runExceptT do
     numLexemes <- lift $ PtrPeeker.fixed PtrPeeker.beSignedInt4
-    lexemes <- Vector.fromList <$> replicateM (fromIntegral numLexemes) decodeLexeme
-    pure (Tsvector lexemes)
+    if numLexemes < 0
+      then
+        throwError
+          ( DecodingError
+              { location = ["tsvector", "lexemeCount"],
+                reason =
+                  ParsingDecodingErrorReason
+                    (fromString "Negative lexeme count in tsvector binary data")
+                    ByteString.empty
+              }
+          )
+      else do
+        lexemes <- Vector.fromList <$> replicateM (fromIntegral numLexemes) decodeLexeme
+        pure (Tsvector lexemes)
     where
       decodeLexeme = do
         -- Read null-terminated UTF-8 string
@@ -146,20 +161,31 @@ instance IsScalar Tsvector where
                     reason = ParsingDecodingErrorReason (fromString (show e)) tokenBytes
                   }
               )
-          Right token -> do
-            numPositions <- lift $ PtrPeeker.fixed PtrPeeker.beUnsignedInt2
-            positions <-
-              Vector.fromList <$> replicateM (fromIntegral numPositions) do
-                posWord <- lift $ PtrPeeker.fixed PtrPeeker.beUnsignedInt2
-                let weightBits = (posWord `shiftR` 14) .&. 0x3
-                let weight = case weightBits of
-                      3 -> WeightA
-                      2 -> WeightB
-                      1 -> WeightC
-                      _ -> WeightD
-                let pos = posWord .&. 0x3FFF
-                pure (pos, weight)
-            pure (token, positions)
+          Right token
+            | Text.null token ->
+                throwError
+                  ( DecodingError
+                      { location = ["tsvector", "lexeme"],
+                        reason =
+                          ParsingDecodingErrorReason
+                            (fromString "empty lexeme is not allowed in tsvector")
+                            tokenBytes
+                      }
+                  )
+            | otherwise -> do
+                numPositions <- lift $ PtrPeeker.fixed PtrPeeker.beUnsignedInt2
+                positions <-
+                  Vector.fromList <$> replicateM (fromIntegral numPositions) do
+                    posWord <- lift $ PtrPeeker.fixed PtrPeeker.beUnsignedInt2
+                    let weightBits = (posWord `shiftR` 14) .&. 0x3
+                    let weight = case weightBits of
+                          3 -> WeightA
+                          2 -> WeightB
+                          1 -> WeightC
+                          _ -> WeightD
+                    let pos = posWord .&. 0x3FFF
+                    pure (pos, weight)
+                pure (token, positions)
 
   -- Text format: 'lexeme1':1A,2B 'lexeme2':3C
   -- Single quotes are escaped as '', backslashes as \\
@@ -187,11 +213,19 @@ instance IsScalar Tsvector where
         _ -> Text.singleton c
 
   textualDecoder = do
-    lexemes <- lexemeParser `Attoparsec.sepBy` Attoparsec.satisfy (\c -> c == ' ' || c == '\t' || c == '\n')
+    -- Allow and ignore leading whitespace before the first lexeme
+    Attoparsec.skipSpace
+    lexemes <- lexemeParser `Attoparsec.sepBy` space1
+    -- Allow and ignore trailing whitespace after the last lexeme
+    Attoparsec.skipSpace
     -- Sort and deduplicate to match PostgreSQL's canonical form
     let Tsvector normalized = normalizeLexemes (map (\(t, ps) -> (t, Vector.fromList ps)) lexemes)
     pure (Tsvector normalized)
     where
+      -- Consume one or more space / tab / newline characters between lexemes
+      space1 = do
+        _ <- Attoparsec.takeWhile1 (\c -> c == ' ' || c == '\t' || c == '\n')
+        pure ()
       lexemeParser = do
         _ <- Attoparsec.char '\''
         token <- parseToken

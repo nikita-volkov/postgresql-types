@@ -106,7 +106,7 @@ spec = do
 
   describe "Textual decoding" do
     it "decodes empty string" do
-      (read "\"\"" :: Tsvector.Tsvector) `shouldBe` (read "\"\"" :: Tsvector.Tsvector)
+
       Tsvector.toLexemeList (read "\"\"") `shouldBe` []
 
     it "decodes lexeme without positions" do
