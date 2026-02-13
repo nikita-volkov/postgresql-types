@@ -249,6 +249,8 @@ instance IsScalar Tsvector where
         parsePosition `Attoparsec.sepBy1` Attoparsec.char ','
       parsePosition = do
         pos <- Attoparsec.decimal
+        when (pos < 1 || pos > 16383) do
+          fail ("Position must be between 1 and 16383 in tsvector. It is: " <> show pos)
         weight <-
           (Attoparsec.char 'A' >> pure WeightA)
             <|> (Attoparsec.char 'B' >> pure WeightB)
