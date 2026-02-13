@@ -137,20 +137,18 @@ instance IsScalar Tsvector where
 
   binaryDecoder = runExceptT do
     numLexemes <- lift $ PtrPeeker.fixed PtrPeeker.beSignedInt4
-    if numLexemes < 0
-      then
-        throwError
-          ( DecodingError
-              { location = ["tsvector", "lexemeCount"],
-                reason =
-                  ParsingDecodingErrorReason
-                    (fromString "Negative lexeme count in tsvector binary data")
-                    ByteString.empty
-              }
-          )
-      else do
-        lexemes <- Vector.fromList <$> replicateM (fromIntegral numLexemes) decodeLexeme
-        pure (Tsvector lexemes)
+    when (numLexemes < 0) do
+      throwError
+        ( DecodingError
+            { location = ["tsvector", "lexemeCount"],
+              reason =
+                ParsingDecodingErrorReason
+                  (fromString "Negative lexeme count in tsvector binary data")
+                  ByteString.empty
+            }
+        )
+    lexemes <- Vector.fromList <$> replicateM (fromIntegral numLexemes) decodeLexeme
+    pure (Tsvector lexemes)
     where
       decodeLexeme = do
         -- Read null-terminated UTF-8 string
