@@ -14,6 +14,7 @@ module PostgresqlTypes.Tsvector
 where
 
 import qualified Data.Attoparsec.Text as Attoparsec
+import qualified Data.ByteString as ByteString
 import qualified Data.List as List
 import qualified Data.Map.Strict as Map
 import qualified Data.Text as Text
@@ -246,14 +247,18 @@ instance IsScalar Tsvector where
         _ <- Attoparsec.char ':'
         parsePosition `Attoparsec.sepBy1` Attoparsec.char ','
       parsePosition = do
-        pos <- Attoparsec.decimal
+        pos <- Attoparsec.decimal @Integer
+        if pos < 1 || pos > 16383
+          then fail ("tsvector position out of range 1..16383: " ++ show pos)
+          else pure ()
+        let pos' = fromIntegral pos :: Word16
         weight <-
           (Attoparsec.char 'A' >> pure WeightA)
             <|> (Attoparsec.char 'B' >> pure WeightB)
             <|> (Attoparsec.char 'C' >> pure WeightC)
             <|> (Attoparsec.char 'D' >> pure WeightD)
             <|> pure WeightD -- default weight
-        pure (pos, weight)
+        pure (pos', weight)
 
 -- * Accessors
 
@@ -266,11 +271,12 @@ toLexemeList (Tsvector lexemes) =
 -- * Constructors
 
 -- | Construct a tsvector from a list of (lexeme, positions) pairs with validation.
--- Returns 'Nothing' if any lexeme is empty or contains null characters.
+-- Returns 'Nothing' if any lexeme is empty, contains null characters,
+-- or has positions outside the valid range 1..16383.
 -- Sorts and deduplicates lexemes to match PostgreSQL's canonical representation.
 fromLexemeList :: [(Text, [(Word16, Weight)])] -> Maybe Tsvector
 fromLexemeList lexemes =
-  if any (\(t, _) -> Text.null t || Text.elem '\NUL' t) lexemes
+  if any (\(t, ps) -> Text.null t || Text.elem '\NUL' t || any (\(p, _) -> p < 1 || p > 16383) ps) lexemes
     then Nothing
     else Just (normalizeLexemes (map (\(t, ps) -> (t, Vector.fromList ps)) lexemes))
 
