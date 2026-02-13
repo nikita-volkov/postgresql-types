@@ -19,14 +19,14 @@ spec = do
   describe "Constructors" do
     describe "fromLexemeList" do
       it "creates Tsvector from valid lexemes" do
-        let result = Tsvector.fromLexemeList [("hello", [(1, Tsvector.WeightA)]), ("world", [(2, Tsvector.WeightB)])]
+        let result = Tsvector.fromLexemeList [("hello", [(1, Tsvector.AWeight)]), ("world", [(2, Tsvector.BWeight)])]
         result `shouldSatisfy` (/= Nothing)
 
       it "rejects empty lexeme tokens" do
-        Tsvector.fromLexemeList [("", [(1, Tsvector.WeightA)])] `shouldBe` Nothing
+        Tsvector.fromLexemeList [("", [(1, Tsvector.AWeight)])] `shouldBe` Nothing
 
       it "rejects lexeme tokens with null characters" do
-        Tsvector.fromLexemeList [("hel\NULlo", [(1, Tsvector.WeightA)])] `shouldBe` Nothing
+        Tsvector.fromLexemeList [("hel\NULlo", [(1, Tsvector.AWeight)])] `shouldBe` Nothing
 
       it "creates Tsvector from empty list" do
         let result = Tsvector.fromLexemeList []
@@ -39,18 +39,18 @@ spec = do
         lexemes `shouldBe` ["apple", "banana"]
 
       it "deduplicates lexemes" do
-        let Just tsvec = Tsvector.fromLexemeList [("hello", [(1, Tsvector.WeightA)]), ("hello", [(2, Tsvector.WeightB)])]
+        let Just tsvec = Tsvector.fromLexemeList [("hello", [(1, Tsvector.AWeight)]), ("hello", [(2, Tsvector.BWeight)])]
             lexemes = map fst (Tsvector.toLexemeList tsvec)
         length lexemes `shouldBe` 1
 
     describe "normalizeFromLexemeList" do
       it "strips null characters from tokens" do
-        let tsvec = Tsvector.normalizeFromLexemeList [("hel\NULlo", [(1, Tsvector.WeightA)])]
+        let tsvec = Tsvector.normalizeFromLexemeList [("hel\NULlo", [(1, Tsvector.AWeight)])]
             lexemes = Tsvector.toLexemeList tsvec
         map fst lexemes `shouldBe` ["hello"]
 
       it "removes empty lexemes after stripping" do
-        let tsvec = Tsvector.normalizeFromLexemeList [("\NUL", [(1, Tsvector.WeightA)])]
+        let tsvec = Tsvector.normalizeFromLexemeList [("\NUL", [(1, Tsvector.AWeight)])]
             lexemes = Tsvector.toLexemeList tsvec
         lexemes `shouldBe` []
 
@@ -61,19 +61,19 @@ spec = do
   describe "Accessors" do
     describe "toLexemeList" do
       it "extracts lexemes with positions" do
-        let Just tsvec = Tsvector.fromLexemeList [("test", [(1, Tsvector.WeightA), (2, Tsvector.WeightC)])]
+        let Just tsvec = Tsvector.fromLexemeList [("test", [(1, Tsvector.AWeight), (2, Tsvector.CWeight)])]
             [(token, positions)] = Tsvector.toLexemeList tsvec
         token `shouldBe` "test"
         length positions `shouldBe` 2
 
   describe "Weight" do
     it "has correct ordering" do
-      Tsvector.WeightA `shouldSatisfy` (< Tsvector.WeightB)
-      Tsvector.WeightB `shouldSatisfy` (< Tsvector.WeightC)
-      Tsvector.WeightC `shouldSatisfy` (< Tsvector.WeightD)
+      Tsvector.AWeight `shouldSatisfy` (< Tsvector.BWeight)
+      Tsvector.BWeight `shouldSatisfy` (< Tsvector.CWeight)
+      Tsvector.CWeight `shouldSatisfy` (< Tsvector.DWeight)
 
     it "has correct Enum instances" do
-      [Tsvector.WeightA ..] `shouldBe` [Tsvector.WeightA, Tsvector.WeightB, Tsvector.WeightC, Tsvector.WeightD]
+      [Tsvector.AWeight ..] `shouldBe` [Tsvector.AWeight, Tsvector.BWeight, Tsvector.CWeight, Tsvector.DWeight]
 
   describe "Textual encoding" do
     it "encodes empty tsvector" do
@@ -85,23 +85,23 @@ spec = do
        in show tsvec `shouldBe` "\"'hello'\""
 
     it "encodes lexeme with single weighted position" do
-      let Just tsvec = Tsvector.fromLexemeList [("hello", [(1, Tsvector.WeightA)])]
+      let Just tsvec = Tsvector.fromLexemeList [("hello", [(1, Tsvector.AWeight)])]
        in show tsvec `shouldBe` "\"'hello':1A\""
 
     it "encodes lexeme with default weight (D) by omitting it" do
-      let Just tsvec = Tsvector.fromLexemeList [("hello", [(1, Tsvector.WeightD)])]
+      let Just tsvec = Tsvector.fromLexemeList [("hello", [(1, Tsvector.DWeight)])]
        in show tsvec `shouldBe` "\"'hello':1\""
 
     it "encodes multiple lexemes" do
-      let Just tsvec = Tsvector.fromLexemeList [("apple", [(1, Tsvector.WeightA)]), ("banana", [(2, Tsvector.WeightB)])]
+      let Just tsvec = Tsvector.fromLexemeList [("apple", [(1, Tsvector.AWeight)]), ("banana", [(2, Tsvector.BWeight)])]
        in show tsvec `shouldBe` "\"'apple':1A 'banana':2B\""
 
     it "escapes single quotes in lexemes" do
-      let Just tsvec = Tsvector.fromLexemeList [("it's", [(1, Tsvector.WeightA)])]
+      let Just tsvec = Tsvector.fromLexemeList [("it's", [(1, Tsvector.AWeight)])]
        in show tsvec `shouldBe` "\"'it''s':1A\""
 
     it "escapes backslashes in lexemes" do
-      let Just tsvec = Tsvector.fromLexemeList [("back\\slash", [(1, Tsvector.WeightA)])]
+      let Just tsvec = Tsvector.fromLexemeList [("back\\slash", [(1, Tsvector.AWeight)])]
        in show tsvec `shouldBe` "\"'back\\\\\\\\slash':1A\""
 
   describe "Textual decoding" do
@@ -118,12 +118,12 @@ spec = do
       let tsvec = read "\"'hello':1A\"" :: Tsvector.Tsvector
           [(token, positions)] = Tsvector.toLexemeList tsvec
       token `shouldBe` "hello"
-      positions `shouldBe` [(1, Tsvector.WeightA)]
+      positions `shouldBe` [(1, Tsvector.AWeight)]
 
     it "decodes lexeme with default weight" do
       let tsvec = read "\"'hello':1\"" :: Tsvector.Tsvector
           [(_, positions)] = Tsvector.toLexemeList tsvec
-      positions `shouldBe` [(1, Tsvector.WeightD)]
+      positions `shouldBe` [(1, Tsvector.DWeight)]
 
     it "decodes multiple positions" do
       let tsvec = read "\"'hello':1A,2B,3C\"" :: Tsvector.Tsvector

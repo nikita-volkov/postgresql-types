@@ -29,11 +29,11 @@ import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
 -- | Weight of a tsvector lexeme position.
-data Weight = WeightA | WeightB | WeightC | WeightD
+data Weight = AWeight | BWeight | CWeight | DWeight
   deriving stock (Eq, Ord, Show, Read, Enum, Bounded)
 
 instance Arbitrary Weight where
-  arbitrary = QuickCheck.elements [WeightA, WeightB, WeightC, WeightD]
+  arbitrary = QuickCheck.elements [AWeight, BWeight, CWeight, DWeight]
 
 instance Hashable Weight where
   hashWithSalt salt = hashWithSalt salt . fromEnum
@@ -126,10 +126,10 @@ instance IsScalar Tsvector where
               <> Vector.foldMap encodePosition positions
       encodePosition (pos, weight) =
         let weightBits = case weight of
-              WeightA -> 3
-              WeightB -> 2
-              WeightC -> 1
-              WeightD -> 0
+              AWeight -> 3
+              BWeight -> 2
+              CWeight -> 1
+              DWeight -> 0
             -- PostgreSQL tsvector positions must be in the range 1..16383.
             -- Clamp here to avoid silent truncation by bit masking.
             posClamped = max 1 (min 16383 pos)
@@ -179,10 +179,10 @@ instance IsScalar Tsvector where
                     posWord <- lift $ PtrPeeker.fixed PtrPeeker.beUnsignedInt2
                     let weightBits = (posWord `shiftR` 14) .&. 0x3
                     let weight = case weightBits of
-                          3 -> WeightA
-                          2 -> WeightB
-                          1 -> WeightC
-                          _ -> WeightD
+                          3 -> AWeight
+                          2 -> BWeight
+                          1 -> CWeight
+                          _ -> DWeight
                     let pos = posWord .&. 0x3FFF
                     pure (pos, weight)
                 pure (token, positions)
@@ -202,10 +202,10 @@ instance IsScalar Tsvector where
       encodePosition (pos, weight) =
         TextBuilder.string (show pos)
           <> case weight of
-            WeightA -> TextBuilder.char 'A'
-            WeightB -> TextBuilder.char 'B'
-            WeightC -> TextBuilder.char 'C'
-            WeightD -> mempty -- D is default, omitted by PostgreSQL
+            AWeight -> TextBuilder.char 'A'
+            BWeight -> TextBuilder.char 'B'
+            CWeight -> TextBuilder.char 'C'
+            DWeight -> mempty -- D is default, omitted by PostgreSQL
       escapeToken = Text.concatMap escapeChar
       escapeChar c = case c of
         '\'' -> "''"
@@ -250,11 +250,11 @@ instance IsScalar Tsvector where
         when (pos < 1 || pos > 16383) do
           fail ("Position must be between 1 and 16383 in tsvector. It is: " <> show pos)
         weight <-
-          (Attoparsec.char 'A' >> pure WeightA)
-            <|> (Attoparsec.char 'B' >> pure WeightB)
-            <|> (Attoparsec.char 'C' >> pure WeightC)
-            <|> (Attoparsec.char 'D' >> pure WeightD)
-            <|> pure WeightD -- default weight
+          (Attoparsec.char 'A' >> pure AWeight)
+            <|> (Attoparsec.char 'B' >> pure BWeight)
+            <|> (Attoparsec.char 'C' >> pure CWeight)
+            <|> (Attoparsec.char 'D' >> pure DWeight)
+            <|> pure DWeight -- default weight
         pure (pos, weight)
 
 -- * Accessors
