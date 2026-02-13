@@ -251,11 +251,13 @@ instance IsScalar Tsvector where
           fail ("tsvector position out of range 1..16383: " <> show pos)
         let pos' = fromIntegral pos :: Word16
         weight <-
-          (Attoparsec.char 'A' >> pure AWeight)
-            <|> (Attoparsec.char 'B' >> pure BWeight)
-            <|> (Attoparsec.char 'C' >> pure CWeight)
-            <|> (Attoparsec.char 'D' >> pure DWeight)
-            <|> pure DWeight -- default weight
+          asum
+            [ Attoparsec.char 'A' $> AWeight,
+              Attoparsec.char 'B' $> BWeight,
+              Attoparsec.char 'C' $> CWeight,
+              Attoparsec.char 'D' $> DWeight,
+              pure DWeight
+            ]
         pure (pos', weight)
 
 -- * Accessors
