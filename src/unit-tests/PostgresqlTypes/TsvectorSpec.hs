@@ -17,29 +17,29 @@ spec = do
     Scripts.testIsScalar (Proxy @Tsvector.Tsvector)
 
   describe "Constructors" do
-    describe "fromLexemeList" do
+    describe "refineFromLexemeList" do
       it "creates Tsvector from valid lexemes" do
-        let result = Tsvector.fromLexemeList [("hello", [(1, Tsvector.AWeight)]), ("world", [(2, Tsvector.BWeight)])]
+        let result = Tsvector.refineFromLexemeList [("hello", [(1, Tsvector.AWeight)]), ("world", [(2, Tsvector.BWeight)])]
         result `shouldSatisfy` (/= Nothing)
 
       it "rejects empty lexeme tokens" do
-        Tsvector.fromLexemeList [("", [(1, Tsvector.AWeight)])] `shouldBe` Nothing
+        Tsvector.refineFromLexemeList [("", [(1, Tsvector.AWeight)])] `shouldBe` Nothing
 
       it "rejects lexeme tokens with null characters" do
-        Tsvector.fromLexemeList [("hel\NULlo", [(1, Tsvector.AWeight)])] `shouldBe` Nothing
+        Tsvector.refineFromLexemeList [("hel\NULlo", [(1, Tsvector.AWeight)])] `shouldBe` Nothing
 
       it "creates Tsvector from empty list" do
-        let result = Tsvector.fromLexemeList []
+        let result = Tsvector.refineFromLexemeList []
         result `shouldSatisfy` (/= Nothing)
         fmap Tsvector.toLexemeList result `shouldBe` Just []
 
       it "sorts lexemes alphabetically" do
-        let Just tsvec = Tsvector.fromLexemeList [("banana", []), ("apple", [])]
+        let Just tsvec = Tsvector.refineFromLexemeList [("banana", []), ("apple", [])]
             lexemes = map fst (Tsvector.toLexemeList tsvec)
         lexemes `shouldBe` ["apple", "banana"]
 
       it "deduplicates lexemes" do
-        let Just tsvec = Tsvector.fromLexemeList [("hello", [(1, Tsvector.AWeight)]), ("hello", [(2, Tsvector.BWeight)])]
+        let Just tsvec = Tsvector.refineFromLexemeList [("hello", [(1, Tsvector.AWeight)]), ("hello", [(2, Tsvector.BWeight)])]
             lexemes = map fst (Tsvector.toLexemeList tsvec)
         length lexemes `shouldBe` 1
 
@@ -61,7 +61,7 @@ spec = do
   describe "Accessors" do
     describe "toLexemeList" do
       it "extracts lexemes with positions" do
-        let Just tsvec = Tsvector.fromLexemeList [("test", [(1, Tsvector.AWeight), (2, Tsvector.CWeight)])]
+        let Just tsvec = Tsvector.refineFromLexemeList [("test", [(1, Tsvector.AWeight), (2, Tsvector.CWeight)])]
             [(token, positions)] = Tsvector.toLexemeList tsvec
         token `shouldBe` "test"
         length positions `shouldBe` 2
@@ -77,31 +77,31 @@ spec = do
 
   describe "Textual encoding" do
     it "encodes empty tsvector" do
-      let Just tsvec = Tsvector.fromLexemeList []
+      let Just tsvec = Tsvector.refineFromLexemeList []
        in show tsvec `shouldBe` "\"\""
 
     it "encodes lexeme without positions" do
-      let Just tsvec = Tsvector.fromLexemeList [("hello", [])]
+      let Just tsvec = Tsvector.refineFromLexemeList [("hello", [])]
        in show tsvec `shouldBe` "\"'hello'\""
 
     it "encodes lexeme with single weighted position" do
-      let Just tsvec = Tsvector.fromLexemeList [("hello", [(1, Tsvector.AWeight)])]
+      let Just tsvec = Tsvector.refineFromLexemeList [("hello", [(1, Tsvector.AWeight)])]
        in show tsvec `shouldBe` "\"'hello':1A\""
 
     it "encodes lexeme with default weight (D) by omitting it" do
-      let Just tsvec = Tsvector.fromLexemeList [("hello", [(1, Tsvector.DWeight)])]
+      let Just tsvec = Tsvector.refineFromLexemeList [("hello", [(1, Tsvector.DWeight)])]
        in show tsvec `shouldBe` "\"'hello':1\""
 
     it "encodes multiple lexemes" do
-      let Just tsvec = Tsvector.fromLexemeList [("apple", [(1, Tsvector.AWeight)]), ("banana", [(2, Tsvector.BWeight)])]
+      let Just tsvec = Tsvector.refineFromLexemeList [("apple", [(1, Tsvector.AWeight)]), ("banana", [(2, Tsvector.BWeight)])]
        in show tsvec `shouldBe` "\"'apple':1A 'banana':2B\""
 
     it "escapes single quotes in lexemes" do
-      let Just tsvec = Tsvector.fromLexemeList [("it's", [(1, Tsvector.AWeight)])]
+      let Just tsvec = Tsvector.refineFromLexemeList [("it's", [(1, Tsvector.AWeight)])]
        in show tsvec `shouldBe` "\"'it''s':1A\""
 
     it "escapes backslashes in lexemes" do
-      let Just tsvec = Tsvector.fromLexemeList [("back\\slash", [(1, Tsvector.AWeight)])]
+      let Just tsvec = Tsvector.refineFromLexemeList [("back\\slash", [(1, Tsvector.AWeight)])]
        in show tsvec `shouldBe` "\"'back\\\\\\\\slash':1A\""
 
   describe "Textual decoding" do
@@ -141,23 +141,23 @@ spec = do
       token `shouldBe` "back\\slash"
 
   describe "Property Tests" do
-    it "roundtrips through toLexemeList and fromLexemeList" do
+    it "roundtrips through toLexemeList and refineFromLexemeList" do
       property \(tsvec :: Tsvector.Tsvector) ->
         let lexemes = Tsvector.toLexemeList tsvec
-            reconstructed = Tsvector.fromLexemeList lexemes
+            reconstructed = Tsvector.refineFromLexemeList lexemes
          in reconstructed === Just tsvec
 
-    it "fromLexemeList is idempotent via normalization" do
+    it "refineFromLexemeList is idempotent via normalization" do
       property \(tsvec :: Tsvector.Tsvector) ->
         let lexemes = Tsvector.toLexemeList tsvec
-            Just tsvec' = Tsvector.fromLexemeList lexemes
+            Just tsvec' = Tsvector.refineFromLexemeList lexemes
             lexemes' = Tsvector.toLexemeList tsvec'
-            Just tsvec'' = Tsvector.fromLexemeList lexemes'
+            Just tsvec'' = Tsvector.refineFromLexemeList lexemes'
          in tsvec' === tsvec''
 
-    it "normalizeFromLexemeList produces same result as fromLexemeList for valid input" do
+    it "normalizeFromLexemeList produces same result as refineFromLexemeList for valid input" do
       property \(tsvec :: Tsvector.Tsvector) ->
         let lexemes = Tsvector.toLexemeList tsvec
             normalized = Tsvector.normalizeFromLexemeList lexemes
-            Just refined = Tsvector.fromLexemeList lexemes
+            Just refined = Tsvector.refineFromLexemeList lexemes
          in normalized === refined

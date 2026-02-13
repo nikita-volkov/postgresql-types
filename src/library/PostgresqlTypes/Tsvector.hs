@@ -5,7 +5,7 @@ module PostgresqlTypes.Tsvector
     toLexemeList,
 
     -- * Constructors
-    fromLexemeList,
+    refineFromLexemeList,
     normalizeFromLexemeList,
 
     -- * Weight
@@ -274,8 +274,8 @@ toLexemeList (Tsvector lexemes) =
 -- Returns 'Nothing' if any lexeme is empty, contains null characters,
 -- or has positions outside the valid range 1..16383.
 -- Sorts and deduplicates lexemes to match PostgreSQL's canonical representation.
-fromLexemeList :: [(Text, [(Word16, Weight)])] -> Maybe Tsvector
-fromLexemeList lexemes =
+refineFromLexemeList :: [(Text, [(Word16, Weight)])] -> Maybe Tsvector
+refineFromLexemeList lexemes =
   if any (\(t, ps) -> Text.null t || Text.elem '\NUL' t || any (\(p, _) -> p < 1 || p > 16383) ps) lexemes
     then Nothing
     else Just (normalizeLexemes (map (\(t, ps) -> (t, Vector.fromList ps)) lexemes))
