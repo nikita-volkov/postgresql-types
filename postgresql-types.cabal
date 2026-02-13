@@ -134,11 +134,11 @@ library
     PostgresqlTypes.Polygon
     PostgresqlTypes.Range
     PostgresqlTypes.Text
-    PostgresqlTypes.Tsvector
     PostgresqlTypes.Time
     PostgresqlTypes.Timestamp
     PostgresqlTypes.Timestamptz
     PostgresqlTypes.Timetz
+    PostgresqlTypes.Tsvector
     PostgresqlTypes.Uuid
     PostgresqlTypes.Varbit
     PostgresqlTypes.Varchar
@@ -241,10 +241,10 @@ test-suite unit-tests
     PostgresqlTypes.RangeSpec
     PostgresqlTypes.TextSpec
     PostgresqlTypes.TimeSpec
-    PostgresqlTypes.TsvectorSpec
     PostgresqlTypes.TimestampSpec
     PostgresqlTypes.TimestamptzSpec
     PostgresqlTypes.TimetzSpec
+    PostgresqlTypes.TsvectorSpec
     PostgresqlTypes.UuidSpec
     PostgresqlTypes.VarbitSpec
     PostgresqlTypes.VarcharSpec
