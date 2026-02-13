@@ -246,16 +246,17 @@ instance IsScalar Tsvector where
         _ <- Attoparsec.char ':'
         parsePosition `Attoparsec.sepBy1` Attoparsec.char ','
       parsePosition = do
-        pos <- Attoparsec.decimal
+        pos <- Attoparsec.decimal @Integer
         when (pos < 1 || pos > 16383) do
-          fail ("Position must be between 1 and 16383 in tsvector. It is: " <> show pos)
+          fail ("tsvector position out of range 1..16383: " <> show pos)
+        let pos' = fromIntegral pos :: Word16
         weight <-
           (Attoparsec.char 'A' >> pure AWeight)
             <|> (Attoparsec.char 'B' >> pure BWeight)
             <|> (Attoparsec.char 'C' >> pure CWeight)
             <|> (Attoparsec.char 'D' >> pure DWeight)
             <|> pure DWeight -- default weight
-        pure (pos, weight)
+        pure (pos', weight)
 
 -- * Accessors
 
@@ -268,11 +269,12 @@ toLexemeList (Tsvector lexemes) =
 -- * Constructors
 
 -- | Construct a tsvector from a list of (lexeme, positions) pairs with validation.
--- Returns 'Nothing' if any lexeme is empty or contains null characters.
+-- Returns 'Nothing' if any lexeme is empty, contains null characters,
+-- or has positions outside the valid range 1..16383.
 -- Sorts and deduplicates lexemes to match PostgreSQL's canonical representation.
 fromLexemeList :: [(Text, [(Word16, Weight)])] -> Maybe Tsvector
 fromLexemeList lexemes =
-  if any (\(t, _) -> Text.null t || Text.elem '\NUL' t) lexemes
+  if any (\(t, ps) -> Text.null t || Text.elem '\NUL' t || any (\(p, _) -> p < 1 || p > 16383) ps) lexemes
     then Nothing
     else Just (normalizeLexemes (map (\(t, ps) -> (t, Vector.fromList ps)) lexemes))
 
