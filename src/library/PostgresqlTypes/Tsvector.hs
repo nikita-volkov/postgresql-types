@@ -14,6 +14,7 @@ module PostgresqlTypes.Tsvector
 where
 
 import qualified Data.Attoparsec.Text as Attoparsec
+import qualified Data.ByteString as ByteString
 import qualified Data.List as List
 import qualified Data.Map.Strict as Map
 import qualified Data.Text as Text
