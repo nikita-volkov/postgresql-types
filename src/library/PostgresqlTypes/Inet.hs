@@ -148,7 +148,7 @@ instance IsScalar Inet where
                 <*> PtrPeeker.beUnsignedInt4
                 <*> pure (fromIntegral netmask)
         _ -> do
-          throwError (DecodingError ["address-family"] (UnexpectedValueDecodingErrorReason "2 or 10" (TextBuilder.toText (TextBuilder.decimal family))))
+          throwError (DecodingError ["address-family"] (UnexpectedValueDecodingErrorReason "2 or 3" (TextBuilder.toText (TextBuilder.decimal family))))
 
   textualEncoder = \case
     V4Inet addr netmask ->
