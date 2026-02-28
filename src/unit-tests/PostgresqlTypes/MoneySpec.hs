@@ -1,7 +1,6 @@
 module PostgresqlTypes.MoneySpec (spec) where
 
 import Data.Data (Proxy (Proxy))
-import Data.Either (isRight)
 import Data.Int
 import qualified Data.Attoparsec.Text
 import qualified PostgresqlTypes.Algebra
