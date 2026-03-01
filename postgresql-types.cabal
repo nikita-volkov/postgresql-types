@@ -109,6 +109,7 @@ library
     PostgresqlTypes.Bytea
     PostgresqlTypes.Char
     PostgresqlTypes.Cidr
+    PostgresqlTypes.Citext
     PostgresqlTypes.Circle
     PostgresqlTypes.Date
     PostgresqlTypes.Float4
@@ -215,6 +216,7 @@ test-suite unit-tests
     PostgresqlTypes.ByteaSpec
     PostgresqlTypes.CharSpec
     PostgresqlTypes.CidrSpec
+    PostgresqlTypes.CitextSpec
     PostgresqlTypes.CircleSpec
     PostgresqlTypes.DateSpec
     PostgresqlTypes.Float4Spec
