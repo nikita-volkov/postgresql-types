@@ -77,8 +77,8 @@ import PostgresqlTypes.Bpchar
 import PostgresqlTypes.Bytea
 import PostgresqlTypes.Char
 import PostgresqlTypes.Cidr
-import PostgresqlTypes.Citext
 import PostgresqlTypes.Circle
+import PostgresqlTypes.Citext
 import PostgresqlTypes.Date
 import PostgresqlTypes.Float4
 import PostgresqlTypes.Float8
