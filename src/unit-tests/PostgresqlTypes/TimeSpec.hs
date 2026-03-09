@@ -1,8 +1,11 @@
 module PostgresqlTypes.TimeSpec (spec) where
 
 import Data.Data (Proxy (Proxy))
+import qualified Data.Attoparsec.Text
+import Data.Either (isLeft, isRight)
 import Data.Maybe
 import qualified Data.Time as Time
+import qualified PostgresqlTypes.Algebra
 import qualified PostgresqlTypes.Time as PgTime
 import Test.Hspec
 import Test.QuickCheck
@@ -62,6 +65,32 @@ spec = do
         let pgTime = PgTime.normalizeFromMicroseconds 43_200_000_000 -- noon
             tod = PgTime.toTimeOfDay pgTime
         tod `shouldBe` Time.TimeOfDay 12 0 0
+
+  describe "Edge Cases" do
+    it "textual decoder accepts 24:00:00" do
+      let result = Data.Attoparsec.Text.parseOnly (PostgresqlTypes.Algebra.textualDecoder @PgTime.Time) "24:00:00"
+      result `shouldSatisfy` isRight
+      fmap PgTime.toMicroseconds result `shouldBe` Right 86_400_000_000
+
+    it "textual decoder rejects 24:00:01" do
+      let result = Data.Attoparsec.Text.parseOnly (PostgresqlTypes.Algebra.textualDecoder @PgTime.Time) "24:00:01"
+      result `shouldSatisfy` isLeft
+
+    it "textual decoder rejects 24:01:00" do
+      let result = Data.Attoparsec.Text.parseOnly (PostgresqlTypes.Algebra.textualDecoder @PgTime.Time) "24:01:00"
+      result `shouldSatisfy` isLeft
+
+    it "textual decoder rejects 24:30:00" do
+      let result = Data.Attoparsec.Text.parseOnly (PostgresqlTypes.Algebra.textualDecoder @PgTime.Time) "24:30:00"
+      result `shouldSatisfy` isLeft
+
+    it "textual decoder rejects 24:00:00.000001" do
+      let result = Data.Attoparsec.Text.parseOnly (PostgresqlTypes.Algebra.textualDecoder @PgTime.Time) "24:00:00.000001"
+      result `shouldSatisfy` isLeft
+
+    it "textual decoder accepts 23:59:59.999999" do
+      let result = Data.Attoparsec.Text.parseOnly (PostgresqlTypes.Algebra.textualDecoder @PgTime.Time) "23:59:59.999999"
+      result `shouldSatisfy` isRight
 
   describe "Property Tests" do
     it "roundtrips through toMicroseconds and normalizeFromMicroseconds" do

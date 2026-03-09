@@ -2,10 +2,14 @@ module PostgresqlTypes.MoneySpec (spec) where
 
 import Data.Data (Proxy (Proxy))
 import Data.Int
+import qualified Data.Attoparsec.Text
+import qualified PostgresqlTypes.Algebra
 import qualified PostgresqlTypes.Money as Money
 import Test.Hspec
 import Test.QuickCheck
+import qualified TextBuilder
 import qualified UnitTests.Scripts as Scripts
+import Prelude
 
 spec :: Spec
 spec = do
@@ -34,6 +38,19 @@ spec = do
       it "extracts Int64 value representing cents" do
         let pgMoney = Money.fromInt64 9999
         Money.toInt64 pgMoney `shouldBe` 9999
+
+  describe "Edge Cases" do
+    it "textual encoder handles minBound @Int64 correctly" do
+      let pgMoney = Money.fromInt64 (minBound @Int64)
+          encoded = TextBuilder.toText (PostgresqlTypes.Algebra.textualEncoder pgMoney)
+          decoded = Data.Attoparsec.Text.parseOnly (PostgresqlTypes.Algebra.textualDecoder @Money.Money) encoded
+      decoded `shouldBe` Right pgMoney
+
+    it "textual encoder handles maxBound @Int64 correctly" do
+      let pgMoney = Money.fromInt64 (maxBound @Int64)
+          encoded = TextBuilder.toText (PostgresqlTypes.Algebra.textualEncoder pgMoney)
+          decoded = Data.Attoparsec.Text.parseOnly (PostgresqlTypes.Algebra.textualDecoder @Money.Money) encoded
+      decoded `shouldBe` Right pgMoney
 
   describe "Property Tests" do
     it "roundtrips through toInt64 and fromInt64" do

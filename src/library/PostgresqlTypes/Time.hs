@@ -55,10 +55,9 @@ instance IsScalar Time where
     m <- twoDigits
     -- Seconds are optional
     s <- Attoparsec.option 0 (Attoparsec.char ':' *> parseSeconds)
-    if h < 25 && m < 60 && s < 61_000_000
-      then
-        let microseconds = fromIntegral h * 3600_000_000 + fromIntegral m * 60_000_000 + s
-         in pure (Time microseconds)
+    let microseconds = fromIntegral h * 3600_000_000 + fromIntegral m * 60_000_000 + s
+    if h <= 24 && m < 60 && s < 61_000_000 && microseconds >= 0 && microseconds <= 86_400_000_000
+      then pure (Time microseconds)
       else fail "Invalid time"
     where
       twoDigits = do

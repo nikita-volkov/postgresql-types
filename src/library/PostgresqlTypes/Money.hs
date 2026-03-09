@@ -44,8 +44,10 @@ instance IsScalar Money where
   textualEncoder (Money x) =
     -- Format as currency with 2 decimal places and $ symbol
     -- PostgreSQL's money type typically displays with currency symbol
-    let isNegative = x < 0
-        absValue = abs x
+    -- Use Integer to avoid abs overflow on minBound @Int64
+    let value = fromIntegral x :: Integer
+        isNegative = value < 0
+        absValue = abs value
         dollars = quot absValue 100
         cents = rem absValue 100
         centsText =
