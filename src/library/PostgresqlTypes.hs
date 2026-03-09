@@ -16,6 +16,7 @@ module PostgresqlTypes
     Varchar,
     Char,
     Bpchar,
+    Citext,
 
     -- * Boolean Type
     Bool,
@@ -76,6 +77,7 @@ import PostgresqlTypes.Bpchar
 import PostgresqlTypes.Bytea
 import PostgresqlTypes.Char
 import PostgresqlTypes.Cidr
+import PostgresqlTypes.Citext
 import PostgresqlTypes.Circle
 import PostgresqlTypes.Date
 import PostgresqlTypes.Float4
