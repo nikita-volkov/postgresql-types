@@ -1,8 +1,8 @@
 module PostgresqlTypes.MoneySpec (spec) where
 
+import qualified Data.Attoparsec.Text
 import Data.Data (Proxy (Proxy))
 import Data.Int
-import qualified Data.Attoparsec.Text
 import qualified PostgresqlTypes.Algebra
 import qualified PostgresqlTypes.Money as Money
 import Test.Hspec

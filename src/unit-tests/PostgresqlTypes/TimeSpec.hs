@@ -1,7 +1,7 @@
 module PostgresqlTypes.TimeSpec (spec) where
 
-import Data.Data (Proxy (Proxy))
 import qualified Data.Attoparsec.Text
+import Data.Data (Proxy (Proxy))
 import Data.Either (isLeft, isRight)
 import Data.Maybe
 import qualified Data.Time as Time
