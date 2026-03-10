@@ -1,0 +1,66 @@
+name: Bump version and release
+
+on:
+  workflow_dispatch:
+    inputs:
+      level:
+        description: "Version bump level"
+        required: true
+        type: choice
+        options:
+          - supermajor
+          - major
+          - minor
+          - patch
+
+jobs:
+  compute-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.bump.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compute bumped version
+        id: bump
+        run: |
+          last_tag=$(git tag --list 'v*' --sort=-version:refname | head -1)
+          if [ -z "$last_tag" ]; then
+            echo "Error: no release tags found matching 'v*'"
+            exit 1
+          fi
+
+          current_version="${last_tag#v}"
+          echo "Current version: $current_version"
+
+          IFS='.' read -ra parts <<< "$current_version"
+
+          case "${{ inputs.level }}" in
+            supermajor) idx=0 ;;
+            major)      idx=1 ;;
+            minor)      idx=2 ;;
+            patch)      idx=3 ;;
+          esac
+
+          while [ ${#parts[@]} -le $idx ]; do
+            parts+=("0")
+          done
+
+          parts[$idx]=$((${parts[$idx]} + 1))
+
+          for ((i = idx + 1; i < ${#parts[@]}; i++)); do
+            parts[$i]=0
+          done
+
+          new_version=$(IFS='.'; echo "${parts[*]}")
+          echo "New version: $new_version"
+          echo "version=$new_version" >> "$GITHUB_OUTPUT"
+
+  release:
+    needs: compute-version
+    uses: ./.github/workflows/release.yaml
+    with:
+      version: ${{ needs.compute-version.outputs.version }}
+    secrets: inherit
