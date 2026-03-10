@@ -1,23 +1,50 @@
 name: Release the lib to Hackage
 
 on:
-  push:
-    branches:
-      - supermajor
-      - major
-      - minor
-      - patch
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version in Haskell PVP format (e.g., 1.2.3.4)"
+        required: true
+        type: string
+  workflow_call:
+    inputs:
+      version:
+        description: "Version in Haskell PVP format (e.g., 1.2.3.4)"
+        required: true
+        type: string
+    secrets:
+      HACKAGE_TOKEN:
+        required: true
 
 concurrency:
   group: release
   cancel-in-progress: false
 
+permissions:
+  contents: write
+
 jobs:
+  validate-version:
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Validate PVP version format
+        run: |
+          if ! echo "${{ inputs.version }}" | grep -qE '^[0-9]+(\.[0-9]+)+$'; then
+            echo "Error: '${{ inputs.version }}' is not a valid Haskell PVP version (expected e.g. 1.2.3.4)"
+            exit 1
+          fi
+
   build:
+    needs: validate-version
+    permissions: {}
     uses: ./.github/workflows/build.yaml
     secrets: inherit
 
   generate-docs:
+    needs: validate-version
+    permissions: {}
     uses: nikita-volkov/haskell-hackage-lib-github-actions-workflows/.github/workflows/generate-docs.yaml@v4
     secrets: inherit
 
@@ -25,7 +52,49 @@ jobs:
     needs:
       - build
       - generate-docs
-    uses: nikita-volkov/haskell-hackage-lib-github-actions-workflows/.github/workflows/release.yaml@v4
-    secrets: inherit
-    with:
-      prefix-tag-with-v: true
+    runs-on: ubuntu-latest
+    environment:
+      name: hackage
+      url: ${{ steps.generate-hackage-url.outputs.url }}
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set package version
+        uses: nikita-volkov/edit-cabal-version.github-action@v1.1.1
+        with:
+          mode: set
+          set-value: ${{ inputs.version }}
+
+      - name: Extract package name and generate Hackage URL
+        id: generate-hackage-url
+        run: |
+          cabal_file=$(find . -maxdepth 1 -name "*.cabal" -print -quit)
+          package_name=$(awk -F ":[[:space:]]*" 'tolower($1)=="name" { gsub(/^[[:space:]]+|[[:space:]]+$/, "", $2); print $2 }' < "$cabal_file")
+          echo "url=https://hackage.haskell.org/package/${package_name}-${{ inputs.version }}" >> "${GITHUB_OUTPUT}"
+
+      - name: Generate package dist
+        run: cabal sdist
+
+      - name: Publish on Hackage
+        uses: haskell-actions/hackage-publish@v1.1
+        with:
+          hackageToken: ${{ secrets.HACKAGE_TOKEN }}
+          publish: true
+          docsPath: dist-newstyle
+
+      - name: Commit the version update
+        id: commit
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Set package version to ${{ inputs.version }}
+          file_pattern: "*.cabal"
+
+      - name: Create release tag
+        uses: mathieudutour/github-tag-action@v6.1
+        with:
+          github_token: ${{ github.token }}
+          custom_tag: ${{ inputs.version }}
+          tag_prefix: v
+          commit_sha: ${{ steps.commit.outputs.commit_hash }}

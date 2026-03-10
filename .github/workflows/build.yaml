@@ -9,11 +9,6 @@ on:
         type: number
         default: 10000
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
 jobs:
   check-cabal:
     uses: nikita-volkov/haskell-hackage-lib-github-actions-workflows/.github/workflows/check-cabal.yaml@v4
