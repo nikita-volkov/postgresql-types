@@ -24,6 +24,7 @@ concurrency:
 jobs:
   validate-version:
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
       - name: Validate PVP version format
         run: |
@@ -34,11 +35,13 @@ jobs:
 
   build:
     needs: validate-version
+    permissions: {}
     uses: ./.github/workflows/build.yaml
     secrets: inherit
 
   generate-docs:
     needs: validate-version
+    permissions: {}
     uses: nikita-volkov/haskell-hackage-lib-github-actions-workflows/.github/workflows/generate-docs.yaml@v4
     secrets: inherit
 

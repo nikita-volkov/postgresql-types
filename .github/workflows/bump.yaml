@@ -16,6 +16,8 @@ on:
 jobs:
   compute-version:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       version: ${{ steps.bump.outputs.version }}
     steps:
@@ -60,6 +62,7 @@ jobs:
 
   release:
     needs: compute-version
+    permissions: {}
     uses: ./.github/workflows/release.yaml
     with:
       version: ${{ needs.compute-version.outputs.version }}
