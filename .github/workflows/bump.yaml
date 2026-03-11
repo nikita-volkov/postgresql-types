@@ -8,10 +8,10 @@ on:
         required: true
         type: choice
         options:
-          - supermajor
-          - major
-          - minor
           - patch
+          - minor
+          - major
+          - supermajor
 
 permissions:
   contents: write
@@ -24,16 +24,16 @@ jobs:
     outputs:
       version: ${{ steps.bump.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Compute bumped version
         id: bump
         run: |
-          last_tag=$(git tag --list 'v*' --sort=-version:refname | head -1)
+          last_tag=$(git tag --list --sort=-version:refname | grep -E '^v?[0-9]+(\.[0-9]+){0,3}$' | head -1)
           if [ -z "$last_tag" ]; then
-            echo "Error: no release tags found matching 'v*'"
+            echo "Error: no release tags found matching PVP-like versioning (v?X[.Y[.Z[.W]]])"
             exit 1
           fi
 
@@ -49,14 +49,21 @@ jobs:
             patch)      idx=3 ;;
           esac
 
+          # Ensure we have enough components up to the bumped index
           while [ ${#parts[@]} -le $idx ]; do
             parts+=("0")
           done
 
           parts[$idx]=$((${parts[$idx]} + 1))
 
+          # Zero out lower-order components
           for ((i = idx + 1; i < ${#parts[@]}; i++)); do
             parts[$i]=0
+          done
+
+          # Ensure we always emit 4 components (PVP-style), filling with zeros
+          while [ ${#parts[@]} -lt 4 ]; do
+            parts+=("0")
           done
 
           new_version=$(IFS='.'; echo "${parts[*]}")
