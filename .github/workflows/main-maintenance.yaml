@@ -6,7 +6,7 @@ on:
 
 # Prevent overlapping publishes on rapid pushes
 concurrency:
-  group: main-maintenance
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
