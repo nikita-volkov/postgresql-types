@@ -266,7 +266,7 @@ test-suite unit-tests
     hspec >=2.11 && <3,
     postgresql-types,
     postgresql-types-algebra ^>=0.1,
-    ptr-peeker ^>=0.1,
+    ptr-peeker >=0.1 && <0.3,
     ptr-poker ^>=0.1.2.16,
     quickcheck-classes ^>=0.6.5,
     quickcheck-instances ^>=0.3.33,
