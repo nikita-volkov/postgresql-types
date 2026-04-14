@@ -6,6 +6,9 @@ module PostgresqlTypes.Float8
 
     -- * Constructors
     fromDouble,
+
+    -- ** Standard Haskell type instances
+    -- | PostgreSQL 'Float8' maps directly to Haskell's 'Double'.
   )
 where
 

@@ -6,6 +6,9 @@ module PostgresqlTypes.Float4
 
     -- * Constructors
     fromFloat,
+
+    -- ** Standard Haskell type instances
+    -- | PostgreSQL 'Float4' maps directly to Haskell's 'Float'.
   )
 where
 

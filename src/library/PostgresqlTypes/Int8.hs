@@ -6,6 +6,9 @@ module PostgresqlTypes.Int8
 
     -- * Constructors
     fromInt64,
+
+    -- ** Standard Haskell type instances
+    -- | PostgreSQL 'Int8' maps directly to Haskell's 'Int64'.
   )
 where
 

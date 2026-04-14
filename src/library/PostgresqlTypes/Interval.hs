@@ -7,14 +7,17 @@ module PostgresqlTypes.Interval
     toMicroseconds,
     normalizeToMicrosecondsInTotal,
     normalizeToDiffTime,
+    toCalendarDiffTime,
 
     -- * Constructors
     normalizeFromMonthsDaysAndMicroseconds,
     normalizeFromMicrosecondsInTotal,
     normalizeFromDiffTime,
+    normalizeFromCalendarDiffTime,
     refineFromMonthsDaysAndMicroseconds,
     refineFromMicrosecondsInTotal,
     refineFromDiffTime,
+    refineFromCalendarDiffTime,
   )
 where
 
@@ -305,6 +308,11 @@ normalizeToMicrosecondsInTotal (Interval months days micros) =
 normalizeToDiffTime :: Interval -> DiffTime
 normalizeToDiffTime = picosecondsToDiffTime . (1_000_000 *) . normalizeToMicrosecondsInTotal
 
+-- | Convert interval to 'CalendarDiffTime'.
+toCalendarDiffTime :: Interval -> CalendarDiffTime
+toCalendarDiffTime (Interval months days micros) =
+  CalendarDiffTime (fromIntegral months) (picosecondsToDiffTime (fromIntegral micros * 1_000_000 + fromIntegral days * 24 * 60 * 60 * 1_000_000_000_000))
+
 -- * Constructors
 
 -- | Construct 'Interval' from months, days, and microseconds components, clamping to valid range.
@@ -346,6 +354,28 @@ refineFromDiffTime diffTime =
       (microseconds, remainder) = divMod picoseconds 1_000_000
    in if remainder == 0
         then refineFromMicrosecondsInTotal microseconds
+        else Nothing
+
+-- | Construct 'Interval' from 'CalendarDiffTime', clamping to valid range and losing sub-microsecond precision.
+normalizeFromCalendarDiffTime :: CalendarDiffTime -> Interval
+normalizeFromCalendarDiffTime (CalendarDiffTime months diffTime) =
+  let picoseconds = diffTimeToPicoseconds diffTime
+      microseconds = picoseconds `div` 1_000_000
+      totalDays = microseconds `div` microsPerDay
+      remainingMicros = microseconds `mod` microsPerDay
+      interval = Interval (fromIntegral months) (fromIntegral totalDays) (fromIntegral remainingMicros)
+   in max minBound (min maxBound interval)
+
+-- | Try to construct 'Interval' from 'CalendarDiffTime', failing if out of range or if precision is lost.
+refineFromCalendarDiffTime :: CalendarDiffTime -> Maybe Interval
+refineFromCalendarDiffTime (CalendarDiffTime months diffTime) =
+  let picoseconds = diffTimeToPicoseconds diffTime
+      (microseconds, remainder) = divMod picoseconds 1_000_000
+      totalDays = microseconds `div` microsPerDay
+      remainingMicros = microseconds `mod` microsPerDay
+      interval = Interval (fromIntegral months) (fromIntegral totalDays) (fromIntegral remainingMicros)
+   in if remainder == 0 && interval >= minBound && interval <= maxBound
+        then Just interval
         else Nothing
 
 -- * Internal helpers

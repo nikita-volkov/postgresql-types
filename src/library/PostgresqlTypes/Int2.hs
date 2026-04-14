@@ -6,6 +6,9 @@ module PostgresqlTypes.Int2
 
     -- * Constructors
     fromInt16,
+
+    -- ** Standard Haskell type instances
+    -- | PostgreSQL 'Int2' maps directly to Haskell's 'Int16'.
   )
 where
 

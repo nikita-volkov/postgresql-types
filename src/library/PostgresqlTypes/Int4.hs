@@ -6,6 +6,9 @@ module PostgresqlTypes.Int4
 
     -- * Constructors
     fromInt32,
+
+    -- ** Standard Haskell type instances
+    -- | PostgreSQL 'Int4' maps directly to Haskell's 'Int32'.
   )
 where
 
