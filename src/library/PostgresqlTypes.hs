@@ -47,6 +47,9 @@ module PostgresqlTypes
     Polygon,
     Circle,
 
+    -- * PostGIS Extension Types
+    Geometry,
+
     -- * Bit String Types
     Bit,
     Varbit,
@@ -82,6 +85,7 @@ import PostgresqlTypes.Citext
 import PostgresqlTypes.Date
 import PostgresqlTypes.Float4
 import PostgresqlTypes.Float8
+import PostgresqlTypes.Geometry
 import PostgresqlTypes.Hstore
 import PostgresqlTypes.Inet
 import PostgresqlTypes.Int2
