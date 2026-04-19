@@ -114,6 +114,7 @@ library
     PostgresqlTypes.Date
     PostgresqlTypes.Float4
     PostgresqlTypes.Float8
+    PostgresqlTypes.Geometry
     PostgresqlTypes.Hstore
     PostgresqlTypes.Inet
     PostgresqlTypes.Int2
