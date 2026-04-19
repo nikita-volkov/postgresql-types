@@ -222,6 +222,7 @@ test-suite unit-tests
     PostgresqlTypes.DateSpec
     PostgresqlTypes.Float4Spec
     PostgresqlTypes.Float8Spec
+    PostgresqlTypes.GeometrySpec
     PostgresqlTypes.HstoreSpec
     PostgresqlTypes.InetSpec
     PostgresqlTypes.Int2Spec
