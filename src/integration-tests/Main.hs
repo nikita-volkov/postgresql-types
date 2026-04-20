@@ -1,5 +1,6 @@
 module Main (main) where
 
+import qualified Database.PostgreSQL.LibPQ as Pq
 import IntegrationTests.Scopes
 import IntegrationTests.Scripts
 import qualified PostgresqlTypes as PostgresqlTypes
@@ -77,6 +78,15 @@ main =
           withType @(PostgresqlTypes.Varbit 128) [mappingSpec]
           withType @(PostgresqlTypes.Varchar 0) [mappingSpec]
           withType @(PostgresqlTypes.Varchar 255) [mappingSpec]
+
+      -- PostGIS is an extension type; the @geometry@ OID is assigned by
+      -- @CREATE EXTENSION postgis@, so we run the integration tests against
+      -- the postgis/postgis image and enable the extension before distributing
+      -- connections from the pool.
+      withContainer "postgis/postgis:17-3.5" do
+        withConnection Nothing do
+          beforeAllWith enablePostgisExtension do
+            withType @PostgresqlTypes.Geometry [mappingSpec]
 
       withContainer "postgres:14" do
         withConnection (Just 3) do
@@ -187,3 +197,23 @@ main =
           withType @(PostgresqlTypes.Varbit 128) [mappingSpec]
           withType @(PostgresqlTypes.Varchar 0) [mappingSpec]
           withType @(PostgresqlTypes.Varchar 255) [mappingSpec]
+
+-- | Runs @CREATE EXTENSION IF NOT EXISTS postgis@ on the first pooled
+-- connection handed to us; all subsequent connections see the registered
+-- @geometry@ type because the extension is persisted in the database, not
+-- per-connection state.
+enablePostgisExtension :: Pq.Connection -> IO Pq.Connection
+enablePostgisExtension connection = do
+  result <- Pq.exec connection "CREATE EXTENSION IF NOT EXISTS postgis;"
+  case result of
+    Nothing -> do
+      message <- Pq.errorMessage connection
+      fail ("CREATE EXTENSION postgis failed: " <> show message)
+    Just r -> do
+      status <- Pq.resultStatus r
+      case status of
+        Pq.CommandOk -> pure ()
+        _ -> do
+          message <- Pq.resultErrorMessage r
+          fail ("CREATE EXTENSION postgis unexpected status " <> show status <> ": " <> show message)
+  pure connection
