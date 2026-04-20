@@ -1,5 +1,10 @@
 module Main (main) where
 
+import qualified Data.ByteString as ByteString
+import qualified Data.ByteString.Char8 as BS8
+import Data.Text (Text)
+import qualified Data.Text.Encoding as Text.Encoding
+import Data.Word (Word16)
 import qualified Database.PostgreSQL.LibPQ as Pq
 import IntegrationTests.Scopes
 import IntegrationTests.Scripts
@@ -80,12 +85,13 @@ main =
           withType @(PostgresqlTypes.Varchar 255) [mappingSpec]
 
       -- PostGIS is an extension type; the @geometry@ OID is assigned by
-      -- @CREATE EXTENSION postgis@, so we run the integration tests against
-      -- the postgis/postgis image and enable the extension before distributing
-      -- connections from the pool.
+      -- @CREATE EXTENSION postgis@. We enable the extension once at the
+      -- container level (via a short-lived throwaway connection) so every
+      -- subsequent connection the pool hands out already sees the registered
+      -- @geometry@ type.
       withContainer "postgis/postgis:17-3.5" do
-        withConnection Nothing do
-          beforeAllWith enablePostgisExtension do
+        beforeAllWith enablePostgisExtension do
+          withConnection Nothing do
             withType @PostgresqlTypes.Geometry [mappingSpec]
 
       withContainer "postgres:14" do
@@ -198,22 +204,44 @@ main =
           withType @(PostgresqlTypes.Varchar 0) [mappingSpec]
           withType @(PostgresqlTypes.Varchar 255) [mappingSpec]
 
--- | Runs @CREATE EXTENSION IF NOT EXISTS postgis@ on the first pooled
--- connection handed to us; all subsequent connections see the registered
--- @geometry@ type because the extension is persisted in the database, not
--- per-connection state.
-enablePostgisExtension :: Pq.Connection -> IO Pq.Connection
-enablePostgisExtension connection = do
-  result <- Pq.exec connection "CREATE EXTENSION IF NOT EXISTS postgis;"
+-- | Opens a one-shot @libpq@ connection to the container, runs
+-- @CREATE EXTENSION IF NOT EXISTS postgis@, and closes it again — so the
+-- subsequent pool the tests draw from starts on a database where the
+-- @geometry@ type is already registered. Runs at the container scope
+-- (@(Text, Word16)@), not at the per-test connection scope, to avoid
+-- capturing and reusing a pooled connection under concurrent tests.
+enablePostgisExtension :: (Text, Word16) -> IO (Text, Word16)
+enablePostgisExtension (host, port) = do
+  let connectionString =
+        ByteString.intercalate
+          " "
+          [ "host=" <> Text.Encoding.encodeUtf8 host,
+            "port=" <> BS8.pack (show port),
+            "user=postgres",
+            "password=postgres",
+            "dbname=postgres"
+          ]
+  connection <- Pq.connectdb connectionString
+  status <- Pq.status connection
+  case status of
+    Pq.ConnectionOk -> pure ()
+    _ -> do
+      message <- Pq.errorMessage connection
+      Pq.finish connection
+      fail ("enablePostgisExtension: connection failed: " <> show message)
+  result <- Pq.exec connection "CREATE EXTENSION IF NOT EXISTS postgis"
   case result of
     Nothing -> do
       message <- Pq.errorMessage connection
+      Pq.finish connection
       fail ("CREATE EXTENSION postgis failed: " <> show message)
     Just r -> do
-      status <- Pq.resultStatus r
-      case status of
+      resultStatus <- Pq.resultStatus r
+      case resultStatus of
         Pq.CommandOk -> pure ()
         _ -> do
           message <- Pq.resultErrorMessage r
-          fail ("CREATE EXTENSION postgis unexpected status " <> show status <> ": " <> show message)
-  pure connection
+          Pq.finish connection
+          fail ("CREATE EXTENSION postgis unexpected status " <> show resultStatus <> ": " <> show message)
+  Pq.finish connection
+  pure (host, port)
