@@ -19,7 +19,7 @@ import PostgresqlTypes.Prelude
 import PostgresqlTypes.Via
 import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
-import Test.QuickCheck (Gen, elements, listOf, listOf1, oneof, resize, sized, vectorOf)
+import Test.QuickCheck (Gen, choose, elements, listOf, listOf1, oneof, resize, sized, vectorOf)
 import qualified TextBuilder
 
 -- | PostGIS @geometry@ extension type.
@@ -159,8 +159,11 @@ instance IsScalar Geometry where
 -- * Arbitrary / Hashable
 
 instance Hashable Geometry where
-  hashWithSalt salt (Geometry s shape) =
-    salt `hashWithSalt` s `hashWithSalt` showsPrec 0 shape ""
+  -- Hash via the canonical EWKB bytes so two equal 'Geometry' values always
+  -- hash the same, independent of any structural irrelevance. The
+  -- binaryEncoder is bit-stable.
+  hashWithSalt salt geom =
+    salt `hashWithSalt` Write.toByteString (binaryEncoder geom)
 
 instance Arbitrary Geometry where
   arbitrary = do
@@ -297,10 +300,22 @@ writeRing dim cs = lWord32 (fromIntegral (length cs)) <> foldMap (writeCoord dim
 
 writeCoord :: Dim -> Coord -> Write.Write
 writeCoord dim (Coord x y mz mm) =
-  lWord64 (castDoubleToWord64 x)
-    <> lWord64 (castDoubleToWord64 y)
-    <> (case dim of XYZ -> lWord64 (castDoubleToWord64 (fromMaybe 0 mz)); XYZM -> lWord64 (castDoubleToWord64 (fromMaybe 0 mz)); _ -> mempty)
-    <> (case dim of XYM -> lWord64 (castDoubleToWord64 (fromMaybe 0 mm)); XYZM -> lWord64 (castDoubleToWord64 (fromMaybe 0 mm)); _ -> mempty)
+  encodeDouble x
+    <> encodeDouble y
+    <> (if includesZ dim then encodeDouble (fromMaybe 0 mz) else mempty)
+    <> (if includesM dim then encodeDouble (fromMaybe 0 mm) else mempty)
+  where
+    encodeDouble = lWord64 . castDoubleToWord64
+
+includesZ :: Dim -> Bool
+includesZ XYZ = True
+includesZ XYZM = True
+includesZ _ = False
+
+includesM :: Dim -> Bool
+includesM XYM = True
+includesM XYZM = True
+includesM _ = False
 
 -- * Binary decoder
 
@@ -320,13 +335,14 @@ readGeometry topLevel = do
         (True, False) -> XYZ
         (False, True) -> XYM
         (True, True) -> XYZM
+  -- EWKB allows sub-geometries to carry their own SRID field, but PostGIS
+  -- ignores them and inherits from the outer geometry. We consume the bytes
+  -- to keep the stream aligned, then discard the value when we're not at
+  -- the top level.
   srid <-
-    if hasSRID && topLevel
+    if hasSRID
       then Just . (fromIntegral :: Word32 -> Int32) <$> readWord32 littleEndian
-      else
-        if hasSRID
-          then Just . (fromIntegral :: Word32 -> Int32) <$> readWord32 littleEndian
-          else pure Nothing
+      else pure Nothing
   result <- decodeShape littleEndian dim rawType
   pure $ case result of
     Left err -> Left err
@@ -395,30 +411,49 @@ readCoord le dim = do
 
 -- * QuickCheck generators
 
+-- | Generates EWKB-valid 'Shape' values:
+--
+-- * 'LineString' has at least 2 coordinates.
+-- * 'Polygon' rings are closed (@first == last@) with at least 4 coordinates.
+-- * 'MultiLineString' / 'MultiPolygon' sub-items respect the same rules.
 shapeGen :: Dim -> Int -> Gen Shape
 shapeGen dim n
   | n <= 1 =
       oneof
         [ Point <$> coordGen dim,
-          LineString <$> vectorOf 2 (coordGen dim),
+          LineString <$> lineStringCoords dim,
           singleRingPolygonGen dim,
           MultiPoint <$> listOf (coordGen dim)
         ]
   | otherwise =
       oneof
         [ Point <$> coordGen dim,
-          LineString <$> listOf1 (coordGen dim),
+          LineString <$> lineStringCoords dim,
           singleRingPolygonGen dim,
           MultiPoint <$> listOf (coordGen dim),
-          MultiLineString <$> listOf (listOf1 (coordGen dim)),
-          MultiPolygon <$> listOf (listOf1 (listOf1 (coordGen dim))),
+          MultiLineString <$> listOf (lineStringCoords dim),
+          MultiPolygon <$> listOf (listOf1 (polygonRingCoords dim)),
           GeometryCollection <$> resize (n `div` 4) (listOf (shapeGen dim (n `div` 4)))
         ]
 
+lineStringCoords :: Dim -> Gen [Coord]
+lineStringCoords dim = do
+  -- OGC requires LineString to have at least 2 coordinates.
+  extra <- choose (0, 6 :: Int)
+  vectorOf (2 + extra) (coordGen dim)
+
+polygonRingCoords :: Dim -> Gen [Coord]
+polygonRingCoords dim = do
+  -- A ring is closed (first == last) and has at least 4 coordinates
+  -- (3 distinct + the closing repeat of the first).
+  extra <- choose (0, 5 :: Int)
+  interior <- vectorOf (3 + extra) (coordGen dim)
+  case interior of
+    (first : _) -> pure (interior ++ [first])
+    [] -> error "polygonRingCoords: impossible — vectorOf with positive length returned []"
+
 singleRingPolygonGen :: Dim -> Gen Shape
-singleRingPolygonGen dim = do
-  ring <- vectorOf 4 (coordGen dim)
-  pure (Polygon [ring])
+singleRingPolygonGen dim = Polygon . (: []) <$> polygonRingCoords dim
 
 coordGen :: Dim -> Gen Coord
 coordGen dim = do
