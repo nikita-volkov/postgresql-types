@@ -7,10 +7,6 @@ module PostgresqlTypes.Geometry
     -- * Smart constructors
     fromShape,
     fromShapeWithSrid,
-
-    -- * Accessors
-    geometrySrid,
-    geometryShape,
   )
 where
 
@@ -45,15 +41,15 @@ import qualified TextBuilder
 -- @CREATE EXTENSION postgis@ time and receives a different OID in each
 -- database. 'baseOid' and 'arrayOid' are therefore 'Nothing', and drivers
 -- resolve the OID by 'typeName' at query time.
-data Geometry
-  = -- | __Prefer 'fromShape' / 'fromShapeWithSrid'__: the constructor does
-    --   not enforce dimension consistency across nested shapes.
-    Geometry
-      -- | Spatial reference ID. Sub-geometries inside a 'GeometryCollection'
-      --   inherit this from the outer value; EWKB only stores SRID on the
-      --   top-level geometry.
-      !(Maybe Int32)
-      !Shape
+-- | __Prefer 'fromShape' / 'fromShapeWithSrid'__: the raw constructor does
+-- not enforce dimension consistency across nested shapes.
+data Geometry = Geometry
+  { -- | Spatial reference ID. Sub-geometries inside a 'GeometryCollection'
+    --   inherit this from the outer value; EWKB only stores SRID on the
+    --   top-level geometry.
+    geometrySrid :: !(Maybe Int32),
+    geometryShape :: !Shape
+  }
   deriving stock (Eq, Ord)
   deriving (Show, Read, IsString) via (ViaIsScalar Geometry)
 
@@ -101,15 +97,7 @@ fromShape = fromShapeWithSrid Nothing
 fromShapeWithSrid :: Maybe Int32 -> Shape -> Either Text Geometry
 fromShapeWithSrid srid shape = do
   void (shapeDim shape)
-  pure (Geometry srid shape)
-
--- | Top-level SRID, if any.
-geometrySrid :: Geometry -> Maybe Int32
-geometrySrid (Geometry s _) = s
-
--- | Top-level shape.
-geometryShape :: Geometry -> Shape
-geometryShape (Geometry _ s) = s
+  pure (Geometry {geometrySrid = srid, geometryShape = shape})
 
 -- * IsScalar instance
 
