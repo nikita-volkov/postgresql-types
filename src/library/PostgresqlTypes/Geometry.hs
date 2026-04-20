@@ -109,8 +109,16 @@ instance IsScalar Geometry where
   typeParams = Tagged []
 
   binaryEncoder (Geometry srid shape) =
-    let dim = either (const XY) id (shapeDimOrXY shape)
-     in writeGeometry True srid dim shape
+    -- The raw constructor can be used to build a 'Geometry' whose shape
+    -- tree mixes XY, XYZ, XYM and XYZM coords. 'binaryEncoder' is
+    -- partial on such values — silently falling back to XY would drop
+    -- the Z and M ordinates and produce a byte sequence that doesn't
+    -- round-trip. Callers are expected to construct via 'fromShape' /
+    -- 'fromShapeWithSrid' (which reject this case).
+    case shapeDimOrXY shape of
+      Right dim -> writeGeometry True srid dim shape
+      Left err ->
+        error ("PostgresqlTypes.Geometry.binaryEncoder: " <> Text.unpack err)
 
   binaryDecoder = do
     res <- readGeometry True
@@ -333,7 +341,23 @@ includesM _ = False
 readGeometry :: Bool -> PtrPeeker.Variable (Either Text (Maybe Int32, Shape))
 readGeometry topLevel = do
   byteOrderFlag <- PtrPeeker.fixed PtrPeeker.unsignedInt1
-  let littleEndian = byteOrderFlag /= 0
+  -- EWKB specifies only 0 (XDR / big-endian) and 1 (NDR / little-endian);
+  -- any other value indicates garbage input, so reject loudly rather than
+  -- silently accepting it as little-endian.
+  case byteOrderFlag of
+    0 -> readGeometryBody topLevel False
+    1 -> readGeometryBody topLevel True
+    other ->
+      pure
+        ( Left
+            ( "geometry: invalid EWKB byte-order marker "
+                <> Text.pack (show other)
+                <> " (expected 0 or 1)"
+            )
+        )
+
+readGeometryBody :: Bool -> Bool -> PtrPeeker.Variable (Either Text (Maybe Int32, Shape))
+readGeometryBody topLevel littleEndian = do
   typeWithFlags <- readWord32 littleEndian
   let hasZ = testBit typeWithFlags 31
       hasM = testBit typeWithFlags 30

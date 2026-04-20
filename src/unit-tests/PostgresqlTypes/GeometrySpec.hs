@@ -64,8 +64,7 @@ spec = do
       -- byte-order NDR (01) + type 1 with SRID flag (01000020) + SRID 4326 (E6100000)
       --   + x=1.0 (000000000000F03F) + y=2.0 (0000000000000040)
       let hex = "0101000020E6100000000000000000F03F0000000000000040"
-      read (show hex) `shouldBe` hex -- placate the compiler (test keeps hex in scope)
-      let g = (fromString hex :: Geometry)
+          g = (fromString hex :: Geometry)
       g `shouldBe` Geometry (Just 4326) (Point (Coord 1 2 Nothing Nothing))
 
     it "round-trips a Point through hex EWKB" do
