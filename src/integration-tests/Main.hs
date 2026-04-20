@@ -88,11 +88,15 @@ main =
       -- @CREATE EXTENSION postgis@. We enable the extension once at the
       -- container level (via a short-lived throwaway connection) so every
       -- subsequent connection the pool hands out already sees the registered
-      -- @geometry@ type.
+      -- @geometry@ type. The pool is deliberately smaller than the default
+      -- 'withConnection' size (10 vs 100): it only serves this single type,
+      -- and a smaller pool keeps the number of concurrent TCP sockets
+      -- inside the GitHub-runner limit alongside the other 3 containers.
       withContainer "postgis/postgis:17-3.5" do
         beforeAllWith enablePostgisExtension do
-          withConnection Nothing do
-            withType @PostgresqlTypes.Geometry [mappingSpec]
+          withConnectionPool 10 Nothing $
+            withTQueueElement pure do
+              withType @PostgresqlTypes.Geometry [mappingSpec]
 
       withContainer "postgres:14" do
         withConnection (Just 3) do
