@@ -167,12 +167,16 @@ instance Hashable Geometry where
 
 instance Arbitrary Geometry where
   arbitrary = do
-    srid <- oneof [pure Nothing, Just <$> arbitrary]
+    -- PostGIS treats @SRID = 0@ as "no SRID" and drops the SRID flag on
+    -- output, so @SRID 0@ doesn't round-trip exactly. Stick to the
+    -- positive half of 'Int32' — which is where real EPSG / spatial_ref_sys
+    -- codes live — so wire-format round-trip is an equality.
+    srid <- oneof [pure Nothing, Just <$> choose (1, maxBound)]
     dim <- elements [XY, XYZ, XYM, XYZM]
     shape <- sized (shapeGen dim)
     pure (Geometry srid shape)
   shrink (Geometry srid shape) =
-    [Geometry srid' shape | srid' <- shrink srid]
+    [Geometry srid' shape | srid' <- shrink srid, maybe True (> 0) srid']
 
 -- * Dimension handling
 
