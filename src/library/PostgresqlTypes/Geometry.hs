@@ -167,16 +167,21 @@ instance Hashable Geometry where
 
 instance Arbitrary Geometry where
   arbitrary = do
-    -- PostGIS treats @SRID = 0@ as "no SRID" and drops the SRID flag on
-    -- output, so @SRID 0@ doesn't round-trip exactly. Stick to the
-    -- positive half of 'Int32' — which is where real EPSG / spatial_ref_sys
-    -- codes live — so wire-format round-trip is an equality.
-    srid <- oneof [pure Nothing, Just <$> choose (1, maxBound)]
+    -- PostGIS clamps SRID values that fall outside its documented
+    -- user-assignable range — SRID 0 becomes "no SRID" (drops the SRID
+    -- flag on output), and SRIDs above @SRID_USER_MAXIMUM = 998_999@ get
+    -- modulo-remapped into the reserved internal range. Stick to
+    -- @[1, 998_999]@ — which is where real EPSG / spatial_ref_sys codes
+    -- live — so wire-format round-trip is an equality.
+    srid <- oneof [pure Nothing, Just <$> choose (1, 998_999)]
     dim <- elements [XY, XYZ, XYM, XYZM]
     shape <- sized (shapeGen dim)
     pure (Geometry srid shape)
   shrink (Geometry srid shape) =
-    [Geometry srid' shape | srid' <- shrink srid, maybe True (> 0) srid']
+    [ Geometry srid' shape
+      | srid' <- shrink srid,
+        maybe True (\s -> s > 0 && s <= 998_999) srid'
+    ]
 
 -- * Dimension handling
 
