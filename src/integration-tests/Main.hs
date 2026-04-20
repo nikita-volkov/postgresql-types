@@ -1,11 +1,5 @@
 module Main (main) where
 
-import qualified Data.ByteString as ByteString
-import qualified Data.ByteString.Char8 as BS8
-import Data.Text (Text)
-import qualified Data.Text.Encoding as Text.Encoding
-import Data.Word (Word16)
-import qualified Database.PostgreSQL.LibPQ as Pq
 import IntegrationTests.Scopes
 import IntegrationTests.Scripts
 import qualified PostgresqlTypes as PostgresqlTypes
@@ -84,19 +78,19 @@ main =
           withType @(PostgresqlTypes.Varchar 0) [mappingSpec]
           withType @(PostgresqlTypes.Varchar 255) [mappingSpec]
 
-      -- PostGIS is an extension type; the @geometry@ OID is assigned by
-      -- @CREATE EXTENSION postgis@. We enable the extension once at the
-      -- container level (via a short-lived throwaway connection) so every
-      -- subsequent connection the pool hands out already sees the registered
-      -- @geometry@ type. The pool is deliberately smaller than the default
-      -- 'withConnection' size (10 vs 100): it only serves this single type,
-      -- and a smaller pool keeps the number of concurrent TCP sockets
-      -- inside the GitHub-runner limit alongside the other 3 containers.
+      -- The 'postgis/postgis' image is @postgres@ plus a pre-installed
+      -- PostGIS build; its initdb already runs @CREATE EXTENSION postgis@
+      -- inside the default database, so any connection the pool hands out
+      -- sees the registered @geometry@ type immediately.
+      --
+      -- The pool is deliberately smaller than the default 'withConnection'
+      -- size (10 vs 100): this container only serves a single type, and a
+      -- smaller pool keeps the concurrent-TCP-socket count inside the
+      -- GitHub-runner comfort zone alongside the other 3 containers.
       withContainer "postgis/postgis:17-3.5" do
-        beforeAllWith enablePostgisExtension do
-          withConnectionPool 10 Nothing $
-            withTQueueElement pure do
-              withType @PostgresqlTypes.Geometry [mappingSpec]
+        withConnectionPool 10 Nothing $
+          withTQueueElement pure do
+            withType @PostgresqlTypes.Geometry [mappingSpec]
 
       withContainer "postgres:14" do
         withConnection (Just 3) do
@@ -207,45 +201,3 @@ main =
           withType @(PostgresqlTypes.Varbit 128) [mappingSpec]
           withType @(PostgresqlTypes.Varchar 0) [mappingSpec]
           withType @(PostgresqlTypes.Varchar 255) [mappingSpec]
-
--- | Opens a one-shot @libpq@ connection to the container, runs
--- @CREATE EXTENSION IF NOT EXISTS postgis@, and closes it again — so the
--- subsequent pool the tests draw from starts on a database where the
--- @geometry@ type is already registered. Runs at the container scope
--- (@(Text, Word16)@), not at the per-test connection scope, to avoid
--- capturing and reusing a pooled connection under concurrent tests.
-enablePostgisExtension :: (Text, Word16) -> IO (Text, Word16)
-enablePostgisExtension (host, port) = do
-  let connectionString =
-        ByteString.intercalate
-          " "
-          [ "host=" <> Text.Encoding.encodeUtf8 host,
-            "port=" <> BS8.pack (show port),
-            "user=postgres",
-            "password=postgres",
-            "dbname=postgres"
-          ]
-  connection <- Pq.connectdb connectionString
-  status <- Pq.status connection
-  case status of
-    Pq.ConnectionOk -> pure ()
-    _ -> do
-      message <- Pq.errorMessage connection
-      Pq.finish connection
-      fail ("enablePostgisExtension: connection failed: " <> show message)
-  result <- Pq.exec connection "CREATE EXTENSION IF NOT EXISTS postgis"
-  case result of
-    Nothing -> do
-      message <- Pq.errorMessage connection
-      Pq.finish connection
-      fail ("CREATE EXTENSION postgis failed: " <> show message)
-    Just r -> do
-      resultStatus <- Pq.resultStatus r
-      case resultStatus of
-        Pq.CommandOk -> pure ()
-        _ -> do
-          message <- Pq.resultErrorMessage r
-          Pq.finish connection
-          fail ("CREATE EXTENSION postgis unexpected status " <> show resultStatus <> ": " <> show message)
-  Pq.finish connection
-  pure (host, port)
