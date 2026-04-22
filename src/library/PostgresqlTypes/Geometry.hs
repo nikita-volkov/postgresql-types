@@ -140,6 +140,9 @@ instance IsScalar Geometry where
     case parseHexBytes hexText of
       Left err -> fail ("geometry: " <> err)
       Right bytes -> case PtrPeeker.runVariableOnByteString binaryDecoder bytes of
+        -- 'runVariableOnByteString' reports the leftover as an 'Int' byte
+        -- count, not the bytes themselves, so it is safe to include
+        -- verbatim in the error message.
         Left leftover -> fail ("geometry: binary decoder left " <> show leftover <> " unconsumed bytes")
         Right (Left err) -> fail ("geometry: " <> show err)
         Right (Right value) -> pure value
@@ -167,11 +170,18 @@ instance IsScalar Geometry where
 -- * Arbitrary / Hashable
 
 instance Hashable Geometry where
-  -- Hash via the canonical EWKB bytes so two equal 'Geometry' values always
-  -- hash the same, independent of any structural irrelevance. The
-  -- binaryEncoder is bit-stable.
-  hashWithSalt salt geom =
-    salt `hashWithSalt` Write.toByteString (binaryEncoder geom)
+  -- Hash via the canonical EWKB bytes for well-formed geometries so two
+  -- equal 'Geometry' values always hash the same, independent of any
+  -- structural irrelevance. For malformed values that can be constructed via
+  -- the exported raw constructor (e.g. shape trees with mixed coordinate
+  -- dimensionalities), avoid routing through 'binaryEncoder', which would
+  -- otherwise call 'error' and make hashing partial.
+  hashWithSalt salt geom@(Geometry srid shape) =
+    case shapeDim shape of
+      Right _ ->
+        salt `hashWithSalt` Write.toByteString (binaryEncoder geom)
+      Left dimErr ->
+        salt `hashWithSalt` srid `hashWithSalt` dimErr
 
 instance Arbitrary Geometry where
   arbitrary = do
@@ -396,9 +406,12 @@ decodeShape le dim typeCode
         np <- readWord32 le
         replicateM (fromIntegral np) (readCoord le dim)
       pure (Right (Polygon rings))
-  | typeCode == typeCodeMultiPoint = decodeMulti le (\case Point c -> Just c; _ -> Nothing) MultiPoint
-  | typeCode == typeCodeMultiLineString = decodeMulti le (\case LineString cs -> Just cs; _ -> Nothing) MultiLineString
-  | typeCode == typeCodeMultiPolygon = decodeMulti le (\case Polygon rings -> Just rings; _ -> Nothing) MultiPolygon
+  | typeCode == typeCodeMultiPoint =
+      decodeMulti le "MultiPoint" "Point" (\case Point c -> Just c; _ -> Nothing) MultiPoint
+  | typeCode == typeCodeMultiLineString =
+      decodeMulti le "MultiLineString" "LineString" (\case LineString cs -> Just cs; _ -> Nothing) MultiLineString
+  | typeCode == typeCodeMultiPolygon =
+      decodeMulti le "MultiPolygon" "Polygon" (\case Polygon rings -> Just rings; _ -> Nothing) MultiPolygon
   | typeCode == typeCodeGeometryCollection = do
       n <- readWord32 le
       subs <- replicateM (fromIntegral n) (readGeometry False)
@@ -409,18 +422,45 @@ decodeShape le dim typeCode
 
 decodeMulti ::
   Bool ->
+  -- | outer label, e.g. @"MultiPoint"@
+  Text ->
+  -- | expected sub-geometry label, e.g. @"Point"@
+  Text ->
   (Shape -> Maybe a) ->
   ([a] -> Shape) ->
   PtrPeeker.Variable (Either Text Shape)
-decodeMulti le project ctor = do
+decodeMulti le outerLabel expectedLabel project ctor = do
   n <- readWord32 le
   subs <- replicateM (fromIntegral n) (readGeometry False)
   pure $ case sequence subs of
     Left err -> Left err
     Right pairs ->
-      case traverse (project . snd) pairs of
-        Just xs -> Right (ctor xs)
-        Nothing -> Left "geometry: MultiXxx contained a sub-geometry of the wrong shape"
+      let shapes = map snd pairs
+       in case traverse project shapes of
+            Just xs -> Right (ctor xs)
+            Nothing ->
+              let actual = maybe "unknown" shapeLabel (find (isNothing . project) shapes)
+               in Left
+                    ( "geometry: "
+                        <> outerLabel
+                        <> " contained a sub-geometry of the wrong shape (expected "
+                        <> expectedLabel
+                        <> ", got "
+                        <> actual
+                        <> ")"
+                    )
+
+-- | Short human-readable name for a 'Shape' constructor, used in decoder
+-- error messages.
+shapeLabel :: Shape -> Text
+shapeLabel = \case
+  Point {} -> "Point"
+  LineString {} -> "LineString"
+  Polygon {} -> "Polygon"
+  MultiPoint {} -> "MultiPoint"
+  MultiLineString {} -> "MultiLineString"
+  MultiPolygon {} -> "MultiPolygon"
+  GeometryCollection {} -> "GeometryCollection"
 
 readWord32 :: Bool -> PtrPeeker.Variable Word32
 readWord32 le = PtrPeeker.fixed (if le then PtrPeeker.leUnsignedInt4 else PtrPeeker.beUnsignedInt4)
