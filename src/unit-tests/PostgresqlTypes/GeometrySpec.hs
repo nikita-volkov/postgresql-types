@@ -1,7 +1,9 @@
 module PostgresqlTypes.GeometrySpec (spec) where
 
+import Control.Exception (evaluate)
 import Data.Data (Proxy (Proxy))
 import Data.Either (isLeft)
+import Data.Hashable (hashWithSalt)
 import qualified PostgresqlTypes.Geometry as Geometry
 import PostgresqlTypes.Geometry (Coord (Coord), Geometry (Geometry), Shape (..))
 import Test.Hspec
@@ -75,6 +77,32 @@ spec = do
       let cs = [Coord 0 0 (Just 1) (Just 2), Coord 3 4 (Just 5) (Just 6)]
           g = Geometry (Just 4326) (LineString cs)
       read (show g) `shouldBe` g
+
+  describe "Hashable" do
+    it "hashWithSalt is total on malformed geometries" do
+      -- Mixed XY / XYZ coords bypass fromShape, so binaryEncoder would
+      -- call 'error'. Verify hashWithSalt routes around that.
+      let malformed =
+            Geometry
+              Nothing
+              (LineString [Coord 0 0 Nothing Nothing, Coord 1 1 (Just 2) Nothing])
+      _ <- evaluate (hashWithSalt 0 malformed)
+      pure ()
+
+    it "hashWithSalt distinguishes structurally different malformed shapes" do
+      let a =
+            Geometry
+              Nothing
+              (LineString [Coord 0 0 Nothing Nothing, Coord 1 1 (Just 2) Nothing])
+          b =
+            Geometry
+              Nothing
+              (LineString [Coord 5 5 Nothing Nothing, Coord 9 9 (Just 3) Nothing])
+      hashWithSalt 0 a `shouldNotBe` hashWithSalt 0 b
+
+    it "hashWithSalt is deterministic for well-formed geometries" do
+      let g = Geometry (Just 4326) (Point (Coord 1 2 Nothing Nothing))
+      hashWithSalt 0 g `shouldBe` hashWithSalt 0 g
 
   describe "Property: full binary roundtrip for arbitrary geometries" do
     it "holds for arbitrary shapes and SRIDs" $

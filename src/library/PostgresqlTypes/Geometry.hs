@@ -140,10 +140,18 @@ instance IsScalar Geometry where
     case parseHexBytes hexText of
       Left err -> fail ("geometry: " <> err)
       Right bytes -> case PtrPeeker.runVariableOnByteString binaryDecoder bytes of
-        -- 'runVariableOnByteString' reports the leftover as an 'Int' byte
-        -- count, not the bytes themselves, so it is safe to include
-        -- verbatim in the error message.
-        Left leftover -> fail ("geometry: binary decoder left " <> show leftover <> " unconsumed bytes")
+        Left leftover ->
+          let total = ByteString.length bytes
+              consumed = total - leftover
+           in fail
+                ( "geometry: binary decoder stopped after "
+                    <> show consumed
+                    <> " of "
+                    <> show total
+                    <> " bytes ("
+                    <> show leftover
+                    <> " unconsumed)"
+                )
         Right (Left err) -> fail ("geometry: " <> show err)
         Right (Right value) -> pure value
     where
@@ -181,7 +189,10 @@ instance Hashable Geometry where
       Right _ ->
         salt `hashWithSalt` Write.toByteString (binaryEncoder geom)
       Left dimErr ->
-        salt `hashWithSalt` srid `hashWithSalt` dimErr
+        salt
+          `hashWithSalt` srid
+          `hashWithSalt` dimErr
+          `hashWithSalt` Text.pack (show shape)
 
 instance Arbitrary Geometry where
   arbitrary = do
@@ -407,11 +418,11 @@ decodeShape le dim typeCode
         replicateM (fromIntegral np) (readCoord le dim)
       pure (Right (Polygon rings))
   | typeCode == typeCodeMultiPoint =
-      decodeMulti le "MultiPoint" "Point" (\case Point c -> Just c; _ -> Nothing) MultiPoint
+      decodeMulti le "Point" (\case Point c -> Just c; _ -> Nothing) MultiPoint
   | typeCode == typeCodeMultiLineString =
-      decodeMulti le "MultiLineString" "LineString" (\case LineString cs -> Just cs; _ -> Nothing) MultiLineString
+      decodeMulti le "LineString" (\case LineString cs -> Just cs; _ -> Nothing) MultiLineString
   | typeCode == typeCodeMultiPolygon =
-      decodeMulti le "MultiPolygon" "Polygon" (\case Polygon rings -> Just rings; _ -> Nothing) MultiPolygon
+      decodeMulti le "Polygon" (\case Polygon rings -> Just rings; _ -> Nothing) MultiPolygon
   | typeCode == typeCodeGeometryCollection = do
       n <- readWord32 le
       subs <- replicateM (fromIntegral n) (readGeometry False)
@@ -422,20 +433,21 @@ decodeShape le dim typeCode
 
 decodeMulti ::
   Bool ->
-  -- | outer label, e.g. @"MultiPoint"@
-  Text ->
-  -- | expected sub-geometry label, e.g. @"Point"@
+  -- | expected sub-geometry label, e.g. @"Point"@. The outer label is
+  --   derived from @ctor []@ so call sites can't drift out of sync with
+  --   the constructor they pass.
   Text ->
   (Shape -> Maybe a) ->
   ([a] -> Shape) ->
   PtrPeeker.Variable (Either Text Shape)
-decodeMulti le outerLabel expectedLabel project ctor = do
+decodeMulti le expectedLabel project ctor = do
   n <- readWord32 le
   subs <- replicateM (fromIntegral n) (readGeometry False)
   pure $ case sequence subs of
     Left err -> Left err
     Right pairs ->
       let shapes = map snd pairs
+          outerLabel = shapeLabel (ctor [])
        in case traverse project shapes of
             Just xs -> Right (ctor xs)
             Nothing ->
