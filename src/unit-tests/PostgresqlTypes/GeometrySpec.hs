@@ -143,6 +143,53 @@ spec = do
         )
         `shouldSatisfy` isLeft
 
+    -- A triangle is a polygon restricted to 0 or 1 rings: a ring-count word32, followed by that one
+    -- ring's coordinates when present.
+    let emptyTriangleHex =
+          mconcat
+            [ "01", -- NDR
+              "11000000", -- type 17 (Triangle), no flags
+              "00000000" -- 0 rings
+            ]
+        emptyTriangle = Geometry.refineFromShape (TriangleShape [])
+
+    it "decodes an empty triangle" do
+      fmap Just (decodeHex emptyTriangleHex) `shouldBe` Right emptyTriangle
+
+    it "encodes an empty triangle" do
+      fmap encodeHex emptyTriangle `shouldBe` Just (Text.toLower emptyTriangleHex)
+
+    let nonEmptyTriangleHex =
+          mconcat
+            [ "01", -- NDR
+              "11000000", -- type 17 (Triangle), no flags
+              "01000000", -- 1 ring
+              "04000000", -- 4 coordinates
+              "00000000000000000000000000000000", -- (0, 0)
+              "00000000000010400000000000000000", -- (4, 0)
+              "00000000000000000000000000000840", -- (0, 3)
+              "00000000000000000000000000000000" -- (0, 0), closing the ring
+            ]
+        nonEmptyTriangle =
+          Geometry.refineFromShape
+            (TriangleShape [XyCoord 0 0, XyCoord 4 0, XyCoord 0 3, XyCoord 0 0])
+
+    it "decodes a non-empty triangle" do
+      fmap Just (decodeHex nonEmptyTriangleHex) `shouldBe` Right nonEmptyTriangle
+
+    it "encodes a non-empty triangle" do
+      fmap encodeHex nonEmptyTriangle `shouldBe` Just (Text.toLower nonEmptyTriangleHex)
+
+    it "rejects a triangle with more than one ring" do
+      decodeHex
+        ( mconcat
+            [ "01", -- NDR
+              "11000000", -- Triangle
+              "02000000" -- 2 rings, which a Triangle disallows
+            ]
+        )
+        `shouldSatisfy` isLeft
+
   describe "Hashable" do
     it "agrees with Eq on negative zero" do
       -- Hashing the EWKB bytes would break this: the two coordinates are equal, yet their IEEE
