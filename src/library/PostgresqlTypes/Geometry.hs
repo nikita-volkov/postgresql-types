@@ -63,6 +63,8 @@ data Shape
     MultiLineStringShape [[Coord]]
   | -- | Collection of polygons, each given as its list of rings.
     MultiPolygonShape [[[Coord]]]
+  | -- | Collection of polygon faces forming a surface, each given as its list of rings.
+    PolyhedralSurfaceShape [[[Coord]]]
   | -- | Heterogeneous collection of shapes.
     --
     -- Members do not carry their own SRID: they inherit the one of the enclosing 'Geometry'.
@@ -120,6 +122,7 @@ instance Hashable Shape where
     MultiLineStringShape lineStrings -> salt `hashWithSalt` (4 :: Int) `hashWithSalt` lineStrings
     MultiPolygonShape polygons -> salt `hashWithSalt` (5 :: Int) `hashWithSalt` polygons
     GeometryCollectionShape shapes -> salt `hashWithSalt` (6 :: Int) `hashWithSalt` shapes
+    PolyhedralSurfaceShape polygons -> salt `hashWithSalt` (9 :: Int) `hashWithSalt` polygons
 
 instance Hashable Coord where
   hashWithSalt salt = \case
@@ -252,6 +255,7 @@ shapeDim shape = fromMaybe XyDim <$> goShape Nothing shape
       MultiPointShape coords -> goCoords acc coords
       MultiLineStringShape lineStrings -> foldM goCoords acc lineStrings
       MultiPolygonShape polygons -> foldM (foldM goCoords) acc polygons
+      PolyhedralSurfaceShape polygons -> foldM (foldM goCoords) acc polygons
       GeometryCollectionShape shapes -> foldM goShape acc shapes
     goCoords :: Maybe Dim -> [Coord] -> Maybe (Maybe Dim)
     goCoords = foldM goCoord
@@ -279,7 +283,7 @@ data ByteOrder
     LittleEndianByteOrder
 
 -- | OGC type codes, as they appear in the low bits of the EWKB type header.
-pointTypeCode, lineStringTypeCode, polygonTypeCode, multiPointTypeCode, multiLineStringTypeCode, multiPolygonTypeCode, geometryCollectionTypeCode :: Word32
+pointTypeCode, lineStringTypeCode, polygonTypeCode, multiPointTypeCode, multiLineStringTypeCode, multiPolygonTypeCode, geometryCollectionTypeCode, polyhedralSurfaceTypeCode :: Word32
 pointTypeCode = 1
 lineStringTypeCode = 2
 polygonTypeCode = 3
@@ -287,6 +291,7 @@ multiPointTypeCode = 4
 multiLineStringTypeCode = 5
 multiPolygonTypeCode = 6
 geometryCollectionTypeCode = 7
+polyhedralSurfaceTypeCode = 15
 
 -- | Flag bits of the EWKB type header.
 zFlag, mFlag, sridFlag :: Word32
@@ -316,6 +321,7 @@ shapeToTypeCode = \case
   MultiPointShape {} -> multiPointTypeCode
   MultiLineStringShape {} -> multiLineStringTypeCode
   MultiPolygonShape {} -> multiPolygonTypeCode
+  PolyhedralSurfaceShape {} -> polyhedralSurfaceTypeCode
   GeometryCollectionShape {} -> geometryCollectionTypeCode
 
 -- | Name of the shape in the OGC vocabulary. Used for reporting decoding errors.
@@ -327,6 +333,7 @@ shapeName = \case
   MultiPointShape {} -> "MultiPoint"
   MultiLineStringShape {} -> "MultiLineString"
   MultiPolygonShape {} -> "MultiPolygon"
+  PolyhedralSurfaceShape {} -> "PolyhedralSurface"
   GeometryCollectionShape {} -> "GeometryCollection"
 
 -- * Binary encoder
@@ -352,6 +359,7 @@ writeShape dim = \case
   MultiPointShape coords -> writeCount coords <> foldMap (writeSubGeometry . PointShape) coords
   MultiLineStringShape lineStrings -> writeCount lineStrings <> foldMap (writeSubGeometry . LineStringShape) lineStrings
   MultiPolygonShape polygons -> writeCount polygons <> foldMap (writeSubGeometry . PolygonShape) polygons
+  PolyhedralSurfaceShape polygons -> writeCount polygons <> foldMap (writeSubGeometry . PolygonShape) polygons
   GeometryCollectionShape shapes -> writeCount shapes <> foldMap writeSubGeometry shapes
   where
     writeCount :: [a] -> Write.Write
@@ -424,6 +432,10 @@ readShape byteOrder dim typeCode
         _ -> Nothing
   | typeCode == multiPolygonTypeCode =
       MultiPolygonShape <$> readSubShapes "MultiPolygon" "Polygon" \case
+        PolygonShape rings -> Just rings
+        _ -> Nothing
+  | typeCode == polyhedralSurfaceTypeCode =
+      PolyhedralSurfaceShape <$> readSubShapes "PolyhedralSurface" "Polygon" \case
         PolygonShape rings -> Just rings
         _ -> Nothing
   | typeCode == geometryCollectionTypeCode = do
@@ -512,6 +524,7 @@ shapeGen dim size =
     compound =
       [ MultiLineStringShape <$> QuickCheck.listOf (lineStringCoordsGen dim),
         MultiPolygonShape <$> QuickCheck.listOf (QuickCheck.listOf1 (ringCoordsGen dim)),
+        PolyhedralSurfaceShape <$> QuickCheck.listOf (QuickCheck.listOf1 (ringCoordsGen dim)),
         GeometryCollectionShape <$> QuickCheck.resize subSize (QuickCheck.listOf (shapeGen dim subSize))
       ]
     subSize = div size 4
@@ -555,6 +568,8 @@ shrinkShape = \case
     MultiLineStringShape <$> shrinkMembers lineStrings
   MultiPolygonShape polygons ->
     MultiPolygonShape <$> shrinkMembers polygons
+  PolyhedralSurfaceShape polygons ->
+    PolyhedralSurfaceShape <$> shrinkMembers polygons
   GeometryCollectionShape shapes ->
     GeometryCollectionShape <$> QuickCheck.shrinkList shrinkShape shapes
   where
