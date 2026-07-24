@@ -112,6 +112,24 @@ spec = do
     it "rejects a truncated payload" do
       decodeHex "0101000000000000000000F03F" `shouldSatisfy` isLeft
 
+    -- Fixture derived by hand from the EWKB layout (no live PostGIS instance required for this test):
+    -- a CircularString of one arc through (0,0), (1,2), (2,0), with SRID 4326.
+    --
+    -- Byte-order marker NDR (01), type 8 (CircularString) with the SRID flag (08000020), SRID 4326
+    -- (E6100000), coordinate count 3 (03000000), then the three coordinates: (0,0), (1,2), (2,0),
+    -- each ordinate as a little-endian IEEE-754 double.
+    let circularStringHex = "0108000020E61000000300000000000000000000000000000000000000000000000000F03F000000000000004000000000000000400000000000000000"
+        circularString =
+          Geometry.refineFromShapeAndSrid
+            (CircularStringShape [XyCoord 0 0, XyCoord 1 2, XyCoord 2 0])
+            (Just 4326)
+
+    it "decodes a circular string" do
+      fmap Just (decodeHex circularStringHex) `shouldBe` Right circularString
+
+    it "encodes a circular string the way PostGIS does" do
+      fmap encodeHex circularString `shouldBe` Just (Text.toLower circularStringHex)
+
     -- Fixture produced by PostGIS itself:
     -- SELECT ST_AsEWKB(ST_SetSRID(ST_GeomFromText(
     --   'POLYHEDRALSURFACE(((0 0, 1 0, 0 1, 0 0)), ((0 0, 0 1, -1 0, 0 0)))'
@@ -174,6 +192,53 @@ spec = do
               "01", -- NDR
               "01000080", -- Point, 3D
               "000000000000F03F00000000000000400000000000000840"
+            ]
+        )
+        `shouldSatisfy` isLeft
+
+    -- A triangle is a polygon restricted to 0 or 1 rings: a ring-count word32, followed by that one
+    -- ring's coordinates when present.
+    let emptyTriangleHex =
+          mconcat
+            [ "01", -- NDR
+              "11000000", -- type 17 (Triangle), no flags
+              "00000000" -- 0 rings
+            ]
+        emptyTriangle = Geometry.refineFromShape (TriangleShape [])
+
+    it "decodes an empty triangle" do
+      fmap Just (decodeHex emptyTriangleHex) `shouldBe` Right emptyTriangle
+
+    it "encodes an empty triangle" do
+      fmap encodeHex emptyTriangle `shouldBe` Just (Text.toLower emptyTriangleHex)
+
+    let nonEmptyTriangleHex =
+          mconcat
+            [ "01", -- NDR
+              "11000000", -- type 17 (Triangle), no flags
+              "01000000", -- 1 ring
+              "04000000", -- 4 coordinates
+              "00000000000000000000000000000000", -- (0, 0)
+              "00000000000010400000000000000000", -- (4, 0)
+              "00000000000000000000000000000840", -- (0, 3)
+              "00000000000000000000000000000000" -- (0, 0), closing the ring
+            ]
+        nonEmptyTriangle =
+          Geometry.refineFromShape
+            (TriangleShape [XyCoord 0 0, XyCoord 4 0, XyCoord 0 3, XyCoord 0 0])
+
+    it "decodes a non-empty triangle" do
+      fmap Just (decodeHex nonEmptyTriangleHex) `shouldBe` Right nonEmptyTriangle
+
+    it "encodes a non-empty triangle" do
+      fmap encodeHex nonEmptyTriangle `shouldBe` Just (Text.toLower nonEmptyTriangleHex)
+
+    it "rejects a triangle with more than one ring" do
+      decodeHex
+        ( mconcat
+            [ "01", -- NDR
+              "11000000", -- Triangle
+              "02000000" -- 2 rings, which a Triangle disallows
             ]
         )
         `shouldSatisfy` isLeft
