@@ -42,6 +42,12 @@ import qualified TextBuilder
 -- Unlike the built-in PostgreSQL types, @geometry@ is registered by @CREATE EXTENSION postgis@ and receives a different OID in every database.
 -- 'baseOid' and 'arrayOid' are therefore 'Nothing', and drivers are expected to resolve the OID by 'typeName' at runtime.
 --
+-- __Full shape coverage.__ 'Shape' supports every geometry kind PostGIS's @geometry@ column can hold — all
+-- sixteen @LWTYPE@ kinds, from the seven basic OGC shapes (@Point@, @LineString@, @Polygon@, @MultiPoint@,
+-- @MultiLineString@, @MultiPolygon@, @GeometryCollection@) through the ISO\/SQL-MM curve and surface extensions
+-- (@CircularString@, @CompoundCurve@, @CurvePolygon@, @MultiCurve@, @MultiSurface@, @PolyhedralSurface@,
+-- @Triangle@, @TIN@) and NURBS curves. See 'Shape'\'s own Haddock for the full constructor list.
+--
 -- __NURBS curves__ ('NurbsCurveShape') are the one shape not validated against a real PostGIS server: support for
 -- them only landed in PostGIS's development branch in June 2026, no released PostGIS version speaks the wire
 -- format yet, and that format has seen several revisions and may still change upstream. This codec is derived
@@ -58,7 +64,9 @@ data Geometry
   deriving stock (Eq, Ord)
   deriving (Show, Read, IsString) via (ViaIsScalar Geometry)
 
--- | One of the OGC shapes that a 'Geometry' can hold.
+-- | One of the sixteen OGC\/ISO geometry kinds that a 'Geometry' can hold — PostGIS's complete @LWTYPE@
+-- vocabulary, from the seven basic OGC shapes through the ISO\/SQL-MM curve, surface and TIN extensions.
+-- See the note on 'Geometry' for the full-coverage summary and the 'NurbsCurveShape' caveat.
 data Shape
   = -- | Single coordinate.
     PointShape Coord
