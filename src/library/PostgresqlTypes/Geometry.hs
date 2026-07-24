@@ -88,6 +88,10 @@ data Shape
     --
     -- __Caution:__ untested against any real PostGIS server. See the note on 'Geometry'.
     NurbsCurveShape NurbsCurve
+  | -- | Triangulated irregular network: a homogeneous collection of triangles, each given as its
+    -- ring, matching 'TriangleShape'\'s own representation — the empty list is a triangle with no
+    -- ring at all, a non-empty one is closed with its last coordinate repeating its first.
+    TinShape [[Coord]]
   deriving stock (Eq, Ord, Show, Read)
 
 -- | Coordinate in one of the four dimensionalities PostGIS supports.
@@ -158,6 +162,7 @@ instance Hashable Shape where
     TriangleShape coords -> salt `hashWithSalt` (8 :: Int) `hashWithSalt` coords
     PolyhedralSurfaceShape polygons -> salt `hashWithSalt` (9 :: Int) `hashWithSalt` polygons
     NurbsCurveShape nurbsCurve -> salt `hashWithSalt` (10 :: Int) `hashWithSalt` nurbsCurve
+    TinShape triangles -> salt `hashWithSalt` (11 :: Int) `hashWithSalt` triangles
 
 instance Hashable Coord where
   hashWithSalt salt = \case
@@ -299,6 +304,7 @@ shapeDim shape = fromMaybe XyDim <$> goShape Nothing shape
       GeometryCollectionShape shapes -> foldM goShape acc shapes
       TriangleShape coords -> goCoords acc coords
       NurbsCurveShape (NurbsCurve _ controlPoints _) -> goCoords acc (fst <$> controlPoints)
+      TinShape triangles -> foldM goCoords acc triangles
     goCoords :: Maybe Dim -> [Coord] -> Maybe (Maybe Dim)
     goCoords = foldM goCoord
     goCoord :: Maybe Dim -> Coord -> Maybe (Maybe Dim)
@@ -325,7 +331,7 @@ data ByteOrder
     LittleEndianByteOrder
 
 -- | OGC type codes, as they appear in the low bits of the EWKB type header.
-pointTypeCode, lineStringTypeCode, polygonTypeCode, multiPointTypeCode, multiLineStringTypeCode, multiPolygonTypeCode, geometryCollectionTypeCode, circularStringTypeCode, triangleTypeCode, polyhedralSurfaceTypeCode :: Word32
+pointTypeCode, lineStringTypeCode, polygonTypeCode, multiPointTypeCode, multiLineStringTypeCode, multiPolygonTypeCode, geometryCollectionTypeCode, circularStringTypeCode, triangleTypeCode, polyhedralSurfaceTypeCode, tinTypeCode :: Word32
 pointTypeCode = 1
 lineStringTypeCode = 2
 polygonTypeCode = 3
@@ -336,6 +342,7 @@ geometryCollectionTypeCode = 7
 circularStringTypeCode = 8
 triangleTypeCode = 17
 polyhedralSurfaceTypeCode = 15
+tinTypeCode = 16
 
 -- | ISO/IEC 13249-3 (SQL/MM) type code for a NURBS curve.
 --
@@ -406,6 +413,7 @@ shapeToTypeCode = \case
   CircularStringShape {} -> circularStringTypeCode
   TriangleShape {} -> triangleTypeCode
   NurbsCurveShape {} -> nurbsCurveBaseTypeCode
+  TinShape {} -> tinTypeCode
 
 -- | Name of the shape in the OGC vocabulary. Used for reporting decoding errors.
 shapeName :: Shape -> Text
@@ -421,6 +429,7 @@ shapeName = \case
   CircularStringShape {} -> "CircularString"
   TriangleShape {} -> "Triangle"
   NurbsCurveShape {} -> "NurbsCurve"
+  TinShape {} -> "TIN"
 
 -- * Binary encoder
 
@@ -459,6 +468,7 @@ writeShape dim = \case
     [] -> Write.lWord32 0
     _ -> Write.lWord32 1 <> writeCoords coords
   NurbsCurveShape nurbsCurve -> writeNurbsCurve nurbsCurve
+  TinShape triangles -> writeCount triangles <> foldMap (writeSubGeometry . TriangleShape) triangles
   where
     writeCount :: [a] -> Write.Write
     writeCount = Write.lWord32 . fromIntegral . length
@@ -604,6 +614,10 @@ readShape byteOrder dim typeCode
             )
   | typeCode == nurbsCurveBaseTypeCode =
       NurbsCurveShape <$> readNurbsCurve byteOrder dim
+  | typeCode == tinTypeCode =
+      TinShape <$> readSubShapes "TIN" "Triangle" \case
+        TriangleShape coords -> Just coords
+        _ -> Nothing
   | otherwise =
       throwError
         ( DecodingError
@@ -734,6 +748,7 @@ shapeGen dim size =
       [ MultiLineStringShape <$> QuickCheck.listOf (lineStringCoordsGen dim),
         MultiPolygonShape <$> QuickCheck.listOf (QuickCheck.listOf1 (ringCoordsGen dim)),
         PolyhedralSurfaceShape <$> QuickCheck.listOf (QuickCheck.listOf1 (ringCoordsGen dim)),
+        TinShape <$> QuickCheck.listOf (QuickCheck.oneof [pure [], ringCoordsGen dim]),
         GeometryCollectionShape <$> QuickCheck.resize subSize (QuickCheck.listOf (shapeGen dim subSize))
       ]
     subSize = div size 4
@@ -793,6 +808,8 @@ shrinkShape = \case
     GeometryCollectionShape <$> QuickCheck.shrinkList shrinkShape shapes
   TriangleShape coords ->
     [TriangleShape [] | not (null coords)]
+  TinShape triangles ->
+    TinShape <$> shrinkMembers triangles
   -- 'shapeGen' never produces this constructor (see the comment there), so this is never called
   -- with one in practice. Covered only so the pattern match above stays exhaustive.
   NurbsCurveShape _ -> []
