@@ -5,6 +5,7 @@ module PostgresqlTypes.Geometry
     NurbsCurve (..),
     CurveSegment (..),
     Curve (..),
+    Surface (..),
 
     -- * Accessors
     toSrid,
@@ -116,6 +117,12 @@ data Shape
     -- 'CompoundCurveShape': a multi-curve's member can only be a @LineString@, a @CircularString@ or
     -- a @CompoundCurve@, never a @Polygon@ or anything else.
     MultiCurveShape [Curve]
+  | -- | Heterogeneous collection of surfaces.
+    --
+    -- Members are restricted to 'Surface' rather than 'Shape', for the same reason
+    -- 'CompoundCurveShape' is restricted to 'CurveSegment': a multi-surface's member can only be a
+    -- @Polygon@ or a @CurvePolygon@, never anything else.
+    MultiSurfaceShape [Surface]
   deriving stock (Eq, Ord, Show, Read)
 
 -- | Coordinate in one of the four dimensionalities PostGIS supports.
@@ -192,6 +199,18 @@ data Curve
     ChainedCurve [CurveSegment]
   deriving stock (Eq, Ord, Show, Read)
 
+-- | Any surface: a plain polygon, or one whose rings may be curved (an OGC/SQL-MM @CurvePolygon@).
+--
+-- The building block of 'MultiSurfaceShape'\'s members. Deliberately does not reuse 'Shape', for the
+-- same reason 'Curve' does not: a member here can only be a @Polygon@ or a @CurvePolygon@, never
+-- anything else.
+data Surface
+  = -- | Plain polygon, wire-compatible with 'PolygonShape'.
+    PolygonSurface [[Coord]]
+  | -- | Polygon with possibly curved rings, wire-compatible with 'CurvePolygonShape'.
+    CurvedSurface [Curve]
+  deriving stock (Eq, Ord, Show, Read)
+
 instance Hashable Geometry where
   hashWithSalt salt (Geometry srid shape) =
     salt `hashWithSalt` srid `hashWithSalt` shape
@@ -213,6 +232,7 @@ instance Hashable Shape where
     CompoundCurveShape segments -> salt `hashWithSalt` (12 :: Int) `hashWithSalt` segments
     CurvePolygonShape curves -> salt `hashWithSalt` (13 :: Int) `hashWithSalt` curves
     MultiCurveShape curves -> salt `hashWithSalt` (14 :: Int) `hashWithSalt` curves
+    MultiSurfaceShape surfaces -> salt `hashWithSalt` (15 :: Int) `hashWithSalt` surfaces
 
 instance Hashable Coord where
   hashWithSalt salt = \case
@@ -234,6 +254,11 @@ instance Hashable Curve where
   hashWithSalt salt = \case
     SegmentCurve segment -> salt `hashWithSalt` (0 :: Int) `hashWithSalt` segment
     ChainedCurve segments -> salt `hashWithSalt` (1 :: Int) `hashWithSalt` segments
+
+instance Hashable Surface where
+  hashWithSalt salt = \case
+    PolygonSurface rings -> salt `hashWithSalt` (0 :: Int) `hashWithSalt` rings
+    CurvedSurface curves -> salt `hashWithSalt` (1 :: Int) `hashWithSalt` curves
 
 instance Arbitrary Geometry where
   arbitrary = do
@@ -368,6 +393,7 @@ shapeDim shape = fromMaybe XyDim <$> goShape Nothing shape
       CompoundCurveShape segments -> foldM goSegment acc segments
       CurvePolygonShape curves -> foldM goCurve acc curves
       MultiCurveShape curves -> foldM goCurve acc curves
+      MultiSurfaceShape surfaces -> foldM goSurface acc surfaces
     goSegment :: Maybe Dim -> CurveSegment -> Maybe (Maybe Dim)
     goSegment acc = \case
       LineSegment coords -> goCoords acc coords
@@ -376,6 +402,10 @@ shapeDim shape = fromMaybe XyDim <$> goShape Nothing shape
     goCurve acc = \case
       SegmentCurve segment -> goSegment acc segment
       ChainedCurve segments -> foldM goSegment acc segments
+    goSurface :: Maybe Dim -> Surface -> Maybe (Maybe Dim)
+    goSurface acc = \case
+      PolygonSurface rings -> foldM goCoords acc rings
+      CurvedSurface curves -> foldM goCurve acc curves
     goCoords :: Maybe Dim -> [Coord] -> Maybe (Maybe Dim)
     goCoords = foldM goCoord
     goCoord :: Maybe Dim -> Coord -> Maybe (Maybe Dim)
@@ -402,7 +432,7 @@ data ByteOrder
     LittleEndianByteOrder
 
 -- | OGC type codes, as they appear in the low bits of the EWKB type header.
-pointTypeCode, lineStringTypeCode, polygonTypeCode, multiPointTypeCode, multiLineStringTypeCode, multiPolygonTypeCode, geometryCollectionTypeCode, circularStringTypeCode, triangleTypeCode, polyhedralSurfaceTypeCode, tinTypeCode, compoundCurveTypeCode, curvePolygonTypeCode, multiCurveTypeCode :: Word32
+pointTypeCode, lineStringTypeCode, polygonTypeCode, multiPointTypeCode, multiLineStringTypeCode, multiPolygonTypeCode, geometryCollectionTypeCode, circularStringTypeCode, triangleTypeCode, polyhedralSurfaceTypeCode, tinTypeCode, compoundCurveTypeCode, curvePolygonTypeCode, multiCurveTypeCode, multiSurfaceTypeCode :: Word32
 pointTypeCode = 1
 lineStringTypeCode = 2
 polygonTypeCode = 3
@@ -414,6 +444,7 @@ circularStringTypeCode = 8
 compoundCurveTypeCode = 9
 curvePolygonTypeCode = 10
 multiCurveTypeCode = 11
+multiSurfaceTypeCode = 12
 triangleTypeCode = 17
 polyhedralSurfaceTypeCode = 15
 tinTypeCode = 16
@@ -491,6 +522,7 @@ shapeToTypeCode = \case
   CompoundCurveShape {} -> compoundCurveTypeCode
   CurvePolygonShape {} -> curvePolygonTypeCode
   MultiCurveShape {} -> multiCurveTypeCode
+  MultiSurfaceShape {} -> multiSurfaceTypeCode
 
 -- | Name of the shape in the OGC vocabulary. Used for reporting decoding errors.
 shapeName :: Shape -> Text
@@ -510,6 +542,7 @@ shapeName = \case
   CompoundCurveShape {} -> "CompoundCurve"
   CurvePolygonShape {} -> "CurvePolygon"
   MultiCurveShape {} -> "MultiCurve"
+  MultiSurfaceShape {} -> "MultiSurface"
 
 -- * Binary encoder
 
@@ -552,6 +585,7 @@ writeShape dim = \case
   CompoundCurveShape segments -> writeCount segments <> foldMap writeSegment segments
   CurvePolygonShape curves -> writeCount curves <> foldMap writeCurve curves
   MultiCurveShape curves -> writeCount curves <> foldMap writeCurve curves
+  MultiSurfaceShape surfaces -> writeCount surfaces <> foldMap writeSurface surfaces
   where
     writeCount :: [a] -> Write.Write
     writeCount = Write.lWord32 . fromIntegral . length
@@ -567,6 +601,10 @@ writeShape dim = \case
     writeCurve = \case
       SegmentCurve segment -> writeSegment segment
       ChainedCurve segments -> writeSubGeometry (CompoundCurveShape segments)
+    writeSurface :: Surface -> Write.Write
+    writeSurface = \case
+      PolygonSurface rings -> writeSubGeometry (PolygonShape rings)
+      CurvedSurface curves -> writeSubGeometry (CurvePolygonShape curves)
 
 -- | Encode the ordinates of a coordinate.
 --
@@ -718,6 +756,8 @@ readShape byteOrder dim typeCode
       CurvePolygonShape <$> readSubShapes "CurvePolygon" "LineString, CircularString or CompoundCurve" readCurveProjection
   | typeCode == multiCurveTypeCode =
       MultiCurveShape <$> readSubShapes "MultiCurve" "LineString, CircularString or CompoundCurve" readCurveProjection
+  | typeCode == multiSurfaceTypeCode =
+      MultiSurfaceShape <$> readSubShapes "MultiSurface" "Polygon or CurvePolygon" readSurfaceProjection
   | otherwise =
       throwError
         ( DecodingError
@@ -759,6 +799,13 @@ readShape byteOrder dim typeCode
       LineStringShape coords -> Just (SegmentCurve (LineSegment coords))
       CircularStringShape coords -> Just (SegmentCurve (ArcSegment coords))
       CompoundCurveShape segments -> Just (ChainedCurve segments)
+      _ -> Nothing
+    -- Projection for 'MultiSurfaceShape': a member is either a plain 'PolygonShape' or a
+    -- 'CurvePolygonShape', wire-compatible with 'Surface'\'s own two constructors.
+    readSurfaceProjection :: Shape -> Maybe Surface
+    readSurfaceProjection = \case
+      PolygonShape rings -> Just (PolygonSurface rings)
+      CurvePolygonShape curves -> Just (CurvedSurface curves)
       _ -> Nothing
 
 readCoord :: ByteOrder -> Dim -> PtrPeeker.Variable Coord
@@ -860,6 +907,7 @@ shapeGen dim size =
         CompoundCurveShape <$> QuickCheck.listOf (segmentGen dim),
         CurvePolygonShape <$> QuickCheck.listOf (curveGen dim),
         MultiCurveShape <$> QuickCheck.listOf (curveGen dim),
+        MultiSurfaceShape <$> QuickCheck.listOf (surfaceGen dim),
         GeometryCollectionShape <$> QuickCheck.resize subSize (QuickCheck.listOf (shapeGen dim subSize))
       ]
     subSize = div size 4
@@ -911,6 +959,15 @@ curveGen dim =
       ChainedCurve <$> QuickCheck.listOf (segmentGen dim)
     ]
 
+-- | Generate a surface, matching 'Surface'\'s own two constructors. A plain polygon surface has at
+-- least one ring, matching 'PolygonShape'\'s own generator.
+surfaceGen :: Dim -> QuickCheck.Gen Surface
+surfaceGen dim =
+  QuickCheck.oneof
+    [ PolygonSurface . pure <$> ringCoordsGen dim,
+      CurvedSurface <$> QuickCheck.listOf (curveGen dim)
+    ]
+
 -- | Shrink a shape by dropping members of its collections.
 --
 -- Individual coordinates are never dropped or shrunk: that would either change the dimensionality of
@@ -951,6 +1008,9 @@ shrinkShape = \case
     CurvePolygonShape <$> shrinkMembers curves
   MultiCurveShape curves ->
     MultiCurveShape <$> shrinkMembers curves
+  MultiSurfaceShape surfaces ->
+    -- Same reasoning as 'MultiCurveShape': members are dropped wholesale, never shrunk internally.
+    MultiSurfaceShape <$> shrinkMembers surfaces
   where
     shrinkMembers :: [a] -> [[a]]
     shrinkMembers = QuickCheck.shrinkList (const [])
