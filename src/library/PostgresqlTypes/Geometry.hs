@@ -3,6 +3,7 @@ module PostgresqlTypes.Geometry
     Shape (..),
     Coord (..),
     NurbsCurve (..),
+    CurveSegment (..),
 
     -- * Accessors
     toSrid,
@@ -92,6 +93,15 @@ data Shape
     -- ring, matching 'TriangleShape'\'s own representation — the empty list is a triangle with no
     -- ring at all, a non-empty one is closed with its last coordinate repeating its first.
     TinShape [[Coord]]
+  | -- | Curve assembled by chaining line and arc segments end to end.
+    --
+    -- Members are restricted to 'CurveSegment' rather than 'Shape': unlike
+    -- 'GeometryCollectionShape', which legitimately allows arbitrary nesting per OGC, a compound
+    -- curve's members can only be a @LineString@ or a @CircularString@, never another
+    -- @CompoundCurve@ or anything else. 'CurveSegment' makes that illegal nesting unrepresentable
+    -- at compile time, the same reasoning that already led 'MultiPointShape' to store raw
+    -- @['Coord']@ rather than @['Shape']@.
+    CompoundCurveShape [CurveSegment]
   deriving stock (Eq, Ord, Show, Read)
 
 -- | Coordinate in one of the four dimensionalities PostGIS supports.
@@ -145,6 +155,16 @@ data NurbsCurve
       [Double]
   deriving stock (Eq, Ord, Show, Read)
 
+-- | One continuous curve segment: the building block of a 'CompoundCurveShape'.
+--
+-- Deliberately does not reuse 'Shape' — see the Haddock on 'CompoundCurveShape' for why.
+data CurveSegment
+  = -- | Straight segment, wire-compatible with 'LineStringShape'.
+    LineSegment [Coord]
+  | -- | Circular-arc segment, wire-compatible with 'CircularStringShape'.
+    ArcSegment [Coord]
+  deriving stock (Eq, Ord, Show, Read)
+
 instance Hashable Geometry where
   hashWithSalt salt (Geometry srid shape) =
     salt `hashWithSalt` srid `hashWithSalt` shape
@@ -163,6 +183,7 @@ instance Hashable Shape where
     PolyhedralSurfaceShape polygons -> salt `hashWithSalt` (9 :: Int) `hashWithSalt` polygons
     NurbsCurveShape nurbsCurve -> salt `hashWithSalt` (10 :: Int) `hashWithSalt` nurbsCurve
     TinShape triangles -> salt `hashWithSalt` (11 :: Int) `hashWithSalt` triangles
+    CompoundCurveShape segments -> salt `hashWithSalt` (12 :: Int) `hashWithSalt` segments
 
 instance Hashable Coord where
   hashWithSalt salt = \case
@@ -174,6 +195,11 @@ instance Hashable Coord where
 instance Hashable NurbsCurve where
   hashWithSalt salt (NurbsCurve degree controlPoints knots) =
     salt `hashWithSalt` degree `hashWithSalt` controlPoints `hashWithSalt` knots
+
+instance Hashable CurveSegment where
+  hashWithSalt salt = \case
+    LineSegment coords -> salt `hashWithSalt` (0 :: Int) `hashWithSalt` coords
+    ArcSegment coords -> salt `hashWithSalt` (1 :: Int) `hashWithSalt` coords
 
 instance Arbitrary Geometry where
   arbitrary = do
@@ -305,6 +331,11 @@ shapeDim shape = fromMaybe XyDim <$> goShape Nothing shape
       TriangleShape coords -> goCoords acc coords
       NurbsCurveShape (NurbsCurve _ controlPoints _) -> goCoords acc (fst <$> controlPoints)
       TinShape triangles -> foldM goCoords acc triangles
+      CompoundCurveShape segments -> foldM goSegment acc segments
+    goSegment :: Maybe Dim -> CurveSegment -> Maybe (Maybe Dim)
+    goSegment acc = \case
+      LineSegment coords -> goCoords acc coords
+      ArcSegment coords -> goCoords acc coords
     goCoords :: Maybe Dim -> [Coord] -> Maybe (Maybe Dim)
     goCoords = foldM goCoord
     goCoord :: Maybe Dim -> Coord -> Maybe (Maybe Dim)
@@ -331,7 +362,7 @@ data ByteOrder
     LittleEndianByteOrder
 
 -- | OGC type codes, as they appear in the low bits of the EWKB type header.
-pointTypeCode, lineStringTypeCode, polygonTypeCode, multiPointTypeCode, multiLineStringTypeCode, multiPolygonTypeCode, geometryCollectionTypeCode, circularStringTypeCode, triangleTypeCode, polyhedralSurfaceTypeCode, tinTypeCode :: Word32
+pointTypeCode, lineStringTypeCode, polygonTypeCode, multiPointTypeCode, multiLineStringTypeCode, multiPolygonTypeCode, geometryCollectionTypeCode, circularStringTypeCode, triangleTypeCode, polyhedralSurfaceTypeCode, tinTypeCode, compoundCurveTypeCode :: Word32
 pointTypeCode = 1
 lineStringTypeCode = 2
 polygonTypeCode = 3
@@ -340,6 +371,7 @@ multiLineStringTypeCode = 5
 multiPolygonTypeCode = 6
 geometryCollectionTypeCode = 7
 circularStringTypeCode = 8
+compoundCurveTypeCode = 9
 triangleTypeCode = 17
 polyhedralSurfaceTypeCode = 15
 tinTypeCode = 16
@@ -414,6 +446,7 @@ shapeToTypeCode = \case
   TriangleShape {} -> triangleTypeCode
   NurbsCurveShape {} -> nurbsCurveBaseTypeCode
   TinShape {} -> tinTypeCode
+  CompoundCurveShape {} -> compoundCurveTypeCode
 
 -- | Name of the shape in the OGC vocabulary. Used for reporting decoding errors.
 shapeName :: Shape -> Text
@@ -430,6 +463,7 @@ shapeName = \case
   TriangleShape {} -> "Triangle"
   NurbsCurveShape {} -> "NurbsCurve"
   TinShape {} -> "TIN"
+  CompoundCurveShape {} -> "CompoundCurve"
 
 -- * Binary encoder
 
@@ -469,6 +503,7 @@ writeShape dim = \case
     _ -> Write.lWord32 1 <> writeCoords coords
   NurbsCurveShape nurbsCurve -> writeNurbsCurve nurbsCurve
   TinShape triangles -> writeCount triangles <> foldMap (writeSubGeometry . TriangleShape) triangles
+  CompoundCurveShape segments -> writeCount segments <> foldMap writeSegment segments
   where
     writeCount :: [a] -> Write.Write
     writeCount = Write.lWord32 . fromIntegral . length
@@ -476,6 +511,10 @@ writeShape dim = \case
     writeCoords coords = writeCount coords <> foldMap writeCoord coords
     writeSubGeometry :: Shape -> Write.Write
     writeSubGeometry = writeGeometry Nothing dim
+    writeSegment :: CurveSegment -> Write.Write
+    writeSegment = \case
+      LineSegment coords -> writeSubGeometry (LineStringShape coords)
+      ArcSegment coords -> writeSubGeometry (CircularStringShape coords)
 
 -- | Encode the ordinates of a coordinate.
 --
@@ -618,6 +657,11 @@ readShape byteOrder dim typeCode
       TinShape <$> readSubShapes "TIN" "Triangle" \case
         TriangleShape coords -> Just coords
         _ -> Nothing
+  | typeCode == compoundCurveTypeCode =
+      CompoundCurveShape <$> readSubShapes "CompoundCurve" "LineString or CircularString" \case
+        LineStringShape coords -> Just (LineSegment coords)
+        CircularStringShape coords -> Just (ArcSegment coords)
+        _ -> Nothing
   | otherwise =
       throwError
         ( DecodingError
@@ -749,6 +793,13 @@ shapeGen dim size =
         MultiPolygonShape <$> QuickCheck.listOf (QuickCheck.listOf1 (ringCoordsGen dim)),
         PolyhedralSurfaceShape <$> QuickCheck.listOf (QuickCheck.listOf1 (ringCoordsGen dim)),
         TinShape <$> QuickCheck.listOf (QuickCheck.oneof [pure [], ringCoordsGen dim]),
+        CompoundCurveShape
+          <$> QuickCheck.listOf
+            ( QuickCheck.oneof
+                [ LineSegment <$> lineStringCoordsGen dim,
+                  ArcSegment <$> circularStringCoordsGen dim
+                ]
+            ),
         GeometryCollectionShape <$> QuickCheck.resize subSize (QuickCheck.listOf (shapeGen dim subSize))
       ]
     subSize = div size 4
@@ -813,6 +864,11 @@ shrinkShape = \case
   -- 'shapeGen' never produces this constructor (see the comment there), so this is never called
   -- with one in practice. Covered only so the pattern match above stays exhaustive.
   NurbsCurveShape _ -> []
+  CompoundCurveShape segments ->
+    -- Members are dropped wholesale, never shrunk internally: shrinking a segment's own coordinate
+    -- list risks breaking the odd-≥3 invariant an 'ArcSegment' requires, the same reason
+    -- 'CircularStringShape' does not delegate to a plain 'shrinkMembers' either.
+    CompoundCurveShape <$> shrinkMembers segments
   where
     shrinkMembers :: [a] -> [[a]]
     shrinkMembers = QuickCheck.shrinkList (const [])
