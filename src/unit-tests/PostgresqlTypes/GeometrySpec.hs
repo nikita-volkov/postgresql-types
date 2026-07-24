@@ -130,6 +130,41 @@ spec = do
     it "encodes a circular string the way PostGIS does" do
       fmap encodeHex circularString `shouldBe` Just (Text.toLower circularStringHex)
 
+    -- Fixture produced by PostGIS itself:
+    -- SELECT ST_AsEWKB(ST_SetSRID(ST_GeomFromText(
+    --   'POLYHEDRALSURFACE(((0 0, 1 0, 0 1, 0 0)), ((0 0, 0 1, -1 0, 0 0)))'
+    -- ), 4326));
+    let polyhedralSurfaceHex = "010F000020E6100000020000000103000000010000000400000000000000000000000000000000000000000000000000F03F00000000000000000000000000000000000000000000F03F0000000000000000000000000000000001030000000100000004000000000000000000000000000000000000000000000000000000000000000000F03F000000000000F0BF000000000000000000000000000000000000000000000000"
+        polyhedralSurface =
+          Geometry.refineFromShapeAndSrid
+            ( PolyhedralSurfaceShape
+                [ [[XyCoord 0 0, XyCoord 1 0, XyCoord 0 1, XyCoord 0 0]],
+                  [[XyCoord 0 0, XyCoord 0 1, XyCoord (-1) 0, XyCoord 0 0]]
+                ]
+            )
+            (Just 4326)
+
+    it "decodes a polyhedral surface PostGIS produced" do
+      fmap Just (decodeHex polyhedralSurfaceHex) `shouldBe` Right polyhedralSurface
+
+    it "encodes a polyhedral surface the way PostGIS does" do
+      fmap encodeHex polyhedralSurface `shouldBe` Just (Text.toLower polyhedralSurfaceHex)
+
+    it "rejects a polyhedral surface whose member is a line string" do
+      decodeHex
+        ( mconcat
+            [ "01", -- NDR
+              "0F000000", -- PolyhedralSurface
+              "01000000", -- 1 member
+              "01", -- NDR
+              "02000000", -- LineString, where a Polygon is required
+              "02000000", -- 2 coordinates
+              "000000000000F03F0000000000000040",
+              "00000000000008400000000000001040"
+            ]
+        )
+        `shouldSatisfy` isLeft
+
     it "rejects a multi-point whose member is a line string" do
       decodeHex
         ( mconcat
