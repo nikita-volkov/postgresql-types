@@ -223,9 +223,14 @@ refineFromShape shape = refineFromShapeAndSrid shape Nothing
 
 -- | Construct a 'Geometry' with an optional SRID.
 --
--- Returns 'Nothing' if the coordinates of the shape tree do not all share the same dimensionality.
+-- Returns 'Nothing' if the coordinates of the shape tree do not all share the same dimensionality
+-- or if the SRID is not a positive integer. PostGIS normalises @srid <= 0@ to @SRID_UNKNOWN@ (0),
+-- which breaks the round-trip: the value would encode with the SRID flag but decode back as
+-- 'Nothing', so those values are rejected.
 refineFromShapeAndSrid :: Shape -> Maybe Int32 -> Maybe Geometry
-refineFromShapeAndSrid shape srid = Geometry srid shape <$ shapeDim shape
+refineFromShapeAndSrid shape srid
+  | maybe True (0 <) srid = Geometry srid shape <$ shapeDim shape
+  | otherwise = Nothing
 
 -- * Dimensionality
 

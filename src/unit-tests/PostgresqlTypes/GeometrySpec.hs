@@ -4,6 +4,7 @@ import qualified Data.Attoparsec.Text
 import Data.Data (Proxy (Proxy))
 import Data.Either
 import Data.Hashable (hashWithSalt)
+import Data.Maybe (isJust)
 import Data.Text (Text)
 import qualified Data.Text as Text
 import qualified PostgresqlTypes.Algebra
@@ -51,6 +52,22 @@ spec = do
         let shape = PointShape (XyCoord 13.4 52.5)
         fmap Geometry.toSrid (Geometry.refineFromShapeAndSrid shape (Just 4326))
           `shouldBe` Just (Just 4326)
+
+      it "rejects SRID 0" do
+        Geometry.refineFromShapeAndSrid (PointShape (XyCoord 0 0)) (Just 0)
+          `shouldBe` Nothing
+
+      it "rejects a negative SRID" do
+        Geometry.refineFromShapeAndSrid (PointShape (XyCoord 0 0)) (Just (-5))
+          `shouldBe` Nothing
+
+      it "accepts Nothing" do
+        Geometry.refineFromShapeAndSrid (PointShape (XyCoord 0 0)) Nothing
+          `shouldSatisfy` isJust
+
+      it "accepts a positive SRID" do
+        Geometry.refineFromShapeAndSrid (PointShape (XyCoord 0 0)) (Just 1)
+          `shouldSatisfy` isJust
 
   describe "Accessors" do
     describe "toSrid" do
