@@ -8,7 +8,7 @@ import Data.Maybe (isJust)
 import Data.Text (Text)
 import qualified Data.Text as Text
 import qualified PostgresqlTypes.Algebra
-import PostgresqlTypes.Geometry (Coord (..), Geometry, Shape (..))
+import PostgresqlTypes.Geometry (Coord (..), Curve (..), CurveSegment (..), Geometry, NurbsCurve (..), Shape (..), Surface (..))
 import qualified PostgresqlTypes.Geometry as Geometry
 import Test.Hspec
 import Test.QuickCheck
@@ -112,6 +112,59 @@ spec = do
     it "rejects a truncated payload" do
       decodeHex "0101000000000000000000F03F" `shouldSatisfy` isLeft
 
+    -- Fixture derived by hand from the EWKB layout (no live PostGIS instance required for this test):
+    -- a CircularString of one arc through (0,0), (1,2), (2,0), with SRID 4326.
+    --
+    -- Byte-order marker NDR (01), type 8 (CircularString) with the SRID flag (08000020), SRID 4326
+    -- (E6100000), coordinate count 3 (03000000), then the three coordinates: (0,0), (1,2), (2,0),
+    -- each ordinate as a little-endian IEEE-754 double.
+    let circularStringHex = "0108000020E61000000300000000000000000000000000000000000000000000000000F03F000000000000004000000000000000400000000000000000"
+        circularString =
+          Geometry.refineFromShapeAndSrid
+            (CircularStringShape [XyCoord 0 0, XyCoord 1 2, XyCoord 2 0])
+            (Just 4326)
+
+    it "decodes a circular string" do
+      fmap Just (decodeHex circularStringHex) `shouldBe` Right circularString
+
+    it "encodes a circular string the way PostGIS does" do
+      fmap encodeHex circularString `shouldBe` Just (Text.toLower circularStringHex)
+
+    -- Fixture produced by PostGIS itself:
+    -- SELECT ST_AsEWKB(ST_SetSRID(ST_GeomFromText(
+    --   'POLYHEDRALSURFACE(((0 0, 1 0, 0 1, 0 0)), ((0 0, 0 1, -1 0, 0 0)))'
+    -- ), 4326));
+    let polyhedralSurfaceHex = "010F000020E6100000020000000103000000010000000400000000000000000000000000000000000000000000000000F03F00000000000000000000000000000000000000000000F03F0000000000000000000000000000000001030000000100000004000000000000000000000000000000000000000000000000000000000000000000F03F000000000000F0BF000000000000000000000000000000000000000000000000"
+        polyhedralSurface =
+          Geometry.refineFromShapeAndSrid
+            ( PolyhedralSurfaceShape
+                [ [[XyCoord 0 0, XyCoord 1 0, XyCoord 0 1, XyCoord 0 0]],
+                  [[XyCoord 0 0, XyCoord 0 1, XyCoord (-1) 0, XyCoord 0 0]]
+                ]
+            )
+            (Just 4326)
+
+    it "decodes a polyhedral surface PostGIS produced" do
+      fmap Just (decodeHex polyhedralSurfaceHex) `shouldBe` Right polyhedralSurface
+
+    it "encodes a polyhedral surface the way PostGIS does" do
+      fmap encodeHex polyhedralSurface `shouldBe` Just (Text.toLower polyhedralSurfaceHex)
+
+    it "rejects a polyhedral surface whose member is a line string" do
+      decodeHex
+        ( mconcat
+            [ "01", -- NDR
+              "0F000000", -- PolyhedralSurface
+              "01000000", -- 1 member
+              "01", -- NDR
+              "02000000", -- LineString, where a Polygon is required
+              "02000000", -- 2 coordinates
+              "000000000000F03F0000000000000040",
+              "00000000000008400000000000001040"
+            ]
+        )
+        `shouldSatisfy` isLeft
+
     it "rejects a multi-point whose member is a line string" do
       decodeHex
         ( mconcat
@@ -142,6 +195,386 @@ spec = do
             ]
         )
         `shouldSatisfy` isLeft
+
+    -- A triangle is a polygon restricted to 0 or 1 rings: a ring-count word32, followed by that one
+    -- ring's coordinates when present.
+    let emptyTriangleHex =
+          mconcat
+            [ "01", -- NDR
+              "11000000", -- type 17 (Triangle), no flags
+              "00000000" -- 0 rings
+            ]
+        emptyTriangle = Geometry.refineFromShape (TriangleShape [])
+
+    it "decodes an empty triangle" do
+      fmap Just (decodeHex emptyTriangleHex) `shouldBe` Right emptyTriangle
+
+    it "encodes an empty triangle" do
+      fmap encodeHex emptyTriangle `shouldBe` Just (Text.toLower emptyTriangleHex)
+
+    let nonEmptyTriangleHex =
+          mconcat
+            [ "01", -- NDR
+              "11000000", -- type 17 (Triangle), no flags
+              "01000000", -- 1 ring
+              "04000000", -- 4 coordinates
+              "00000000000000000000000000000000", -- (0, 0)
+              "00000000000010400000000000000000", -- (4, 0)
+              "00000000000000000000000000000840", -- (0, 3)
+              "00000000000000000000000000000000" -- (0, 0), closing the ring
+            ]
+        nonEmptyTriangle =
+          Geometry.refineFromShape
+            (TriangleShape [XyCoord 0 0, XyCoord 4 0, XyCoord 0 3, XyCoord 0 0])
+
+    it "decodes a non-empty triangle" do
+      fmap Just (decodeHex nonEmptyTriangleHex) `shouldBe` Right nonEmptyTriangle
+
+    it "encodes a non-empty triangle" do
+      fmap encodeHex nonEmptyTriangle `shouldBe` Just (Text.toLower nonEmptyTriangleHex)
+
+    it "rejects a triangle with more than one ring" do
+      decodeHex
+        ( mconcat
+            [ "01", -- NDR
+              "11000000", -- Triangle
+              "02000000" -- 2 rings, which a Triangle disallows
+            ]
+        )
+        `shouldSatisfy` isLeft
+
+    -- Fixture produced by PostGIS itself:
+    -- SELECT ST_AsEWKB(ST_SetSRID(ST_GeomFromText(
+    --   'TIN (((0 0, 1 0, 0 1, 0 0)), ((0 0, 0 1, -1 0, 0 0)))'
+    -- ), 4326));
+    let tinHex = "0110000020E6100000020000000111000000010000000400000000000000000000000000000000000000000000000000F03F00000000000000000000000000000000000000000000F03F0000000000000000000000000000000001110000000100000004000000000000000000000000000000000000000000000000000000000000000000F03F000000000000F0BF000000000000000000000000000000000000000000000000"
+        tin =
+          Geometry.refineFromShapeAndSrid
+            ( TinShape
+                [ [XyCoord 0 0, XyCoord 1 0, XyCoord 0 1, XyCoord 0 0],
+                  [XyCoord 0 0, XyCoord 0 1, XyCoord (-1) 0, XyCoord 0 0]
+                ]
+            )
+            (Just 4326)
+
+    it "decodes a TIN PostGIS produced" do
+      fmap Just (decodeHex tinHex) `shouldBe` Right tin
+
+    it "encodes a TIN the way PostGIS does" do
+      fmap encodeHex tin `shouldBe` Just (Text.toLower tinHex)
+
+    it "rejects a TIN whose member isn't a triangle" do
+      decodeHex
+        ( mconcat
+            [ "01", -- NDR
+              "10000000", -- TIN
+              "01000000", -- 1 member
+              "01", -- NDR
+              "03000000", -- Polygon, where a Triangle is required
+              "01000000", -- 1 ring
+              "04000000", -- 4 coordinates
+              "0000000000000000", -- (0, 0)
+              "0000000000000000",
+              "000000000000F03F", -- (1, 0)
+              "0000000000000000",
+              "0000000000000000", -- (0, 1)
+              "000000000000F03F",
+              "0000000000000000", -- (0, 0), closing the ring
+              "0000000000000000"
+            ]
+        )
+        `shouldSatisfy` isLeft
+
+    -- Fixture derived by hand from the EWKB layout (no live PostGIS instance required for this test):
+    -- a CompoundCurve made of one line segment through (0,0)-(1,1), followed by one arc segment
+    -- through (1,1), (2,2), (3,0), with no SRID.
+    --
+    -- Byte-order marker NDR (01), type 9 (CompoundCurve), no flags (09000000), member count 2
+    -- (02000000), then each member as a full sub-geometry: a LineString (type 2) of 2 coordinates,
+    -- and a CircularString (type 8) of 3 coordinates, each with its own byte-order marker.
+    let compoundCurveHex =
+          "01090000000200000001020000000200000000000000000000000000000000000000000000000000F03F000000000000F03F010800000003000000000000000000F03F000000000000F03F0000000000000040000000000000004000000000000008400000000000000000"
+        compoundCurve =
+          Geometry.refineFromShape
+            ( CompoundCurveShape
+                [ LineSegment [XyCoord 0 0, XyCoord 1 1],
+                  ArcSegment [XyCoord 1 1, XyCoord 2 2, XyCoord 3 0]
+                ]
+            )
+
+    it "decodes a compound curve" do
+      fmap Just (decodeHex compoundCurveHex) `shouldBe` Right compoundCurve
+
+    it "encodes a compound curve the way PostGIS does" do
+      fmap encodeHex compoundCurve `shouldBe` Just (Text.toLower compoundCurveHex)
+
+    it "rejects a compound curve whose member is neither a line nor an arc" do
+      decodeHex
+        ( mconcat
+            [ "01", -- NDR
+              "09000000", -- CompoundCurve
+              "01000000", -- 1 member
+              "01", -- NDR
+              "01000000", -- Point, where a LineString or CircularString is required
+              "000000000000F03F0000000000000040"
+            ]
+        )
+        `shouldSatisfy` isLeft
+
+    -- Fixture derived by hand from the EWKB layout (no live PostGIS instance required for this test):
+    -- a CurvePolygon of two rings, exercising both of 'Curve'\'s constructors as ring members: a
+    -- plain closed square via 'SegmentCurve' wrapping a 'LineSegment', and a closed ring assembled
+    -- from a line and an arc via 'ChainedCurve'.
+    --
+    -- Byte-order marker NDR (01), type 10 (CurvePolygon), no flags (0A000000), ring count 2
+    -- (02000000), then each ring as a full sub-geometry: a LineString (type 2) of 5 coordinates
+    -- forming the square (0,0)-(4,0)-(4,4)-(0,4)-(0,0), and a CompoundCurve (type 9) of 2 members — a
+    -- LineString from (1,1) to (2,1), then a CircularString through (2,1), (2,2), (1,1) — closing the
+    -- ring back on its start.
+    let curvePolygonHex =
+          "010A000000020000000102000000050000000000000000000000000000000000000000000000000010400000000000000000000000000000104000000000000010400000000000000000000000000000104000000000000000000000000000000000010900000002000000010200000002000000000000000000F03F000000000000F03F0000000000000040000000000000F03F0108000000030000000000000000000040000000000000F03F00000000000000400000000000000040000000000000F03F000000000000F03F"
+        curvePolygon =
+          Geometry.refineFromShape
+            ( CurvePolygonShape
+                [ SegmentCurve (LineSegment [XyCoord 0 0, XyCoord 4 0, XyCoord 4 4, XyCoord 0 4, XyCoord 0 0]),
+                  ChainedCurve
+                    [ LineSegment [XyCoord 1 1, XyCoord 2 1],
+                      ArcSegment [XyCoord 2 1, XyCoord 2 2, XyCoord 1 1]
+                    ]
+                ]
+            )
+
+    it "decodes a curve polygon" do
+      fmap Just (decodeHex curvePolygonHex) `shouldBe` Right curvePolygon
+
+    it "encodes a curve polygon the way PostGIS does" do
+      fmap encodeHex curvePolygon `shouldBe` Just (Text.toLower curvePolygonHex)
+
+    it "rejects a curve polygon whose ring is a polygon" do
+      decodeHex
+        ( mconcat
+            [ "01", -- NDR
+              "0A000000", -- CurvePolygon
+              "01000000", -- 1 ring
+              "01", -- NDR
+              "03000000", -- Polygon, where a LineString, CircularString or CompoundCurve is required
+              "01000000", -- 1 ring
+              "04000000", -- 4 coordinates
+              "0000000000000000", -- (0, 0)
+              "0000000000000000",
+              "000000000000F03F", -- (1, 0)
+              "0000000000000000",
+              "0000000000000000", -- (0, 1)
+              "000000000000F03F",
+              "0000000000000000", -- (0, 0), closing the ring
+              "0000000000000000"
+            ]
+        )
+        `shouldSatisfy` isLeft
+
+    -- Fixture derived by hand from the EWKB layout (no live PostGIS instance required for this test):
+    -- a MultiCurve made of the same line and arc as the 'compoundCurveHex' fixture above, but as two
+    -- independent members rather than segments chained into one 'CompoundCurveShape'.
+    --
+    -- Byte-order marker NDR (01), type 11 (MultiCurve), no flags (0B000000), member count 2
+    -- (02000000), then each member as a full sub-geometry: a LineString (type 2) of 2 coordinates,
+    -- and a CircularString (type 8) of 3 coordinates.
+    let multiCurveHex =
+          "010B0000000200000001020000000200000000000000000000000000000000000000000000000000F03F000000000000F03F010800000003000000000000000000F03F000000000000F03F0000000000000040000000000000004000000000000008400000000000000000"
+        multiCurve =
+          Geometry.refineFromShape
+            ( MultiCurveShape
+                [ SegmentCurve (LineSegment [XyCoord 0 0, XyCoord 1 1]),
+                  SegmentCurve (ArcSegment [XyCoord 1 1, XyCoord 2 2, XyCoord 3 0])
+                ]
+            )
+
+    it "decodes a multi-curve" do
+      fmap Just (decodeHex multiCurveHex) `shouldBe` Right multiCurve
+
+    it "encodes a multi-curve the way PostGIS does" do
+      fmap encodeHex multiCurve `shouldBe` Just (Text.toLower multiCurveHex)
+
+    it "rejects a multi-curve whose member is a polygon" do
+      decodeHex
+        ( mconcat
+            [ "01", -- NDR
+              "0B000000", -- MultiCurve
+              "01000000", -- 1 member
+              "01", -- NDR
+              "03000000", -- Polygon, where a LineString, CircularString or CompoundCurve is required
+              "01000000", -- 1 ring
+              "04000000", -- 4 coordinates
+              "0000000000000000", -- (0, 0)
+              "0000000000000000",
+              "000000000000F03F", -- (1, 0)
+              "0000000000000000",
+              "0000000000000000", -- (0, 1)
+              "000000000000F03F",
+              "0000000000000000", -- (0, 0), closing the ring
+              "0000000000000000"
+            ]
+        )
+        `shouldSatisfy` isLeft
+
+    -- Fixture derived by hand from the EWKB layout (no live PostGIS instance required for this test):
+    -- a MultiSurface of two members, exercising both of 'Surface'\'s constructors: a plain triangular
+    -- 'Polygon' (wire-compatible with 'PolygonSurface') and a 'CurvePolygon' whose one ring happens
+    -- to be a plain 'LineString' (wire-compatible with 'CurvedSurface').
+    --
+    -- Byte-order marker NDR (01), type 12 (MultiSurface), no flags (0C000000), member count 2
+    -- (02000000), then each member as a full sub-geometry: a Polygon (type 3) of 1 ring of 4
+    -- coordinates forming the closed triangle (0,0)-(1,0)-(0,1)-(0,0), and a CurvePolygon (type 10)
+    -- of 1 ring, that ring itself a LineString (type 2) of 5 coordinates forming the closed square
+    -- (0,0)-(4,0)-(4,4)-(0,4)-(0,0).
+    let multiSurfaceHex =
+          "010C000000020000000103000000010000000400000000000000000000000000000000000000000000000000F03F00000000000000000000000000000000000000000000F03F00000000000000000000000000000000010A000000010000000102000000050000000000000000000000000000000000000000000000000010400000000000000000000000000000104000000000000010400000000000000000000000000000104000000000000000000000000000000000"
+        multiSurface =
+          Geometry.refineFromShape
+            ( MultiSurfaceShape
+                [ PolygonSurface [[XyCoord 0 0, XyCoord 1 0, XyCoord 0 1, XyCoord 0 0]],
+                  CurvedSurface [SegmentCurve (LineSegment [XyCoord 0 0, XyCoord 4 0, XyCoord 4 4, XyCoord 0 4, XyCoord 0 0])]
+                ]
+            )
+
+    it "decodes a multi-surface" do
+      fmap Just (decodeHex multiSurfaceHex) `shouldBe` Right multiSurface
+
+    it "encodes a multi-surface the way PostGIS does" do
+      fmap encodeHex multiSurface `shouldBe` Just (Text.toLower multiSurfaceHex)
+
+    it "rejects a multi-surface whose member is neither a polygon nor a curve polygon" do
+      decodeHex
+        ( mconcat
+            [ "01", -- NDR
+              "0C000000", -- MultiSurface
+              "01000000", -- 1 member
+              "01", -- NDR
+              "01000000", -- Point, where a Polygon or CurvePolygon is required
+              "000000000000F03F0000000000000040"
+            ]
+        )
+        `shouldSatisfy` isLeft
+
+    describe "NurbsCurve" do
+      -- These fixtures cannot be captured from a real server: NURBS curve support only exists on
+      -- PostGIS's development branch (merged June 2026), no released PostGIS version speaks this
+      -- format, and the format has seen several revisions. They are instead reasoned by hand from
+      -- the wire layout PostGIS's WKB reader/writer (@lwin_wkb.c@/@lwout_wkb.c@) is documented to
+      -- use for ISO/IEC 13249-3:2016 NURBS curves:
+      --
+      --   * Byte-order marker, then a type code whose *magnitude* (not the usual Z/M flag bits)
+      --     encodes dimensionality: base code 21, +1000/+2000/+3000 for XYZ/XYM/XYZM, no offset
+      --     for plain XY. The SRID flag bit is the ordinary EWKB one.
+      --   * @degree@ (Word32), then count-prefixed control points, each with its own redundant
+      --     byte-order marker, its coordinates, and a weight flag byte (0 = default weight 1.0
+      --     omitted, 1 = an explicit weight double follows).
+      --   * A count-prefixed knot vector of plain doubles.
+      --
+      -- Every multi-byte field below is little-endian (NDR), and doubles use the same IEEE 754 hex
+      -- encoding as the 'pointHex' fixture above (e.g. 1.0 = 000000000000F03F, 2.0 =
+      -- 0000000000000040, verified the same way: byte-swap the well-known big-endian bit pattern).
+
+      it "decodes and re-encodes a 2D curve with default weights" do
+        -- A quadratic (degree 2) curve through (0,0), (1,1), (2,0), clamped knot vector
+        -- [0,0,0,1,1,1], no SRID, every control point at the default weight (flag byte 0).
+        let hex =
+              mconcat
+                [ "01", -- NDR
+                  "15000000", -- type code: base 21 + ISO offset 0 (XY), no SRID flag
+                  "02000000", -- degree = 2
+                  "03000000", -- 3 control points
+                  "01", -- control point 1: its own NDR marker
+                  "0000000000000000", -- x = 0.0
+                  "0000000000000000", -- y = 0.0
+                  "00", -- default weight (1.0, omitted)
+                  "01", -- control point 2: its own NDR marker
+                  "000000000000F03F", -- x = 1.0
+                  "000000000000F03F", -- y = 1.0
+                  "00", -- default weight
+                  "01", -- control point 3: its own NDR marker
+                  "0000000000000040", -- x = 2.0
+                  "0000000000000000", -- y = 0.0
+                  "00", -- default weight
+                  "06000000", -- 6 knots
+                  "0000000000000000", -- 0.0
+                  "0000000000000000", -- 0.0
+                  "0000000000000000", -- 0.0
+                  "000000000000F03F", -- 1.0
+                  "000000000000F03F", -- 1.0
+                  "000000000000F03F" -- 1.0
+                ]
+            shape =
+              NurbsCurveShape
+                ( NurbsCurve
+                    2
+                    [ (XyCoord 0 0, 1.0),
+                      (XyCoord 1 1, 1.0),
+                      (XyCoord 2 0, 1.0)
+                    ]
+                    [0, 0, 0, 1, 1, 1]
+                )
+            geometry = Geometry.refineFromShape shape
+
+        fmap Just (decodeHex hex) `shouldBe` Right geometry
+        fmap encodeHex geometry `shouldBe` Just (Text.toLower hex)
+
+      it "decodes and re-encodes a 3D curve with a mix of default and custom weights, under an SRID" do
+        -- A cubic (degree 3) curve with 2 control points: (0,0,0) with an explicit weight of 2.5,
+        -- and (1,1,1) at the default weight. SRID 4326, same as the 'pointHex' fixture.
+        let hex =
+              mconcat
+                [ "01", -- NDR
+                  "FD030020", -- type code: base 21 + ISO offset 1000 (XYZ) = 1021 (0x3FD), | SRID flag
+                  "E6100000", -- SRID 4326
+                  "03000000", -- degree = 3
+                  "02000000", -- 2 control points
+                  "01", -- control point 1: its own NDR marker
+                  "0000000000000000", -- x = 0.0
+                  "0000000000000000", -- y = 0.0
+                  "0000000000000000", -- z = 0.0
+                  "01", -- explicit weight follows
+                  "0000000000000440", -- weight = 2.5
+                  "01", -- control point 2: its own NDR marker
+                  "000000000000F03F", -- x = 1.0
+                  "000000000000F03F", -- y = 1.0
+                  "000000000000F03F", -- z = 1.0
+                  "00", -- default weight (1.0, omitted)
+                  "04000000", -- 4 knots
+                  "0000000000000000", -- 0.0
+                  "0000000000000000", -- 0.0
+                  "000000000000F03F", -- 1.0
+                  "000000000000F03F" -- 1.0
+                ]
+            shape =
+              NurbsCurveShape
+                ( NurbsCurve
+                    3
+                    [ (XyzCoord 0 0 0, 2.5),
+                      (XyzCoord 1 1 1, 1.0)
+                    ]
+                    [0, 0, 1, 1]
+                )
+            geometry = Geometry.refineFromShapeAndSrid shape (Just 4326)
+
+        fmap Just (decodeHex hex) `shouldBe` Right geometry
+        fmap encodeHex geometry `shouldBe` Just (Text.toLower hex)
+
+      it "decodes and re-encodes the empty curve" do
+        -- Degree 0, no control points, no knots. No SRID.
+        let hex =
+              mconcat
+                [ "01", -- NDR
+                  "15000000", -- type code: base 21 + ISO offset 0 (XY), no SRID flag
+                  "00000000", -- degree = 0
+                  "00000000", -- 0 control points
+                  "00000000" -- 0 knots
+                ]
+            shape = NurbsCurveShape (NurbsCurve 0 [] [])
+            geometry = Geometry.refineFromShape shape
+
+        fmap Just (decodeHex hex) `shouldBe` Right geometry
+        fmap encodeHex geometry `shouldBe` Just (Text.toLower hex)
 
   describe "Hashable" do
     it "agrees with Eq on negative zero" do

@@ -35,6 +35,28 @@ jobs:
             exit 1
           fi
 
+  validate-changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Validate changelog contains Upcoming section
+        run: |
+          if ! grep -q '^# Upcoming$' CHANGELOG.md; then
+            echo "::error::CHANGELOG.md must contain a '# Upcoming' section before releasing."
+            exit 1
+          fi
+
+      - name: Check changelog release header
+        run: |
+          expected_heading="# v${{ inputs.version }}"
+          top_heading="$(head -n 1 CHANGELOG.md)"
+
+          if [[ "$top_heading" != '# Upcoming' && "$top_heading" != "$expected_heading" ]]; then
+            echo "::error::CHANGELOG.md must start with either '# Upcoming' or '$expected_heading' before releasing."
+            exit 1
+          fi
+
   build:
     needs: validate-version
     uses: ./.github/workflows/build.yaml
@@ -47,6 +69,7 @@ jobs:
 
   release:
     needs:
+      - validate-changelog
       - build
       - generate-docs
     runs-on: ubuntu-latest
@@ -63,6 +86,16 @@ jobs:
         with:
           mode: set
           set-value: ${{ inputs.version }}
+
+      - name: Promote changelog Upcoming section to release header
+        run: |
+          set -euo pipefail
+
+          top_heading="$(head -n 1 CHANGELOG.md)"
+
+          if [[ "$top_heading" == '# Upcoming' ]]; then
+            perl -0pi -e 's/^# Upcoming$/# v${{ inputs.version }}/m' CHANGELOG.md
+          fi
 
       - name: Extract package name and generate Hackage URL
         id: generate-hackage-url
@@ -86,7 +119,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: Set package version to ${{ inputs.version }}
-          file_pattern: "*.cabal"
+          file_pattern: "*.cabal CHANGELOG.md"
 
       - name: Create release tag
         uses: mathieudutour/github-tag-action@v6.1
