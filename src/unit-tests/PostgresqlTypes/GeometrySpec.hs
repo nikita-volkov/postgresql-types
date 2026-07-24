@@ -8,7 +8,7 @@ import Data.Maybe (isJust)
 import Data.Text (Text)
 import qualified Data.Text as Text
 import qualified PostgresqlTypes.Algebra
-import PostgresqlTypes.Geometry (Coord (..), Geometry, Shape (..))
+import PostgresqlTypes.Geometry (Coord (..), Geometry, NurbsCurve (..), Shape (..))
 import qualified PostgresqlTypes.Geometry as Geometry
 import Test.Hspec
 import Test.QuickCheck
@@ -142,6 +142,126 @@ spec = do
             ]
         )
         `shouldSatisfy` isLeft
+
+    describe "NurbsCurve" do
+      -- These fixtures cannot be captured from a real server: NURBS curve support only exists on
+      -- PostGIS's development branch (merged June 2026), no released PostGIS version speaks this
+      -- format, and the format has seen several revisions. They are instead reasoned by hand from
+      -- the wire layout PostGIS's WKB reader/writer (@lwin_wkb.c@/@lwout_wkb.c@) is documented to
+      -- use for ISO/IEC 13249-3:2016 NURBS curves:
+      --
+      --   * Byte-order marker, then a type code whose *magnitude* (not the usual Z/M flag bits)
+      --     encodes dimensionality: base code 21, +1000/+2000/+3000 for XYZ/XYM/XYZM, no offset
+      --     for plain XY. The SRID flag bit is the ordinary EWKB one.
+      --   * @degree@ (Word32), then count-prefixed control points, each with its own redundant
+      --     byte-order marker, its coordinates, and a weight flag byte (0 = default weight 1.0
+      --     omitted, 1 = an explicit weight double follows).
+      --   * A count-prefixed knot vector of plain doubles.
+      --
+      -- Every multi-byte field below is little-endian (NDR), and doubles use the same IEEE 754 hex
+      -- encoding as the 'pointHex' fixture above (e.g. 1.0 = 000000000000F03F, 2.0 =
+      -- 0000000000000040, verified the same way: byte-swap the well-known big-endian bit pattern).
+
+      it "decodes and re-encodes a 2D curve with default weights" do
+        -- A quadratic (degree 2) curve through (0,0), (1,1), (2,0), clamped knot vector
+        -- [0,0,0,1,1,1], no SRID, every control point at the default weight (flag byte 0).
+        let hex =
+              mconcat
+                [ "01", -- NDR
+                  "15000000", -- type code: base 21 + ISO offset 0 (XY), no SRID flag
+                  "02000000", -- degree = 2
+                  "03000000", -- 3 control points
+                  "01", -- control point 1: its own NDR marker
+                  "0000000000000000", -- x = 0.0
+                  "0000000000000000", -- y = 0.0
+                  "00", -- default weight (1.0, omitted)
+                  "01", -- control point 2: its own NDR marker
+                  "000000000000F03F", -- x = 1.0
+                  "000000000000F03F", -- y = 1.0
+                  "00", -- default weight
+                  "01", -- control point 3: its own NDR marker
+                  "0000000000000040", -- x = 2.0
+                  "0000000000000000", -- y = 0.0
+                  "00", -- default weight
+                  "06000000", -- 6 knots
+                  "0000000000000000", -- 0.0
+                  "0000000000000000", -- 0.0
+                  "0000000000000000", -- 0.0
+                  "000000000000F03F", -- 1.0
+                  "000000000000F03F", -- 1.0
+                  "000000000000F03F" -- 1.0
+                ]
+            shape =
+              NurbsCurveShape
+                ( NurbsCurve
+                    2
+                    [ (XyCoord 0 0, 1.0),
+                      (XyCoord 1 1, 1.0),
+                      (XyCoord 2 0, 1.0)
+                    ]
+                    [0, 0, 0, 1, 1, 1]
+                )
+            geometry = Geometry.refineFromShape shape
+
+        fmap Just (decodeHex hex) `shouldBe` Right geometry
+        fmap encodeHex geometry `shouldBe` Just (Text.toLower hex)
+
+      it "decodes and re-encodes a 3D curve with a mix of default and custom weights, under an SRID" do
+        -- A cubic (degree 3) curve with 2 control points: (0,0,0) with an explicit weight of 2.5,
+        -- and (1,1,1) at the default weight. SRID 4326, same as the 'pointHex' fixture.
+        let hex =
+              mconcat
+                [ "01", -- NDR
+                  "FD030020", -- type code: base 21 + ISO offset 1000 (XYZ) = 1021 (0x3FD), | SRID flag
+                  "E6100000", -- SRID 4326
+                  "03000000", -- degree = 3
+                  "02000000", -- 2 control points
+                  "01", -- control point 1: its own NDR marker
+                  "0000000000000000", -- x = 0.0
+                  "0000000000000000", -- y = 0.0
+                  "0000000000000000", -- z = 0.0
+                  "01", -- explicit weight follows
+                  "0000000000000440", -- weight = 2.5
+                  "01", -- control point 2: its own NDR marker
+                  "000000000000F03F", -- x = 1.0
+                  "000000000000F03F", -- y = 1.0
+                  "000000000000F03F", -- z = 1.0
+                  "00", -- default weight (1.0, omitted)
+                  "04000000", -- 4 knots
+                  "0000000000000000", -- 0.0
+                  "0000000000000000", -- 0.0
+                  "000000000000F03F", -- 1.0
+                  "000000000000F03F" -- 1.0
+                ]
+            shape =
+              NurbsCurveShape
+                ( NurbsCurve
+                    3
+                    [ (XyzCoord 0 0 0, 2.5),
+                      (XyzCoord 1 1 1, 1.0)
+                    ]
+                    [0, 0, 1, 1]
+                )
+            geometry = Geometry.refineFromShapeAndSrid shape (Just 4326)
+
+        fmap Just (decodeHex hex) `shouldBe` Right geometry
+        fmap encodeHex geometry `shouldBe` Just (Text.toLower hex)
+
+      it "decodes and re-encodes the empty curve" do
+        -- Degree 0, no control points, no knots. No SRID.
+        let hex =
+              mconcat
+                [ "01", -- NDR
+                  "15000000", -- type code: base 21 + ISO offset 0 (XY), no SRID flag
+                  "00000000", -- degree = 0
+                  "00000000", -- 0 control points
+                  "00000000" -- 0 knots
+                ]
+            shape = NurbsCurveShape (NurbsCurve 0 [] [])
+            geometry = Geometry.refineFromShape shape
+
+        fmap Just (decodeHex hex) `shouldBe` Right geometry
+        fmap encodeHex geometry `shouldBe` Just (Text.toLower hex)
 
   describe "Hashable" do
     it "agrees with Eq on negative zero" do
