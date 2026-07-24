@@ -8,7 +8,7 @@ import Data.Maybe (isJust)
 import Data.Text (Text)
 import qualified Data.Text as Text
 import qualified PostgresqlTypes.Algebra
-import PostgresqlTypes.Geometry (Coord (..), Curve (..), CurveSegment (..), Geometry, NurbsCurve (..), Shape (..))
+import PostgresqlTypes.Geometry (Coord (..), Curve (..), CurveSegment (..), Geometry, NurbsCurve (..), Shape (..), Surface (..))
 import qualified PostgresqlTypes.Geometry as Geometry
 import Test.Hspec
 import Test.QuickCheck
@@ -413,6 +413,45 @@ spec = do
               "000000000000F03F",
               "0000000000000000", -- (0, 0), closing the ring
               "0000000000000000"
+            ]
+        )
+        `shouldSatisfy` isLeft
+
+    -- Fixture derived by hand from the EWKB layout (no live PostGIS instance required for this test):
+    -- a MultiSurface of two members, exercising both of 'Surface'\'s constructors: a plain triangular
+    -- 'Polygon' (wire-compatible with 'PolygonSurface') and a 'CurvePolygon' whose one ring happens
+    -- to be a plain 'LineString' (wire-compatible with 'CurvedSurface').
+    --
+    -- Byte-order marker NDR (01), type 12 (MultiSurface), no flags (0C000000), member count 2
+    -- (02000000), then each member as a full sub-geometry: a Polygon (type 3) of 1 ring of 4
+    -- coordinates forming the closed triangle (0,0)-(1,0)-(0,1)-(0,0), and a CurvePolygon (type 10)
+    -- of 1 ring, that ring itself a LineString (type 2) of 5 coordinates forming the closed square
+    -- (0,0)-(4,0)-(4,4)-(0,4)-(0,0).
+    let multiSurfaceHex =
+          "010C000000020000000103000000010000000400000000000000000000000000000000000000000000000000F03F00000000000000000000000000000000000000000000F03F00000000000000000000000000000000010A000000010000000102000000050000000000000000000000000000000000000000000000000010400000000000000000000000000000104000000000000010400000000000000000000000000000104000000000000000000000000000000000"
+        multiSurface =
+          Geometry.refineFromShape
+            ( MultiSurfaceShape
+                [ PolygonSurface [[XyCoord 0 0, XyCoord 1 0, XyCoord 0 1, XyCoord 0 0]],
+                  CurvedSurface [SegmentCurve (LineSegment [XyCoord 0 0, XyCoord 4 0, XyCoord 4 4, XyCoord 0 4, XyCoord 0 0])]
+                ]
+            )
+
+    it "decodes a multi-surface" do
+      fmap Just (decodeHex multiSurfaceHex) `shouldBe` Right multiSurface
+
+    it "encodes a multi-surface the way PostGIS does" do
+      fmap encodeHex multiSurface `shouldBe` Just (Text.toLower multiSurfaceHex)
+
+    it "rejects a multi-surface whose member is neither a polygon nor a curve polygon" do
+      decodeHex
+        ( mconcat
+            [ "01", -- NDR
+              "0C000000", -- MultiSurface
+              "01000000", -- 1 member
+              "01", -- NDR
+              "01000000", -- Point, where a Polygon or CurvePolygon is required
+              "000000000000F03F0000000000000040"
             ]
         )
         `shouldSatisfy` isLeft
