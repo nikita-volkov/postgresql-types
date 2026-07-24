@@ -1,15 +1,17 @@
 module PostgresqlTypes.GeometrySpec (spec) where
 
-import Control.Exception (evaluate)
+import qualified Data.Attoparsec.Text
 import Data.Data (Proxy (Proxy))
-import Data.Either (isLeft)
+import Data.Either
 import Data.Hashable (hashWithSalt)
+import Data.Text (Text)
+import qualified Data.Text as Text
+import qualified PostgresqlTypes.Algebra
+import PostgresqlTypes.Geometry (Coord (..), Geometry, Shape (..))
 import qualified PostgresqlTypes.Geometry as Geometry
-import PostgresqlTypes.Geometry (Coord (Coord), Geometry (Geometry), Shape (..))
 import Test.Hspec
 import Test.QuickCheck
-import Data.String (fromString)
-import Test.QuickCheck.Instances ()
+import qualified TextBuilder
 import qualified UnitTests.Scripts as Scripts
 import Prelude
 
@@ -21,90 +23,128 @@ spec = do
   describe "IsScalar laws" do
     Scripts.testIsScalar (Proxy @Geometry)
 
-  describe "Smart constructors" do
-    describe "fromShape" do
-      it "accepts an XY Point" do
-        Geometry.fromShape (Point (Coord 1 2 Nothing Nothing))
-          `shouldBe` Right (Geometry Nothing (Point (Coord 1 2 Nothing Nothing)))
+  describe "Constructors" do
+    describe "refineFromShape" do
+      it "accepts a 2D point" do
+        let shape = PointShape (XyCoord 1 2)
+        fmap Geometry.toShape (Geometry.refineFromShape shape) `shouldBe` Just shape
 
-      it "accepts a consistently-dimensioned LineString" do
-        let cs = [Coord 0 0 (Just 1) Nothing, Coord 1 1 (Just 2) Nothing]
-        Geometry.fromShape (LineString cs)
-          `shouldBe` Right (Geometry Nothing (LineString cs))
+      it "accepts a line string of uniformly 3D coordinates" do
+        let shape = LineStringShape [XyzCoord 0 0 1, XyzCoord 1 1 2]
+        fmap Geometry.toShape (Geometry.refineFromShape shape) `shouldBe` Just shape
 
-      it "rejects a LineString mixing XY and XYZ coordinates" do
-        let cs = [Coord 0 0 Nothing Nothing, Coord 1 1 (Just 2) Nothing]
-        Geometry.fromShape (LineString cs) `shouldSatisfy` isLeft
+      it "rejects a line string mixing 2D and 3D coordinates" do
+        Geometry.refineFromShape (LineStringShape [XyCoord 0 0, XyzCoord 1 1 2])
+          `shouldBe` Nothing
 
-      it "rejects a GeometryCollection mixing XY and XYM shapes" do
-        let mixed =
-              GeometryCollection
-                [ Point (Coord 0 0 Nothing Nothing),
-                  Point (Coord 1 1 Nothing (Just 3))
-                ]
-        Geometry.fromShape mixed `shouldSatisfy` isLeft
+      it "rejects a collection mixing plain and measured shapes" do
+        Geometry.refineFromShape
+          ( GeometryCollectionShape
+              [ PointShape (XyCoord 0 0),
+                PointShape (XymCoord 1 1 3)
+              ]
+          )
+          `shouldBe` Nothing
 
-    describe "fromShapeWithSrid" do
-      it "threads the SRID through to the Geometry value" do
-        let srid = Just 4326
-            shape = Point (Coord 13.4 52.5 Nothing Nothing)
-        Geometry.fromShapeWithSrid srid shape
-          `shouldBe` Right (Geometry srid shape)
+    describe "refineFromShapeAndSrid" do
+      it "threads the SRID through to the geometry" do
+        let shape = PointShape (XyCoord 13.4 52.5)
+        fmap Geometry.toSrid (Geometry.refineFromShapeAndSrid shape (Just 4326))
+          `shouldBe` Just (Just 4326)
 
   describe "Accessors" do
-    it "geometrySrid extracts the SRID" do
-      Geometry.geometrySrid (Geometry (Just 4326) (Point (Coord 0 0 Nothing Nothing)))
-        `shouldBe` Just 4326
+    describe "toSrid" do
+      it "extracts the SRID" do
+        fmap Geometry.toSrid (Geometry.refineFromShapeAndSrid (PointShape (XyCoord 0 0)) (Just 4326))
+          `shouldBe` Just (Just 4326)
 
-    it "geometryShape extracts the Shape" do
-      let shape = Point (Coord 1 2 Nothing Nothing)
-      Geometry.geometryShape (Geometry Nothing shape) `shouldBe` shape
+    describe "toShape" do
+      it "extracts the shape" do
+        let shape = PointShape (XyCoord 1 2)
+        fmap Geometry.toShape (Geometry.refineFromShape shape) `shouldBe` Just shape
 
-  describe "Binary wire format" do
-    it "decodes a canonical PostGIS EWKB Point(1,2) with SRID 4326" do
-      -- Hex from PostGIS: SELECT ST_AsEWKB(ST_SetSRID(ST_MakePoint(1, 2), 4326));
-      -- byte-order NDR (01) + type 1 with SRID flag (01000020) + SRID 4326 (E6100000)
-      --   + x=1.0 (000000000000F03F) + y=2.0 (0000000000000040)
-      let hex = "0101000020E6100000000000000000F03F0000000000000040"
-          g = (fromString hex :: Geometry)
-      g `shouldBe` Geometry (Just 4326) (Point (Coord 1 2 Nothing Nothing))
+  describe "Wire format" do
+    -- Fixture produced by PostGIS itself:
+    -- SELECT ST_AsEWKB(ST_SetSRID(ST_MakePoint(1, 2), 4326));
+    --
+    -- Byte-order marker NDR (01), type 1 with the SRID flag (01000020), SRID 4326 (E6100000),
+    -- x = 1.0 (000000000000F03F), y = 2.0 (0000000000000040).
+    let pointHex = "0101000020E6100000000000000000F03F0000000000000040"
+        point = Geometry.refineFromShapeAndSrid (PointShape (XyCoord 1 2)) (Just 4326)
 
-    it "round-trips a Point through hex EWKB" do
-      let g = Geometry Nothing (Point (Coord 3.5 (-1.25) Nothing Nothing))
-      read (show g) `shouldBe` g
+    it "decodes a point PostGIS produced" do
+      fmap Just (decodeHex pointHex) `shouldBe` Right point
 
-    it "round-trips an XYZM LineString through hex EWKB" do
-      let cs = [Coord 0 0 (Just 1) (Just 2), Coord 3 4 (Just 5) (Just 6)]
-          g = Geometry (Just 4326) (LineString cs)
-      read (show g) `shouldBe` g
+    it "encodes a point the way PostGIS does" do
+      fmap encodeHex point `shouldBe` Just (Text.toLower pointHex)
+
+    it "accepts big-endian input" do
+      -- The same point, XDR: marker 00, then every multi-byte field byte-swapped.
+      fmap Just (decodeHex "0020000001000010E63FF00000000000004000000000000000")
+        `shouldBe` Right point
+
+    it "rejects an invalid byte-order marker" do
+      decodeHex "0201000000000000000000F03F0000000000000040" `shouldSatisfy` isLeft
+
+    it "rejects an unknown type code" do
+      decodeHex "0163000000000000000000F03F0000000000000040" `shouldSatisfy` isLeft
+
+    it "rejects trailing bytes" do
+      decodeHex "0101000000000000000000F03F00000000000000400000" `shouldSatisfy` isLeft
+
+    it "rejects a truncated payload" do
+      decodeHex "0101000000000000000000F03F" `shouldSatisfy` isLeft
+
+    it "rejects a multi-point whose member is a line string" do
+      decodeHex
+        ( mconcat
+            [ "01", -- NDR
+              "04000000", -- MultiPoint
+              "01000000", -- 1 member
+              "01", -- NDR
+              "02000000", -- LineString, where a Point is required
+              "02000000", -- 2 coordinates
+              "000000000000F03F0000000000000040",
+              "00000000000008400000000000001040"
+            ]
+        )
+        `shouldSatisfy` isLeft
+
+    it "rejects a collection whose members disagree on dimensionality" do
+      decodeHex
+        ( mconcat
+            [ "01", -- NDR
+              "07000000", -- GeometryCollection
+              "02000000", -- 2 members
+              "01", -- NDR
+              "01000000", -- Point, 2D
+              "000000000000F03F0000000000000040",
+              "01", -- NDR
+              "01000080", -- Point, 3D
+              "000000000000F03F00000000000000400000000000000840"
+            ]
+        )
+        `shouldSatisfy` isLeft
 
   describe "Hashable" do
-    it "hashWithSalt is total on malformed geometries" do
-      -- Mixed XY / XYZ coords bypass fromShape, so binaryEncoder would
-      -- call 'error'. Verify hashWithSalt routes around that.
-      let malformed =
-            Geometry
-              Nothing
-              (LineString [Coord 0 0 Nothing Nothing, Coord 1 1 (Just 2) Nothing])
-      _ <- evaluate (hashWithSalt 0 malformed)
-      pure ()
+    it "agrees with Eq on negative zero" do
+      -- Hashing the EWKB bytes would break this: the two coordinates are equal, yet their IEEE
+      -- representations differ.
+      let positive = Geometry.refineFromShape (PointShape (XyCoord 0 0))
+          negative = Geometry.refineFromShape (PointShape (XyCoord (-0.0) (-0.0)))
+      positive `shouldBe` negative
+      fmap (hashWithSalt 0) positive `shouldBe` fmap (hashWithSalt 0) negative
 
-    it "hashWithSalt distinguishes structurally different malformed shapes" do
-      let a =
-            Geometry
-              Nothing
-              (LineString [Coord 0 0 Nothing Nothing, Coord 1 1 (Just 2) Nothing])
-          b =
-            Geometry
-              Nothing
-              (LineString [Coord 5 5 Nothing Nothing, Coord 9 9 (Just 3) Nothing])
-      hashWithSalt 0 a `shouldNotBe` hashWithSalt 0 b
+  describe "Property Tests" do
+    it "roundtrips through the accessors and refineFromShapeAndSrid" do
+      property \(geometry :: Geometry) ->
+        Geometry.refineFromShapeAndSrid (Geometry.toShape geometry) (Geometry.toSrid geometry)
+          === Just geometry
 
-    it "hashWithSalt is deterministic for well-formed geometries" do
-      let g = Geometry (Just 4326) (Point (Coord 1 2 Nothing Nothing))
-      hashWithSalt 0 g `shouldBe` hashWithSalt 0 g
+decodeHex :: Text -> Either String Geometry
+decodeHex =
+  Data.Attoparsec.Text.parseOnly
+    (PostgresqlTypes.Algebra.textualDecoder @Geometry <* Data.Attoparsec.Text.endOfInput)
 
-  describe "Property: full binary roundtrip for arbitrary geometries" do
-    it "holds for arbitrary shapes and SRIDs" $
-      property \(g :: Geometry) ->
-        read (show g) === g
+encodeHex :: Geometry -> Text
+encodeHex = TextBuilder.toText . PostgresqlTypes.Algebra.textualEncoder

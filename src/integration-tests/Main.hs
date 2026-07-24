@@ -78,19 +78,16 @@ main =
           withType @(PostgresqlTypes.Varchar 0) [mappingSpec]
           withType @(PostgresqlTypes.Varchar 255) [mappingSpec]
 
-      -- The 'postgis/postgis' image is @postgres@ plus a pre-installed
-      -- PostGIS build; its initdb already runs @CREATE EXTENSION postgis@
-      -- inside the default database, so any connection the pool hands out
+      -- Postgres with a pre-installed PostGIS build, whose initdb already runs
+      -- @CREATE EXTENSION postgis@ in the default database, so every connection
       -- sees the registered @geometry@ type immediately.
       --
-      -- The pool is deliberately smaller than the default 'withConnection'
-      -- size (10 vs 100): this container only serves a single type, and a
-      -- smaller pool keeps the concurrent-TCP-socket count inside the
-      -- GitHub-runner comfort zone alongside the other 3 containers.
-      withContainer "postgis/postgis:17-3.5" do
-        withConnectionPool 10 Nothing $
-          withTQueueElement pure do
-            withType @PostgresqlTypes.Geometry [mappingSpec]
+      -- This is the multi-architecture rebuild of the official @postgis/postgis@
+      -- image, which publishes amd64 only. It is what the official image's own
+      -- README points at for arm64.
+      withContainer "imresamu/postgis:17-3.5" do
+        withConnection Nothing do
+          withType @PostgresqlTypes.Geometry [mappingSpec]
 
       withContainer "postgres:14" do
         withConnection (Just 3) do

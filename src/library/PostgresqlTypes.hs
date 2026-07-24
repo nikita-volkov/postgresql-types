@@ -47,7 +47,7 @@ module PostgresqlTypes
     Polygon,
     Circle,
 
-    -- * PostGIS Extension Types
+    -- * PostGIS Types
     Geometry,
 
     -- * Bit String Types

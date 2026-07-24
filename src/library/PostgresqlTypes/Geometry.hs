@@ -1,12 +1,15 @@
 module PostgresqlTypes.Geometry
-  ( -- * Type
-    Geometry (..),
+  ( Geometry,
     Shape (..),
     Coord (..),
 
-    -- * Smart constructors
-    fromShape,
-    fromShapeWithSrid,
+    -- * Accessors
+    toSrid,
+    toShape,
+
+    -- * Constructors
+    refineFromShape,
+    refineFromShapeAndSrid,
   )
 where
 
@@ -19,87 +22,124 @@ import PostgresqlTypes.Prelude
 import PostgresqlTypes.Via
 import qualified PtrPeeker
 import qualified PtrPoker.Write as Write
-import Test.QuickCheck (Gen, choose, elements, listOf, listOf1, oneof, resize, sized, vectorOf)
+import qualified Test.QuickCheck as QuickCheck
 import qualified TextBuilder
 
--- | PostGIS @geometry@ extension type.
+-- | PostGIS @geometry@ extension type. A 'Shape' with an optional spatial reference identifier (SRID).
 --
--- A PostGIS geometry is a 'Shape' (one of 'Point', 'LineString', 'Polygon',
--- the @Multi@ variants, or a 'GeometryCollection') together with an optional
--- @SRID@ (spatial reference identifier). All coordinates inside a single
--- 'Geometry' value share one dimensionality — every coordinate uses exactly
--- the same combination of optional @z@ and @m@ ordinates. This invariant is
--- enforced by the smart constructor 'fromShape' / 'fromShapeWithSrid'.
+-- All coordinates of one geometry share a single dimensionality: every 'Coord' in the shape tree uses the same constructor.
+-- This is what PostGIS itself guarantees and what its wire format can express, since the dimensionality is carried once, in the type header.
+-- The 'refineFromShape' and 'refineFromShapeAndSrid' constructors enforce it.
 --
--- The wire format is PostGIS's
--- [EWKB](https://postgis.net/docs/using_postgis_dbmanagement.html#EWKB_EWKT),
--- the same binary shape PostGIS emits from @geometry_send@ and accepts in
--- @geometry_recv@. The textual format is the upper-case hex encoding that
--- PostGIS's @geometry_out@ produces and @geometry_in@ accepts.
+-- The binary format is [EWKB](https://postgis.net/docs/using_postgis_dbmanagement.html#EWKB_EWKT) — the format @geometry_send@ emits and @geometry_recv@ accepts.
+-- Output is little-endian (NDR); input is accepted in either byte order.
+-- The textual format is the hexadecimal encoding of the same payload, which is what @geometry_out@ produces and @geometry_in@ accepts.
 --
--- The @geometry@ type is not a built-in PostgreSQL type: it is registered at
--- @CREATE EXTENSION postgis@ time and receives a different OID in each
--- database. 'baseOid' and 'arrayOid' are therefore 'Nothing', and drivers
--- resolve the OID by 'typeName' at query time.
--- | __Prefer 'fromShape' / 'fromShapeWithSrid'__: the raw constructor does
--- not enforce dimension consistency across nested shapes.
-data Geometry = Geometry
-  { -- | Spatial reference ID. Sub-geometries inside a 'GeometryCollection'
-    --   inherit this from the outer value; EWKB only stores SRID on the
-    --   top-level geometry.
-    geometrySrid :: !(Maybe Int32),
-    geometryShape :: !Shape
-  }
+-- Unlike the built-in PostgreSQL types, @geometry@ is registered by @CREATE EXTENSION postgis@ and receives a different OID in every database.
+-- 'baseOid' and 'arrayOid' are therefore 'Nothing', and drivers are expected to resolve the OID by 'typeName' at runtime.
+--
+-- [PostGIS docs](https://postgis.net/docs/geometry.html).
+data Geometry
+  = Geometry
+      -- | Spatial reference identifier.
+      (Maybe Int32)
+      -- | Shape.
+      Shape
   deriving stock (Eq, Ord)
   deriving (Show, Read, IsString) via (ViaIsScalar Geometry)
 
--- | One of the seven PostGIS/OGC geometry shapes.
+-- | One of the seven OGC shapes that a 'Geometry' can hold.
 data Shape
-  = Point !Coord
-  | -- | Zero or more coordinates forming a connected line.
-    LineString ![Coord]
-  | -- | One or more linear rings. The first ring is the exterior, the rest
-    --   are interior (holes). Each ring is a closed sequence of coordinates.
-    Polygon ![[Coord]]
-  | MultiPoint ![Coord]
-  | -- | A collection of line strings, each given as its own coordinate list.
-    MultiLineString ![[Coord]]
-  | -- | A collection of polygons, each given as its list of rings.
-    MultiPolygon ![[[Coord]]]
-  | -- | Heterogeneous collection of geometries; sub-geometries do not carry
-    --   their own SRID and must share the outer dimensionality.
-    GeometryCollection ![Shape]
+  = -- | Single coordinate.
+    PointShape Coord
+  | -- | Line connecting two or more coordinates.
+    LineStringShape [Coord]
+  | -- | One or more linear rings. The first is the exterior ring, the rest are interior rings (holes).
+    -- Every ring is closed: its last coordinate repeats its first.
+    PolygonShape [[Coord]]
+  | -- | Collection of points.
+    MultiPointShape [Coord]
+  | -- | Collection of line strings.
+    MultiLineStringShape [[Coord]]
+  | -- | Collection of polygons, each given as its list of rings.
+    MultiPolygonShape [[[Coord]]]
+  | -- | Heterogeneous collection of shapes.
+    --
+    -- Members do not carry their own SRID: they inherit the one of the enclosing 'Geometry'.
+    GeometryCollectionShape [Shape]
   deriving stock (Eq, Ord, Show, Read)
 
--- | 2D, 3D (Z), 2D-with-measure (M), or 4D (Z + M) coordinate.
+-- | Coordinate in one of the four dimensionalities PostGIS supports.
 --
--- All coordinates in one 'Geometry' must have matching 'z' and 'm'
--- @'isJust'@/@'isNothing'@ status; the smart constructor checks this.
-data Coord = Coord
-  { coordX :: !Double,
-    coordY :: !Double,
-    coordZ :: !(Maybe Double),
-    coordM :: !(Maybe Double)
-  }
+-- @Z@ is an elevation, @M@ is a measure — an application-defined value interpolated along the geometry.
+data Coord
+  = -- | 2D.
+    XyCoord
+      -- | X ordinate.
+      Double
+      -- | Y ordinate.
+      Double
+  | -- | 3D.
+    XyzCoord
+      -- | X ordinate.
+      Double
+      -- | Y ordinate.
+      Double
+      -- | Z ordinate.
+      Double
+  | -- | 2D with a measure.
+    XymCoord
+      -- | X ordinate.
+      Double
+      -- | Y ordinate.
+      Double
+      -- | M ordinate.
+      Double
+  | -- | 3D with a measure.
+    XyzmCoord
+      -- | X ordinate.
+      Double
+      -- | Y ordinate.
+      Double
+      -- | Z ordinate.
+      Double
+      -- | M ordinate.
+      Double
   deriving stock (Eq, Ord, Show, Read)
 
--- * Smart constructors
+instance Hashable Geometry where
+  hashWithSalt salt (Geometry srid shape) =
+    salt `hashWithSalt` srid `hashWithSalt` shape
 
--- | Build a 'Geometry' with no SRID after verifying that every coordinate in
---   the shape tree has matching 'coordZ' and 'coordM' dimensionality.
---   Returns a 'Text' error describing the first mismatch if the shape is
---   malformed.
-fromShape :: Shape -> Either Text Geometry
-fromShape = fromShapeWithSrid Nothing
+instance Hashable Shape where
+  hashWithSalt salt = \case
+    PointShape coord -> salt `hashWithSalt` (0 :: Int) `hashWithSalt` coord
+    LineStringShape coords -> salt `hashWithSalt` (1 :: Int) `hashWithSalt` coords
+    PolygonShape rings -> salt `hashWithSalt` (2 :: Int) `hashWithSalt` rings
+    MultiPointShape coords -> salt `hashWithSalt` (3 :: Int) `hashWithSalt` coords
+    MultiLineStringShape lineStrings -> salt `hashWithSalt` (4 :: Int) `hashWithSalt` lineStrings
+    MultiPolygonShape polygons -> salt `hashWithSalt` (5 :: Int) `hashWithSalt` polygons
+    GeometryCollectionShape shapes -> salt `hashWithSalt` (6 :: Int) `hashWithSalt` shapes
 
--- | Build a 'Geometry' with an SRID after the same dimension check as
---   'fromShape'.
-fromShapeWithSrid :: Maybe Int32 -> Shape -> Either Text Geometry
-fromShapeWithSrid srid shape = do
-  void (shapeDim shape)
-  pure (Geometry {geometrySrid = srid, geometryShape = shape})
+instance Hashable Coord where
+  hashWithSalt salt = \case
+    XyCoord x y -> salt `hashWithSalt` (0 :: Int) `hashWithSalt` x `hashWithSalt` y
+    XyzCoord x y z -> salt `hashWithSalt` (1 :: Int) `hashWithSalt` x `hashWithSalt` y `hashWithSalt` z
+    XymCoord x y m -> salt `hashWithSalt` (2 :: Int) `hashWithSalt` x `hashWithSalt` y `hashWithSalt` m
+    XyzmCoord x y z m -> salt `hashWithSalt` (3 :: Int) `hashWithSalt` x `hashWithSalt` y `hashWithSalt` z `hashWithSalt` m
 
--- * IsScalar instance
+instance Arbitrary Geometry where
+  arbitrary = do
+    dim <- QuickCheck.elements [XyDim, XyzDim, XymDim, XyzmDim]
+    shape <- QuickCheck.sized (shapeGen dim)
+    srid <- sridGen
+    pure (Geometry srid shape)
+
+  shrink (Geometry srid shape) =
+    mconcat
+      [ mapMaybe (`refineFromShapeAndSrid` srid) (shrinkShape shape),
+        mapMaybe (refineFromShapeAndSrid shape) (shrinkSrid srid)
+      ]
 
 instance IsScalar Geometry where
   schemaName = Tagged Nothing
@@ -109,444 +149,408 @@ instance IsScalar Geometry where
   typeParams = Tagged []
 
   binaryEncoder (Geometry srid shape) =
-    -- The raw constructor can be used to build a 'Geometry' whose shape
-    -- tree mixes XY, XYZ, XYM and XYZM coords. 'binaryEncoder' is
-    -- partial on such values — silently falling back to XY would drop
-    -- the Z and M ordinates and produce a byte sequence that doesn't
-    -- round-trip. Callers are expected to construct via 'fromShape' /
-    -- 'fromShapeWithSrid' (which reject this case).
-    case shapeDimOrXY shape of
-      Right dim -> writeGeometry True srid dim shape
-      Left err ->
-        error ("PostgresqlTypes.Geometry.binaryEncoder: " <> Text.unpack err)
+    -- 'Geometry' is only constructible via 'refineFromShapeAndSrid' and
+    -- 'binaryDecoder', both of which reject shape trees whose coordinates
+    -- disagree on dimensionality, so 'shapeDim' cannot fail here.
+    writeGeometry srid (fromMaybe XyDim (shapeDim shape)) shape
 
-  binaryDecoder = do
-    res <- readGeometry True
-    pure $ case res of
-      Left err ->
-        Left
-          DecodingError
-            { location = ["geometry"],
-              reason = ParsingDecodingErrorReason err mempty
-            }
-      Right (inheritedSrid, shape) -> Right (Geometry inheritedSrid shape)
+  binaryDecoder = runExceptT do
+    (srid, shape) <- readGeometry
+    case refineFromShapeAndSrid shape srid of
+      Just geometry -> pure geometry
+      Nothing ->
+        throwError
+          ( DecodingError
+              ["geometry"]
+              ( UnsupportedValueDecodingErrorReason
+                  "All coordinates of a geometry must share the same dimensionality"
+                  (shapeName shape)
+              )
+          )
 
-  textualEncoder (Geometry srid shape) =
-    let bytes = Write.toByteString (binaryEncoder (Geometry srid shape))
-     in foldMap TextBuilder.hexadecimal (ByteString.unpack bytes)
+  textualEncoder geometry =
+    foldMap TextBuilder.hexadecimal (ByteString.unpack (Write.toByteString (binaryEncoder geometry)))
 
   textualDecoder = do
     hexText <- Attoparsec.takeText
-    case parseHexBytes hexText of
-      Left err -> fail ("geometry: " <> err)
-      Right bytes -> case PtrPeeker.runVariableOnByteString binaryDecoder bytes of
-        Left leftover ->
-          let total = ByteString.length bytes
-              consumed = total - leftover
-           in fail
-                ( "geometry: binary decoder stopped after "
-                    <> show consumed
-                    <> " of "
-                    <> show total
-                    <> " bytes ("
-                    <> show leftover
-                    <> " unconsumed)"
-                )
-        Right (Left err) -> fail ("geometry: " <> show err)
-        Right (Right value) -> pure value
+    bytes <- either fail pure (parseHexBytes hexText)
+    case PtrPeeker.runVariableOnByteStringWithRemainders (binaryDecoder @Geometry) bytes of
+      Left bytesNeeded ->
+        fail ("geometry: EWKB payload is short of " <> show bytesNeeded <> " bytes")
+      Right (Left err, _) ->
+        fail ("geometry: " <> show err)
+      Right (Right geometry, remainder)
+        | ByteString.null remainder -> pure geometry
+        | otherwise ->
+            fail ("geometry: " <> show (ByteString.length remainder) <> " bytes left after the EWKB payload")
     where
       parseHexBytes :: Text -> Either String ByteString
-      parseHexBytes t = ByteString.pack <$> parseHexPairs (Text.unpack t)
+      parseHexBytes = fmap ByteString.pack . parseHexPairs . Text.unpack
       parseHexPairs :: [Char] -> Either String [Word8]
-      parseHexPairs [] = Right []
-      parseHexPairs [_] = Left "odd number of hex digits"
-      parseHexPairs (a : b : rest) = do
-        byte <- hexPairToByte a b
-        (byte :) <$> parseHexPairs rest
-      hexPairToByte :: Char -> Char -> Either String Word8
-      hexPairToByte a b = do
-        high <- hexDigitToWord8 a
-        low <- hexDigitToWord8 b
+      parseHexPairs = \case
+        [] -> Right []
+        [_] -> Left "Odd number of hexadecimal digits"
+        a : b : rest -> (:) <$> parseHexPair a b <*> parseHexPairs rest
+      parseHexPair :: Char -> Char -> Either String Word8
+      parseHexPair a b = do
+        high <- parseHexDigit a
+        low <- parseHexDigit b
         pure (high * 16 + low)
-      hexDigitToWord8 :: Char -> Either String Word8
-      hexDigitToWord8 c
+      parseHexDigit :: Char -> Either String Word8
+      parseHexDigit c
         | c >= '0' && c <= '9' = Right (fromIntegral (ord c - ord '0'))
         | c >= 'a' && c <= 'f' = Right (fromIntegral (ord c - ord 'a' + 10))
         | c >= 'A' && c <= 'F' = Right (fromIntegral (ord c - ord 'A' + 10))
-        | otherwise = Left ("invalid hex digit: " ++ [c])
+        | otherwise = Left ("Invalid hexadecimal digit: " <> [c])
 
--- * Arbitrary / Hashable
+-- * Accessors
 
-instance Hashable Geometry where
-  -- Hash via the canonical EWKB bytes for well-formed geometries so two
-  -- equal 'Geometry' values always hash the same, independent of any
-  -- structural irrelevance. For malformed values that can be constructed via
-  -- the exported raw constructor (e.g. shape trees with mixed coordinate
-  -- dimensionalities), avoid routing through 'binaryEncoder', which would
-  -- otherwise call 'error' and make hashing partial.
-  hashWithSalt salt geom@(Geometry srid shape) =
-    case shapeDim shape of
-      Right _ ->
-        salt `hashWithSalt` Write.toByteString (binaryEncoder geom)
-      Left dimErr ->
-        salt
-          `hashWithSalt` srid
-          `hashWithSalt` dimErr
-          `hashWithSalt` Text.pack (show shape)
+-- | Extract the spatial reference identifier, if the geometry carries one.
+toSrid :: Geometry -> Maybe Int32
+toSrid (Geometry srid _) = srid
 
-instance Arbitrary Geometry where
-  arbitrary = do
-    -- PostGIS clamps SRID values that fall outside its documented
-    -- user-assignable range — SRID 0 becomes "no SRID" (drops the SRID
-    -- flag on output), and SRIDs above @SRID_USER_MAXIMUM = 998_999@ get
-    -- modulo-remapped into the reserved internal range. Stick to
-    -- @[1, 998_999]@ — which is where real EPSG / spatial_ref_sys codes
-    -- live — so wire-format round-trip is an equality.
-    srid <- oneof [pure Nothing, Just <$> choose (1, 998_999)]
-    dim <- elements [XY, XYZ, XYM, XYZM]
-    shape <- sized (shapeGen dim)
-    pure (Geometry srid shape)
-  shrink (Geometry srid shape) =
-    [ Geometry srid' shape
-      | srid' <- shrink srid,
-        maybe True (\s -> s > 0 && s <= 998_999) srid'
-    ]
+-- | Extract the shape.
+toShape :: Geometry -> Shape
+toShape (Geometry _ shape) = shape
 
--- * Dimension handling
+-- * Constructors
 
-data Dim = XY | XYZ | XYM | XYZM
-  deriving stock (Eq, Show)
+-- | Construct a 'Geometry' without an SRID.
+--
+-- Returns 'Nothing' if the coordinates of the shape tree do not all share the same dimensionality.
+refineFromShape :: Shape -> Maybe Geometry
+refineFromShape shape = refineFromShapeAndSrid shape Nothing
 
-dimOfCoord :: Coord -> Dim
-dimOfCoord (Coord _ _ Nothing Nothing) = XY
-dimOfCoord (Coord _ _ (Just _) Nothing) = XYZ
-dimOfCoord (Coord _ _ Nothing (Just _)) = XYM
-dimOfCoord (Coord _ _ (Just _) (Just _)) = XYZM
+-- | Construct a 'Geometry' with an optional SRID.
+--
+-- Returns 'Nothing' if the coordinates of the shape tree do not all share the same dimensionality.
+refineFromShapeAndSrid :: Shape -> Maybe Int32 -> Maybe Geometry
+refineFromShapeAndSrid shape srid = Geometry srid shape <$ shapeDim shape
 
--- | Recursively determine the dimension of a shape, failing if the tree
--- contains inconsistent coordinates. Returns 'Nothing' when no coordinates
--- are present (e.g. an empty @LineString@); callers default those to 'XY'.
-shapeDim :: Shape -> Either Text (Maybe Dim)
-shapeDim = go Nothing
+-- * Dimensionality
+
+-- | Dimensionality shared by all coordinates of a geometry.
+data Dim = XyDim | XyzDim | XymDim | XyzmDim
+  deriving stock (Eq, Ord, Show)
+
+-- | Dimensionality that every coordinate of the shape tree agrees on, or 'Nothing' if they disagree.
+--
+-- A tree with no coordinates at all, such as an empty @MultiPoint@, is 'XyDim'.
+shapeDim :: Shape -> Maybe Dim
+shapeDim shape = fromMaybe XyDim <$> goShape Nothing shape
   where
-    go :: Maybe Dim -> Shape -> Either Text (Maybe Dim)
-    go acc = \case
-      Point c -> Just <$> combine acc (dimOfCoord c)
-      LineString cs -> foldCoords acc cs
-      Polygon rings -> foldM goRing acc rings
-      MultiPoint cs -> foldCoords acc cs
-      MultiLineString lss -> foldM foldCoords acc lss
-      MultiPolygon polys -> foldM (foldM goRing) acc polys
-      GeometryCollection shapes -> foldM go acc shapes
-    goRing :: Maybe Dim -> [Coord] -> Either Text (Maybe Dim)
-    goRing = foldCoords
-    foldCoords :: Maybe Dim -> [Coord] -> Either Text (Maybe Dim)
-    foldCoords = foldM (\a c -> Just <$> combine a (dimOfCoord c))
-    combine :: Maybe Dim -> Dim -> Either Text Dim
-    combine Nothing d = Right d
-    combine (Just d) d'
-      | d == d' = Right d
-      | otherwise =
-          Left
-            ( "geometry: inconsistent coordinate dimensions — got "
-                <> Text.pack (show d')
-                <> " after "
-                <> Text.pack (show d)
-            )
+    goShape :: Maybe Dim -> Shape -> Maybe (Maybe Dim)
+    goShape acc = \case
+      PointShape coord -> goCoord acc coord
+      LineStringShape coords -> goCoords acc coords
+      PolygonShape rings -> foldM goCoords acc rings
+      MultiPointShape coords -> goCoords acc coords
+      MultiLineStringShape lineStrings -> foldM goCoords acc lineStrings
+      MultiPolygonShape polygons -> foldM (foldM goCoords) acc polygons
+      GeometryCollectionShape shapes -> foldM goShape acc shapes
+    goCoords :: Maybe Dim -> [Coord] -> Maybe (Maybe Dim)
+    goCoords = foldM goCoord
+    goCoord :: Maybe Dim -> Coord -> Maybe (Maybe Dim)
+    goCoord acc coord =
+      let dim = coordDim coord
+       in case acc of
+            Nothing -> Just (Just dim)
+            Just acc' -> if acc' == dim then Just (Just dim) else Nothing
 
-shapeDimOrXY :: Shape -> Either Text Dim
-shapeDimOrXY = fmap (fromMaybe XY) . shapeDim
+coordDim :: Coord -> Dim
+coordDim = \case
+  XyCoord {} -> XyDim
+  XyzCoord {} -> XyzDim
+  XymCoord {} -> XymDim
+  XyzmCoord {} -> XyzmDim
 
--- * Type codes and flag bits
+-- * EWKB header
 
-typeCodePoint, typeCodeLineString, typeCodePolygon :: Word32
-typeCodeMultiPoint, typeCodeMultiLineString, typeCodeMultiPolygon :: Word32
-typeCodeGeometryCollection :: Word32
-typeCodePoint = 1
-typeCodeLineString = 2
-typeCodePolygon = 3
-typeCodeMultiPoint = 4
-typeCodeMultiLineString = 5
-typeCodeMultiPolygon = 6
-typeCodeGeometryCollection = 7
+-- | Byte order of an EWKB payload, as signalled by its leading marker byte.
+data ByteOrder
+  = -- | XDR. Marker @0@.
+    BigEndianByteOrder
+  | -- | NDR. Marker @1@.
+    LittleEndianByteOrder
 
-flagZ, flagM, flagSRID :: Word32
-flagZ = 0x80000000
-flagM = 0x40000000
-flagSRID = 0x20000000
+-- | OGC type codes, as they appear in the low bits of the EWKB type header.
+pointTypeCode, lineStringTypeCode, polygonTypeCode, multiPointTypeCode, multiLineStringTypeCode, multiPolygonTypeCode, geometryCollectionTypeCode :: Word32
+pointTypeCode = 1
+lineStringTypeCode = 2
+polygonTypeCode = 3
+multiPointTypeCode = 4
+multiLineStringTypeCode = 5
+multiPolygonTypeCode = 6
+geometryCollectionTypeCode = 7
 
-dimFlags :: Dim -> Word32
-dimFlags XY = 0
-dimFlags XYZ = flagZ
-dimFlags XYM = flagM
-dimFlags XYZM = flagZ .|. flagM
+-- | Flag bits of the EWKB type header.
+zFlag, mFlag, sridFlag :: Word32
+zFlag = 0x80000000
+mFlag = 0x40000000
+sridFlag = 0x20000000
 
-typeCodeOfShape :: Shape -> Word32
-typeCodeOfShape = \case
-  Point {} -> typeCodePoint
-  LineString {} -> typeCodeLineString
-  Polygon {} -> typeCodePolygon
-  MultiPoint {} -> typeCodeMultiPoint
-  MultiLineString {} -> typeCodeMultiLineString
-  MultiPolygon {} -> typeCodeMultiPolygon
-  GeometryCollection {} -> typeCodeGeometryCollection
+-- | Mask that liblwgeom applies to separate the OGC type code from the EWKB flags.
+--
+-- The four top bits are the @Z@, @M@, @SRID@ and bounding-box markers. PostGIS never emits the
+-- bounding-box one in WKB, but it is masked off all the same, exactly as @lwtype_from_wkb_state@ does.
+typeCodeMask :: Word32
+typeCodeMask = 0x0FFFFFFF
+
+dimToFlags :: Dim -> Word32
+dimToFlags = \case
+  XyDim -> 0
+  XyzDim -> zFlag
+  XymDim -> mFlag
+  XyzmDim -> zFlag .|. mFlag
+
+shapeToTypeCode :: Shape -> Word32
+shapeToTypeCode = \case
+  PointShape {} -> pointTypeCode
+  LineStringShape {} -> lineStringTypeCode
+  PolygonShape {} -> polygonTypeCode
+  MultiPointShape {} -> multiPointTypeCode
+  MultiLineStringShape {} -> multiLineStringTypeCode
+  MultiPolygonShape {} -> multiPolygonTypeCode
+  GeometryCollectionShape {} -> geometryCollectionTypeCode
+
+-- | Name of the shape in the OGC vocabulary. Used for reporting decoding errors.
+shapeName :: Shape -> Text
+shapeName = \case
+  PointShape {} -> "Point"
+  LineStringShape {} -> "LineString"
+  PolygonShape {} -> "Polygon"
+  MultiPointShape {} -> "MultiPoint"
+  MultiLineStringShape {} -> "MultiLineString"
+  MultiPolygonShape {} -> "MultiPolygon"
+  GeometryCollectionShape {} -> "GeometryCollection"
 
 -- * Binary encoder
 
--- | Encode a geometry as EWKB. The @topLevel@ flag controls whether the SRID
---   flag and value are emitted — sub-geometries within Multi* / Collection
---   values inherit the outer SRID and do not repeat it.
-writeGeometry :: Bool -> Maybe Int32 -> Dim -> Shape -> Write.Write
-writeGeometry topLevel srid dim shape =
-  let sridFlag = if topLevel && isJust srid then flagSRID else 0
-      header = lWord32 (typeCodeOfShape shape .|. dimFlags dim .|. sridFlag)
-      sridField = case (topLevel, srid) of
-        (True, Just s) -> lWord32 (fromIntegral s)
-        _ -> mempty
-   in Write.word8 0x01 -- little-endian / NDR byte order
-        <> header
-        <> sridField
-        <> writePayload dim shape
+-- | Encode a geometry as EWKB, in little-endian byte order.
+--
+-- The SRID flag and field are only emitted when an SRID is given. PostGIS stores the SRID on the outer
+-- geometry alone, so the sub-geometries of the @Multi@ and collection shapes are written without one.
+writeGeometry :: Maybe Int32 -> Dim -> Shape -> Write.Write
+writeGeometry srid dim shape =
+  mconcat
+    [ Write.word8 1,
+      Write.lWord32 (shapeToTypeCode shape .|. dimToFlags dim .|. maybe 0 (const sridFlag) srid),
+      foldMap (Write.lWord32 . fromIntegral) srid,
+      writeShape dim shape
+    ]
 
--- | Little-endian Word32 encode helper (alias to keep the caller readable).
-lWord32 :: Word32 -> Write.Write
-lWord32 = Write.lWord32
-
-lWord64 :: Word64 -> Write.Write
-lWord64 = Write.lWord64
-
-writePayload :: Dim -> Shape -> Write.Write
-writePayload dim = \case
-  Point c -> writeCoord dim c
-  LineString cs -> lWord32 (fromIntegral (length cs)) <> foldMap (writeCoord dim) cs
-  Polygon rings -> lWord32 (fromIntegral (length rings)) <> foldMap (writeRing dim) rings
-  MultiPoint cs ->
-    lWord32 (fromIntegral (length cs))
-      <> foldMap (writeGeometry False Nothing dim . Point) cs
-  MultiLineString lss ->
-    lWord32 (fromIntegral (length lss))
-      <> foldMap (writeGeometry False Nothing dim . LineString) lss
-  MultiPolygon polys ->
-    lWord32 (fromIntegral (length polys))
-      <> foldMap (writeGeometry False Nothing dim . Polygon) polys
-  GeometryCollection shapes ->
-    lWord32 (fromIntegral (length shapes))
-      <> foldMap (writeGeometry False Nothing dim) shapes
-
-writeRing :: Dim -> [Coord] -> Write.Write
-writeRing dim cs = lWord32 (fromIntegral (length cs)) <> foldMap (writeCoord dim) cs
-
-writeCoord :: Dim -> Coord -> Write.Write
-writeCoord dim (Coord x y mz mm) =
-  encodeDouble x
-    <> encodeDouble y
-    <> (if includesZ dim then encodeDouble (fromMaybe 0 mz) else mempty)
-    <> (if includesM dim then encodeDouble (fromMaybe 0 mm) else mempty)
+writeShape :: Dim -> Shape -> Write.Write
+writeShape dim = \case
+  PointShape coord -> writeCoord coord
+  LineStringShape coords -> writeCoords coords
+  PolygonShape rings -> writeCount rings <> foldMap writeCoords rings
+  MultiPointShape coords -> writeCount coords <> foldMap (writeSubGeometry . PointShape) coords
+  MultiLineStringShape lineStrings -> writeCount lineStrings <> foldMap (writeSubGeometry . LineStringShape) lineStrings
+  MultiPolygonShape polygons -> writeCount polygons <> foldMap (writeSubGeometry . PolygonShape) polygons
+  GeometryCollectionShape shapes -> writeCount shapes <> foldMap writeSubGeometry shapes
   where
-    encodeDouble = lWord64 . castDoubleToWord64
+    writeCount :: [a] -> Write.Write
+    writeCount = Write.lWord32 . fromIntegral . length
+    writeCoords :: [Coord] -> Write.Write
+    writeCoords coords = writeCount coords <> foldMap writeCoord coords
+    writeSubGeometry :: Shape -> Write.Write
+    writeSubGeometry = writeGeometry Nothing dim
 
-includesZ :: Dim -> Bool
-includesZ XYZ = True
-includesZ XYZM = True
-includesZ _ = False
-
-includesM :: Dim -> Bool
-includesM XYM = True
-includesM XYZM = True
-includesM _ = False
+-- | Encode the ordinates of a coordinate.
+--
+-- Which of them are present is determined by the coordinate's own constructor, which the 'Geometry'
+-- invariant keeps in agreement with the dimensionality announced in the header.
+writeCoord :: Coord -> Write.Write
+writeCoord = \case
+  XyCoord x y -> writeDouble x <> writeDouble y
+  XyzCoord x y z -> writeDouble x <> writeDouble y <> writeDouble z
+  XymCoord x y m -> writeDouble x <> writeDouble y <> writeDouble m
+  XyzmCoord x y z m -> writeDouble x <> writeDouble y <> writeDouble z <> writeDouble m
+  where
+    writeDouble = Write.lWord64 . castDoubleToWord64
 
 -- * Binary decoder
 
--- | Decoder result: inherited SRID (top-level only) plus the decoded shape.
---   Sub-geometries do not produce an SRID; their value is 'Nothing'.
-readGeometry :: Bool -> PtrPeeker.Variable (Either Text (Maybe Int32, Shape))
-readGeometry topLevel = do
-  byteOrderFlag <- PtrPeeker.fixed PtrPeeker.unsignedInt1
-  -- EWKB specifies only 0 (XDR / big-endian) and 1 (NDR / little-endian);
-  -- any other value indicates garbage input, so reject loudly rather than
-  -- silently accepting it as little-endian.
-  case byteOrderFlag of
-    0 -> readGeometryBody topLevel False
-    1 -> readGeometryBody topLevel True
-    other ->
-      pure
-        ( Left
-            ( "geometry: invalid EWKB byte-order marker "
-                <> Text.pack (show other)
-                <> " (expected 0 or 1)"
-            )
+-- | Decode an EWKB geometry, yielding its SRID and shape.
+--
+-- Sub-geometries are decoded through the same function: EWKB lets them carry an SRID field of their
+-- own, which has to be consumed to keep the stream aligned, but PostGIS ignores its value in favour
+-- of the one of the enclosing geometry. The callers below accordingly discard it.
+readGeometry :: ExceptT DecodingError PtrPeeker.Variable (Maybe Int32, Shape)
+readGeometry = do
+  byteOrderMarker <- lift (PtrPeeker.fixed PtrPeeker.unsignedInt1)
+  byteOrder <- case byteOrderMarker of
+    0 -> pure BigEndianByteOrder
+    1 -> pure LittleEndianByteOrder
+    _ ->
+      throwError
+        ( DecodingError
+            ["byte-order-marker"]
+            (UnexpectedValueDecodingErrorReason "0 or 1" (TextBuilder.toText (TextBuilder.decimal byteOrderMarker)))
         )
-
-readGeometryBody :: Bool -> Bool -> PtrPeeker.Variable (Either Text (Maybe Int32, Shape))
-readGeometryBody topLevel littleEndian = do
-  typeWithFlags <- readWord32 littleEndian
-  let hasZ = testBit typeWithFlags 31
-      hasM = testBit typeWithFlags 30
-      hasSRID = testBit typeWithFlags 29
-      rawType = typeWithFlags .&. 0x1FFFFFFF
-      dim = case (hasZ, hasM) of
-        (False, False) -> XY
-        (True, False) -> XYZ
-        (False, True) -> XYM
-        (True, True) -> XYZM
-  -- EWKB allows sub-geometries to carry their own SRID field, but PostGIS
-  -- ignores them and inherits from the outer geometry. We consume the bytes
-  -- to keep the stream aligned, then discard the value when we're not at
-  -- the top level.
+  typeWithFlags <- lift (readWord32 byteOrder)
+  let dim = case (testBit typeWithFlags 31, testBit typeWithFlags 30) of
+        (False, False) -> XyDim
+        (True, False) -> XyzDim
+        (False, True) -> XymDim
+        (True, True) -> XyzmDim
   srid <-
-    if hasSRID
-      then Just . (fromIntegral :: Word32 -> Int32) <$> readWord32 littleEndian
+    if testBit typeWithFlags 29
+      then Just . fromIntegral <$> lift (readWord32 byteOrder)
       else pure Nothing
-  result <- decodeShape littleEndian dim rawType
-  pure $ case result of
-    Left err -> Left err
-    Right shape -> Right (if topLevel then srid else Nothing, shape)
+  shape <- readShape byteOrder dim (typeWithFlags .&. typeCodeMask)
+  pure (srid, shape)
 
-decodeShape :: Bool -> Dim -> Word32 -> PtrPeeker.Variable (Either Text Shape)
-decodeShape le dim typeCode
-  | typeCode == typeCodePoint = do
-      c <- readCoord le dim
-      pure (Right (Point c))
-  | typeCode == typeCodeLineString = do
-      n <- readWord32 le
-      cs <- replicateM (fromIntegral n) (readCoord le dim)
-      pure (Right (LineString cs))
-  | typeCode == typeCodePolygon = do
-      nRings <- readWord32 le
-      rings <- replicateM (fromIntegral nRings) $ do
-        np <- readWord32 le
-        replicateM (fromIntegral np) (readCoord le dim)
-      pure (Right (Polygon rings))
-  | typeCode == typeCodeMultiPoint =
-      decodeMulti le "Point" (\case Point c -> Just c; _ -> Nothing) MultiPoint
-  | typeCode == typeCodeMultiLineString =
-      decodeMulti le "LineString" (\case LineString cs -> Just cs; _ -> Nothing) MultiLineString
-  | typeCode == typeCodeMultiPolygon =
-      decodeMulti le "Polygon" (\case Polygon rings -> Just rings; _ -> Nothing) MultiPolygon
-  | typeCode == typeCodeGeometryCollection = do
-      n <- readWord32 le
-      subs <- replicateM (fromIntegral n) (readGeometry False)
-      pure $ case sequence subs of
-        Left err -> Left err
-        Right pairs -> Right (GeometryCollection (map snd pairs))
-  | otherwise = pure (Left ("geometry: unsupported type code " <> Text.pack (show typeCode)))
+readShape :: ByteOrder -> Dim -> Word32 -> ExceptT DecodingError PtrPeeker.Variable Shape
+readShape byteOrder dim typeCode
+  | typeCode == pointTypeCode =
+      PointShape <$> lift (readCoord byteOrder dim)
+  | typeCode == lineStringTypeCode =
+      LineStringShape <$> lift readCoords
+  | typeCode == polygonTypeCode =
+      PolygonShape <$> lift (readSequence readCoords)
+  | typeCode == multiPointTypeCode =
+      MultiPointShape <$> readSubShapes "MultiPoint" "Point" \case
+        PointShape coord -> Just coord
+        _ -> Nothing
+  | typeCode == multiLineStringTypeCode =
+      MultiLineStringShape <$> readSubShapes "MultiLineString" "LineString" \case
+        LineStringShape coords -> Just coords
+        _ -> Nothing
+  | typeCode == multiPolygonTypeCode =
+      MultiPolygonShape <$> readSubShapes "MultiPolygon" "Polygon" \case
+        PolygonShape rings -> Just rings
+        _ -> Nothing
+  | typeCode == geometryCollectionTypeCode = do
+      count <- lift (readWord32 byteOrder)
+      GeometryCollectionShape <$> replicateM (fromIntegral count) (snd <$> readGeometry)
+  | otherwise =
+      throwError
+        ( DecodingError
+            ["type-code"]
+            (UnsupportedValueDecodingErrorReason "Unknown geometry type code" (TextBuilder.toText (TextBuilder.decimal typeCode)))
+        )
+  where
+    readCoords :: PtrPeeker.Variable [Coord]
+    readCoords = readSequence (readCoord byteOrder dim)
+    -- A count-prefixed sequence of elements.
+    readSequence :: PtrPeeker.Variable a -> PtrPeeker.Variable [a]
+    readSequence element = do
+      count <- readWord32 byteOrder
+      replicateM (fromIntegral count) element
+    -- A count-prefixed sequence of sub-geometries, each of which is required to be of the shape
+    -- that the given projection accepts. The arguments are the name of the shape being decoded and
+    -- the name of the sub-shape, both for reporting errors.
+    readSubShapes ::
+      Text ->
+      Text ->
+      (Shape -> Maybe a) ->
+      ExceptT DecodingError PtrPeeker.Variable [a]
+    readSubShapes name subShapeName project = do
+      count <- lift (readWord32 byteOrder)
+      replicateM (fromIntegral count) do
+        shape <- snd <$> readGeometry
+        case project shape of
+          Just projection -> pure projection
+          Nothing ->
+            throwError
+              ( DecodingError
+                  [name]
+                  (UnexpectedValueDecodingErrorReason subShapeName (shapeName shape))
+              )
 
-decodeMulti ::
-  Bool ->
-  -- | expected sub-geometry label, e.g. @"Point"@. The outer label is
-  --   derived from @ctor []@ so call sites can't drift out of sync with
-  --   the constructor they pass.
-  Text ->
-  (Shape -> Maybe a) ->
-  ([a] -> Shape) ->
-  PtrPeeker.Variable (Either Text Shape)
-decodeMulti le expectedLabel project ctor = do
-  n <- readWord32 le
-  subs <- replicateM (fromIntegral n) (readGeometry False)
-  pure $ case sequence subs of
-    Left err -> Left err
-    Right pairs ->
-      let shapes = map snd pairs
-          outerLabel = shapeLabel (ctor [])
-       in case traverse project shapes of
-            Just xs -> Right (ctor xs)
-            Nothing ->
-              let actual = maybe "unknown" shapeLabel (find (isNothing . project) shapes)
-               in Left
-                    ( "geometry: "
-                        <> outerLabel
-                        <> " contained a sub-geometry of the wrong shape (expected "
-                        <> expectedLabel
-                        <> ", got "
-                        <> actual
-                        <> ")"
-                    )
+readCoord :: ByteOrder -> Dim -> PtrPeeker.Variable Coord
+readCoord byteOrder = \case
+  XyDim -> XyCoord <$> readDouble <*> readDouble
+  XyzDim -> XyzCoord <$> readDouble <*> readDouble <*> readDouble
+  XymDim -> XymCoord <$> readDouble <*> readDouble <*> readDouble
+  XyzmDim -> XyzmCoord <$> readDouble <*> readDouble <*> readDouble <*> readDouble
+  where
+    readDouble = castWord64ToDouble <$> readWord64 byteOrder
 
--- | Short human-readable name for a 'Shape' constructor, used in decoder
--- error messages.
-shapeLabel :: Shape -> Text
-shapeLabel = \case
-  Point {} -> "Point"
-  LineString {} -> "LineString"
-  Polygon {} -> "Polygon"
-  MultiPoint {} -> "MultiPoint"
-  MultiLineString {} -> "MultiLineString"
-  MultiPolygon {} -> "MultiPolygon"
-  GeometryCollection {} -> "GeometryCollection"
+readWord32 :: ByteOrder -> PtrPeeker.Variable Word32
+readWord32 = \case
+  BigEndianByteOrder -> PtrPeeker.fixed PtrPeeker.beUnsignedInt4
+  LittleEndianByteOrder -> PtrPeeker.fixed PtrPeeker.leUnsignedInt4
 
-readWord32 :: Bool -> PtrPeeker.Variable Word32
-readWord32 le = PtrPeeker.fixed (if le then PtrPeeker.leUnsignedInt4 else PtrPeeker.beUnsignedInt4)
-
-readWord64 :: Bool -> PtrPeeker.Variable Word64
-readWord64 le = PtrPeeker.fixed (if le then PtrPeeker.leUnsignedInt8 else PtrPeeker.beUnsignedInt8)
-
-readDouble :: Bool -> PtrPeeker.Variable Double
-readDouble le = castWord64ToDouble <$> readWord64 le
-
-readCoord :: Bool -> Dim -> PtrPeeker.Variable Coord
-readCoord le dim = do
-  x <- readDouble le
-  y <- readDouble le
-  (z, m) <- case dim of
-    XY -> pure (Nothing, Nothing)
-    XYZ -> do z <- readDouble le; pure (Just z, Nothing)
-    XYM -> do m <- readDouble le; pure (Nothing, Just m)
-    XYZM -> do z <- readDouble le; m <- readDouble le; pure (Just z, Just m)
-  pure (Coord x y z m)
+readWord64 :: ByteOrder -> PtrPeeker.Variable Word64
+readWord64 = \case
+  BigEndianByteOrder -> PtrPeeker.fixed PtrPeeker.beUnsignedInt8
+  LittleEndianByteOrder -> PtrPeeker.fixed PtrPeeker.leUnsignedInt8
 
 -- * QuickCheck generators
 
--- | Generates EWKB-valid 'Shape' values:
+-- | Generate an SRID within PostGIS's user-assignable range.
 --
--- * 'LineString' has at least 2 coordinates.
--- * 'Polygon' rings are closed (@first == last@) with at least 4 coordinates.
--- * 'MultiLineString' / 'MultiPolygon' sub-items respect the same rules.
-shapeGen :: Dim -> Int -> Gen Shape
-shapeGen dim n
-  | n <= 1 =
-      oneof
-        [ Point <$> coordGen dim,
-          LineString <$> lineStringCoords dim,
-          singleRingPolygonGen dim,
-          MultiPoint <$> listOf (coordGen dim)
-        ]
-  | otherwise =
-      oneof
-        [ Point <$> coordGen dim,
-          LineString <$> lineStringCoords dim,
-          singleRingPolygonGen dim,
-          MultiPoint <$> listOf (coordGen dim),
-          MultiLineString <$> listOf (lineStringCoords dim),
-          MultiPolygon <$> listOf (listOf1 (polygonRingCoords dim)),
-          GeometryCollection <$> resize (n `div` 4) (listOf (shapeGen dim (n `div` 4)))
-        ]
+-- Values outside of it do not survive a roundtrip: @0@ means \"no SRID\" and loses the flag on output,
+-- and anything above @SRID_USER_MAXIMUM@ gets remapped modulo into the range PostGIS reserves for
+-- itself. @[1, 998999]@ is also where the real EPSG and @spatial_ref_sys@ codes live.
+sridGen :: QuickCheck.Gen (Maybe Int32)
+sridGen = QuickCheck.oneof [pure Nothing, Just <$> QuickCheck.choose (1, 998_999)]
 
-lineStringCoords :: Dim -> Gen [Coord]
-lineStringCoords dim = do
-  -- OGC requires LineString to have at least 2 coordinates.
-  extra <- choose (0, 6 :: Int)
-  vectorOf (2 + extra) (coordGen dim)
+shrinkSrid :: Maybe Int32 -> [Maybe Int32]
+shrinkSrid = filter (maybe True (\srid -> srid >= 1 && srid <= 998_999)) . shrink
 
-polygonRingCoords :: Dim -> Gen [Coord]
-polygonRingCoords dim = do
-  -- A ring is closed (first == last) and has at least 4 coordinates
-  -- (3 distinct + the closing repeat of the first).
-  extra <- choose (0, 5 :: Int)
-  interior <- vectorOf (3 + extra) (coordGen dim)
-  case interior of
-    (first : _) -> pure (interior ++ [first])
-    [] -> error "polygonRingCoords: impossible — vectorOf with positive length returned []"
+-- | Generate a shape whose every coordinate is of the given dimensionality and which satisfies the
+-- structural constraints OGC places on it, so that PostGIS accepts it.
+shapeGen :: Dim -> Int -> QuickCheck.Gen Shape
+shapeGen dim size =
+  QuickCheck.oneof (if size <= 1 then simple else simple <> compound)
+  where
+    simple =
+      [ PointShape <$> coordGen dim,
+        LineStringShape <$> lineStringCoordsGen dim,
+        PolygonShape . pure <$> ringCoordsGen dim,
+        MultiPointShape <$> QuickCheck.listOf (coordGen dim)
+      ]
+    compound =
+      [ MultiLineStringShape <$> QuickCheck.listOf (lineStringCoordsGen dim),
+        MultiPolygonShape <$> QuickCheck.listOf (QuickCheck.listOf1 (ringCoordsGen dim)),
+        GeometryCollectionShape <$> QuickCheck.resize subSize (QuickCheck.listOf (shapeGen dim subSize))
+      ]
+    subSize = div size 4
 
-singleRingPolygonGen :: Dim -> Gen Shape
-singleRingPolygonGen dim = Polygon . (: []) <$> polygonRingCoords dim
+-- | Generate the coordinates of a line string, of which OGC requires at least two.
+lineStringCoordsGen :: Dim -> QuickCheck.Gen [Coord]
+lineStringCoordsGen dim = do
+  extra <- QuickCheck.choose (0, 6 :: Int)
+  QuickCheck.vectorOf (2 + extra) (coordGen dim)
 
-coordGen :: Dim -> Gen Coord
-coordGen dim = do
-  x <- arbitrary
-  y <- arbitrary
-  (z, m) <- case dim of
-    XY -> pure (Nothing, Nothing)
-    XYZ -> (,) <$> (Just <$> arbitrary) <*> pure Nothing
-    XYM -> (,) Nothing . Just <$> arbitrary
-    XYZM -> (,) <$> (Just <$> arbitrary) <*> (Just <$> arbitrary)
-  pure (Coord x y z m)
+-- | Generate the coordinates of a linear ring, which OGC requires to be closed and to consist of at
+-- least four coordinates: three distinct ones plus the repetition of the first that closes it.
+ringCoordsGen :: Dim -> QuickCheck.Gen [Coord]
+ringCoordsGen dim = do
+  extra <- QuickCheck.choose (0, 5 :: Int)
+  firstCoord <- coordGen dim
+  restCoords <- QuickCheck.vectorOf (2 + extra) (coordGen dim)
+  pure (firstCoord : restCoords <> [firstCoord])
+
+coordGen :: Dim -> QuickCheck.Gen Coord
+coordGen = \case
+  XyDim -> XyCoord <$> arbitrary <*> arbitrary
+  XyzDim -> XyzCoord <$> arbitrary <*> arbitrary <*> arbitrary
+  XymDim -> XymCoord <$> arbitrary <*> arbitrary <*> arbitrary
+  XyzmDim -> XyzmCoord <$> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary
+
+-- | Shrink a shape by dropping members of its collections.
+--
+-- Individual coordinates are never dropped or shrunk: that would either change the dimensionality of
+-- the tree or break the closure of a ring, producing a shape PostGIS rejects.
+shrinkShape :: Shape -> [Shape]
+shrinkShape = \case
+  PointShape _ -> []
+  LineStringShape coords ->
+    LineStringShape <$> filter ((>= 2) . length) (shrinkMembers coords)
+  PolygonShape rings ->
+    PolygonShape <$> filter (not . null) (shrinkMembers rings)
+  MultiPointShape coords ->
+    MultiPointShape <$> shrinkMembers coords
+  MultiLineStringShape lineStrings ->
+    MultiLineStringShape <$> shrinkMembers lineStrings
+  MultiPolygonShape polygons ->
+    MultiPolygonShape <$> shrinkMembers polygons
+  GeometryCollectionShape shapes ->
+    GeometryCollectionShape <$> QuickCheck.shrinkList shrinkShape shapes
+  where
+    shrinkMembers :: [a] -> [[a]]
+    shrinkMembers = QuickCheck.shrinkList (const [])
