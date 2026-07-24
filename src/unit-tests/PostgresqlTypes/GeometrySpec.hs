@@ -112,6 +112,24 @@ spec = do
     it "rejects a truncated payload" do
       decodeHex "0101000000000000000000F03F" `shouldSatisfy` isLeft
 
+    -- Fixture derived by hand from the EWKB layout (no live PostGIS instance required for this test):
+    -- a CircularString of one arc through (0,0), (1,2), (2,0), with SRID 4326.
+    --
+    -- Byte-order marker NDR (01), type 8 (CircularString) with the SRID flag (08000020), SRID 4326
+    -- (E6100000), coordinate count 3 (03000000), then the three coordinates: (0,0), (1,2), (2,0),
+    -- each ordinate as a little-endian IEEE-754 double.
+    let circularStringHex = "0108000020E61000000300000000000000000000000000000000000000000000000000F03F000000000000004000000000000000400000000000000000"
+        circularString =
+          Geometry.refineFromShapeAndSrid
+            (CircularStringShape [XyCoord 0 0, XyCoord 1 2, XyCoord 2 0])
+            (Just 4326)
+
+    it "decodes a circular string" do
+      fmap Just (decodeHex circularStringHex) `shouldBe` Right circularString
+
+    it "encodes a circular string the way PostGIS does" do
+      fmap encodeHex circularString `shouldBe` Just (Text.toLower circularStringHex)
+
     it "rejects a multi-point whose member is a line string" do
       decodeHex
         ( mconcat

@@ -57,6 +57,10 @@ data Shape
   | -- | One or more linear rings. The first is the exterior ring, the rest are interior rings (holes).
     -- Every ring is closed: its last coordinate repeats its first.
     PolygonShape [[Coord]]
+  | -- | Circular arc string: a sequence of circular arcs, each defined by three consecutive
+    -- coordinates (start, midpoint on the arc, end), where the end of one arc is the start of the
+    -- next. Requires an odd number of coordinates, at least three.
+    CircularStringShape [Coord]
   | -- | Collection of points.
     MultiPointShape [Coord]
   | -- | Collection of line strings.
@@ -124,6 +128,7 @@ instance Hashable Shape where
     MultiLineStringShape lineStrings -> salt `hashWithSalt` (4 :: Int) `hashWithSalt` lineStrings
     MultiPolygonShape polygons -> salt `hashWithSalt` (5 :: Int) `hashWithSalt` polygons
     GeometryCollectionShape shapes -> salt `hashWithSalt` (6 :: Int) `hashWithSalt` shapes
+    CircularStringShape coords -> salt `hashWithSalt` (7 :: Int) `hashWithSalt` coords
     TriangleShape coords -> salt `hashWithSalt` (8 :: Int) `hashWithSalt` coords
 
 instance Hashable Coord where
@@ -253,6 +258,7 @@ shapeDim shape = fromMaybe XyDim <$> goShape Nothing shape
     goShape acc = \case
       PointShape coord -> goCoord acc coord
       LineStringShape coords -> goCoords acc coords
+      CircularStringShape coords -> goCoords acc coords
       PolygonShape rings -> foldM goCoords acc rings
       MultiPointShape coords -> goCoords acc coords
       MultiLineStringShape lineStrings -> foldM goCoords acc lineStrings
@@ -285,7 +291,7 @@ data ByteOrder
     LittleEndianByteOrder
 
 -- | OGC type codes, as they appear in the low bits of the EWKB type header.
-pointTypeCode, lineStringTypeCode, polygonTypeCode, multiPointTypeCode, multiLineStringTypeCode, multiPolygonTypeCode, geometryCollectionTypeCode, triangleTypeCode :: Word32
+pointTypeCode, lineStringTypeCode, polygonTypeCode, multiPointTypeCode, multiLineStringTypeCode, multiPolygonTypeCode, geometryCollectionTypeCode, circularStringTypeCode, triangleTypeCode :: Word32
 pointTypeCode = 1
 lineStringTypeCode = 2
 polygonTypeCode = 3
@@ -293,6 +299,7 @@ multiPointTypeCode = 4
 multiLineStringTypeCode = 5
 multiPolygonTypeCode = 6
 geometryCollectionTypeCode = 7
+circularStringTypeCode = 8
 triangleTypeCode = 17
 
 -- | Flag bits of the EWKB type header.
@@ -324,6 +331,7 @@ shapeToTypeCode = \case
   MultiLineStringShape {} -> multiLineStringTypeCode
   MultiPolygonShape {} -> multiPolygonTypeCode
   GeometryCollectionShape {} -> geometryCollectionTypeCode
+  CircularStringShape {} -> circularStringTypeCode
   TriangleShape {} -> triangleTypeCode
 
 -- | Name of the shape in the OGC vocabulary. Used for reporting decoding errors.
@@ -336,6 +344,7 @@ shapeName = \case
   MultiLineStringShape {} -> "MultiLineString"
   MultiPolygonShape {} -> "MultiPolygon"
   GeometryCollectionShape {} -> "GeometryCollection"
+  CircularStringShape {} -> "CircularString"
   TriangleShape {} -> "Triangle"
 
 -- * Binary encoder
@@ -357,6 +366,7 @@ writeShape :: Dim -> Shape -> Write.Write
 writeShape dim = \case
   PointShape coord -> writeCoord coord
   LineStringShape coords -> writeCoords coords
+  CircularStringShape coords -> writeCoords coords
   PolygonShape rings -> writeCount rings <> foldMap writeCoords rings
   MultiPointShape coords -> writeCount coords <> foldMap (writeSubGeometry . PointShape) coords
   MultiLineStringShape lineStrings -> writeCount lineStrings <> foldMap (writeSubGeometry . LineStringShape) lineStrings
@@ -424,6 +434,8 @@ readShape byteOrder dim typeCode
       PointShape <$> lift (readCoord byteOrder dim)
   | typeCode == lineStringTypeCode =
       LineStringShape <$> lift readCoords
+  | typeCode == circularStringTypeCode =
+      CircularStringShape <$> lift readCoords
   | typeCode == polygonTypeCode =
       PolygonShape <$> lift (readSequence readCoords)
   | typeCode == multiPointTypeCode =
@@ -529,6 +541,7 @@ shapeGen dim size =
     simple =
       [ PointShape <$> coordGen dim,
         LineStringShape <$> lineStringCoordsGen dim,
+        CircularStringShape <$> circularStringCoordsGen dim,
         PolygonShape . pure <$> ringCoordsGen dim,
         MultiPointShape <$> QuickCheck.listOf (coordGen dim),
         QuickCheck.oneof [pure (TriangleShape []), TriangleShape <$> ringCoordsGen dim]
@@ -545,6 +558,14 @@ lineStringCoordsGen :: Dim -> QuickCheck.Gen [Coord]
 lineStringCoordsGen dim = do
   extra <- QuickCheck.choose (0, 6 :: Int)
   QuickCheck.vectorOf (2 + extra) (coordGen dim)
+
+-- | Generate the coordinates of a circular string. PostGIS's @geometry_recv@ enforces
+-- @LW_PARSER_CHECK_MINPOINTS | LW_PARSER_CHECK_ODD@ for circular strings: an odd number of
+-- coordinates, at least three, each consecutive triple describing one circular arc.
+circularStringCoordsGen :: Dim -> QuickCheck.Gen [Coord]
+circularStringCoordsGen dim = do
+  extraArcs <- QuickCheck.choose (0, 3 :: Int)
+  QuickCheck.vectorOf (3 + 2 * extraArcs) (coordGen dim)
 
 -- | Generate the coordinates of a linear ring, which OGC requires to be closed and to consist of at
 -- least four coordinates: three distinct ones plus the repetition of the first that closes it.
@@ -571,6 +592,8 @@ shrinkShape = \case
   PointShape _ -> []
   LineStringShape coords ->
     LineStringShape <$> filter ((>= 2) . length) (shrinkMembers coords)
+  CircularStringShape coords ->
+    CircularStringShape <$> filter (\cs -> length cs >= 3 && odd (length cs)) (shrinkMembers coords)
   PolygonShape rings ->
     PolygonShape <$> filter (not . null) (shrinkMembers rings)
   MultiPointShape coords ->
