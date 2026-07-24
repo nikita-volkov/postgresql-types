@@ -8,7 +8,7 @@ import Data.Maybe (isJust)
 import Data.Text (Text)
 import qualified Data.Text as Text
 import qualified PostgresqlTypes.Algebra
-import PostgresqlTypes.Geometry (Coord (..), Geometry, NurbsCurve (..), Shape (..))
+import PostgresqlTypes.Geometry (Coord (..), CurveSegment (..), Geometry, NurbsCurve (..), Shape (..))
 import qualified PostgresqlTypes.Geometry as Geometry
 import Test.Hspec
 import Test.QuickCheck
@@ -239,6 +239,42 @@ spec = do
             [ "01", -- NDR
               "11000000", -- Triangle
               "02000000" -- 2 rings, which a Triangle disallows
+            ]
+        )
+        `shouldSatisfy` isLeft
+
+    -- Fixture derived by hand from the EWKB layout (no live PostGIS instance required for this test):
+    -- a CompoundCurve made of one line segment through (0,0)-(1,1), followed by one arc segment
+    -- through (1,1), (2,2), (3,0), with no SRID.
+    --
+    -- Byte-order marker NDR (01), type 9 (CompoundCurve), no flags (09000000), member count 2
+    -- (02000000), then each member as a full sub-geometry: a LineString (type 2) of 2 coordinates,
+    -- and a CircularString (type 8) of 3 coordinates, each with its own byte-order marker.
+    let compoundCurveHex =
+          "01090000000200000001020000000200000000000000000000000000000000000000000000000000F03F000000000000F03F010800000003000000000000000000F03F000000000000F03F0000000000000040000000000000004000000000000008400000000000000000"
+        compoundCurve =
+          Geometry.refineFromShape
+            ( CompoundCurveShape
+                [ LineSegment [XyCoord 0 0, XyCoord 1 1],
+                  ArcSegment [XyCoord 1 1, XyCoord 2 2, XyCoord 3 0]
+                ]
+            )
+
+    it "decodes a compound curve" do
+      fmap Just (decodeHex compoundCurveHex) `shouldBe` Right compoundCurve
+
+    it "encodes a compound curve the way PostGIS does" do
+      fmap encodeHex compoundCurve `shouldBe` Just (Text.toLower compoundCurveHex)
+
+    it "rejects a compound curve whose member is neither a line nor an arc" do
+      decodeHex
+        ( mconcat
+            [ "01", -- NDR
+              "09000000", -- CompoundCurve
+              "01000000", -- 1 member
+              "01", -- NDR
+              "01000000", -- Point, where a LineString or CircularString is required
+              "000000000000F03F0000000000000040"
             ]
         )
         `shouldSatisfy` isLeft
