@@ -2,6 +2,7 @@ module PostgresqlTypes.Geometry
   ( Geometry,
     Shape (..),
     Coord (..),
+    NurbsCurve (..),
 
     -- * Accessors
     toSrid,
@@ -37,6 +38,12 @@ import qualified TextBuilder
 --
 -- Unlike the built-in PostgreSQL types, @geometry@ is registered by @CREATE EXTENSION postgis@ and receives a different OID in every database.
 -- 'baseOid' and 'arrayOid' are therefore 'Nothing', and drivers are expected to resolve the OID by 'typeName' at runtime.
+--
+-- __NURBS curves__ ('NurbsCurveShape') are the one shape not validated against a real PostGIS server: support for
+-- them only landed in PostGIS's development branch in June 2026, no released PostGIS version speaks the wire
+-- format yet, and that format has seen several revisions and may still change upstream. This codec is derived
+-- from the ISO/IEC 13249-3:2016 spec and hand-built fixtures alone. Accordingly, 'NurbsCurveShape' is deliberately
+-- excluded from the 'Arbitrary'\/'shrink' instances below and from the real-server integration test suite.
 --
 -- [PostGIS docs](https://postgis.net/docs/geometry.html).
 data Geometry
@@ -77,6 +84,10 @@ data Shape
     -- holes, and no more than one exterior boundary. The empty list represents a triangle with no ring
     -- at all; a non-empty one is closed, its last coordinate repeating its first.
     TriangleShape [Coord]
+  | -- | Non-Uniform Rational B-Spline curve (ISO/IEC 13249-3:2016).
+    --
+    -- __Caution:__ untested against any real PostGIS server. See the note on 'Geometry'.
+    NurbsCurveShape NurbsCurve
   deriving stock (Eq, Ord, Show, Read)
 
 -- | Coordinate in one of the four dimensionalities PostGIS supports.
@@ -117,6 +128,19 @@ data Coord
       Double
   deriving stock (Eq, Ord, Show, Read)
 
+-- | Non-Uniform Rational B-Spline curve, per ISO/IEC 13249-3:2016 (SQL/MM Spatial).
+--
+-- __Caution:__ untested against any real PostGIS server. See the note on 'Geometry'.
+data NurbsCurve
+  = NurbsCurve
+      -- | Degree.
+      Word32
+      -- | Control points, each paired with its weight. A weight of @1@ is unweighted.
+      [(Coord, Double)]
+      -- | Knot vector.
+      [Double]
+  deriving stock (Eq, Ord, Show, Read)
+
 instance Hashable Geometry where
   hashWithSalt salt (Geometry srid shape) =
     salt `hashWithSalt` srid `hashWithSalt` shape
@@ -133,6 +157,7 @@ instance Hashable Shape where
     CircularStringShape coords -> salt `hashWithSalt` (7 :: Int) `hashWithSalt` coords
     TriangleShape coords -> salt `hashWithSalt` (8 :: Int) `hashWithSalt` coords
     PolyhedralSurfaceShape polygons -> salt `hashWithSalt` (9 :: Int) `hashWithSalt` polygons
+    NurbsCurveShape nurbsCurve -> salt `hashWithSalt` (10 :: Int) `hashWithSalt` nurbsCurve
 
 instance Hashable Coord where
   hashWithSalt salt = \case
@@ -140,6 +165,10 @@ instance Hashable Coord where
     XyzCoord x y z -> salt `hashWithSalt` (1 :: Int) `hashWithSalt` x `hashWithSalt` y `hashWithSalt` z
     XymCoord x y m -> salt `hashWithSalt` (2 :: Int) `hashWithSalt` x `hashWithSalt` y `hashWithSalt` m
     XyzmCoord x y z m -> salt `hashWithSalt` (3 :: Int) `hashWithSalt` x `hashWithSalt` y `hashWithSalt` z `hashWithSalt` m
+
+instance Hashable NurbsCurve where
+  hashWithSalt salt (NurbsCurve degree controlPoints knots) =
+    salt `hashWithSalt` degree `hashWithSalt` controlPoints `hashWithSalt` knots
 
 instance Arbitrary Geometry where
   arbitrary = do
@@ -269,6 +298,7 @@ shapeDim shape = fromMaybe XyDim <$> goShape Nothing shape
       PolyhedralSurfaceShape polygons -> foldM (foldM goCoords) acc polygons
       GeometryCollectionShape shapes -> foldM goShape acc shapes
       TriangleShape coords -> goCoords acc coords
+      NurbsCurveShape (NurbsCurve _ controlPoints _) -> goCoords acc (fst <$> controlPoints)
     goCoords :: Maybe Dim -> [Coord] -> Maybe (Maybe Dim)
     goCoords = foldM goCoord
     goCoord :: Maybe Dim -> Coord -> Maybe (Maybe Dim)
@@ -307,6 +337,42 @@ circularStringTypeCode = 8
 triangleTypeCode = 17
 polyhedralSurfaceTypeCode = 15
 
+-- | ISO/IEC 13249-3 (SQL/MM) type code for a NURBS curve.
+--
+-- Unlike the seven OGC shapes above, PostGIS's WKB writer signals a NURBS curve's dimensionality
+-- through this code's magnitude rather than through 'zFlag'\/'mFlag': the wire byte is
+-- @nurbsCurveBaseTypeCode + isoDimOffset dim@, e.g. @1021@ for an XYZ curve. See 'isoDimOffset'.
+nurbsCurveBaseTypeCode :: Word32
+nurbsCurveBaseTypeCode = 21
+
+-- | Dimensionality offset that PostGIS's WKB writer adds to 'nurbsCurveBaseTypeCode', per the
+-- ISO/IEC 13249-3 (SQL/MM) extended-WKB numbering scheme: plain 2D types occupy 1-999, @+1000@
+-- selects the Z variant, @+2000@ the M variant and @+3000@ the ZM variant.
+--
+-- __Assumption, not verified against a released PostGIS:__ NURBS curve support only exists on
+-- PostGIS's development branch (merged June 2026) and no released version speaks this format, so
+-- this can't be checked against real server output. The @+1000@\/@+2000@\/@+3000@ offsets are given
+-- directly by the ticket that specified this feature, and the "no offset means 2D" reading follows
+-- the same SQL/MM scheme PostGIS already uses for its other ISO curve\/surface type codes (e.g.
+-- @CircularString@ = 8, @CompoundCurve@ = 9, none of which this codebase implements) — those, too,
+-- carry no offset for their bare 2D form. If PostGIS's actual NURBS implementation turns out to
+-- reserve 0 for something other than XY, only this function and 'isoOffsetToDim' need to change.
+isoDimOffset :: Dim -> Word32
+isoDimOffset = \case
+  XyDim -> 0
+  XyzDim -> 1000
+  XymDim -> 2000
+  XyzmDim -> 3000
+
+-- | Inverse of 'isoDimOffset'. 'Nothing' for any offset PostGIS's NURBS writer is not documented to emit.
+isoOffsetToDim :: Word32 -> Maybe Dim
+isoOffsetToDim = \case
+  0 -> Just XyDim
+  1 -> Just XyzDim
+  2 -> Just XymDim
+  3 -> Just XyzmDim
+  _ -> Nothing
+
 -- | Flag bits of the EWKB type header.
 zFlag, mFlag, sridFlag :: Word32
 zFlag = 0x80000000
@@ -339,6 +405,7 @@ shapeToTypeCode = \case
   GeometryCollectionShape {} -> geometryCollectionTypeCode
   CircularStringShape {} -> circularStringTypeCode
   TriangleShape {} -> triangleTypeCode
+  NurbsCurveShape {} -> nurbsCurveBaseTypeCode
 
 -- | Name of the shape in the OGC vocabulary. Used for reporting decoding errors.
 shapeName :: Shape -> Text
@@ -353,6 +420,7 @@ shapeName = \case
   GeometryCollectionShape {} -> "GeometryCollection"
   CircularStringShape {} -> "CircularString"
   TriangleShape {} -> "Triangle"
+  NurbsCurveShape {} -> "NurbsCurve"
 
 -- * Binary encoder
 
@@ -364,10 +432,17 @@ writeGeometry :: Maybe Int32 -> Dim -> Shape -> Write.Write
 writeGeometry srid dim shape =
   mconcat
     [ Write.word8 1,
-      Write.lWord32 (shapeToTypeCode shape .|. dimToFlags dim .|. maybe 0 (const sridFlag) srid),
+      Write.lWord32 (typeCode .|. maybe 0 (const sridFlag) srid),
       foldMap (Write.lWord32 . fromIntegral) srid,
       writeShape dim shape
     ]
+  where
+    -- A NURBS curve is the one shape whose dimensionality PostGIS's writer bakes into the type
+    -- code's magnitude (see 'isoDimOffset') instead of the Z\/M flag bits every other shape uses.
+    -- The SRID flag above is unaffected either way: it is a separate bit that both schemes share.
+    typeCode = case shape of
+      NurbsCurveShape {} -> shapeToTypeCode shape + isoDimOffset dim
+      _ -> shapeToTypeCode shape .|. dimToFlags dim
 
 writeShape :: Dim -> Shape -> Write.Write
 writeShape dim = \case
@@ -383,6 +458,7 @@ writeShape dim = \case
   TriangleShape coords -> case coords of
     [] -> Write.lWord32 0
     _ -> Write.lWord32 1 <> writeCoords coords
+  NurbsCurveShape nurbsCurve -> writeNurbsCurve nurbsCurve
   where
     writeCount :: [a] -> Write.Write
     writeCount = Write.lWord32 . fromIntegral . length
@@ -404,6 +480,34 @@ writeCoord = \case
   where
     writeDouble = Write.lWord64 . castDoubleToWord64
 
+-- | Encode a NURBS curve's body: degree, then the count-prefixed control points, then the
+-- count-prefixed knot vector. Mirrors 'readNurbsCurve'.
+writeNurbsCurve :: NurbsCurve -> Write.Write
+writeNurbsCurve (NurbsCurve degree controlPoints knots) =
+  mconcat
+    [ Write.lWord32 degree,
+      Write.lWord32 (fromIntegral (length controlPoints)),
+      foldMap writeNurbsControlPoint controlPoints,
+      Write.lWord32 (fromIntegral (length knots)),
+      foldMap writeDouble knots
+    ]
+  where
+    writeDouble = Write.lWord64 . castDoubleToWord64
+
+-- | Encode one control point: its own (redundant, but ISO-mandated) byte-order marker — always NDR,
+-- matching the rest of this encoder — then its coordinates, then the weight flag byte. A weight of
+-- exactly @1.0@ is the default and is written as flag @0@ with the weight omitted; any other value,
+-- including @0.0@, is written explicitly as flag @1@ followed by the weight.
+writeNurbsControlPoint :: (Coord, Double) -> Write.Write
+writeNurbsControlPoint (coord, weight) =
+  mconcat
+    [ Write.word8 1,
+      writeCoord coord,
+      if weight == 1.0
+        then Write.word8 0
+        else Write.word8 1 <> Write.lWord64 (castDoubleToWord64 weight)
+    ]
+
 -- * Binary decoder
 
 -- | Decode an EWKB geometry, yielding its SRID and shape.
@@ -424,16 +528,38 @@ readGeometry = do
             (UnexpectedValueDecodingErrorReason "0 or 1" (TextBuilder.toText (TextBuilder.decimal byteOrderMarker)))
         )
   typeWithFlags <- lift (readWord32 byteOrder)
-  let dim = case (testBit typeWithFlags 31, testBit typeWithFlags 30) of
-        (False, False) -> XyDim
-        (True, False) -> XyzDim
-        (False, True) -> XymDim
-        (True, True) -> XyzmDim
+  let maskedTypeCode = typeWithFlags .&. typeCodeMask
+  -- A NURBS curve is the one shape whose dimensionality is not carried in the Z/M flag bits
+  -- (testBit 31 / testBit 30): PostGIS's writer instead bakes it into the type code's magnitude
+  -- (see 'isoDimOffset'). Detect that case first, from the masked type code alone, before falling
+  -- back to the ordinary flag-bit interpretation every other shape uses.
+  (dim, typeCode) <-
+    if maskedTypeCode `mod` 1000 == nurbsCurveBaseTypeCode
+      then case isoOffsetToDim (maskedTypeCode `div` 1000) of
+        Just isoDim -> pure (isoDim, nurbsCurveBaseTypeCode)
+        Nothing ->
+          throwError
+            ( DecodingError
+                ["type-code"]
+                ( UnsupportedValueDecodingErrorReason
+                    "Unknown NURBS curve ISO dimensionality offset"
+                    (TextBuilder.toText (TextBuilder.decimal maskedTypeCode))
+                )
+            )
+      else
+        pure
+          ( case (testBit typeWithFlags 31, testBit typeWithFlags 30) of
+              (False, False) -> XyDim
+              (True, False) -> XyzDim
+              (False, True) -> XymDim
+              (True, True) -> XyzmDim,
+            maskedTypeCode
+          )
   srid <-
     if testBit typeWithFlags 29
       then Just . fromIntegral <$> lift (readWord32 byteOrder)
       else pure Nothing
-  shape <- readShape byteOrder dim (typeWithFlags .&. typeCodeMask)
+  shape <- readShape byteOrder dim typeCode
   pure (srid, shape)
 
 readShape :: ByteOrder -> Dim -> Word32 -> ExceptT DecodingError PtrPeeker.Variable Shape
@@ -476,6 +602,8 @@ readShape byteOrder dim typeCode
                 ["Triangle"]
                 (UnexpectedValueDecodingErrorReason "0 or 1 rings" (TextBuilder.toText (TextBuilder.decimal ringCount)))
             )
+  | typeCode == nurbsCurveBaseTypeCode =
+      NurbsCurveShape <$> readNurbsCurve byteOrder dim
   | otherwise =
       throwError
         ( DecodingError
@@ -520,6 +648,45 @@ readCoord byteOrder = \case
   where
     readDouble = castWord64ToDouble <$> readWord64 byteOrder
 
+-- | Decode a NURBS curve's body: degree, then the count-prefixed control points, then the
+-- count-prefixed knot vector. Mirrors 'writeNurbsCurve'.
+--
+-- No arithmetic relationship between the degree, control point count and knot count is checked:
+-- as elsewhere in this codebase, already-server-validated structure is trusted rather than
+-- re-validated.
+readNurbsCurve :: ByteOrder -> Dim -> ExceptT DecodingError PtrPeeker.Variable NurbsCurve
+readNurbsCurve byteOrder dim = do
+  degree <- lift (readWord32 byteOrder)
+  pointCount <- lift (readWord32 byteOrder)
+  controlPoints <- replicateM (fromIntegral pointCount) (readNurbsControlPoint dim)
+  knotCount <- lift (readWord32 byteOrder)
+  knots <- lift (replicateM (fromIntegral knotCount) readDouble)
+  pure (NurbsCurve degree controlPoints knots)
+  where
+    readDouble = castWord64ToDouble <$> readWord64 byteOrder
+
+-- | Decode one control point: its own (redundant, but ISO-mandated) byte-order marker, then its
+-- coordinates in that byte order, then a weight flag byte — @0@ means the default weight @1.0@
+-- (omitted on the wire), @1@ means an explicit weight follows.
+readNurbsControlPoint :: Dim -> ExceptT DecodingError PtrPeeker.Variable (Coord, Double)
+readNurbsControlPoint dim = do
+  pointByteOrderMarker <- lift (PtrPeeker.fixed PtrPeeker.unsignedInt1)
+  pointByteOrder <- case pointByteOrderMarker of
+    0 -> pure BigEndianByteOrder
+    1 -> pure LittleEndianByteOrder
+    _ ->
+      throwError
+        ( DecodingError
+            ["nurbs-curve", "control-point", "byte-order-marker"]
+            (UnexpectedValueDecodingErrorReason "0 or 1" (TextBuilder.toText (TextBuilder.decimal pointByteOrderMarker)))
+        )
+  coord <- lift (readCoord pointByteOrder dim)
+  hasWeight <- lift (PtrPeeker.fixed PtrPeeker.unsignedInt1)
+  weight <- case hasWeight of
+    0 -> pure 1.0
+    _ -> lift (castWord64ToDouble <$> readWord64 pointByteOrder)
+  pure (coord, weight)
+
 readWord32 :: ByteOrder -> PtrPeeker.Variable Word32
 readWord32 = \case
   BigEndianByteOrder -> PtrPeeker.fixed PtrPeeker.beUnsignedInt4
@@ -546,6 +713,11 @@ shrinkSrid = filter (maybe True (\srid -> srid >= 1 && srid <= 998_999)) . shrin
 
 -- | Generate a shape whose every coordinate is of the given dimensionality and which satisfies the
 -- structural constraints OGC places on it, so that PostGIS accepts it.
+--
+-- __'NurbsCurveShape' is deliberately never generated here.__ NURBS curve support is not in any
+-- released PostGIS version (see the note on 'Geometry'), and the real-server integration test
+-- suite draws its 'Geometry' values from this generator; producing one here would break that suite
+-- against a server that cannot parse it. Do not add it without first revisiting that risk.
 shapeGen :: Dim -> Int -> QuickCheck.Gen Shape
 shapeGen dim size =
   QuickCheck.oneof (if size <= 1 then simple else simple <> compound)
@@ -621,6 +793,9 @@ shrinkShape = \case
     GeometryCollectionShape <$> QuickCheck.shrinkList shrinkShape shapes
   TriangleShape coords ->
     [TriangleShape [] | not (null coords)]
+  -- 'shapeGen' never produces this constructor (see the comment there), so this is never called
+  -- with one in practice. Covered only so the pattern match above stays exhaustive.
+  NurbsCurveShape _ -> []
   where
     shrinkMembers :: [a] -> [[a]]
     shrinkMembers = QuickCheck.shrinkList (const [])
