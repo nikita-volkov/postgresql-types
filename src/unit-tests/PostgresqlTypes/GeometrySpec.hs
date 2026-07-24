@@ -8,7 +8,7 @@ import Data.Maybe (isJust)
 import Data.Text (Text)
 import qualified Data.Text as Text
 import qualified PostgresqlTypes.Algebra
-import PostgresqlTypes.Geometry (Coord (..), CurveSegment (..), Geometry, NurbsCurve (..), Shape (..))
+import PostgresqlTypes.Geometry (Coord (..), Curve (..), CurveSegment (..), Geometry, NurbsCurve (..), Shape (..))
 import qualified PostgresqlTypes.Geometry as Geometry
 import Test.Hspec
 import Test.QuickCheck
@@ -317,6 +317,102 @@ spec = do
               "01", -- NDR
               "01000000", -- Point, where a LineString or CircularString is required
               "000000000000F03F0000000000000040"
+            ]
+        )
+        `shouldSatisfy` isLeft
+
+    -- Fixture derived by hand from the EWKB layout (no live PostGIS instance required for this test):
+    -- a CurvePolygon of two rings, exercising both of 'Curve'\'s constructors as ring members: a
+    -- plain closed square via 'SegmentCurve' wrapping a 'LineSegment', and a closed ring assembled
+    -- from a line and an arc via 'ChainedCurve'.
+    --
+    -- Byte-order marker NDR (01), type 10 (CurvePolygon), no flags (0A000000), ring count 2
+    -- (02000000), then each ring as a full sub-geometry: a LineString (type 2) of 5 coordinates
+    -- forming the square (0,0)-(4,0)-(4,4)-(0,4)-(0,0), and a CompoundCurve (type 9) of 2 members — a
+    -- LineString from (1,1) to (2,1), then a CircularString through (2,1), (2,2), (1,1) — closing the
+    -- ring back on its start.
+    let curvePolygonHex =
+          "010A000000020000000102000000050000000000000000000000000000000000000000000000000010400000000000000000000000000000104000000000000010400000000000000000000000000000104000000000000000000000000000000000010900000002000000010200000002000000000000000000F03F000000000000F03F0000000000000040000000000000F03F0108000000030000000000000000000040000000000000F03F00000000000000400000000000000040000000000000F03F000000000000F03F"
+        curvePolygon =
+          Geometry.refineFromShape
+            ( CurvePolygonShape
+                [ SegmentCurve (LineSegment [XyCoord 0 0, XyCoord 4 0, XyCoord 4 4, XyCoord 0 4, XyCoord 0 0]),
+                  ChainedCurve
+                    [ LineSegment [XyCoord 1 1, XyCoord 2 1],
+                      ArcSegment [XyCoord 2 1, XyCoord 2 2, XyCoord 1 1]
+                    ]
+                ]
+            )
+
+    it "decodes a curve polygon" do
+      fmap Just (decodeHex curvePolygonHex) `shouldBe` Right curvePolygon
+
+    it "encodes a curve polygon the way PostGIS does" do
+      fmap encodeHex curvePolygon `shouldBe` Just (Text.toLower curvePolygonHex)
+
+    it "rejects a curve polygon whose ring is a polygon" do
+      decodeHex
+        ( mconcat
+            [ "01", -- NDR
+              "0A000000", -- CurvePolygon
+              "01000000", -- 1 ring
+              "01", -- NDR
+              "03000000", -- Polygon, where a LineString, CircularString or CompoundCurve is required
+              "01000000", -- 1 ring
+              "04000000", -- 4 coordinates
+              "0000000000000000", -- (0, 0)
+              "0000000000000000",
+              "000000000000F03F", -- (1, 0)
+              "0000000000000000",
+              "0000000000000000", -- (0, 1)
+              "000000000000F03F",
+              "0000000000000000", -- (0, 0), closing the ring
+              "0000000000000000"
+            ]
+        )
+        `shouldSatisfy` isLeft
+
+    -- Fixture derived by hand from the EWKB layout (no live PostGIS instance required for this test):
+    -- a MultiCurve made of the same line and arc as the 'compoundCurveHex' fixture above, but as two
+    -- independent members rather than segments chained into one 'CompoundCurveShape'.
+    --
+    -- Byte-order marker NDR (01), type 11 (MultiCurve), no flags (0B000000), member count 2
+    -- (02000000), then each member as a full sub-geometry: a LineString (type 2) of 2 coordinates,
+    -- and a CircularString (type 8) of 3 coordinates.
+    let multiCurveHex =
+          "010B0000000200000001020000000200000000000000000000000000000000000000000000000000F03F000000000000F03F010800000003000000000000000000F03F000000000000F03F0000000000000040000000000000004000000000000008400000000000000000"
+        multiCurve =
+          Geometry.refineFromShape
+            ( MultiCurveShape
+                [ SegmentCurve (LineSegment [XyCoord 0 0, XyCoord 1 1]),
+                  SegmentCurve (ArcSegment [XyCoord 1 1, XyCoord 2 2, XyCoord 3 0])
+                ]
+            )
+
+    it "decodes a multi-curve" do
+      fmap Just (decodeHex multiCurveHex) `shouldBe` Right multiCurve
+
+    it "encodes a multi-curve the way PostGIS does" do
+      fmap encodeHex multiCurve `shouldBe` Just (Text.toLower multiCurveHex)
+
+    it "rejects a multi-curve whose member is a polygon" do
+      decodeHex
+        ( mconcat
+            [ "01", -- NDR
+              "0B000000", -- MultiCurve
+              "01000000", -- 1 member
+              "01", -- NDR
+              "03000000", -- Polygon, where a LineString, CircularString or CompoundCurve is required
+              "01000000", -- 1 ring
+              "04000000", -- 4 coordinates
+              "0000000000000000", -- (0, 0)
+              "0000000000000000",
+              "000000000000F03F", -- (1, 0)
+              "0000000000000000",
+              "0000000000000000", -- (0, 1)
+              "000000000000F03F",
+              "0000000000000000", -- (0, 0), closing the ring
+              "0000000000000000"
             ]
         )
         `shouldSatisfy` isLeft
