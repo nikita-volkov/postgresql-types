@@ -483,8 +483,9 @@ readWord64 = \case
 -- | Generate an SRID within PostGIS's user-assignable range.
 --
 -- Values outside of it do not survive a roundtrip: @0@ means \"no SRID\" and loses the flag on output,
--- and anything above @SRID_USER_MAXIMUM@ gets remapped modulo into the range PostGIS reserves for
--- itself. @[1, 998999]@ is also where the real EPSG and @spatial_ref_sys@ codes live.
+-- and anything above @SRID_MAXIMUM@ (999999) gets remapped modulo into the range above
+-- @SRID_USER_MAXIMUM@ that PostGIS reserves for itself. @[1, 998999]@ is also where the real EPSG and
+-- @spatial_ref_sys@ codes live.
 sridGen :: QuickCheck.Gen (Maybe Int32)
 sridGen = QuickCheck.oneof [pure Nothing, Just <$> QuickCheck.choose (1, 998_999)]
 
