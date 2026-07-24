@@ -4,6 +4,7 @@ module PostgresqlTypes.Geometry
     Coord (..),
     NurbsCurve (..),
     CurveSegment (..),
+    Curve (..),
 
     -- * Accessors
     toSrid,
@@ -102,6 +103,19 @@ data Shape
     -- at compile time, the same reasoning that already led 'MultiPointShape' to store raw
     -- @['Coord']@ rather than @['Shape']@.
     CompoundCurveShape [CurveSegment]
+  | -- | Polygon whose rings may be curved: each ring is a full 'Curve' rather than a plain sequence
+    -- of coordinates.
+    --
+    -- Members are restricted to 'Curve' rather than 'Shape' for the same reason 'CompoundCurveShape'
+    -- is restricted to 'CurveSegment': a curve polygon's ring can only be a @LineString@, a
+    -- @CircularString@ or a @CompoundCurve@, never a @Polygon@ or anything else.
+    CurvePolygonShape [Curve]
+  | -- | Heterogeneous collection of curves.
+    --
+    -- Members are restricted to 'Curve' rather than 'Shape', again for the same reason as
+    -- 'CompoundCurveShape': a multi-curve's member can only be a @LineString@, a @CircularString@ or
+    -- a @CompoundCurve@, never a @Polygon@ or anything else.
+    MultiCurveShape [Curve]
   deriving stock (Eq, Ord, Show, Read)
 
 -- | Coordinate in one of the four dimensionalities PostGIS supports.
@@ -165,6 +179,19 @@ data CurveSegment
     ArcSegment [Coord]
   deriving stock (Eq, Ord, Show, Read)
 
+-- | Any curve: a single segment, or several chained end-to-end (an OGC/SQL-MM @CompoundCurve@).
+--
+-- The building block of 'CurvePolygonShape'\'s rings and 'MultiCurveShape'\'s members. Deliberately
+-- does not reuse 'Shape', for the same reason 'CurveSegment' does not: a ring or member here can
+-- only be a @LineString@, a @CircularString@ or a @CompoundCurve@, never a @Polygon@ or anything else.
+data Curve
+  = -- | Single segment, wire-compatible with 'LineStringShape' or 'CircularStringShape', depending
+    -- on the wrapped 'CurveSegment'\'s own constructor.
+    SegmentCurve CurveSegment
+  | -- | Several segments chained end to end, wire-compatible with 'CompoundCurveShape'.
+    ChainedCurve [CurveSegment]
+  deriving stock (Eq, Ord, Show, Read)
+
 instance Hashable Geometry where
   hashWithSalt salt (Geometry srid shape) =
     salt `hashWithSalt` srid `hashWithSalt` shape
@@ -184,6 +211,8 @@ instance Hashable Shape where
     NurbsCurveShape nurbsCurve -> salt `hashWithSalt` (10 :: Int) `hashWithSalt` nurbsCurve
     TinShape triangles -> salt `hashWithSalt` (11 :: Int) `hashWithSalt` triangles
     CompoundCurveShape segments -> salt `hashWithSalt` (12 :: Int) `hashWithSalt` segments
+    CurvePolygonShape curves -> salt `hashWithSalt` (13 :: Int) `hashWithSalt` curves
+    MultiCurveShape curves -> salt `hashWithSalt` (14 :: Int) `hashWithSalt` curves
 
 instance Hashable Coord where
   hashWithSalt salt = \case
@@ -200,6 +229,11 @@ instance Hashable CurveSegment where
   hashWithSalt salt = \case
     LineSegment coords -> salt `hashWithSalt` (0 :: Int) `hashWithSalt` coords
     ArcSegment coords -> salt `hashWithSalt` (1 :: Int) `hashWithSalt` coords
+
+instance Hashable Curve where
+  hashWithSalt salt = \case
+    SegmentCurve segment -> salt `hashWithSalt` (0 :: Int) `hashWithSalt` segment
+    ChainedCurve segments -> salt `hashWithSalt` (1 :: Int) `hashWithSalt` segments
 
 instance Arbitrary Geometry where
   arbitrary = do
@@ -332,10 +366,16 @@ shapeDim shape = fromMaybe XyDim <$> goShape Nothing shape
       NurbsCurveShape (NurbsCurve _ controlPoints _) -> goCoords acc (fst <$> controlPoints)
       TinShape triangles -> foldM goCoords acc triangles
       CompoundCurveShape segments -> foldM goSegment acc segments
+      CurvePolygonShape curves -> foldM goCurve acc curves
+      MultiCurveShape curves -> foldM goCurve acc curves
     goSegment :: Maybe Dim -> CurveSegment -> Maybe (Maybe Dim)
     goSegment acc = \case
       LineSegment coords -> goCoords acc coords
       ArcSegment coords -> goCoords acc coords
+    goCurve :: Maybe Dim -> Curve -> Maybe (Maybe Dim)
+    goCurve acc = \case
+      SegmentCurve segment -> goSegment acc segment
+      ChainedCurve segments -> foldM goSegment acc segments
     goCoords :: Maybe Dim -> [Coord] -> Maybe (Maybe Dim)
     goCoords = foldM goCoord
     goCoord :: Maybe Dim -> Coord -> Maybe (Maybe Dim)
@@ -362,7 +402,7 @@ data ByteOrder
     LittleEndianByteOrder
 
 -- | OGC type codes, as they appear in the low bits of the EWKB type header.
-pointTypeCode, lineStringTypeCode, polygonTypeCode, multiPointTypeCode, multiLineStringTypeCode, multiPolygonTypeCode, geometryCollectionTypeCode, circularStringTypeCode, triangleTypeCode, polyhedralSurfaceTypeCode, tinTypeCode, compoundCurveTypeCode :: Word32
+pointTypeCode, lineStringTypeCode, polygonTypeCode, multiPointTypeCode, multiLineStringTypeCode, multiPolygonTypeCode, geometryCollectionTypeCode, circularStringTypeCode, triangleTypeCode, polyhedralSurfaceTypeCode, tinTypeCode, compoundCurveTypeCode, curvePolygonTypeCode, multiCurveTypeCode :: Word32
 pointTypeCode = 1
 lineStringTypeCode = 2
 polygonTypeCode = 3
@@ -372,6 +412,8 @@ multiPolygonTypeCode = 6
 geometryCollectionTypeCode = 7
 circularStringTypeCode = 8
 compoundCurveTypeCode = 9
+curvePolygonTypeCode = 10
+multiCurveTypeCode = 11
 triangleTypeCode = 17
 polyhedralSurfaceTypeCode = 15
 tinTypeCode = 16
@@ -447,6 +489,8 @@ shapeToTypeCode = \case
   NurbsCurveShape {} -> nurbsCurveBaseTypeCode
   TinShape {} -> tinTypeCode
   CompoundCurveShape {} -> compoundCurveTypeCode
+  CurvePolygonShape {} -> curvePolygonTypeCode
+  MultiCurveShape {} -> multiCurveTypeCode
 
 -- | Name of the shape in the OGC vocabulary. Used for reporting decoding errors.
 shapeName :: Shape -> Text
@@ -464,6 +508,8 @@ shapeName = \case
   NurbsCurveShape {} -> "NurbsCurve"
   TinShape {} -> "TIN"
   CompoundCurveShape {} -> "CompoundCurve"
+  CurvePolygonShape {} -> "CurvePolygon"
+  MultiCurveShape {} -> "MultiCurve"
 
 -- * Binary encoder
 
@@ -504,6 +550,8 @@ writeShape dim = \case
   NurbsCurveShape nurbsCurve -> writeNurbsCurve nurbsCurve
   TinShape triangles -> writeCount triangles <> foldMap (writeSubGeometry . TriangleShape) triangles
   CompoundCurveShape segments -> writeCount segments <> foldMap writeSegment segments
+  CurvePolygonShape curves -> writeCount curves <> foldMap writeCurve curves
+  MultiCurveShape curves -> writeCount curves <> foldMap writeCurve curves
   where
     writeCount :: [a] -> Write.Write
     writeCount = Write.lWord32 . fromIntegral . length
@@ -515,6 +563,10 @@ writeShape dim = \case
     writeSegment = \case
       LineSegment coords -> writeSubGeometry (LineStringShape coords)
       ArcSegment coords -> writeSubGeometry (CircularStringShape coords)
+    writeCurve :: Curve -> Write.Write
+    writeCurve = \case
+      SegmentCurve segment -> writeSegment segment
+      ChainedCurve segments -> writeSubGeometry (CompoundCurveShape segments)
 
 -- | Encode the ordinates of a coordinate.
 --
@@ -662,6 +714,10 @@ readShape byteOrder dim typeCode
         LineStringShape coords -> Just (LineSegment coords)
         CircularStringShape coords -> Just (ArcSegment coords)
         _ -> Nothing
+  | typeCode == curvePolygonTypeCode =
+      CurvePolygonShape <$> readSubShapes "CurvePolygon" "LineString, CircularString or CompoundCurve" readCurveProjection
+  | typeCode == multiCurveTypeCode =
+      MultiCurveShape <$> readSubShapes "MultiCurve" "LineString, CircularString or CompoundCurve" readCurveProjection
   | otherwise =
       throwError
         ( DecodingError
@@ -696,6 +752,14 @@ readShape byteOrder dim typeCode
                   [name]
                   (UnexpectedValueDecodingErrorReason subShapeName (shapeName shape))
               )
+    -- Projection shared by 'CurvePolygonShape' and 'MultiCurveShape': both admit the same three
+    -- shapes as a ring\/member, wire-compatible with 'Curve'\'s own two constructors.
+    readCurveProjection :: Shape -> Maybe Curve
+    readCurveProjection = \case
+      LineStringShape coords -> Just (SegmentCurve (LineSegment coords))
+      CircularStringShape coords -> Just (SegmentCurve (ArcSegment coords))
+      CompoundCurveShape segments -> Just (ChainedCurve segments)
+      _ -> Nothing
 
 readCoord :: ByteOrder -> Dim -> PtrPeeker.Variable Coord
 readCoord byteOrder = \case
@@ -793,13 +857,9 @@ shapeGen dim size =
         MultiPolygonShape <$> QuickCheck.listOf (QuickCheck.listOf1 (ringCoordsGen dim)),
         PolyhedralSurfaceShape <$> QuickCheck.listOf (QuickCheck.listOf1 (ringCoordsGen dim)),
         TinShape <$> QuickCheck.listOf (QuickCheck.oneof [pure [], ringCoordsGen dim]),
-        CompoundCurveShape
-          <$> QuickCheck.listOf
-            ( QuickCheck.oneof
-                [ LineSegment <$> lineStringCoordsGen dim,
-                  ArcSegment <$> circularStringCoordsGen dim
-                ]
-            ),
+        CompoundCurveShape <$> QuickCheck.listOf (segmentGen dim),
+        CurvePolygonShape <$> QuickCheck.listOf (curveGen dim),
+        MultiCurveShape <$> QuickCheck.listOf (curveGen dim),
         GeometryCollectionShape <$> QuickCheck.resize subSize (QuickCheck.listOf (shapeGen dim subSize))
       ]
     subSize = div size 4
@@ -833,6 +893,23 @@ coordGen = \case
   XyzDim -> XyzCoord <$> arbitrary <*> arbitrary <*> arbitrary
   XymDim -> XymCoord <$> arbitrary <*> arbitrary <*> arbitrary
   XyzmDim -> XyzmCoord <$> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary
+
+-- | Generate one curve segment, matching 'CurveSegment'\'s own two constructors.
+segmentGen :: Dim -> QuickCheck.Gen CurveSegment
+segmentGen dim =
+  QuickCheck.oneof
+    [ LineSegment <$> lineStringCoordsGen dim,
+      ArcSegment <$> circularStringCoordsGen dim
+    ]
+
+-- | Generate a curve: either a single segment or several chained end to end, matching 'Curve'\'s own
+-- two constructors.
+curveGen :: Dim -> QuickCheck.Gen Curve
+curveGen dim =
+  QuickCheck.oneof
+    [ SegmentCurve <$> segmentGen dim,
+      ChainedCurve <$> QuickCheck.listOf (segmentGen dim)
+    ]
 
 -- | Shrink a shape by dropping members of its collections.
 --
@@ -869,6 +946,11 @@ shrinkShape = \case
     -- list risks breaking the odd-≥3 invariant an 'ArcSegment' requires, the same reason
     -- 'CircularStringShape' does not delegate to a plain 'shrinkMembers' either.
     CompoundCurveShape <$> shrinkMembers segments
+  CurvePolygonShape curves ->
+    -- Same reasoning as 'CompoundCurveShape': members are dropped wholesale, never shrunk internally.
+    CurvePolygonShape <$> shrinkMembers curves
+  MultiCurveShape curves ->
+    MultiCurveShape <$> shrinkMembers curves
   where
     shrinkMembers :: [a] -> [[a]]
     shrinkMembers = QuickCheck.shrinkList (const [])
