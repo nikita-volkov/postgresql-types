@@ -78,6 +78,17 @@ main =
           withType @(PostgresqlTypes.Varchar 0) [mappingSpec]
           withType @(PostgresqlTypes.Varchar 255) [mappingSpec]
 
+      -- Postgres with a pre-installed PostGIS build, whose initdb already runs
+      -- @CREATE EXTENSION postgis@ in the default database, so every connection
+      -- sees the registered @geometry@ type immediately.
+      --
+      -- This is the multi-architecture rebuild of the official @postgis/postgis@
+      -- image, which publishes amd64 only. It is what the official image's own
+      -- README points at for arm64.
+      withContainer "imresamu/postgis:17-3.5" do
+        withConnection Nothing do
+          withType @PostgresqlTypes.Geometry [mappingSpec]
+
       withContainer "postgres:14" do
         withConnection (Just 3) do
           withType @(PostgresqlTypes.Bit 1) [mappingSpec]

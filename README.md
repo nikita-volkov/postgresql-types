@@ -25,6 +25,7 @@ This package provides support for nearly all PostgreSQL data types, including:
 - **Date/time types**: Date, Time, Timestamp, Timestamptz, Timetz, Interval
 - **Network address types**: Inet, Cidr, Macaddr, Macaddr8
 - **Geometric types**: Point, Line, Lseg, Box, Path, Polygon, Circle
+- **PostGIS types**: Geometry
 - **Bit string types**: Bit, Varbit
 - **UUID type**: Uuid
 - **JSON types**: Json, Jsonb

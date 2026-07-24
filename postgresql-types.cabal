@@ -114,6 +114,7 @@ library
     PostgresqlTypes.Date
     PostgresqlTypes.Float4
     PostgresqlTypes.Float8
+    PostgresqlTypes.Geometry
     PostgresqlTypes.Hstore
     PostgresqlTypes.Inet
     PostgresqlTypes.Int2
@@ -221,6 +222,7 @@ test-suite unit-tests
     PostgresqlTypes.DateSpec
     PostgresqlTypes.Float4Spec
     PostgresqlTypes.Float8Spec
+    PostgresqlTypes.GeometrySpec
     PostgresqlTypes.HstoreSpec
     PostgresqlTypes.InetSpec
     PostgresqlTypes.Int2Spec
@@ -263,6 +265,7 @@ test-suite unit-tests
     base >=4.11 && <5,
     bytestring >=0.10 && <0.13,
     containers >=0.6 && <0.9,
+    hashable >=1.3 && <2,
     hspec >=2.11 && <3,
     postgresql-types,
     postgresql-types-algebra ^>=0.1,
