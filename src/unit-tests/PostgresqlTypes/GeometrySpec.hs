@@ -243,6 +243,48 @@ spec = do
         )
         `shouldSatisfy` isLeft
 
+    -- Fixture produced by PostGIS itself:
+    -- SELECT ST_AsEWKB(ST_SetSRID(ST_GeomFromText(
+    --   'TIN (((0 0, 1 0, 0 1, 0 0)), ((0 0, 0 1, -1 0, 0 0)))'
+    -- ), 4326));
+    let tinHex = "0110000020E6100000020000000111000000010000000400000000000000000000000000000000000000000000000000F03F00000000000000000000000000000000000000000000F03F0000000000000000000000000000000001110000000100000004000000000000000000000000000000000000000000000000000000000000000000F03F000000000000F0BF000000000000000000000000000000000000000000000000"
+        tin =
+          Geometry.refineFromShapeAndSrid
+            ( TinShape
+                [ [XyCoord 0 0, XyCoord 1 0, XyCoord 0 1, XyCoord 0 0],
+                  [XyCoord 0 0, XyCoord 0 1, XyCoord (-1) 0, XyCoord 0 0]
+                ]
+            )
+            (Just 4326)
+
+    it "decodes a TIN PostGIS produced" do
+      fmap Just (decodeHex tinHex) `shouldBe` Right tin
+
+    it "encodes a TIN the way PostGIS does" do
+      fmap encodeHex tin `shouldBe` Just (Text.toLower tinHex)
+
+    it "rejects a TIN whose member isn't a triangle" do
+      decodeHex
+        ( mconcat
+            [ "01", -- NDR
+              "10000000", -- TIN
+              "01000000", -- 1 member
+              "01", -- NDR
+              "03000000", -- Polygon, where a Triangle is required
+              "01000000", -- 1 ring
+              "04000000", -- 4 coordinates
+              "0000000000000000", -- (0, 0)
+              "0000000000000000",
+              "000000000000F03F", -- (1, 0)
+              "0000000000000000",
+              "0000000000000000", -- (0, 1)
+              "000000000000F03F",
+              "0000000000000000", -- (0, 0), closing the ring
+              "0000000000000000"
+            ]
+        )
+        `shouldSatisfy` isLeft
+
     -- Fixture derived by hand from the EWKB layout (no live PostGIS instance required for this test):
     -- a CompoundCurve made of one line segment through (0,0)-(1,1), followed by one arc segment
     -- through (1,1), (2,2), (3,0), with no SRID.
