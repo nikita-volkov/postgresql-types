@@ -24,22 +24,18 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-binary.html).
 newtype Bytea = Bytea ByteString
   deriving newtype (Eq, Ord, Hashable)
-  deriving (Show, Read, IsString) via (ViaIsScalar Bytea)
+  deriving (Show, Read, IsString) via (ViaIsPrimitive Bytea)
 
 instance Arbitrary Bytea where
   arbitrary = Bytea . ByteString.pack <$> arbitrary
   shrink (Bytea bytes) = Bytea . ByteString.pack <$> shrink (ByteString.unpack bytes)
 
-instance IsScalar Bytea where
+instance IsPrimitive Bytea where
   schemaName = Tagged Nothing
   typeName = Tagged "bytea"
   baseOid = Tagged (Just 17)
   arrayOid = Tagged (Just 1001)
   typeParams = Tagged []
-  binaryEncoder (Bytea bs) =
-    Write.byteString bs
-  binaryDecoder =
-    Right . Bytea <$> PtrPeeker.remainderAsByteString
   textualEncoder (Bytea bs) =
     "\\x" <> foldMap TextBuilder.hexadecimal (ByteString.unpack bs)
   textualDecoder = do
@@ -68,6 +64,12 @@ instance IsScalar Bytea where
         | c >= 'a' && c <= 'f' = Right (fromIntegral (ord c - ord 'a' + 10))
         | c >= 'A' && c <= 'F' = Right (fromIntegral (ord c - ord 'A' + 10))
         | otherwise = Left ("Invalid hex digit: " ++ [c])
+
+instance IsBinaryPrimitive Bytea where
+  binaryEncoder (Bytea bs) =
+    Write.byteString bs
+  binaryDecoder =
+    Right . Bytea <$> PtrPeeker.remainderAsByteString
 
 -- * Accessors
 

@@ -11,8 +11,8 @@ spec = do
   describe "Show/Read laws" do
     Scripts.testShowRead (Proxy @Lseg.Lseg)
 
-  describe "IsScalar laws" do
-    Scripts.testIsScalar (Proxy @Lseg.Lseg)
+  describe "IsPrimitive laws" do
+    Scripts.testIsPrimitive (Proxy @Lseg.Lseg)
 
   describe "Constructors" do
     describe "fromEndpoints" do

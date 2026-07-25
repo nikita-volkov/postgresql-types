@@ -12,8 +12,8 @@ spec = do
   describe "Show/Read laws" do
     Scripts.testShowRead (Proxy @Point.Point)
 
-  describe "IsScalar laws" do
-    Scripts.testIsScalar (Proxy @Point.Point)
+  describe "IsPrimitive laws" do
+    Scripts.testIsPrimitive (Proxy @Point.Point)
 
   describe "Constructors" do
     describe "fromCoordinates" do

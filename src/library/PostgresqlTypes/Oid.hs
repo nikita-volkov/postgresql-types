@@ -24,18 +24,20 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-oid.html).
 newtype Oid = Oid Word32
   deriving newtype (Eq, Ord, Hashable, Arbitrary)
-  deriving (Show, Read, IsString) via (ViaIsScalar Oid)
+  deriving (Show, Read, IsString) via (ViaIsPrimitive Oid)
 
-instance IsScalar Oid where
+instance IsPrimitive Oid where
   schemaName = Tagged Nothing
   typeName = Tagged "oid"
   baseOid = Tagged (Just 26)
   arrayOid = Tagged (Just 1028)
   typeParams = Tagged []
-  binaryEncoder (Oid x) = Write.bWord32 x
-  binaryDecoder = PtrPeeker.fixed (Right . Oid <$> PtrPeeker.beUnsignedInt4)
   textualEncoder (Oid x) = TextBuilder.decimal x
   textualDecoder = Oid <$> Attoparsec.decimal
+
+instance IsBinaryPrimitive Oid where
+  binaryEncoder (Oid x) = Write.bWord32 x
+  binaryDecoder = PtrPeeker.fixed (Right . Oid <$> PtrPeeker.beUnsignedInt4)
 
 -- * Accessors
 

@@ -15,9 +15,9 @@ spec = do
   describe "Show/Read laws" do
     Scripts.testShowRead (Proxy @(Bpchar.Bpchar 1))
 
-  describe "IsScalar laws" do
-    Scripts.testIsScalar (Proxy @(Bpchar.Bpchar 1))
-    Scripts.testIsScalar (Proxy @(Bpchar.Bpchar 42))
+  describe "IsPrimitive laws" do
+    Scripts.testIsPrimitive (Proxy @(Bpchar.Bpchar 1))
+    Scripts.testIsPrimitive (Proxy @(Bpchar.Bpchar 42))
 
   describe "Bpchar 10" do
     describe "Constructors" do

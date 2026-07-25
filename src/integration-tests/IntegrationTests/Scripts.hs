@@ -21,7 +21,7 @@ import Prelude
 
 mappingSpec ::
   forall a.
-  (HasCallStack, QuickCheck.Arbitrary a, Show a, Eq a, PostgresqlTypes.Algebra.IsScalar a) =>
+  (HasCallStack, QuickCheck.Arbitrary a, Show a, Eq a, PostgresqlTypes.Algebra.IsPrimitive a, PostgresqlTypes.Algebra.IsBinaryPrimitive a) =>
   Proxy a ->
   SpecWith Pq.Connection
 mappingSpec _ =
@@ -50,7 +50,7 @@ mappingSpec _ =
                 Just oid -> pure oid
                 Nothing -> fail $ "Array OID not found for type: " <> Text.unpack typeName
             pure (baseOid, arrayOid)
-   in describe "IsScalar" do
+   in describe "IsPrimitive" do
         describe (Text.unpack typeName) do
           describe "Encoding via textualEncoder" do
             describe "And decoding via textualDecoder" do

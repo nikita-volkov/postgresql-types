@@ -31,16 +31,14 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-money.html).
 newtype Money = Money Int64
   deriving newtype (Eq, Ord, Hashable, Arbitrary)
-  deriving (Show, Read, IsString) via (ViaIsScalar Money)
+  deriving (Show, Read, IsString) via (ViaIsPrimitive Money)
 
-instance IsScalar Money where
+instance IsPrimitive Money where
   schemaName = Tagged Nothing
   typeName = Tagged "money"
   baseOid = Tagged (Just 790)
   arrayOid = Tagged (Just 791)
   typeParams = Tagged []
-  binaryEncoder (Money x) = Write.bInt64 x
-  binaryDecoder = PtrPeeker.fixed (Right . Money <$> PtrPeeker.beSignedInt8)
   textualEncoder (Money x) =
     -- Format as currency with 2 decimal places and $ symbol
     -- PostgreSQL's money type typically displays with currency symbol
@@ -72,6 +70,10 @@ instance IsScalar Money where
     let cents = fromIntegral (digitToInt centsDigit1 * 10 + digitToInt centsDigit2) :: Int64
         value = dollars * 100 + cents
     pure (Money (if isNegative then negate value else value))
+
+instance IsBinaryPrimitive Money where
+  binaryEncoder (Money x) = Write.bInt64 x
+  binaryDecoder = PtrPeeker.fixed (Right . Money <$> PtrPeeker.beSignedInt8)
 
 -- * Accessors
 

@@ -25,7 +25,7 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-uuid.html).
 newtype Uuid = Uuid Data.UUID.UUID
   deriving newtype (Eq, Ord, Hashable)
-  deriving (Show, Read, IsString) via (ViaIsScalar Uuid)
+  deriving (Show, Read, IsString) via (ViaIsPrimitive Uuid)
 
 instance Arbitrary Uuid where
   arbitrary = Uuid <$> (Data.UUID.fromWords64 <$> arbitrary <*> arbitrary)
@@ -35,12 +35,20 @@ instance Arbitrary Uuid where
       (w1, w2) <- shrink (w1, w2)
     ]
 
-instance IsScalar Uuid where
+instance IsPrimitive Uuid where
   schemaName = Tagged Nothing
   typeName = Tagged "uuid"
   baseOid = Tagged (Just 2950)
   arrayOid = Tagged (Just 2951)
   typeParams = Tagged []
+  textualEncoder = TextBuilder.text . Data.UUID.toText . coerce
+  textualDecoder = do
+    uuidText <- Attoparsec.takeText
+    case Data.UUID.fromText uuidText of
+      Nothing -> fail "Invalid UUID format"
+      Just uuid -> pure (Uuid uuid)
+
+instance IsBinaryPrimitive Uuid where
   binaryEncoder (Uuid uuid) =
     case Data.UUID.toWords uuid of
       (w1, w2, w3, w4) ->
@@ -58,12 +66,6 @@ instance IsScalar Uuid where
               <*> PtrPeeker.beUnsignedInt4
               <*> PtrPeeker.beUnsignedInt4
           )
-  textualEncoder = TextBuilder.text . Data.UUID.toText . coerce
-  textualDecoder = do
-    uuidText <- Attoparsec.takeText
-    case Data.UUID.fromText uuidText of
-      Nothing -> fail "Invalid UUID format"
-      Just uuid -> pure (Uuid uuid)
 
 -- * Accessors
 

@@ -48,14 +48,50 @@ data Range a
   = EmptyRange
   | BoundedRange (Maybe a) (Maybe a)
   deriving stock (Eq, Functor)
-  deriving (Show, Read, IsString) via (ViaIsScalar (Range a))
+  deriving (Show, Read, IsString) via (ViaIsPrimitive (Range a))
 
-instance (IsRangeElement a) => IsScalar (Range a) where
+instance (IsRangeElement a) => IsPrimitive (Range a) where
   schemaName = Tagged Nothing
   typeName = retag (rangeTypeName @a)
   baseOid = retag (rangeBaseOid @a)
   arrayOid = retag (rangeArrayOid @a)
   typeParams = retag (typeParams @a)
+  textualEncoder = \case
+    EmptyRange -> "empty"
+    BoundedRange lowerValue upperValue ->
+      mconcat
+        [ case lowerValue of
+            Nothing -> "("
+            Just lowerValue -> "[" <> textualEncoder lowerValue,
+          ",",
+          case upperValue of
+            Nothing -> ")"
+            Just upperValue -> textualEncoder upperValue <> ")"
+        ]
+  textualDecoder =
+    parseEmpty <|> parseBounded
+    where
+      parseEmpty = EmptyRange <$ Attoparsec.string "empty"
+      parseBounded = do
+        lowerBracket <- Attoparsec.satisfy (\c -> c == '[' || c == '(')
+        Attoparsec.skipSpace
+        lowerValue <-
+          if lowerBracket == '['
+            then Just <$> parseElement
+            else pure Nothing
+        Attoparsec.skipSpace
+        _ <- Attoparsec.char ','
+        upperValue <- optional parseElement
+        _ <- Attoparsec.char ')'
+        pure (BoundedRange lowerValue upperValue)
+
+      -- Parse element that might be quoted by PostgreSQL (for extreme dates)
+      parseElement =
+        quotedElement <|> textualDecoder @a
+        where
+          quotedElement = Attoparsec.char '"' *> textualDecoder @a <* Attoparsec.char '"'
+
+instance (IsRangeElement a, IsBinaryPrimitive a) => IsBinaryPrimitive (Range a) where
   binaryEncoder = \case
     EmptyRange ->
       Write.word8 0b00000001
@@ -113,41 +149,6 @@ instance (IsRangeElement a) => IsScalar (Range a) where
               ExceptT do
                 PtrPeeker.forceSize (fromIntegral size) do
                   binaryDecoder @a
-
-  textualEncoder = \case
-    EmptyRange -> "empty"
-    BoundedRange lowerValue upperValue ->
-      mconcat
-        [ case lowerValue of
-            Nothing -> "("
-            Just lowerValue -> "[" <> textualEncoder lowerValue,
-          ",",
-          case upperValue of
-            Nothing -> ")"
-            Just upperValue -> textualEncoder upperValue <> ")"
-        ]
-  textualDecoder =
-    parseEmpty <|> parseBounded
-    where
-      parseEmpty = EmptyRange <$ Attoparsec.string "empty"
-      parseBounded = do
-        lowerBracket <- Attoparsec.satisfy (\c -> c == '[' || c == '(')
-        Attoparsec.skipSpace
-        lowerValue <-
-          if lowerBracket == '['
-            then Just <$> parseElement
-            else pure Nothing
-        Attoparsec.skipSpace
-        _ <- Attoparsec.char ','
-        upperValue <- optional parseElement
-        _ <- Attoparsec.char ')'
-        pure (BoundedRange lowerValue upperValue)
-
-      -- Parse element that might be quoted by PostgreSQL (for extreme dates)
-      parseElement =
-        quotedElement <|> textualDecoder @a
-        where
-          quotedElement = Attoparsec.char '"' *> textualDecoder @a <* Attoparsec.char '"'
 
 instance (Arbitrary a, Ord a) => Arbitrary (Range a) where
   arbitrary =

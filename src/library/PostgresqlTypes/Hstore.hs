@@ -32,7 +32,7 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/hstore.html).
 newtype Hstore = Hstore (Map.Map Text (Maybe Text))
   deriving newtype (Eq, Ord, Hashable)
-  deriving (Show, Read, IsString) via (ViaIsScalar Hstore)
+  deriving (Show, Read, IsString) via (ViaIsPrimitive Hstore)
 
 instance Arbitrary Hstore where
   arbitrary = do
@@ -77,12 +77,56 @@ instance Arbitrary Hstore where
           )
       )
 
-instance IsScalar Hstore where
+instance IsPrimitive Hstore where
   schemaName = Tagged Nothing
   typeName = Tagged "hstore"
   baseOid = Tagged Nothing
   arrayOid = Tagged Nothing
   typeParams = Tagged []
+  textualEncoder (Hstore m) =
+    if Map.null m
+      then mempty
+      else mconcat $ intersperse (TextBuilder.text ", ") $ map encodePair (Map.toList m)
+    where
+      encodePair (key, maybeValue) =
+        TextBuilder.char '"'
+          <> TextBuilder.text (escapeText key)
+          <> TextBuilder.text "\"=>"
+          <> case maybeValue of
+            Nothing -> TextBuilder.text "NULL"
+            Just value ->
+              TextBuilder.char '"'
+                <> TextBuilder.text (escapeText value)
+                <> TextBuilder.char '"'
+      escapeText = Text.concatMap escapeChar
+      escapeChar c = case c of
+        '\\' -> "\\\\"
+        '"' -> "\\\""
+        _ -> Text.singleton c
+
+  textualDecoder = do
+    pairs <- Attoparsec.sepBy pairParser (Attoparsec.string ", " <|> Attoparsec.string ",")
+    pure (Hstore (Map.fromList pairs))
+    where
+      pairParser = do
+        key <- quotedString
+        _ <- Attoparsec.string "=>"
+        value <- nullValue <|> (Just <$> quotedString)
+        pure (key, value)
+      quotedString = do
+        _ <- Attoparsec.char '"'
+        chars <- many (escapedChar <|> normalChar)
+        _ <- Attoparsec.char '"'
+        pure (Text.pack chars)
+      escapedChar = do
+        _ <- Attoparsec.char '\\'
+        Attoparsec.anyChar
+      normalChar = Attoparsec.satisfy (\c -> c /= '"' && c /= '\\')
+      nullValue = do
+        _ <- Attoparsec.string "NULL"
+        pure Nothing
+
+instance IsBinaryPrimitive Hstore where
   binaryEncoder (Hstore m) = do
     -- Binary format:
     -- 4 bytes: number of key-value pairs (int32)
@@ -141,49 +185,6 @@ instance IsScalar Hstore where
                           }
                       )
                   Right value -> pure (key, Just value)
-
-  textualEncoder (Hstore m) =
-    if Map.null m
-      then mempty
-      else mconcat $ intersperse (TextBuilder.text ", ") $ map encodePair (Map.toList m)
-    where
-      encodePair (key, maybeValue) =
-        TextBuilder.char '"'
-          <> TextBuilder.text (escapeText key)
-          <> TextBuilder.text "\"=>"
-          <> case maybeValue of
-            Nothing -> TextBuilder.text "NULL"
-            Just value ->
-              TextBuilder.char '"'
-                <> TextBuilder.text (escapeText value)
-                <> TextBuilder.char '"'
-      escapeText = Text.concatMap escapeChar
-      escapeChar c = case c of
-        '\\' -> "\\\\"
-        '"' -> "\\\""
-        _ -> Text.singleton c
-
-  textualDecoder = do
-    pairs <- Attoparsec.sepBy pairParser (Attoparsec.string ", " <|> Attoparsec.string ",")
-    pure (Hstore (Map.fromList pairs))
-    where
-      pairParser = do
-        key <- quotedString
-        _ <- Attoparsec.string "=>"
-        value <- nullValue <|> (Just <$> quotedString)
-        pure (key, value)
-      quotedString = do
-        _ <- Attoparsec.char '"'
-        chars <- many (escapedChar <|> normalChar)
-        _ <- Attoparsec.char '"'
-        pure (Text.pack chars)
-      escapedChar = do
-        _ <- Attoparsec.char '\\'
-        Attoparsec.anyChar
-      normalChar = Attoparsec.satisfy (\c -> c /= '"' && c /= '\\')
-      nullValue = do
-        _ <- Attoparsec.string "NULL"
-        pure Nothing
 
 -- * Accessors
 

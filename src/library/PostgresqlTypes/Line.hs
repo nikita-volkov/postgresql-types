@@ -37,7 +37,7 @@ data Line
       -- | C coefficient
       Double
   deriving stock (Eq, Ord)
-  deriving (Show, Read, IsString) via (ViaIsScalar Line)
+  deriving (Show, Read, IsString) via (ViaIsPrimitive Line)
 
 instance Arbitrary Line where
   arbitrary = do
@@ -61,23 +61,12 @@ instance Hashable Line where
       `hashWithSalt` castDoubleToWord64 b
       `hashWithSalt` castDoubleToWord64 c
 
-instance IsScalar Line where
+instance IsPrimitive Line where
   schemaName = Tagged Nothing
   typeName = Tagged "line"
   baseOid = Tagged (Just 628)
   arrayOid = Tagged (Just 629)
   typeParams = Tagged []
-  binaryEncoder (Line a b c) =
-    mconcat
-      [ Write.bWord64 (castDoubleToWord64 a),
-        Write.bWord64 (castDoubleToWord64 b),
-        Write.bWord64 (castDoubleToWord64 c)
-      ]
-  binaryDecoder = do
-    a <- PtrPeeker.fixed (castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
-    b <- PtrPeeker.fixed (castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
-    c <- PtrPeeker.fixed (castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
-    pure (Right (Line a b c))
   textualEncoder (Line a b c) =
     "{"
       <> TextBuilder.string (printf "%g" a)
@@ -95,6 +84,19 @@ instance IsScalar Line where
     c <- Attoparsec.double
     _ <- Attoparsec.char '}'
     pure (Line a b c)
+
+instance IsBinaryPrimitive Line where
+  binaryEncoder (Line a b c) =
+    mconcat
+      [ Write.bWord64 (castDoubleToWord64 a),
+        Write.bWord64 (castDoubleToWord64 b),
+        Write.bWord64 (castDoubleToWord64 c)
+      ]
+  binaryDecoder = do
+    a <- PtrPeeker.fixed (castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
+    b <- PtrPeeker.fixed (castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
+    c <- PtrPeeker.fixed (castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
+    pure (Right (Line a b c))
 
 -- * Accessors
 

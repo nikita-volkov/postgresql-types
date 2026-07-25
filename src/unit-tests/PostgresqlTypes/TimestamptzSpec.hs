@@ -12,8 +12,8 @@ spec = do
   describe "Show/Read laws" do
     Scripts.testShowRead (Proxy @Timestamptz.Timestamptz)
 
-  describe "IsScalar laws" do
-    Scripts.testIsScalar (Proxy @Timestamptz.Timestamptz)
+  describe "IsPrimitive laws" do
+    Scripts.testIsPrimitive (Proxy @Timestamptz.Timestamptz)
 
   describe "Constructors" do
     describe "normalizeFromUtcTime" do

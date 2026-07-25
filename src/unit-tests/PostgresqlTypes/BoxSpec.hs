@@ -12,8 +12,8 @@ spec = do
   describe "Show/Read laws" do
     Scripts.testShowRead (Proxy @Box.Box)
 
-  describe "IsScalar laws" do
-    Scripts.testIsScalar (Proxy @Box.Box)
+  describe "IsPrimitive laws" do
+    Scripts.testIsPrimitive (Proxy @Box.Box)
 
   describe "Constructors" do
     describe "normalizeFromCorners" do

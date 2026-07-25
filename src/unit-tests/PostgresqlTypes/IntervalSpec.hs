@@ -16,8 +16,8 @@ spec = do
   describe "Show/Read laws" do
     Scripts.testShowRead (Proxy @Interval.Interval)
 
-  describe "IsScalar laws" do
-    Scripts.testIsScalar (Proxy @Interval.Interval)
+  describe "IsPrimitive laws" do
+    Scripts.testIsPrimitive (Proxy @Interval.Interval)
 
   describe "Constructors" do
     describe "normalizeFromMonthsDaysAndMicroseconds" do

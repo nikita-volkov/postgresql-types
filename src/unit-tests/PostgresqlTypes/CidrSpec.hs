@@ -15,8 +15,8 @@ spec = do
   describe "Show/Read laws" do
     Scripts.testShowRead (Proxy @Cidr.Cidr)
 
-  describe "IsScalar laws" do
-    Scripts.testIsScalar (Proxy @Cidr.Cidr)
+  describe "IsPrimitive laws" do
+    Scripts.testIsPrimitive (Proxy @Cidr.Cidr)
 
   describe "IPv4 Constructors" do
     describe "normalizeFromV4" do

@@ -53,7 +53,7 @@ data Numeric (precision :: TypeLits.Nat) (scale :: TypeLits.Nat)
   | PosInfinityNumeric
   | NanNumeric
   deriving stock (Eq, Ord)
-  deriving (Show, Read, IsString) via (ViaIsScalar (Numeric precision scale))
+  deriving (Show, Read, IsString) via (ViaIsPrimitive (Numeric precision scale))
 
 instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => Arbitrary (Numeric precision scale) where
   arbitrary =
@@ -111,7 +111,7 @@ instance Hashable (Numeric precision scale) where
     PosInfinityNumeric -> salt `hashWithSalt` (2 :: Int)
     NanNumeric -> salt `hashWithSalt` (3 :: Int)
 
-instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsScalar (Numeric precision scale) where
+instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsPrimitive (Numeric precision scale) where
   schemaName = Tagged Nothing
   typeName = Tagged "numeric"
   baseOid = Tagged (Just 1700)
@@ -126,6 +126,40 @@ instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsScalar (Num
               (p, s) -> [Text.pack (show p), Text.pack (show s)] -- numeric(precision, scale)
       )
 
+  textualEncoder =
+    let prec = fromIntegral (TypeLits.natVal (Proxy @precision)) :: Int
+        sc = fromIntegral (TypeLits.natVal (Proxy @scale)) :: Int
+     in \case
+          ScientificNumeric scientific ->
+            if sc == 0 && prec /= 0
+              then TextBuilder.string (Scientific.formatScientific Scientific.Fixed (Just 0) scientific)
+              else TextBuilder.string (Scientific.formatScientific Scientific.Fixed Nothing scientific)
+          NanNumeric ->
+            "NaN"
+          NegInfinityNumeric ->
+            "-Infinity"
+          PosInfinityNumeric ->
+            "Infinity"
+
+  textualDecoder =
+    let prec = fromIntegral (TypeLits.natVal (Proxy @precision)) :: Int
+        sc = fromIntegral (TypeLits.natVal (Proxy @scale)) :: Int
+     in asum
+          [ if prec == 0 && sc == 0
+              then ScientificNumeric <$> Attoparsec.scientific
+              else do
+                scientific <- Attoparsec.scientific
+                if Scientific.validateNumericPrecisionScale prec sc scientific
+                  then pure (ScientificNumeric scientific)
+                  else fail ("Value does not satisfy the \"precision=" <> show prec <> ", scale=" <> show sc <> "\" constraints: " <> show scientific),
+            NanNumeric <$ Attoparsec.string "NaN",
+            NegInfinityNumeric <$ Attoparsec.string "-Infinity",
+            NegInfinityNumeric <$ Attoparsec.string "-inf",
+            PosInfinityNumeric <$ Attoparsec.string "Infinity",
+            PosInfinityNumeric <$ Attoparsec.string "inf"
+          ]
+
+instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsBinaryPrimitive (Numeric precision scale) where
   binaryEncoder = \case
     ScientificNumeric x ->
       mconcat
@@ -228,39 +262,6 @@ instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsScalar (Num
                               "0x0000, 0x4000, 0xC000, 0xD000, or 0xF000"
                               (Text.toUpper (TextBuilder.toText (TextBuilder.prefixedHexadecimal flag)))
                         }
-
-  textualEncoder =
-    let prec = fromIntegral (TypeLits.natVal (Proxy @precision)) :: Int
-        sc = fromIntegral (TypeLits.natVal (Proxy @scale)) :: Int
-     in \case
-          ScientificNumeric scientific ->
-            if sc == 0 && prec /= 0
-              then TextBuilder.string (Scientific.formatScientific Scientific.Fixed (Just 0) scientific)
-              else TextBuilder.string (Scientific.formatScientific Scientific.Fixed Nothing scientific)
-          NanNumeric ->
-            "NaN"
-          NegInfinityNumeric ->
-            "-Infinity"
-          PosInfinityNumeric ->
-            "Infinity"
-
-  textualDecoder =
-    let prec = fromIntegral (TypeLits.natVal (Proxy @precision)) :: Int
-        sc = fromIntegral (TypeLits.natVal (Proxy @scale)) :: Int
-     in asum
-          [ if prec == 0 && sc == 0
-              then ScientificNumeric <$> Attoparsec.scientific
-              else do
-                scientific <- Attoparsec.scientific
-                if Scientific.validateNumericPrecisionScale prec sc scientific
-                  then pure (ScientificNumeric scientific)
-                  else fail ("Value does not satisfy the \"precision=" <> show prec <> ", scale=" <> show sc <> "\" constraints: " <> show scientific),
-            NanNumeric <$ Attoparsec.string "NaN",
-            NegInfinityNumeric <$ Attoparsec.string "-Infinity",
-            NegInfinityNumeric <$ Attoparsec.string "-inf",
-            PosInfinityNumeric <$ Attoparsec.string "Infinity",
-            PosInfinityNumeric <$ Attoparsec.string "inf"
-          ]
 
 -- | Mapping to @numrange@ type.
 instance (TypeLits.KnownNat precision, TypeLits.KnownNat scale) => IsRangeElement (Numeric precision scale) where

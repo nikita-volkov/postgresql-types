@@ -31,21 +31,17 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-datetime.html#DATATYPE-TIMEZONES).
 newtype Timestamptz = Timestamptz Int64
   deriving newtype (Eq, Ord, Hashable)
-  deriving (Show, Read, IsString) via (ViaIsScalar Timestamptz)
+  deriving (Show, Read, IsString) via (ViaIsPrimitive Timestamptz)
 
 instance Arbitrary Timestamptz where
   arbitrary = Timestamptz <$> QuickCheck.choose (minMicroseconds, maxMicroseconds)
 
-instance IsScalar Timestamptz where
+instance IsPrimitive Timestamptz where
   schemaName = Tagged Nothing
   typeName = Tagged "timestamptz"
   baseOid = Tagged (Just 1184)
   arrayOid = Tagged (Just 1185)
   typeParams = Tagged []
-  binaryEncoder (Timestamptz micros) = Write.bInt64 micros
-  binaryDecoder = do
-    microseconds <- PtrPeeker.fixed PtrPeeker.beSignedInt8
-    pure (Right (Timestamptz microseconds))
   textualEncoder (toUtcTime -> utcTime) =
     formatTimestamptzForPostgreSQL utcTime
   textualDecoder = do
@@ -120,6 +116,12 @@ instance IsScalar Timestamptz where
             mi <- Attoparsec.option 0 (Attoparsec.option ':' (Attoparsec.char ':') *> twoDigits)
             pure (sign * (h * 60 + mi))
       isLeapYear yr = (yr `mod` 4 == 0 && yr `mod` 100 /= 0) || (yr `mod` 400 == 0)
+
+instance IsBinaryPrimitive Timestamptz where
+  binaryEncoder (Timestamptz micros) = Write.bInt64 micros
+  binaryDecoder = do
+    microseconds <- PtrPeeker.fixed PtrPeeker.beSignedInt8
+    pure (Right (Timestamptz microseconds))
 
 -- | Mapping to @tstzrange@ type.
 instance IsRangeElement Timestamptz where

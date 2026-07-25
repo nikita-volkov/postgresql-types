@@ -29,7 +29,7 @@ newtype Date
   = -- | Days since PostgreSQL epoch (2000-01-01).
     Date Int32
   deriving newtype (Eq, Ord, Hashable)
-  deriving (Show, Read, IsString) via (ViaIsScalar Date)
+  deriving (Show, Read, IsString) via (ViaIsPrimitive Date)
 
 -- | PostgreSQL date range: 4713 BC to 5874897 AD.
 --
@@ -59,16 +59,12 @@ instance Arbitrary Date where
         )
       ]
 
-instance IsScalar Date where
+instance IsPrimitive Date where
   schemaName = Tagged Nothing
   typeName = Tagged "date"
   baseOid = Tagged (Just 1082)
   arrayOid = Tagged (Just 1182)
   typeParams = Tagged []
-  binaryEncoder (Date days) = Write.bInt32 days
-  binaryDecoder = do
-    days <- PtrPeeker.fixed PtrPeeker.beSignedInt4
-    pure (Right (Date days))
   textualEncoder date =
     let day = toDay date
         (y, m, d) = Time.toGregorian day
@@ -128,6 +124,12 @@ instance IsScalar Date where
         b <- Attoparsec.digit
         pure (digitToInt a * 10 + digitToInt b)
       isLeapYear y = (y `mod` 4 == 0 && y `mod` 100 /= 0) || (y `mod` 400 == 0)
+
+instance IsBinaryPrimitive Date where
+  binaryEncoder (Date days) = Write.bInt32 days
+  binaryDecoder = do
+    days <- PtrPeeker.fixed PtrPeeker.beSignedInt4
+    pure (Right (Date days))
 
 -- | Mapping to @daterange@ type.
 instance IsRangeElement Date where

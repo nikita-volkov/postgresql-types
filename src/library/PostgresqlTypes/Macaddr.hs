@@ -38,7 +38,7 @@ data Macaddr
       Word8
       Word8
   deriving stock (Eq, Ord)
-  deriving (Show, Read, IsString) via (ViaIsScalar Macaddr)
+  deriving (Show, Read, IsString) via (ViaIsPrimitive Macaddr)
 
 instance Arbitrary Macaddr where
   arbitrary = do
@@ -63,33 +63,12 @@ instance Hashable Macaddr where
   hashWithSalt salt (Macaddr a b c d e f) =
     salt `hashWithSalt` a `hashWithSalt` b `hashWithSalt` c `hashWithSalt` d `hashWithSalt` e `hashWithSalt` f
 
-instance IsScalar Macaddr where
+instance IsPrimitive Macaddr where
   schemaName = Tagged Nothing
   typeName = Tagged "macaddr"
   baseOid = Tagged (Just 829)
   arrayOid = Tagged (Just 1040)
   typeParams = Tagged []
-  binaryEncoder (Macaddr a b c d e f) =
-    mconcat
-      [ Write.word8 a,
-        Write.word8 b,
-        Write.word8 c,
-        Write.word8 d,
-        Write.word8 e,
-        Write.word8 f
-      ]
-  binaryDecoder =
-    PtrPeeker.fixed
-      ( Right
-          <$> ( Macaddr
-                  <$> PtrPeeker.unsignedInt1
-                  <*> PtrPeeker.unsignedInt1
-                  <*> PtrPeeker.unsignedInt1
-                  <*> PtrPeeker.unsignedInt1
-                  <*> PtrPeeker.unsignedInt1
-                  <*> PtrPeeker.unsignedInt1
-              )
-      )
   textualEncoder (Macaddr a b c d e f) =
     (TextBuilder.intercalate ":")
       [ TextBuilder.hexadecimal a,
@@ -124,6 +103,29 @@ instance IsScalar Macaddr where
             <$> Attoparsec.satisfy (\c -> c >= 'a' && c <= 'f')
           <|> (\c -> fromIntegral (ord c - ord 'A' + 10))
             <$> Attoparsec.satisfy (\c -> c >= 'A' && c <= 'F')
+
+instance IsBinaryPrimitive Macaddr where
+  binaryEncoder (Macaddr a b c d e f) =
+    mconcat
+      [ Write.word8 a,
+        Write.word8 b,
+        Write.word8 c,
+        Write.word8 d,
+        Write.word8 e,
+        Write.word8 f
+      ]
+  binaryDecoder =
+    PtrPeeker.fixed
+      ( Right
+          <$> ( Macaddr
+                  <$> PtrPeeker.unsignedInt1
+                  <*> PtrPeeker.unsignedInt1
+                  <*> PtrPeeker.unsignedInt1
+                  <*> PtrPeeker.unsignedInt1
+                  <*> PtrPeeker.unsignedInt1
+                  <*> PtrPeeker.unsignedInt1
+              )
+      )
 
 -- * Accessors
 

@@ -1,3 +1,9 @@
+# Upcoming
+
+## Non-breaking
+
+- Upgraded to `postgresql-types-algebra` v0.2. `IsScalar` is renamed to `IsPrimitive` and no longer carries `binaryEncoder`/`binaryDecoder`; those move to the new `IsBinaryPrimitive` subclass. A type with no PostgreSQL binary wire format now simply lacks an `IsBinaryPrimitive` instance instead of the class being total. `PostgresqlTypes.Via.IsScalar` is renamed to `PostgresqlTypes.Via.IsPrimitive`, and `ViaIsScalar` to `ViaIsPrimitive`. All built-in types (including `Range`, `Multirange`, and `Varchar`) implement both classes, so this is transparent to callers who don't reference `IsScalar`/`ViaIsScalar` by name.
+
 # v0.1.4.0
 
 ## Non-breaking

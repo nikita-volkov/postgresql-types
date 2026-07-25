@@ -42,7 +42,7 @@ data Varbit (maxLen :: TypeLits.Nat)
       -- | Bit data (packed into bytes)
       ByteString
   deriving stock (Eq, Ord)
-  deriving (Show, Read, IsString) via (ViaIsScalar (Varbit maxLen))
+  deriving (Show, Read, IsString) via (ViaIsPrimitive (Varbit maxLen))
 
 instance (TypeLits.KnownNat maxLen) => Arbitrary (Varbit maxLen) where
   arbitrary = do
@@ -61,34 +61,13 @@ instance (TypeLits.KnownNat maxLen) => Arbitrary (Varbit maxLen) where
 instance Hashable (Varbit maxLen) where
   hashWithSalt salt (Varbit len bytes) = salt `hashWithSalt` len `hashWithSalt` bytes
 
-instance (TypeLits.KnownNat maxLen) => IsScalar (Varbit maxLen) where
+instance (TypeLits.KnownNat maxLen) => IsPrimitive (Varbit maxLen) where
   schemaName = Tagged Nothing
   typeName = Tagged "varbit"
   baseOid = Tagged (Just 1562)
   arrayOid = Tagged (Just 1563)
   typeParams =
     Tagged [Text.pack (show (TypeLits.natVal (Proxy @maxLen)))]
-  binaryEncoder (Varbit len bytes) =
-    Write.bInt32 len <> Write.byteString bytes
-  binaryDecoder =
-    let maxLen = fromIntegral (TypeLits.natVal (Proxy @maxLen))
-     in do
-          len <- PtrPeeker.fixed PtrPeeker.beSignedInt4
-          bytes <- PtrPeeker.remainderAsByteString
-
-          pure
-            if len <= maxLen
-              then Right (Varbit len bytes)
-              else
-                Left
-                  ( DecodingError
-                      { location = ["Varbit"],
-                        reason =
-                          UnsupportedValueDecodingErrorReason
-                            ("Varbit length " <> Text.pack (show len) <> " exceeds maximum " <> Text.pack (show maxLen))
-                            (TextBuilder.toText (TextBuilder.decimal len))
-                      }
-                  )
   textualEncoder (Varbit len bytes) =
     let bits = concatMap byteToBits (ByteString.unpack bytes)
         trimmedBits = take (fromIntegral len) bits
@@ -115,6 +94,29 @@ instance (TypeLits.KnownNat maxLen) => IsScalar (Varbit maxLen) where
       chunksOf :: Int -> [a] -> [[a]]
       chunksOf _ [] = []
       chunksOf n xs = take n xs : chunksOf n (drop n xs)
+
+instance (TypeLits.KnownNat maxLen) => IsBinaryPrimitive (Varbit maxLen) where
+  binaryEncoder (Varbit len bytes) =
+    Write.bInt32 len <> Write.byteString bytes
+  binaryDecoder =
+    let maxLen = fromIntegral (TypeLits.natVal (Proxy @maxLen))
+     in do
+          len <- PtrPeeker.fixed PtrPeeker.beSignedInt4
+          bytes <- PtrPeeker.remainderAsByteString
+
+          pure
+            if len <= maxLen
+              then Right (Varbit len bytes)
+              else
+                Left
+                  ( DecodingError
+                      { location = ["Varbit"],
+                        reason =
+                          UnsupportedValueDecodingErrorReason
+                            ("Varbit length " <> Text.pack (show len) <> " exceeds maximum " <> Text.pack (show maxLen))
+                            (TextBuilder.toText (TextBuilder.decimal len))
+                      }
+                  )
 
 -- * Accessors
 

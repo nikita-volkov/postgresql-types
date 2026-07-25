@@ -12,8 +12,8 @@ spec = do
   describe "Show/Read laws" do
     Scripts.testShowRead (Proxy @Macaddr.Macaddr)
 
-  describe "IsScalar laws" do
-    Scripts.testIsScalar (Proxy @Macaddr.Macaddr)
+  describe "IsPrimitive laws" do
+    Scripts.testIsPrimitive (Proxy @Macaddr.Macaddr)
 
   describe "Constructors" do
     describe "fromBytes" do

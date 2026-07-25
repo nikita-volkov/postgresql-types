@@ -27,7 +27,7 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-character.html).
 newtype Text = Text Text.Text
   deriving newtype (Eq, Ord, Hashable)
-  deriving (Show, Read, IsString) via (ViaIsScalar Text)
+  deriving (Show, Read, IsString) via (ViaIsPrimitive Text)
 
 instance Arbitrary Text where
   arbitrary =
@@ -38,12 +38,16 @@ instance Arbitrary Text where
   shrink (Text base) =
     Text . Text.pack <$> shrink (Text.unpack base)
 
-instance IsScalar Text where
+instance IsPrimitive Text where
   schemaName = Tagged Nothing
   typeName = Tagged "text"
   baseOid = Tagged (Just 25)
   arrayOid = Tagged (Just 1009)
   typeParams = Tagged []
+  textualEncoder (Text base) = TextBuilder.text base
+  textualDecoder = Text <$> Attoparsec.takeText
+
+instance IsBinaryPrimitive Text where
   binaryEncoder (Text base) = Write.textUtf8 base
   binaryDecoder = do
     bytes <- PtrPeeker.remainderAsByteString
@@ -61,8 +65,6 @@ instance IsScalar Text where
               )
           )
       Right base -> pure (Right (Text base))
-  textualEncoder (Text base) = TextBuilder.text base
-  textualDecoder = Text <$> Attoparsec.takeText
 
 -- * Accessors
 

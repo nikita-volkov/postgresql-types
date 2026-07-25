@@ -13,8 +13,8 @@ spec = do
   describe "Show/Read laws" do
     Scripts.testShowRead (Proxy @Bool.Bool)
 
-  describe "IsScalar laws" do
-    Scripts.testIsScalar (Proxy @Bool.Bool)
+  describe "IsPrimitive laws" do
+    Scripts.testIsPrimitive (Proxy @Bool.Bool)
 
   describe "Constructors" do
     describe "fromBool" do

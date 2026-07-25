@@ -31,21 +31,17 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-datetime.html#DATATYPE-DATETIME).
 newtype Timestamp = Timestamp Int64
   deriving newtype (Eq, Ord, Hashable)
-  deriving (Show, Read, IsString) via (ViaIsScalar Timestamp)
+  deriving (Show, Read, IsString) via (ViaIsPrimitive Timestamp)
 
 instance Arbitrary Timestamp where
   arbitrary = Timestamp <$> QuickCheck.choose (minMicroseconds, maxMicroseconds)
 
-instance IsScalar Timestamp where
+instance IsPrimitive Timestamp where
   schemaName = Tagged Nothing
   typeName = Tagged "timestamp"
   baseOid = Tagged (Just 1114)
   arrayOid = Tagged (Just 1115)
   typeParams = Tagged []
-  binaryEncoder (Timestamp micros) = Write.bInt64 micros
-  binaryDecoder = do
-    microseconds <- PtrPeeker.fixed PtrPeeker.beSignedInt8
-    pure (Right (Timestamp microseconds))
   textualEncoder (toLocalTime -> localTime) =
     formatTimestampForPostgreSQL localTime
   textualDecoder = do
@@ -109,6 +105,12 @@ instance IsScalar Timestamp where
             micros = foldl' (\acc c -> acc * 10 + digitToInt c) 0 paddedDigits
         pure micros
       isLeapYear yr = (yr `mod` 4 == 0 && yr `mod` 100 /= 0) || (yr `mod` 400 == 0)
+
+instance IsBinaryPrimitive Timestamp where
+  binaryEncoder (Timestamp micros) = Write.bInt64 micros
+  binaryDecoder = do
+    microseconds <- PtrPeeker.fixed PtrPeeker.beSignedInt8
+    pure (Right (Timestamp microseconds))
 
 -- | Mapping to @tsrange@ type.
 instance IsRangeElement Timestamp where

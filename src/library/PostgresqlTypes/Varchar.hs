@@ -30,7 +30,7 @@ import qualified TextBuilder
 -- Character strings up to this length can be represented by this type.
 newtype Varchar (maxLen :: TypeLits.Nat) = Varchar Text.Text
   deriving stock (Eq, Ord)
-  deriving (Show, Read, IsString) via (ViaIsScalar (Varchar maxLen))
+  deriving (Show, Read, IsString) via (ViaIsPrimitive (Varchar maxLen))
   deriving newtype (Hashable)
 
 instance (TypeLits.KnownNat maxLen) => Arbitrary (Varchar maxLen) where
@@ -45,13 +45,23 @@ instance (TypeLits.KnownNat maxLen) => Arbitrary (Varchar maxLen) where
         shrunk = Text.pack <$> shrink (Text.unpack base)
      in [Varchar txt | txt <- shrunk, Text.length txt <= maxLen]
 
-instance (TypeLits.KnownNat maxLen) => IsScalar (Varchar maxLen) where
+instance (TypeLits.KnownNat maxLen) => IsPrimitive (Varchar maxLen) where
   schemaName = Tagged Nothing
   typeName = Tagged "varchar"
   baseOid = Tagged (Just 1043)
   arrayOid = Tagged (Just 1015)
   typeParams =
     Tagged [Text.pack (show (TypeLits.natVal (Proxy @maxLen)))]
+  textualEncoder (Varchar base) = TextBuilder.text base
+  textualDecoder = do
+    text <- Attoparsec.takeText
+    let len = Text.length text
+        maxLen = fromIntegral (TypeLits.natVal (Proxy @maxLen))
+    if len <= maxLen
+      then pure (Varchar text)
+      else fail ("Varchar string length " <> show len <> " exceeds maximum " <> show maxLen)
+
+instance (TypeLits.KnownNat maxLen) => IsBinaryPrimitive (Varchar maxLen) where
   binaryEncoder (Varchar base) = Write.textUtf8 base
   binaryDecoder = do
     bytes <- PtrPeeker.remainderAsByteString
@@ -84,14 +94,6 @@ instance (TypeLits.KnownNat maxLen) => IsScalar (Varchar maxLen) where
                             )
                       }
                   )
-  textualEncoder (Varchar base) = TextBuilder.text base
-  textualDecoder = do
-    text <- Attoparsec.takeText
-    let len = Text.length text
-        maxLen = fromIntegral (TypeLits.natVal (Proxy @maxLen))
-    if len <= maxLen
-      then pure (Varchar text)
-      else fail ("Varchar string length " <> show len <> " exceeds maximum " <> show maxLen)
 
 -- * Accessors
 

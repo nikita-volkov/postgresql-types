@@ -13,8 +13,8 @@ spec = do
   describe "Show/Read laws" do
     Scripts.testShowRead (Proxy @Path.Path)
 
-  describe "IsScalar laws" do
-    Scripts.testIsScalar (Proxy @Path.Path)
+  describe "IsPrimitive laws" do
+    Scripts.testIsPrimitive (Proxy @Path.Path)
 
   describe "Constructors" do
     describe "refineFromPointList (open path)" do

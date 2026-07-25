@@ -13,8 +13,8 @@ spec = do
   describe "Show/Read laws" do
     Scripts.testShowRead (Proxy @Tsvector.Tsvector)
 
-  describe "IsScalar laws" do
-    Scripts.testIsScalar (Proxy @Tsvector.Tsvector)
+  describe "IsPrimitive laws" do
+    Scripts.testIsPrimitive (Proxy @Tsvector.Tsvector)
 
   describe "Constructors" do
     describe "refineFromLexemeList" do

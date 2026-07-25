@@ -15,8 +15,8 @@ spec = do
   describe "Show/Read laws" do
     Scripts.testShowRead (Proxy @(Varchar.Varchar 10))
 
-  describe "IsScalar laws" do
-    Scripts.testIsScalar (Proxy @(Varchar.Varchar 10))
+  describe "IsPrimitive laws" do
+    Scripts.testIsPrimitive (Proxy @(Varchar.Varchar 10))
 
   describe "Varchar 10" do
     describe "Constructors" do

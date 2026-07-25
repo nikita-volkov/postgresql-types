@@ -42,22 +42,19 @@ import qualified TextBuilder
 -- these are entirely different types in PostgreSQL.
 newtype Char = Char Word8
   deriving newtype (Eq, Ord, Hashable)
-  deriving (Show, Read, IsString) via (ViaIsScalar Char)
+  deriving (Show, Read, IsString) via (ViaIsPrimitive Char)
 
 instance Arbitrary Char where
   arbitrary =
     Char <$> QuickCheck.choose (0, 127)
 
-instance IsScalar Char where
+instance IsPrimitive Char where
   schemaName = Tagged Nothing
   typeName = Tagged "char"
+  typeSignature = Tagged "\"char\""
   baseOid = Tagged (Just 18)
   arrayOid = Tagged (Just 1002)
-  typeSignature = Tagged "\"char\""
-  binaryEncoder (Char base) =
-    Write.word8 base
-  binaryDecoder =
-    Right . Char <$> PtrPeeker.fixed PtrPeeker.unsignedInt1
+  typeParams = Tagged []
   textualEncoder (Char base) =
     TextBuilder.unicodeCodepoint (fromIntegral base)
   textualDecoder = do
@@ -70,6 +67,12 @@ instance IsScalar Char where
         if charOrd > 127
           then fail "Invalid char: value > 127"
           else pure (Char (fromIntegral charOrd))
+
+instance IsBinaryPrimitive Char where
+  binaryEncoder (Char base) =
+    Write.word8 base
+  binaryDecoder =
+    Right . Char <$> PtrPeeker.fixed PtrPeeker.unsignedInt1
 
 -- * Accessors
 

@@ -32,19 +32,17 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-datetime.html#DATATYPE-TIME).
 newtype Time = Time Int64
   deriving newtype (Eq, Ord, Hashable)
-  deriving (Show, Read, IsString) via (ViaIsScalar Time)
+  deriving (Show, Read, IsString) via (ViaIsPrimitive Time)
 
 instance Arbitrary Time where
   arbitrary = Time <$> QuickCheck.choose (toMicroseconds minBound, toMicroseconds maxBound)
 
-instance IsScalar Time where
+instance IsPrimitive Time where
   schemaName = Tagged Nothing
   typeName = Tagged "time"
   baseOid = Tagged (Just 1083)
   arrayOid = Tagged (Just 1183)
   typeParams = Tagged []
-  binaryEncoder (Time microseconds) = Write.bInt64 microseconds
-  binaryDecoder = PtrPeeker.fixed (Right . Time <$> PtrPeeker.beSignedInt8)
   textualEncoder (Time microseconds) =
     let diffTime = fromIntegral microseconds / 1_000_000
         timeOfDay = Time.timeToTimeOfDay diffTime
@@ -75,6 +73,10 @@ instance IsScalar Time where
         let paddedDigits = take 6 (Text.unpack digits ++ repeat '0')
             micros = foldl' (\acc c -> acc * 10 + fromIntegral (digitToInt c)) 0 paddedDigits
         pure micros
+
+instance IsBinaryPrimitive Time where
+  binaryEncoder (Time microseconds) = Write.bInt64 microseconds
+  binaryDecoder = PtrPeeker.fixed (Right . Time <$> PtrPeeker.beSignedInt8)
 
 instance Bounded Time where
   minBound = Time 0

@@ -21,8 +21,8 @@ spec = do
   describe "Show/Read laws" do
     Scripts.testShowRead (Proxy @Geometry)
 
-  describe "IsScalar laws" do
-    Scripts.testIsScalar (Proxy @Geometry)
+  describe "IsPrimitive laws" do
+    Scripts.testIsPrimitive (Proxy @Geometry)
 
   describe "Constructors" do
     describe "refineFromShape" do

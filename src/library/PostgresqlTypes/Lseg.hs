@@ -38,7 +38,7 @@ data Lseg
       -- | Y coordinate of second endpoint
       Double
   deriving stock (Eq, Ord)
-  deriving (Show, Read, IsString) via (ViaIsScalar Lseg)
+  deriving (Show, Read, IsString) via (ViaIsPrimitive Lseg)
 
 instance Arbitrary Lseg where
   arbitrary = Lseg <$> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary
@@ -53,25 +53,12 @@ instance Hashable Lseg where
       `hashWithSalt` castDoubleToWord64 x2
       `hashWithSalt` castDoubleToWord64 y2
 
-instance IsScalar Lseg where
+instance IsPrimitive Lseg where
   schemaName = Tagged Nothing
   typeName = Tagged "lseg"
   baseOid = Tagged (Just 601)
   arrayOid = Tagged (Just 1018)
   typeParams = Tagged []
-  binaryEncoder (Lseg x1 y1 x2 y2) =
-    mconcat
-      [ Write.bWord64 (castDoubleToWord64 x1),
-        Write.bWord64 (castDoubleToWord64 y1),
-        Write.bWord64 (castDoubleToWord64 x2),
-        Write.bWord64 (castDoubleToWord64 y2)
-      ]
-  binaryDecoder = do
-    x1 <- PtrPeeker.fixed (castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
-    y1 <- PtrPeeker.fixed (castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
-    x2 <- PtrPeeker.fixed (castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
-    y2 <- PtrPeeker.fixed (castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
-    pure (Right (Lseg x1 y1 x2 y2))
   textualEncoder (Lseg x1 y1 x2 y2) =
     "[("
       <> TextBuilder.string (printf "%g" x1)
@@ -98,6 +85,21 @@ instance IsScalar Lseg where
     _ <- Attoparsec.char ')'
     _ <- Attoparsec.char ']'
     pure (Lseg x1 y1 x2 y2)
+
+instance IsBinaryPrimitive Lseg where
+  binaryEncoder (Lseg x1 y1 x2 y2) =
+    mconcat
+      [ Write.bWord64 (castDoubleToWord64 x1),
+        Write.bWord64 (castDoubleToWord64 y1),
+        Write.bWord64 (castDoubleToWord64 x2),
+        Write.bWord64 (castDoubleToWord64 y2)
+      ]
+  binaryDecoder = do
+    x1 <- PtrPeeker.fixed (castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
+    y1 <- PtrPeeker.fixed (castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
+    x2 <- PtrPeeker.fixed (castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
+    y2 <- PtrPeeker.fixed (castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
+    pure (Right (Lseg x1 y1 x2 y2))
 
 -- * Accessors
 

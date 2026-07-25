@@ -24,18 +24,20 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-numeric.html#DATATYPE-INT).
 newtype Int8 = Int8 Int64
   deriving newtype (Eq, Ord, Hashable, Arbitrary)
-  deriving (Show, Read, IsString) via (ViaIsScalar Int8)
+  deriving (Show, Read, IsString) via (ViaIsPrimitive Int8)
 
-instance IsScalar Int8 where
+instance IsPrimitive Int8 where
   schemaName = Tagged Nothing
   typeName = Tagged "int8"
   baseOid = Tagged (Just 20)
   arrayOid = Tagged (Just 1016)
   typeParams = Tagged []
-  binaryEncoder (Int8 x) = Write.bInt64 x
-  binaryDecoder = PtrPeeker.fixed (Right . Int8 <$> PtrPeeker.beSignedInt8)
   textualEncoder (Int8 x) = TextBuilder.decimal x
   textualDecoder = Int8 <$> Attoparsec.signed Attoparsec.decimal
+
+instance IsBinaryPrimitive Int8 where
+  binaryEncoder (Int8 x) = Write.bInt64 x
+  binaryDecoder = PtrPeeker.fixed (Right . Int8 <$> PtrPeeker.beSignedInt8)
 
 -- | Mapping to @int8range@ type.
 instance IsRangeElement Int8 where

@@ -14,8 +14,8 @@ spec = do
   describe "Show/Read laws" do
     Scripts.testShowRead (Proxy @PgChar.Char)
 
-  describe "IsScalar laws" do
-    Scripts.testIsScalar (Proxy @PgChar.Char)
+  describe "IsPrimitive laws" do
+    Scripts.testIsPrimitive (Proxy @PgChar.Char)
 
   describe "Constructors" do
     describe "normalizeFromWord8" do

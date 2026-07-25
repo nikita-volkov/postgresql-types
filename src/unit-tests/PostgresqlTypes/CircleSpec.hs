@@ -13,8 +13,8 @@ spec = do
   describe "Show/Read laws" do
     Scripts.testShowRead (Proxy @Circle.Circle)
 
-  describe "IsScalar laws" do
-    Scripts.testIsScalar (Proxy @Circle.Circle)
+  describe "IsPrimitive laws" do
+    Scripts.testIsPrimitive (Proxy @Circle.Circle)
 
   describe "Constructors" do
     describe "normalizeFromCenterAndRadius" do

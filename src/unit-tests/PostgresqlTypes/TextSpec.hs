@@ -15,8 +15,8 @@ spec = do
   describe "Show/Read laws" do
     Scripts.testShowRead (Proxy @PgText.Text)
 
-  describe "IsScalar laws" do
-    Scripts.testIsScalar (Proxy @PgText.Text)
+  describe "IsPrimitive laws" do
+    Scripts.testIsPrimitive (Proxy @PgText.Text)
 
   describe "Constructors" do
     describe "normalizeFromText" do

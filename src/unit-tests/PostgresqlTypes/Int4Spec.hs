@@ -12,8 +12,8 @@ spec = do
   describe "Show/Read laws" do
     Scripts.testShowRead (Proxy @Int4.Int4)
 
-  describe "IsScalar laws" do
-    Scripts.testIsScalar (Proxy @Int4.Int4)
+  describe "IsPrimitive laws" do
+    Scripts.testIsPrimitive (Proxy @Int4.Int4)
 
   describe "Constructors" do
     describe "fromInt32" do

@@ -40,7 +40,7 @@ data Box
       -- | Upper-right y coordinate
       Double
   deriving stock (Eq, Ord)
-  deriving (Show, Read, IsString) via (ViaIsScalar Box)
+  deriving (Show, Read, IsString) via (ViaIsPrimitive Box)
 
 instance Arbitrary Box where
   arbitrary = do
@@ -63,25 +63,12 @@ instance Hashable Box where
       `hashWithSalt` castDoubleToWord64 x2
       `hashWithSalt` castDoubleToWord64 y2
 
-instance IsScalar Box where
+instance IsPrimitive Box where
   schemaName = Tagged Nothing
   typeName = Tagged "box"
   baseOid = Tagged (Just 603)
   arrayOid = Tagged (Just 1020)
   typeParams = Tagged []
-  binaryEncoder (Box x1 y1 x2 y2) =
-    mconcat
-      [ Write.bWord64 (castDoubleToWord64 x2),
-        Write.bWord64 (castDoubleToWord64 y2),
-        Write.bWord64 (castDoubleToWord64 x1),
-        Write.bWord64 (castDoubleToWord64 y1)
-      ]
-  binaryDecoder = do
-    x2 <- PtrPeeker.fixed (castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
-    y2 <- PtrPeeker.fixed (castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
-    x1 <- PtrPeeker.fixed (castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
-    y1 <- PtrPeeker.fixed (castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
-    pure (Right (Box x1 y1 x2 y2))
   textualEncoder (Box x1 y1 x2 y2) =
     -- PostgreSQL returns coordinates as (upper-right),(lower-left)
     -- So we output (x2,y2),(x1,y1)
@@ -98,18 +85,33 @@ instance IsScalar Box where
       ]
   textualDecoder = do
     _ <- Attoparsec.char '('
-    x1 <- Attoparsec.double
-    _ <- Attoparsec.char ','
-    y1 <- Attoparsec.double
-    _ <- Attoparsec.char ')'
-    _ <- Attoparsec.char ','
-    _ <- Attoparsec.char '('
     x2 <- Attoparsec.double
     _ <- Attoparsec.char ','
     y2 <- Attoparsec.double
     _ <- Attoparsec.char ')'
+    _ <- Attoparsec.char ','
+    _ <- Attoparsec.char '('
+    x1 <- Attoparsec.double
+    _ <- Attoparsec.char ','
+    y1 <- Attoparsec.double
+    _ <- Attoparsec.char ')'
     -- PostgreSQL may return coordinates in any order, normalize to ensure x1 <= x2 and y1 <= y2
     pure (normalizeFromCorners x1 y1 x2 y2)
+
+instance IsBinaryPrimitive Box where
+  binaryEncoder (Box x1 y1 x2 y2) =
+    mconcat
+      [ Write.bWord64 (castDoubleToWord64 x2),
+        Write.bWord64 (castDoubleToWord64 y2),
+        Write.bWord64 (castDoubleToWord64 x1),
+        Write.bWord64 (castDoubleToWord64 y1)
+      ]
+  binaryDecoder = do
+    x2 <- PtrPeeker.fixed (castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
+    y2 <- PtrPeeker.fixed (castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
+    x1 <- PtrPeeker.fixed (castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
+    y1 <- PtrPeeker.fixed (castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
+    pure (Right (Box x1 y1 x2 y2))
 
 -- * Accessors
 

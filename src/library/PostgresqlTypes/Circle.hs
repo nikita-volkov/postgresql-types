@@ -37,7 +37,7 @@ data Circle
       -- | Circle radius (must be non-negative)
       Double
   deriving stock (Eq, Ord)
-  deriving (Show, Read, IsString) via (ViaIsScalar Circle)
+  deriving (Show, Read, IsString) via (ViaIsPrimitive Circle)
 
 instance Arbitrary Circle where
   arbitrary = do
@@ -58,23 +58,12 @@ instance Hashable Circle where
       `hashWithSalt` castDoubleToWord64 y
       `hashWithSalt` castDoubleToWord64 r
 
-instance IsScalar Circle where
+instance IsPrimitive Circle where
   schemaName = Tagged Nothing
   typeName = Tagged "circle"
   baseOid = Tagged (Just 718)
   arrayOid = Tagged (Just 719)
   typeParams = Tagged []
-  binaryEncoder (Circle x y r) =
-    mconcat
-      [ Write.bWord64 (castDoubleToWord64 x),
-        Write.bWord64 (castDoubleToWord64 y),
-        Write.bWord64 (castDoubleToWord64 r)
-      ]
-  binaryDecoder = PtrPeeker.fixed do
-    x <- castWord64ToDouble <$> PtrPeeker.beUnsignedInt8
-    y <- castWord64ToDouble <$> PtrPeeker.beUnsignedInt8
-    r <- castWord64ToDouble <$> PtrPeeker.beUnsignedInt8
-    pure (Right (Circle x y r))
   textualEncoder (Circle x y r) =
     mconcat
       [ "<(",
@@ -96,6 +85,19 @@ instance IsScalar Circle where
     r <- Attoparsec.double
     _ <- Attoparsec.char '>'
     pure (Circle x y r)
+
+instance IsBinaryPrimitive Circle where
+  binaryEncoder (Circle x y r) =
+    mconcat
+      [ Write.bWord64 (castDoubleToWord64 x),
+        Write.bWord64 (castDoubleToWord64 y),
+        Write.bWord64 (castDoubleToWord64 r)
+      ]
+  binaryDecoder = PtrPeeker.fixed do
+    x <- castWord64ToDouble <$> PtrPeeker.beUnsignedInt8
+    y <- castWord64ToDouble <$> PtrPeeker.beUnsignedInt8
+    r <- castWord64ToDouble <$> PtrPeeker.beUnsignedInt8
+    pure (Right (Circle x y r))
 
 -- * Accessors
 

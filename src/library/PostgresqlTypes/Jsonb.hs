@@ -33,18 +33,27 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-json.html).
 newtype Jsonb = Jsonb Aeson.Value
   deriving newtype (Eq, Ord, Hashable)
-  deriving (Show, Read, IsString) via (ViaIsScalar Jsonb)
+  deriving (Show, Read, IsString) via (ViaIsPrimitive Jsonb)
 
 instance Arbitrary Jsonb where
   arbitrary = normalizeFromAesonValue <$> arbitrary
   shrink = fmap Jsonb . shrink . toAesonValue
 
-instance IsScalar Jsonb where
+instance IsPrimitive Jsonb where
   schemaName = Tagged Nothing
   typeName = Tagged "jsonb"
   baseOid = Tagged (Just 3802)
   arrayOid = Tagged (Just 3807)
   typeParams = Tagged []
+  textualEncoder =
+    TextBuilder.lazyText . Aeson.Text.encodeToLazyText . toAesonValue
+  textualDecoder = do
+    jsonText <- Attoparsec.takeText
+    case Aeson.eitherDecodeStrict (Text.Encoding.encodeUtf8 jsonText) of
+      Left err -> fail err
+      Right value -> pure (Jsonb value)
+
+instance IsBinaryPrimitive Jsonb where
   binaryEncoder =
     mappend (Write.word8 1) . Jsonifier.toWrite . JsonifierAeson.aesonValue . toAesonValue
   binaryDecoder = do
@@ -78,13 +87,6 @@ instance IsScalar Jsonb where
                   }
               )
           )
-  textualEncoder =
-    TextBuilder.lazyText . Aeson.Text.encodeToLazyText . toAesonValue
-  textualDecoder = do
-    jsonText <- Attoparsec.takeText
-    case Aeson.eitherDecodeStrict (Text.Encoding.encodeUtf8 jsonText) of
-      Left err -> fail err
-      Right value -> pure (Jsonb value)
 
 -- * Accessors
 

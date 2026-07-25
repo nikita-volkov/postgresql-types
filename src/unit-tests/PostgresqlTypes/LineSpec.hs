@@ -13,8 +13,8 @@ spec = do
   describe "Show/Read laws" do
     Scripts.testShowRead (Proxy @Line.Line)
 
-  describe "IsScalar laws" do
-    Scripts.testIsScalar (Proxy @Line.Line)
+  describe "IsPrimitive laws" do
+    Scripts.testIsPrimitive (Proxy @Line.Line)
 
   describe "Constructors" do
     describe "normalizeFromEquation" do

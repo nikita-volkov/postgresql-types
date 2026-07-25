@@ -32,7 +32,7 @@ data Point
       -- | Y coordinate
       Double
   deriving stock (Eq, Ord)
-  deriving (Show, Read, IsString) via (ViaIsScalar Point)
+  deriving (Show, Read, IsString) via (ViaIsPrimitive Point)
 
 instance Arbitrary Point where
   arbitrary = Point <$> arbitrary <*> arbitrary
@@ -42,21 +42,12 @@ instance Hashable Point where
   hashWithSalt salt (Point x y) =
     salt `hashWithSalt` castDoubleToWord64 x `hashWithSalt` castDoubleToWord64 y
 
-instance IsScalar Point where
+instance IsPrimitive Point where
   schemaName = Tagged Nothing
   typeName = Tagged "point"
   baseOid = Tagged (Just 600)
   arrayOid = Tagged (Just 1017)
   typeParams = Tagged []
-  binaryEncoder (Point x y) =
-    mconcat
-      [ Write.bWord64 (castDoubleToWord64 x),
-        Write.bWord64 (castDoubleToWord64 y)
-      ]
-  binaryDecoder = do
-    x <- PtrPeeker.fixed (castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
-    y <- PtrPeeker.fixed (castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
-    pure (Right (Point x y))
   textualEncoder (Point x y) =
     "(" <> TextBuilder.string (printf "%g" x) <> "," <> TextBuilder.string (printf "%g" y) <> ")"
   textualDecoder = do
@@ -66,6 +57,17 @@ instance IsScalar Point where
     y <- Attoparsec.double
     _ <- Attoparsec.char ')'
     pure (Point x y)
+
+instance IsBinaryPrimitive Point where
+  binaryEncoder (Point x y) =
+    mconcat
+      [ Write.bWord64 (castDoubleToWord64 x),
+        Write.bWord64 (castDoubleToWord64 y)
+      ]
+  binaryDecoder = do
+    x <- PtrPeeker.fixed (castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
+    y <- PtrPeeker.fixed (castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
+    pure (Right (Point x y))
 
 -- * Accessors
 

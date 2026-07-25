@@ -13,8 +13,8 @@ spec = do
   describe "Show/Read laws" do
     Scripts.testShowRead (Proxy @Polygon.Polygon)
 
-  describe "IsScalar laws" do
-    Scripts.testIsScalar (Proxy @Polygon.Polygon)
+  describe "IsPrimitive laws" do
+    Scripts.testIsPrimitive (Proxy @Polygon.Polygon)
 
   describe "Constructors" do
     describe "refineFromPointList" do

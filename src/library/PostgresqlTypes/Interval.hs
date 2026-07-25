@@ -47,7 +47,7 @@ data Interval
       -- | Microseconds.
       Int64
   deriving stock (Eq, Ord)
-  deriving (Show, Read, IsString) via (ViaIsScalar Interval)
+  deriving (Show, Read, IsString) via (ViaIsPrimitive Interval)
 
 instance Bounded Interval where
   minBound = Interval (-178000000 * 12) 0 0
@@ -64,19 +64,12 @@ instance Hashable Interval where
   hashWithSalt salt (Interval months days micros) =
     salt `hashWithSalt` months `hashWithSalt` days `hashWithSalt` micros
 
-instance IsScalar Interval where
+instance IsPrimitive Interval where
   schemaName = Tagged Nothing
   typeName = Tagged "interval"
   baseOid = Tagged (Just 1186)
   arrayOid = Tagged (Just 1187)
   typeParams = Tagged []
-  binaryEncoder (Interval months days micros) =
-    mconcat [Write.bInt64 micros, Write.bInt32 days, Write.bInt32 months]
-  binaryDecoder = PtrPeeker.fixed do
-    micros <- PtrPeeker.beSignedInt8
-    days <- PtrPeeker.beSignedInt4
-    months <- PtrPeeker.beSignedInt4
-    pure (Right (Interval months days micros))
 
   -- Renders in "format with designators" of ISO-8601 as per [the Postgres documentation](https://www.postgresql.org/docs/current/datatype-datetime.html#DATATYPE-INTERVAL-INPUT).
   --
@@ -281,6 +274,15 @@ instance IsScalar Interval where
                   'S' -> parseTimePart hours mins (secs + (sign * n)) micros
                   _ -> fail "Unexpected time designator"
           _ -> pure (hours, mins, secs, micros)
+
+instance IsBinaryPrimitive Interval where
+  binaryEncoder (Interval months days micros) =
+    mconcat [Write.bInt64 micros, Write.bInt32 days, Write.bInt32 months]
+  binaryDecoder = PtrPeeker.fixed do
+    micros <- PtrPeeker.beSignedInt8
+    days <- PtrPeeker.beSignedInt4
+    months <- PtrPeeker.beSignedInt4
+    pure (Right (Interval months days micros))
 
 -- * Accessors
 

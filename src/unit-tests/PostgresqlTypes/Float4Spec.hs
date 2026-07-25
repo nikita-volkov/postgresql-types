@@ -12,8 +12,8 @@ spec = do
   describe "Show/Read laws" do
     Scripts.testShowRead (Proxy @Float4.Float4)
 
-  describe "IsScalar laws" do
-    Scripts.testIsScalar (Proxy @Float4.Float4)
+  describe "IsPrimitive laws" do
+    Scripts.testIsPrimitive (Proxy @Float4.Float4)
 
   describe "Constructors" do
     describe "fromFloat" do

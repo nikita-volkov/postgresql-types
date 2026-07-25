@@ -13,8 +13,8 @@ spec = do
   describe "Show/Read laws" do
     Scripts.testShowRead (Proxy @(Multirange.Multirange Int4.Int4))
 
-  describe "IsScalar laws" do
-    Scripts.testIsScalar (Proxy @(Multirange.Multirange Int4.Int4))
+  describe "IsPrimitive laws" do
+    Scripts.testIsPrimitive (Proxy @(Multirange.Multirange Int4.Int4))
 
   describe "Multirange Int4" do
     it "has Eq instance" do

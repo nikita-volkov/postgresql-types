@@ -22,25 +22,27 @@ import qualified PtrPoker.Write as Write
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-boolean.html).
 newtype Bool = Bool Data.Bool.Bool
   deriving newtype (Eq, Ord, Hashable, Arbitrary)
-  deriving (Show, Read, IsString) via (ViaIsScalar Bool)
+  deriving (Show, Read, IsString) via (ViaIsPrimitive Bool)
 
-instance IsScalar Bool where
+instance IsPrimitive Bool where
   schemaName = Tagged Nothing
   typeName = Tagged "bool"
   baseOid = Tagged (Just 16)
   arrayOid = Tagged (Just 1000)
   typeParams = Tagged []
-  binaryEncoder (Bool b) = Write.word8 (if b then 1 else 0)
-  binaryDecoder =
-    PtrPeeker.fixed do
-      b <- PtrPeeker.unsignedInt1
-      pure (Right (Bool (b /= 0)))
   textualEncoder (Bool b) = if b then "t" else "f"
   textualDecoder =
     (Bool True <$ Attoparsec.char 't')
       <|> (Bool False <$ Attoparsec.char 'f')
       <|> (Bool True <$ Attoparsec.string "true")
       <|> (Bool False <$ Attoparsec.string "false")
+
+instance IsBinaryPrimitive Bool where
+  binaryEncoder (Bool b) = Write.word8 (if b then 1 else 0)
+  binaryDecoder =
+    PtrPeeker.fixed do
+      b <- PtrPeeker.unsignedInt1
+      pure (Right (Bool (b /= 0)))
 
 -- * Accessors
 

@@ -44,7 +44,7 @@ import qualified TextBuilder
 -- 'PostgresqlTypes.Char.Char' in Haskell. These are completely different types in PostgreSQL.
 newtype Bpchar (numChars :: TypeLits.Nat) = Bpchar Text
   deriving stock (Eq, Ord)
-  deriving (Show, Read, IsString) via (ViaIsScalar (Bpchar numChars))
+  deriving (Show, Read, IsString) via (ViaIsPrimitive (Bpchar numChars))
   deriving newtype (Hashable)
 
 instance (TypeLits.KnownNat numChars) => Arbitrary (Bpchar numChars) where
@@ -56,7 +56,7 @@ instance (TypeLits.KnownNat numChars) => Arbitrary (Bpchar numChars) where
       Nothing -> error "Arbitrary Bpchar: Generated string has incorrect length"
       Just char -> pure char
 
-instance (TypeLits.KnownNat numChars) => IsScalar (Bpchar numChars) where
+instance (TypeLits.KnownNat numChars) => IsPrimitive (Bpchar numChars) where
   schemaName = Tagged Nothing
   typeName = Tagged "bpchar"
   baseOid = Tagged (Just 1042)
@@ -69,6 +69,16 @@ instance (TypeLits.KnownNat numChars) => IsScalar (Bpchar numChars) where
               then [] -- PostgreSQL often displays bpchar(1) / char(1) as just "char" (no length modifier)
               else [Text.pack (show len)] -- bpchar(n)
       )
+  textualEncoder (Bpchar txt) = TextBuilder.text txt
+  textualDecoder = do
+    txt <- Attoparsec.takeText
+    let len = Text.length txt
+        expectedLen = fromIntegral (TypeLits.natVal (Proxy @numChars))
+    if len <= expectedLen
+      then pure (Bpchar txt)
+      else fail ("Bpchar string length " <> show len <> " exceeds maximum " <> show expectedLen)
+
+instance (TypeLits.KnownNat numChars) => IsBinaryPrimitive (Bpchar numChars) where
   binaryEncoder (Bpchar txt) =
     -- PostgreSQL bpchar(n) is stored blank-padded to exactly n characters
     let expectedLen = fromIntegral (TypeLits.natVal (Proxy @numChars))
@@ -101,26 +111,6 @@ instance (TypeLits.KnownNat numChars) => IsScalar (Bpchar numChars) where
                 then Text.take expectedLen txt
                 else txt <> Text.replicate (expectedLen - len) " "
          in Right (Bpchar paddedTxt)
-  textualEncoder (Bpchar txt) =
-    -- PostgreSQL bpchar(n) is stored blank-padded to exactly n characters
-    let expectedLen = fromIntegral (TypeLits.natVal (Proxy @numChars))
-        len = Text.length txt
-        paddedTxt =
-          if len >= expectedLen
-            then Text.take expectedLen txt
-            else txt <> Text.replicate (expectedLen - len) " "
-     in TextBuilder.text paddedTxt
-  textualDecoder = do
-    txt <- Attoparsec.takeText
-    let len = Text.length txt
-        expectedLen = fromIntegral (TypeLits.natVal (Proxy @numChars))
-        -- PostgreSQL bpchar(n) may return values with trailing spaces trimmed.
-        -- We need to pad them back to the expected length.
-        paddedTxt =
-          if len >= expectedLen
-            then Text.take expectedLen txt
-            else txt <> Text.replicate (expectedLen - len) " "
-    pure (Bpchar paddedTxt)
 
 -- * Accessors
 

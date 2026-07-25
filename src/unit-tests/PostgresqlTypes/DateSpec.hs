@@ -15,8 +15,8 @@ spec = do
   describe "Show/Read laws" do
     Scripts.testShowRead (Proxy @Date.Date)
 
-  describe "IsScalar laws" do
-    Scripts.testIsScalar (Proxy @Date.Date)
+  describe "IsPrimitive laws" do
+    Scripts.testIsPrimitive (Proxy @Date.Date)
 
   describe "Constructors" do
     describe "normalizeFromDay" do

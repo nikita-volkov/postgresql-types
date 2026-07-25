@@ -62,7 +62,7 @@ data Geometry
       -- | Shape.
       Shape
   deriving stock (Eq, Ord)
-  deriving (Show, Read, IsString) via (ViaIsScalar Geometry)
+  deriving (Show, Read, IsString) via (ViaIsPrimitive Geometry)
 
 -- | One of the sixteen OGC\/ISO geometry kinds that a 'Geometry' can hold — PostGIS's complete @LWTYPE@
 -- vocabulary, from the seven basic OGC shapes through the ISO\/SQL-MM curve, surface and TIN extensions.
@@ -281,32 +281,12 @@ instance Arbitrary Geometry where
         mapMaybe (refineFromShapeAndSrid shape) (shrinkSrid srid)
       ]
 
-instance IsScalar Geometry where
+instance IsPrimitive Geometry where
   schemaName = Tagged Nothing
   typeName = Tagged "geometry"
   baseOid = Tagged Nothing
   arrayOid = Tagged Nothing
   typeParams = Tagged []
-
-  binaryEncoder (Geometry srid shape) =
-    -- 'Geometry' is only constructible via 'refineFromShapeAndSrid' and
-    -- 'binaryDecoder', both of which reject shape trees whose coordinates
-    -- disagree on dimensionality, so 'shapeDim' cannot fail here.
-    writeGeometry srid (fromMaybe XyDim (shapeDim shape)) shape
-
-  binaryDecoder = runExceptT do
-    (srid, shape) <- readGeometry
-    case refineFromShapeAndSrid shape srid of
-      Just geometry -> pure geometry
-      Nothing ->
-        throwError
-          ( DecodingError
-              ["geometry"]
-              ( UnsupportedValueDecodingErrorReason
-                  "All coordinates of a geometry must share the same dimensionality"
-                  (shapeName shape)
-              )
-          )
 
   textualEncoder geometry =
     foldMap TextBuilder.hexadecimal (ByteString.unpack (Write.toByteString (binaryEncoder geometry)))
@@ -342,6 +322,27 @@ instance IsScalar Geometry where
         | c >= 'a' && c <= 'f' = Right (fromIntegral (ord c - ord 'a' + 10))
         | c >= 'A' && c <= 'F' = Right (fromIntegral (ord c - ord 'A' + 10))
         | otherwise = Left ("Invalid hexadecimal digit: " <> [c])
+
+instance IsBinaryPrimitive Geometry where
+  binaryEncoder (Geometry srid shape) =
+    -- 'Geometry' is only constructible via 'refineFromShapeAndSrid' and
+    -- 'binaryDecoder', both of which reject shape trees whose coordinates
+    -- disagree on dimensionality, so 'shapeDim' cannot fail here.
+    writeGeometry srid (fromMaybe XyDim (shapeDim shape)) shape
+
+  binaryDecoder = runExceptT do
+    (srid, shape) <- readGeometry
+    case refineFromShapeAndSrid shape srid of
+      Just geometry -> pure geometry
+      Nothing ->
+        throwError
+          ( DecodingError
+              ["geometry"]
+              ( UnsupportedValueDecodingErrorReason
+                  "All coordinates of a geometry must share the same dimensionality"
+                  (shapeName shape)
+              )
+          )
 
 -- * Accessors
 

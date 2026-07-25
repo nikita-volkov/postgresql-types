@@ -12,8 +12,8 @@ spec = do
   describe "Show/Read laws" do
     Scripts.testShowRead (Proxy @Oid.Oid)
 
-  describe "IsScalar laws" do
-    Scripts.testIsScalar (Proxy @Oid.Oid)
+  describe "IsPrimitive laws" do
+    Scripts.testIsPrimitive (Proxy @Oid.Oid)
 
   describe "Constructors" do
     describe "fromWord32" do

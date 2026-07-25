@@ -46,7 +46,7 @@ instance Hashable Weight where
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-textsearch.html).
 data Tsvector = Tsvector (Vector (Text, Vector (Word16, Weight)))
   deriving stock (Eq, Ord)
-  deriving (Show, Read, IsString) via (ViaIsScalar Tsvector)
+  deriving (Show, Read, IsString) via (ViaIsPrimitive Tsvector)
 
 instance Hashable Tsvector where
   hashWithSalt salt (Tsvector lexemes) =
@@ -100,13 +100,87 @@ sortAndDedupPositions =
     . List.groupBy (\a b -> fst a == fst b)
     . List.sortOn fst
 
-instance IsScalar Tsvector where
+instance IsPrimitive Tsvector where
   schemaName = Tagged Nothing
   typeName = Tagged "tsvector"
   baseOid = Tagged (Just 3614)
   arrayOid = Tagged (Just 3643)
   typeParams = Tagged []
 
+  -- Text format: 'lexeme1':1A,2B 'lexeme2':3C
+  -- Single quotes are escaped as '', backslashes as \\
+  textualEncoder (Tsvector lexemes) =
+    TextBuilder.intercalateMap " " encodeLexeme (Vector.toList lexemes)
+    where
+      encodeLexeme (token, positions) =
+        TextBuilder.char '\''
+          <> TextBuilder.text (escapeToken token)
+          <> TextBuilder.char '\''
+          <> if Vector.null positions
+            then mempty
+            else TextBuilder.char ':' <> TextBuilder.intercalateMap "," encodePosition (Vector.toList positions)
+      encodePosition (pos, weight) =
+        TextBuilder.string (show pos)
+          <> case weight of
+            AWeight -> TextBuilder.char 'A'
+            BWeight -> TextBuilder.char 'B'
+            CWeight -> TextBuilder.char 'C'
+            DWeight -> mempty -- D is default, omitted by PostgreSQL
+      escapeToken = Text.concatMap escapeChar
+      escapeChar c = case c of
+        '\'' -> "''"
+        '\\' -> "\\\\"
+        _ -> Text.singleton c
+
+  textualDecoder = do
+    -- Allow and ignore leading whitespace before the first lexeme
+    Attoparsec.skipSpace
+    lexemes <- lexemeParser `Attoparsec.sepBy` space1
+    -- Allow and ignore trailing whitespace after the last lexeme
+    Attoparsec.skipSpace
+    -- Sort and deduplicate to match PostgreSQL's canonical form
+    let Tsvector normalized = normalizeLexemes (map (\(t, ps) -> (t, Vector.fromList ps)) lexemes)
+    pure (Tsvector normalized)
+    where
+      -- Consume one or more space / tab / newline characters between lexemes
+      space1 = do
+        _ <- Attoparsec.takeWhile1 (\c -> c == ' ' || c == '\t' || c == '\n')
+        pure ()
+      lexemeParser = do
+        _ <- Attoparsec.char '\''
+        token <- parseToken
+        _ <- Attoparsec.char '\''
+        positions <- parsePositions <|> pure []
+        pure (token, positions)
+      parseToken = do
+        chars <- many (escapedQuote <|> escapedBackslash <|> normalChar)
+        pure (Text.pack chars)
+      escapedQuote = do
+        _ <- Attoparsec.string "''"
+        pure '\''
+      escapedBackslash = do
+        _ <- Attoparsec.string "\\\\"
+        pure '\\'
+      normalChar = Attoparsec.satisfy (\c -> c /= '\'' && c /= '\\')
+      parsePositions = do
+        _ <- Attoparsec.char ':'
+        parsePosition `Attoparsec.sepBy1` Attoparsec.char ','
+      parsePosition = do
+        pos <- Attoparsec.decimal @Integer
+        when (pos < 1 || pos > 16383) do
+          fail ("tsvector position out of range 1..16383: " <> show pos)
+        let pos' = fromIntegral pos :: Word16
+        weight <-
+          asum
+            [ Attoparsec.char 'A' $> AWeight,
+              Attoparsec.char 'B' $> BWeight,
+              Attoparsec.char 'C' $> CWeight,
+              Attoparsec.char 'D' $> DWeight,
+              pure DWeight
+            ]
+        pure (pos', weight)
+
+instance IsBinaryPrimitive Tsvector where
   -- Binary format:
   -- 4 bytes: number of lexemes (int32)
   -- Per lexeme:
@@ -186,79 +260,6 @@ instance IsScalar Tsvector where
                     let pos = posWord .&. 0x3FFF
                     pure (pos, weight)
                 pure (token, positions)
-
-  -- Text format: 'lexeme1':1A,2B 'lexeme2':3C
-  -- Single quotes are escaped as '', backslashes as \\
-  textualEncoder (Tsvector lexemes) =
-    TextBuilder.intercalateMap " " encodeLexeme (Vector.toList lexemes)
-    where
-      encodeLexeme (token, positions) =
-        TextBuilder.char '\''
-          <> TextBuilder.text (escapeToken token)
-          <> TextBuilder.char '\''
-          <> if Vector.null positions
-            then mempty
-            else TextBuilder.char ':' <> TextBuilder.intercalateMap "," encodePosition (Vector.toList positions)
-      encodePosition (pos, weight) =
-        TextBuilder.string (show pos)
-          <> case weight of
-            AWeight -> TextBuilder.char 'A'
-            BWeight -> TextBuilder.char 'B'
-            CWeight -> TextBuilder.char 'C'
-            DWeight -> mempty -- D is default, omitted by PostgreSQL
-      escapeToken = Text.concatMap escapeChar
-      escapeChar c = case c of
-        '\'' -> "''"
-        '\\' -> "\\\\"
-        _ -> Text.singleton c
-
-  textualDecoder = do
-    -- Allow and ignore leading whitespace before the first lexeme
-    Attoparsec.skipSpace
-    lexemes <- lexemeParser `Attoparsec.sepBy` space1
-    -- Allow and ignore trailing whitespace after the last lexeme
-    Attoparsec.skipSpace
-    -- Sort and deduplicate to match PostgreSQL's canonical form
-    let Tsvector normalized = normalizeLexemes (map (\(t, ps) -> (t, Vector.fromList ps)) lexemes)
-    pure (Tsvector normalized)
-    where
-      -- Consume one or more space / tab / newline characters between lexemes
-      space1 = do
-        _ <- Attoparsec.takeWhile1 (\c -> c == ' ' || c == '\t' || c == '\n')
-        pure ()
-      lexemeParser = do
-        _ <- Attoparsec.char '\''
-        token <- parseToken
-        _ <- Attoparsec.char '\''
-        positions <- parsePositions <|> pure []
-        pure (token, positions)
-      parseToken = do
-        chars <- many (escapedQuote <|> escapedBackslash <|> normalChar)
-        pure (Text.pack chars)
-      escapedQuote = do
-        _ <- Attoparsec.string "''"
-        pure '\''
-      escapedBackslash = do
-        _ <- Attoparsec.string "\\\\"
-        pure '\\'
-      normalChar = Attoparsec.satisfy (\c -> c /= '\'' && c /= '\\')
-      parsePositions = do
-        _ <- Attoparsec.char ':'
-        parsePosition `Attoparsec.sepBy1` Attoparsec.char ','
-      parsePosition = do
-        pos <- Attoparsec.decimal @Integer
-        when (pos < 1 || pos > 16383) do
-          fail ("tsvector position out of range 1..16383: " <> show pos)
-        let pos' = fromIntegral pos :: Word16
-        weight <-
-          asum
-            [ Attoparsec.char 'A' $> AWeight,
-              Attoparsec.char 'B' $> BWeight,
-              Attoparsec.char 'C' $> CWeight,
-              Attoparsec.char 'D' $> DWeight,
-              pure DWeight
-            ]
-        pure (pos', weight)
 
 -- * Accessors
 

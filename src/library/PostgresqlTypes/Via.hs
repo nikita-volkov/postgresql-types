@@ -1,6 +1,6 @@
 module PostgresqlTypes.Via
-  ( module PostgresqlTypes.Via.IsScalar,
+  ( module PostgresqlTypes.Via.IsPrimitive,
   )
 where
 
-import PostgresqlTypes.Via.IsScalar
+import PostgresqlTypes.Via.IsPrimitive

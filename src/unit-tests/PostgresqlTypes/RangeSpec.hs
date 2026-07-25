@@ -13,8 +13,8 @@ spec = do
   describe "Show/Read laws" do
     Scripts.testShowRead (Proxy @(Range.Range Int4.Int4))
 
-  describe "IsScalar laws" do
-    Scripts.testIsScalar (Proxy @(Range.Range Int4.Int4))
+  describe "IsPrimitive laws" do
+    Scripts.testIsPrimitive (Proxy @(Range.Range Int4.Int4))
 
   describe "Range Int4" do
     it "has Eq instance" do

@@ -24,18 +24,20 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-numeric.html#DATATYPE-INT).
 newtype Int2 = Int2 Int16
   deriving newtype (Eq, Ord, Hashable, Arbitrary)
-  deriving (Show, Read, IsString) via (ViaIsScalar Int2)
+  deriving (Show, Read, IsString) via (ViaIsPrimitive Int2)
 
-instance IsScalar Int2 where
+instance IsPrimitive Int2 where
   schemaName = Tagged Nothing
   typeName = Tagged "int2"
   baseOid = Tagged (Just 21)
   arrayOid = Tagged (Just 1005)
   typeParams = Tagged []
-  binaryEncoder (Int2 x) = Write.bInt16 x
-  binaryDecoder = PtrPeeker.fixed (Right . Int2 <$> PtrPeeker.beSignedInt2)
   textualEncoder (Int2 x) = TextBuilder.decimal x
   textualDecoder = Int2 <$> Attoparsec.signed Attoparsec.decimal
+
+instance IsBinaryPrimitive Int2 where
+  binaryEncoder (Int2 x) = Write.bInt16 x
+  binaryDecoder = PtrPeeker.fixed (Right . Int2 <$> PtrPeeker.beSignedInt2)
 
 -- * Accessors
 

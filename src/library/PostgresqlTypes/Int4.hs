@@ -24,18 +24,20 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-numeric.html#DATATYPE-INT).
 newtype Int4 = Int4 Int32
   deriving newtype (Eq, Ord, Hashable, Arbitrary, Enum, Bounded)
-  deriving (Show, Read, IsString) via (ViaIsScalar Int4)
+  deriving (Show, Read, IsString) via (ViaIsPrimitive Int4)
 
-instance IsScalar Int4 where
+instance IsPrimitive Int4 where
   schemaName = Tagged Nothing
   typeName = Tagged "int4"
   baseOid = Tagged (Just 23)
   arrayOid = Tagged (Just 1007)
   typeParams = Tagged []
-  binaryEncoder (Int4 x) = Write.bInt32 x
-  binaryDecoder = PtrPeeker.fixed (Right . Int4 <$> PtrPeeker.beSignedInt4)
   textualEncoder (Int4 x) = TextBuilder.decimal x
   textualDecoder = Int4 <$> Attoparsec.signed Attoparsec.decimal
+
+instance IsBinaryPrimitive Int4 where
+  binaryEncoder (Int4 x) = Write.bInt32 x
+  binaryDecoder = PtrPeeker.fixed (Right . Int4 <$> PtrPeeker.beSignedInt4)
 
 -- | Mapping to @int4range@ type.
 instance IsRangeElement Int4 where

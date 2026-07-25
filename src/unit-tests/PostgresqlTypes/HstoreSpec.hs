@@ -13,8 +13,8 @@ spec = do
   describe "Show/Read laws" do
     Scripts.testShowRead (Proxy @Hstore.Hstore)
 
-  describe "IsScalar laws" do
-    Scripts.testIsScalar (Proxy @Hstore.Hstore)
+  describe "IsPrimitive laws" do
+    Scripts.testIsPrimitive (Proxy @Hstore.Hstore)
 
   describe "Constructors" do
     describe "normalizeFromMap" do

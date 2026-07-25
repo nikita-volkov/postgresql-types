@@ -16,10 +16,10 @@ spec = do
     Scripts.testShowRead (Proxy @(Bit.Bit 1))
     Scripts.testShowRead (Proxy @(Bit.Bit 8))
 
-  describe "IsScalar laws" do
-    Scripts.testIsScalar (Proxy @(Bit.Bit 0))
-    Scripts.testIsScalar (Proxy @(Bit.Bit 1))
-    Scripts.testIsScalar (Proxy @(Bit.Bit 64))
+  describe "IsPrimitive laws" do
+    Scripts.testIsPrimitive (Proxy @(Bit.Bit 0))
+    Scripts.testIsPrimitive (Proxy @(Bit.Bit 1))
+    Scripts.testIsPrimitive (Proxy @(Bit.Bit 64))
 
   describe "Bit 8" do
     describe "Constructors" do

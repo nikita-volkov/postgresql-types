@@ -13,8 +13,8 @@ spec = do
   describe "Show/Read laws" do
     Scripts.testShowRead (Proxy @Uuid.Uuid)
 
-  describe "IsScalar laws" do
-    Scripts.testIsScalar (Proxy @Uuid.Uuid)
+  describe "IsPrimitive laws" do
+    Scripts.testIsPrimitive (Proxy @Uuid.Uuid)
 
   describe "Constructors" do
     describe "fromUUID" do

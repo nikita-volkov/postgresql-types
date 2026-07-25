@@ -32,7 +32,7 @@ import qualified TextBuilder
 newtype Polygon
   = Polygon (UnboxedVector.Vector (Double, Double))
   deriving stock (Eq, Ord)
-  deriving (Show, Read, IsString) via (ViaIsScalar Polygon)
+  deriving (Show, Read, IsString) via (ViaIsPrimitive Polygon)
 
 instance Arbitrary Polygon where
   arbitrary = do
@@ -53,12 +53,32 @@ instance Hashable Polygon where
   hashWithSalt salt (Polygon points) =
     salt `hashWithSalt` UnboxedVector.toList points
 
-instance IsScalar Polygon where
+instance IsPrimitive Polygon where
   schemaName = Tagged Nothing
   typeName = Tagged "polygon"
   baseOid = Tagged (Just 604)
   arrayOid = Tagged (Just 1027)
   typeParams = Tagged []
+  textualEncoder (Polygon points) =
+    "(" <> TextBuilder.intercalateMap "," encodePoint (UnboxedVector.toList points) <> ")"
+    where
+      encodePoint (x, y) =
+        "(" <> TextBuilder.string (printf "%g" x) <> "," <> TextBuilder.string (printf "%g" y) <> ")"
+  textualDecoder = do
+    _ <- Attoparsec.char '('
+    points <- parsePoint `Attoparsec.sepBy1` Attoparsec.char ','
+    _ <- Attoparsec.char ')'
+    pure (Polygon (UnboxedVector.fromList points))
+    where
+      parsePoint = do
+        _ <- Attoparsec.char '('
+        x <- Attoparsec.double
+        _ <- Attoparsec.char ','
+        y <- Attoparsec.double
+        _ <- Attoparsec.char ')'
+        pure (x, y)
+
+instance IsBinaryPrimitive Polygon where
   binaryEncoder (Polygon points) =
     let numPoints = fromIntegral (UnboxedVector.length points) :: Int32
         pointsEncoded = UnboxedVector.foldMap encodePoint points
@@ -80,24 +100,6 @@ instance IsScalar Polygon where
       decodePoint = PtrPeeker.fixed do
         x <- castWord64ToDouble <$> PtrPeeker.beUnsignedInt8
         y <- castWord64ToDouble <$> PtrPeeker.beUnsignedInt8
-        pure (x, y)
-  textualEncoder (Polygon points) =
-    "(" <> TextBuilder.intercalateMap "," encodePoint (UnboxedVector.toList points) <> ")"
-    where
-      encodePoint (x, y) =
-        "(" <> TextBuilder.string (printf "%g" x) <> "," <> TextBuilder.string (printf "%g" y) <> ")"
-  textualDecoder = do
-    _ <- Attoparsec.char '('
-    points <- parsePoint `Attoparsec.sepBy1` Attoparsec.char ','
-    _ <- Attoparsec.char ')'
-    pure (Polygon (UnboxedVector.fromList points))
-    where
-      parsePoint = do
-        _ <- Attoparsec.char '('
-        x <- Attoparsec.double
-        _ <- Attoparsec.char ','
-        y <- Attoparsec.double
-        _ <- Attoparsec.char ')'
         pure (x, y)
 
 -- * Accessors

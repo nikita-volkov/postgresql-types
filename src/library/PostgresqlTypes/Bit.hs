@@ -38,7 +38,7 @@ newtype Bit (numBits :: TypeLits.Nat)
       -- | Bit data (packed into bytes)
       ByteString
   deriving stock (Eq, Ord)
-  deriving (Show, Read, IsString) via (ViaIsScalar (Bit numBits))
+  deriving (Show, Read, IsString) via (ViaIsPrimitive (Bit numBits))
   deriving newtype (Hashable)
 
 instance (TypeLits.KnownNat numBits) => Arbitrary (Bit numBits) where
@@ -49,7 +49,7 @@ instance (TypeLits.KnownNat numBits) => Arbitrary (Bit numBits) where
       Nothing -> error "Arbitrary Bit: Generated bit string has incorrect length"
       Just bit -> pure bit
 
-instance (TypeLits.KnownNat numBits) => IsScalar (Bit numBits) where
+instance (TypeLits.KnownNat numBits) => IsPrimitive (Bit numBits) where
   schemaName = Tagged Nothing
   typeName = Tagged "bit"
   baseOid = Tagged (Just 1560)
@@ -58,30 +58,6 @@ instance (TypeLits.KnownNat numBits) => IsScalar (Bit numBits) where
     Tagged
       [ Text.pack (show (TypeLits.natVal (Proxy @numBits)))
       ]
-  binaryEncoder (Bit bytes) =
-    let len = fromIntegral (TypeLits.natVal (Proxy @numBits))
-     in mconcat
-          [ Write.bInt32 len,
-            Write.byteString bytes
-          ]
-  binaryDecoder = do
-    len <- PtrPeeker.fixed PtrPeeker.beSignedInt4
-    bytes <- PtrPeeker.remainderAsByteString
-    let expectedLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
-    if len == expectedLen
-      then pure (Right (Bit bytes))
-      else
-        pure
-          ( Left
-              ( DecodingError
-                  { location = ["Bit"],
-                    reason =
-                      UnsupportedValueDecodingErrorReason
-                        ("Expected bit string of length " <> Text.pack (show expectedLen) <> " but got " <> Text.pack (show len))
-                        (TextBuilder.toText (TextBuilder.decimal len))
-                  }
-              )
-          )
   textualEncoder (Bit bytes) =
     let len = fromIntegral (TypeLits.natVal (Proxy @numBits))
         bits = concatMap byteToBits (ByteString.unpack bytes)
@@ -109,6 +85,32 @@ instance (TypeLits.KnownNat numBits) => IsScalar (Bit numBits) where
       chunksOf :: Int -> [a] -> [[a]]
       chunksOf _ [] = []
       chunksOf n xs = take n xs : chunksOf n (drop n xs)
+
+instance (TypeLits.KnownNat numBits) => IsBinaryPrimitive (Bit numBits) where
+  binaryEncoder (Bit bytes) =
+    let len = fromIntegral (TypeLits.natVal (Proxy @numBits))
+     in mconcat
+          [ Write.bInt32 len,
+            Write.byteString bytes
+          ]
+  binaryDecoder = do
+    len <- PtrPeeker.fixed PtrPeeker.beSignedInt4
+    bytes <- PtrPeeker.remainderAsByteString
+    let expectedLen = fromIntegral (TypeLits.natVal (Proxy @numBits))
+    if len == expectedLen
+      then pure (Right (Bit bytes))
+      else
+        pure
+          ( Left
+              ( DecodingError
+                  { location = ["Bit"],
+                    reason =
+                      UnsupportedValueDecodingErrorReason
+                        ("Expected bit string of length " <> Text.pack (show expectedLen) <> " but got " <> Text.pack (show len))
+                        (TextBuilder.toText (TextBuilder.decimal len))
+                  }
+              )
+          )
 
 -- * Accessors
 

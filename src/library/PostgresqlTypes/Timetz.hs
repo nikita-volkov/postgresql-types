@@ -40,7 +40,7 @@ data Timetz
       -- | Timezone offset in seconds (positive is east of UTC, negative is west of UTC)
       Offset.TimetzOffset
   deriving stock (Eq, Ord)
-  deriving (Show, Read, IsString) via (ViaIsScalar Timetz)
+  deriving (Show, Read, IsString) via (ViaIsPrimitive Timetz)
 
 instance Arbitrary Timetz where
   arbitrary = do
@@ -52,24 +52,12 @@ instance Hashable Timetz where
   hashWithSalt salt (Timetz time offset) =
     salt `hashWithSalt` Time.toMicroseconds time `hashWithSalt` Offset.toSeconds offset
 
-instance IsScalar Timetz where
+instance IsPrimitive Timetz where
   schemaName = Tagged Nothing
   typeName = Tagged "timetz"
   baseOid = Tagged (Just 1266)
   arrayOid = Tagged (Just 1270)
   typeParams = Tagged []
-
-  binaryEncoder (Timetz time offset) =
-    mconcat
-      [ Time.binaryEncoder time,
-        Offset.binaryEncoder offset
-      ]
-
-  binaryDecoder =
-    PtrPeeker.fixed do
-      time <- Time.binaryDecoder
-      offset <- Offset.binaryDecoder
-      pure (Timetz <$> time <*> offset)
 
   -- Format:
   -- 23:59:59-15:59:59
@@ -109,6 +97,19 @@ instance IsScalar Timetz where
         let paddedDigits = take 6 (Text.unpack digits ++ repeat '0')
             micros = foldl' (\acc c -> acc * 10 + fromIntegral (digitToInt c)) 0 paddedDigits
         pure micros
+
+instance IsBinaryPrimitive Timetz where
+  binaryEncoder (Timetz time offset) =
+    mconcat
+      [ Time.binaryEncoder time,
+        Offset.binaryEncoder offset
+      ]
+
+  binaryDecoder =
+    PtrPeeker.fixed do
+      time <- Time.binaryDecoder
+      offset <- Offset.binaryDecoder
+      pure (Timetz <$> time <*> offset)
 
 -- * Accessors
 

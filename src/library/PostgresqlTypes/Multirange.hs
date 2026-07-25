@@ -46,14 +46,31 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/rangetypes.html#RANGETYPES-MULTIRANGE).
 newtype Multirange a = Multirange (Vector (Range a))
   deriving stock (Eq, Functor)
-  deriving (Show, Read, IsString) via (ViaIsScalar (Multirange a))
+  deriving (Show, Read, IsString) via (ViaIsPrimitive (Multirange a))
 
-instance (IsMultirangeElement a) => IsScalar (Multirange a) where
+instance (IsMultirangeElement a) => IsPrimitive (Multirange a) where
   schemaName = Tagged Nothing
   typeName = retag (multirangeTypeName @a)
   baseOid = retag (multirangeBaseOid @a)
   arrayOid = retag (multirangeArrayOid @a)
   typeParams = retag (typeParams @(Range a))
+  textualEncoder = \case
+    Multirange ranges ->
+      mconcat
+        [ "{",
+          TextBuilder.intercalate "," (Vector.toList (Vector.map (textualEncoder @(Range a)) ranges)),
+          "}"
+        ]
+  textualDecoder = do
+    _ <- Attoparsec.char '{'
+    Attoparsec.skipSpace
+    ranges <- (textualDecoder @(Range a)) `Attoparsec.sepBy` (Attoparsec.skipSpace >> Attoparsec.char ',' >> Attoparsec.skipSpace)
+    Attoparsec.skipSpace
+    _ <- Attoparsec.char '}'
+    Attoparsec.skipSpace
+    pure (Multirange (Vector.fromList ranges))
+
+instance (IsMultirangeElement a, IsBinaryPrimitive a) => IsBinaryPrimitive (Multirange a) where
   binaryEncoder = \case
     Multirange ranges ->
       mconcat
@@ -76,22 +93,6 @@ instance (IsMultirangeElement a) => IsScalar (Multirange a) where
       ExceptT do
         PtrPeeker.forceSize (fromIntegral size) do
           binaryDecoder @(Range a)
-    pure (Multirange (Vector.fromList ranges))
-
-  textualEncoder = \case
-    Multirange ranges ->
-      mconcat
-        [ "{",
-          TextBuilder.intercalate "," (Vector.toList (Vector.map (textualEncoder @(Range a)) ranges)),
-          "}"
-        ]
-  textualDecoder = do
-    _ <- Attoparsec.char '{'
-    Attoparsec.skipSpace
-    ranges <- (textualDecoder @(Range a)) `Attoparsec.sepBy` (Attoparsec.skipSpace >> Attoparsec.char ',' >> Attoparsec.skipSpace)
-    Attoparsec.skipSpace
-    _ <- Attoparsec.char '}'
-    Attoparsec.skipSpace
     pure (Multirange (Vector.fromList ranges))
 
 instance (IsRangeElement a, Arbitrary a, Ord a) => Arbitrary (Multirange a) where

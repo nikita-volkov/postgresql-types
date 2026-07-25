@@ -31,7 +31,7 @@ import qualified TextBuilder
 -- is a property of comparisons, not of storage. NUL characters are not allowed.
 newtype Citext = Citext Text.Text
   deriving newtype (Eq, Ord, Hashable)
-  deriving (Show, Read, IsString) via (ViaIsScalar Citext)
+  deriving (Show, Read, IsString) via (ViaIsPrimitive Citext)
 
 instance Arbitrary Citext where
   arbitrary =
@@ -42,12 +42,16 @@ instance Arbitrary Citext where
   shrink (Citext base) =
     Citext . Text.pack <$> shrink (Text.unpack base)
 
-instance IsScalar Citext where
+instance IsPrimitive Citext where
   schemaName = Tagged Nothing
   typeName = Tagged "citext"
   baseOid = Tagged Nothing
   arrayOid = Tagged Nothing
   typeParams = Tagged []
+  textualEncoder (Citext base) = TextBuilder.text base
+  textualDecoder = Citext <$> Attoparsec.takeText
+
+instance IsBinaryPrimitive Citext where
   binaryEncoder (Citext base) = Write.textUtf8 base
   binaryDecoder = do
     bytes <- PtrPeeker.remainderAsByteString
@@ -65,8 +69,6 @@ instance IsScalar Citext where
               )
           )
       Right base -> pure (Right (Citext base))
-  textualEncoder (Citext base) = TextBuilder.text base
-  textualDecoder = Citext <$> Attoparsec.takeText
 
 -- * Accessors
 

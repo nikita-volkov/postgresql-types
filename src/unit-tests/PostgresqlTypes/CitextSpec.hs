@@ -15,8 +15,8 @@ spec = do
   describe "Show/Read laws" do
     Scripts.testShowRead (Proxy @Citext.Citext)
 
-  describe "IsScalar laws" do
-    Scripts.testIsScalar (Proxy @Citext.Citext)
+  describe "IsPrimitive laws" do
+    Scripts.testIsPrimitive (Proxy @Citext.Citext)
 
   describe "Constructors" do
     describe "normalizeFromText" do

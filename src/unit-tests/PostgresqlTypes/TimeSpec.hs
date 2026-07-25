@@ -18,8 +18,8 @@ spec = do
   describe "Show/Read laws" do
     Scripts.testShowRead (Proxy @PgTime.Time)
 
-  describe "IsScalar laws" do
-    Scripts.testIsScalar (Proxy @PgTime.Time)
+  describe "IsPrimitive laws" do
+    Scripts.testIsPrimitive (Proxy @PgTime.Time)
 
   describe "Constructors" do
     describe "normalizeFromMicroseconds" do

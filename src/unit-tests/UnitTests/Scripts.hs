@@ -15,17 +15,17 @@ import qualified TextBuilder
 import Prelude
 
 -- | Test textual encoder/decoder roundtrip
-testIsScalar ::
+testIsPrimitive ::
   forall a.
   ( Arbitrary a,
     Show a,
     Read a,
     Eq a,
-    PostgresqlTypes.Algebra.IsScalar a
+    PostgresqlTypes.Algebra.IsBinaryPrimitive a
   ) =>
   Proxy a ->
   Spec
-testIsScalar _ =
+testIsPrimitive _ =
   let name = Text.unpack (untag (PostgresqlTypes.Algebra.typeSignature @a))
       binEnc = PostgresqlTypes.Algebra.binaryEncoder @a
       binDec = PostgresqlTypes.Algebra.binaryDecoder @a

@@ -23,22 +23,24 @@ import qualified TextBuilder
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/datatype-numeric.html#DATATYPE-FLOAT).
 newtype Float8 = Float8 Double
   deriving newtype (Eq, Ord, Hashable, Arbitrary)
-  deriving (Show, Read, IsString) via (ViaIsScalar Float8)
+  deriving (Show, Read, IsString) via (ViaIsPrimitive Float8)
 
-instance IsScalar Float8 where
+instance IsPrimitive Float8 where
   schemaName = Tagged Nothing
   typeName = Tagged "float8"
   baseOid = Tagged (Just 701)
   arrayOid = Tagged (Just 1022)
   typeParams = Tagged []
-  binaryEncoder (Float8 x) = Write.bWord64 (castDoubleToWord64 x)
-  binaryDecoder = PtrPeeker.fixed (Right . Float8 . castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
   textualEncoder (Float8 x) = TextBuilder.string (printf "%g" x)
   textualDecoder =
     (Float8 (0 / 0) <$ Attoparsec.string "NaN")
       <|> (Float8 (1 / 0) <$ Attoparsec.string "Infinity")
       <|> (Float8 (-1 / 0) <$ Attoparsec.string "-Infinity")
       <|> (Float8 <$> Attoparsec.double)
+
+instance IsBinaryPrimitive Float8 where
+  binaryEncoder (Float8 x) = Write.bWord64 (castDoubleToWord64 x)
+  binaryDecoder = PtrPeeker.fixed (Right . Float8 . castWord64ToDouble <$> PtrPeeker.beUnsignedInt8)
 
 -- * Accessors
 

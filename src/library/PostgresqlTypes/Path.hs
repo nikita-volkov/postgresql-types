@@ -35,7 +35,7 @@ data Path
       -- | Points in the path
       (UnboxedVector.Vector (Double, Double))
   deriving stock (Eq, Ord)
-  deriving (Show, Read, IsString) via (ViaIsScalar Path)
+  deriving (Show, Read, IsString) via (ViaIsPrimitive Path)
 
 instance Arbitrary Path where
   arbitrary = do
@@ -56,12 +56,39 @@ instance Hashable Path where
   hashWithSalt salt (Path closed points) =
     salt `hashWithSalt` closed `hashWithSalt` UnboxedVector.toList points
 
-instance IsScalar Path where
+instance IsPrimitive Path where
   schemaName = Tagged Nothing
   typeName = Tagged "path"
   baseOid = Tagged (Just 602)
   arrayOid = Tagged (Just 1019)
   typeParams = Tagged []
+  textualEncoder (Path closed points) =
+    let openChar = if closed then "(" else "["
+        closeChar = if closed then ")" else "]"
+        pointsStr = TextBuilder.intercalateMap "," encodePoint (UnboxedVector.toList points)
+     in openChar <> pointsStr <> closeChar
+    where
+      encodePoint (x, y) =
+        "(" <> TextBuilder.string (printf "%g" x) <> "," <> TextBuilder.string (printf "%g" y) <> ")"
+  textualDecoder = do
+    closed <-
+      True
+        <$ Attoparsec.char '('
+        <|> False
+          <$ Attoparsec.char '['
+    points <- parsePoint `Attoparsec.sepBy1` Attoparsec.char ','
+    _ <- Attoparsec.char (if closed then ')' else ']')
+    pure (Path closed (UnboxedVector.fromList points))
+    where
+      parsePoint = do
+        _ <- Attoparsec.char '('
+        x <- Attoparsec.double
+        _ <- Attoparsec.char ','
+        y <- Attoparsec.double
+        _ <- Attoparsec.char ')'
+        pure (x, y)
+
+instance IsBinaryPrimitive Path where
   binaryEncoder (Path closed points) =
     let closedByte = if closed then 1 else 0 :: Word8
         numPoints = fromIntegral (UnboxedVector.length points) :: Int32
@@ -87,31 +114,6 @@ instance IsScalar Path where
       decodePoint = PtrPeeker.fixed do
         x <- castWord64ToDouble <$> PtrPeeker.beUnsignedInt8
         y <- castWord64ToDouble <$> PtrPeeker.beUnsignedInt8
-        pure (x, y)
-  textualEncoder (Path closed points) =
-    let openChar = if closed then "(" else "["
-        closeChar = if closed then ")" else "]"
-        pointsStr = TextBuilder.intercalateMap "," encodePoint (UnboxedVector.toList points)
-     in openChar <> pointsStr <> closeChar
-    where
-      encodePoint (x, y) =
-        "(" <> TextBuilder.string (printf "%g" x) <> "," <> TextBuilder.string (printf "%g" y) <> ")"
-  textualDecoder = do
-    closed <-
-      True
-        <$ Attoparsec.char '('
-        <|> False
-          <$ Attoparsec.char '['
-    points <- parsePoint `Attoparsec.sepBy1` Attoparsec.char ','
-    _ <- Attoparsec.char (if closed then ')' else ']')
-    pure (Path closed (UnboxedVector.fromList points))
-    where
-      parsePoint = do
-        _ <- Attoparsec.char '('
-        x <- Attoparsec.double
-        _ <- Attoparsec.char ','
-        y <- Attoparsec.double
-        _ <- Attoparsec.char ')'
         pure (x, y)
 
 -- * Accessors

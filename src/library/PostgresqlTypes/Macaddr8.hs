@@ -49,7 +49,7 @@ data Macaddr8
       -- | Eighth byte
       Word8
   deriving stock (Eq, Ord)
-  deriving (Show, Read, IsString) via (ViaIsScalar Macaddr8)
+  deriving (Show, Read, IsString) via (ViaIsPrimitive Macaddr8)
 
 instance Arbitrary Macaddr8 where
   arbitrary = do
@@ -78,37 +78,12 @@ instance Hashable Macaddr8 where
       `hashWithSalt` g
       `hashWithSalt` h
 
-instance IsScalar Macaddr8 where
+instance IsPrimitive Macaddr8 where
   schemaName = Tagged Nothing
   typeName = Tagged "macaddr8"
   baseOid = Tagged (Just 774)
   arrayOid = Tagged (Just 775)
   typeParams = Tagged []
-  binaryEncoder (Macaddr8 a b c d e f g h) =
-    mconcat
-      [ Write.word8 a,
-        Write.word8 b,
-        Write.word8 c,
-        Write.word8 d,
-        Write.word8 e,
-        Write.word8 f,
-        Write.word8 g,
-        Write.word8 h
-      ]
-  binaryDecoder =
-    PtrPeeker.fixed
-      ( Right
-          <$> ( Macaddr8
-                  <$> PtrPeeker.unsignedInt1
-                  <*> PtrPeeker.unsignedInt1
-                  <*> PtrPeeker.unsignedInt1
-                  <*> PtrPeeker.unsignedInt1
-                  <*> PtrPeeker.unsignedInt1
-                  <*> PtrPeeker.unsignedInt1
-                  <*> PtrPeeker.unsignedInt1
-                  <*> PtrPeeker.unsignedInt1
-              )
-      )
   textualEncoder (Macaddr8 a b c d e f g h) =
     TextBuilder.intercalate ":" $
       [ formatByte a,
@@ -152,6 +127,33 @@ instance IsScalar Macaddr8 where
             <$> Attoparsec.satisfy (\c -> c >= 'a' && c <= 'f')
           <|> (\c -> fromIntegral (ord c - ord 'A' + 10))
             <$> Attoparsec.satisfy (\c -> c >= 'A' && c <= 'F')
+
+instance IsBinaryPrimitive Macaddr8 where
+  binaryEncoder (Macaddr8 a b c d e f g h) =
+    mconcat
+      [ Write.word8 a,
+        Write.word8 b,
+        Write.word8 c,
+        Write.word8 d,
+        Write.word8 e,
+        Write.word8 f,
+        Write.word8 g,
+        Write.word8 h
+      ]
+  binaryDecoder =
+    PtrPeeker.fixed
+      ( Right
+          <$> ( Macaddr8
+                  <$> PtrPeeker.unsignedInt1
+                  <*> PtrPeeker.unsignedInt1
+                  <*> PtrPeeker.unsignedInt1
+                  <*> PtrPeeker.unsignedInt1
+                  <*> PtrPeeker.unsignedInt1
+                  <*> PtrPeeker.unsignedInt1
+                  <*> PtrPeeker.unsignedInt1
+                  <*> PtrPeeker.unsignedInt1
+              )
+      )
 
 -- * Accessors
 

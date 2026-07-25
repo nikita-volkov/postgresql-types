@@ -14,8 +14,8 @@ spec = do
   describe "Show/Read laws" do
     Scripts.testShowRead (Proxy @Json.Json)
 
-  describe "IsScalar laws" do
-    Scripts.testIsScalar (Proxy @Json.Json)
+  describe "IsPrimitive laws" do
+    Scripts.testIsPrimitive (Proxy @Json.Json)
 
   describe "Constructors" do
     describe "fromValue" do

@@ -49,7 +49,7 @@ data Inet
       -- | Network mask length (0-128).
       Word8
   deriving stock (Eq, Ord)
-  deriving (Show, Read, IsString) via (ViaIsScalar Inet)
+  deriving (Show, Read, IsString) via (ViaIsPrimitive Inet)
 
 instance Arbitrary Inet where
   arbitrary = do
@@ -86,69 +86,12 @@ instance Hashable Inet where
     V4Inet addr netmask -> salt `hashWithSalt` (0 :: Int) `hashWithSalt` addr `hashWithSalt` netmask
     V6Inet w1 w2 w3 w4 netmask -> salt `hashWithSalt` (1 :: Int) `hashWithSalt` w1 `hashWithSalt` w2 `hashWithSalt` w3 `hashWithSalt` w4 `hashWithSalt` netmask
 
-instance IsScalar Inet where
+instance IsPrimitive Inet where
   schemaName = Tagged Nothing
   typeName = Tagged "inet"
   baseOid = Tagged (Just 869)
   arrayOid = Tagged (Just 1041)
   typeParams = Tagged []
-
-  binaryEncoder = \case
-    V4Inet addr netmask ->
-      mconcat
-        [ Write.word8 2, -- IPv4 address family
-          Write.word8 netmask,
-          Write.word8 0, -- is_cidr flag (0 for inet)
-          Write.word8 4, -- address length (4 bytes for IPv4)
-          Write.bWord32 addr -- IPv4 address
-        ]
-    V6Inet w1 w2 w3 w4 netmask ->
-      mconcat
-        [ Write.word8 3, -- IPv6 address family for INET (different from CIDR)
-          Write.word8 netmask,
-          Write.word8 0, -- is_cidr flag (0 for inet)
-          Write.word8 16, -- address length (16 bytes for IPv6)
-          Write.bWord32 w1,
-          Write.bWord32 w2,
-          Write.bWord32 w3,
-          Write.bWord32 w4
-        ]
-
-  binaryDecoder = do
-    (family, netmask, isCidrFlag, addrLen) <-
-      PtrPeeker.fixed do
-        (,,,)
-          <$> PtrPeeker.unsignedInt1
-          <*> PtrPeeker.unsignedInt1
-          <*> PtrPeeker.unsignedInt1
-          <*> PtrPeeker.unsignedInt1
-
-    runExceptT do
-      when (isCidrFlag /= 0) do
-        throwError (DecodingError ["is-cidr"] (UnexpectedValueDecodingErrorReason "0" (TextBuilder.toText (TextBuilder.decimal isCidrFlag))))
-
-      case family of
-        2 -> do
-          -- IPv4
-          when (addrLen /= 4) do
-            throwError (DecodingError ["address-length"] (UnexpectedValueDecodingErrorReason "4" (TextBuilder.toText (TextBuilder.decimal addrLen))))
-          addr <- lift do
-            PtrPeeker.fixed PtrPeeker.beUnsignedInt4
-          pure (V4Inet addr (fromIntegral netmask))
-        3 -> do
-          -- IPv6
-          when (addrLen /= 16) do
-            throwError (DecodingError ["address-length"] (UnexpectedValueDecodingErrorReason "16" (TextBuilder.toText (TextBuilder.decimal addrLen))))
-          lift do
-            PtrPeeker.fixed do
-              V6Inet
-                <$> PtrPeeker.beUnsignedInt4
-                <*> PtrPeeker.beUnsignedInt4
-                <*> PtrPeeker.beUnsignedInt4
-                <*> PtrPeeker.beUnsignedInt4
-                <*> pure (fromIntegral netmask)
-        _ -> do
-          throwError (DecodingError ["address-family"] (UnexpectedValueDecodingErrorReason "2 or 3" (TextBuilder.toText (TextBuilder.decimal family))))
 
   textualEncoder = \case
     V4Inet addr netmask ->
@@ -249,6 +192,64 @@ instance IsScalar Inet where
           _ -> fail "Expected 8 groups after expansion"
 
       parseHexGroup = Attoparsec.hexadecimal @Word16
+
+instance IsBinaryPrimitive Inet where
+  binaryEncoder = \case
+    V4Inet addr netmask ->
+      mconcat
+        [ Write.word8 2, -- IPv4 address family
+          Write.word8 netmask,
+          Write.word8 0, -- is_cidr flag (0 for inet)
+          Write.word8 4, -- address length (4 bytes for IPv4)
+          Write.bWord32 addr -- IPv4 address
+        ]
+    V6Inet w1 w2 w3 w4 netmask ->
+      mconcat
+        [ Write.word8 3, -- IPv6 address family for INET (different from CIDR)
+          Write.word8 netmask,
+          Write.word8 0, -- is_cidr flag (0 for inet)
+          Write.word8 16, -- address length (16 bytes for IPv6)
+          Write.bWord32 w1,
+          Write.bWord32 w2,
+          Write.bWord32 w3,
+          Write.bWord32 w4
+        ]
+
+  binaryDecoder = do
+    (family, netmask, isCidrFlag, addrLen) <-
+      PtrPeeker.fixed do
+        (,,,)
+          <$> PtrPeeker.unsignedInt1
+          <*> PtrPeeker.unsignedInt1
+          <*> PtrPeeker.unsignedInt1
+          <*> PtrPeeker.unsignedInt1
+
+    runExceptT do
+      when (isCidrFlag /= 0) do
+        throwError (DecodingError ["is-cidr"] (UnexpectedValueDecodingErrorReason "0" (TextBuilder.toText (TextBuilder.decimal isCidrFlag))))
+
+      case family of
+        2 -> do
+          -- IPv4
+          when (addrLen /= 4) do
+            throwError (DecodingError ["address-length"] (UnexpectedValueDecodingErrorReason "4" (TextBuilder.toText (TextBuilder.decimal addrLen))))
+          addr <- lift do
+            PtrPeeker.fixed PtrPeeker.beUnsignedInt4
+          pure (V4Inet addr (fromIntegral netmask))
+        3 -> do
+          -- IPv6
+          when (addrLen /= 16) do
+            throwError (DecodingError ["address-length"] (UnexpectedValueDecodingErrorReason "16" (TextBuilder.toText (TextBuilder.decimal addrLen))))
+          lift do
+            PtrPeeker.fixed do
+              V6Inet
+                <$> PtrPeeker.beUnsignedInt4
+                <*> PtrPeeker.beUnsignedInt4
+                <*> PtrPeeker.beUnsignedInt4
+                <*> PtrPeeker.beUnsignedInt4
+                <*> pure (fromIntegral netmask)
+        _ -> do
+          throwError (DecodingError ["address-family"] (UnexpectedValueDecodingErrorReason "2 or 3" (TextBuilder.toText (TextBuilder.decimal family))))
 
 -- * Accessors
 
