@@ -14,10 +14,12 @@
 !/*.cabal
 !/cabal.project
 !/.ormolu
+!/AGENTS.md
 
 # Unignore subtrees:
 !/.github/
 !/design/
+!/docs/
 !/src/
 
 # Ignore noise:
