@@ -1,3 +1,9 @@
+# Upcoming
+
+## Fixes
+
+- Fixed `Geometry`'s `Arbitrary` instance nesting unscaled lists inside each other (e.g. `MultiPolygonShape`, `CurvePolygonShape`), which multiplied the QuickCheck size parameter against itself and made the PostGIS integration tests extremely slow.
+
 # v0.1.5.0
 
 ## Non-breaking
