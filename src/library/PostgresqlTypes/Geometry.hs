@@ -908,15 +908,21 @@ shapeGen dim size =
         MultiPointShape <$> QuickCheck.listOf (coordGen dim),
         QuickCheck.oneof [pure (TriangleShape []), TriangleShape <$> ringCoordsGen dim]
       ]
+    -- Every member generator below (@listOf1 ringCoordsGen@, 'curveGen', 'surfaceGen') can itself
+    -- expand into a list of the ambient size. Left unscaled, a list-of-lists like this multiplies
+    -- the size parameter against itself instead of dividing it up, so it's wrapped in
+    -- 'QuickCheck.scale' to shrink each member's budget the same way 'subSize' already does for
+    -- 'GeometryCollectionShape' below — otherwise a single 'Geometry' at the default QuickCheck size
+    -- can carry hundreds of thousands of coordinates.
     compound =
       [ MultiLineStringShape <$> QuickCheck.listOf (lineStringCoordsGen dim),
-        MultiPolygonShape <$> QuickCheck.listOf (QuickCheck.listOf1 (ringCoordsGen dim)),
-        PolyhedralSurfaceShape <$> QuickCheck.listOf (QuickCheck.listOf1 (ringCoordsGen dim)),
+        MultiPolygonShape <$> QuickCheck.listOf (QuickCheck.scale (`div` 4) (QuickCheck.listOf1 (ringCoordsGen dim))),
+        PolyhedralSurfaceShape <$> QuickCheck.listOf (QuickCheck.scale (`div` 4) (QuickCheck.listOf1 (ringCoordsGen dim))),
         TinShape <$> QuickCheck.listOf (QuickCheck.oneof [pure [], ringCoordsGen dim]),
         CompoundCurveShape <$> QuickCheck.listOf (segmentGen dim),
-        CurvePolygonShape <$> QuickCheck.listOf (curveGen dim),
-        MultiCurveShape <$> QuickCheck.listOf (curveGen dim),
-        MultiSurfaceShape <$> QuickCheck.listOf (surfaceGen dim),
+        CurvePolygonShape <$> QuickCheck.listOf (QuickCheck.scale (`div` 4) (curveGen dim)),
+        MultiCurveShape <$> QuickCheck.listOf (QuickCheck.scale (`div` 4) (curveGen dim)),
+        MultiSurfaceShape <$> QuickCheck.listOf (QuickCheck.scale (`div` 4) (surfaceGen dim)),
         GeometryCollectionShape <$> QuickCheck.resize subSize (QuickCheck.listOf (shapeGen dim subSize))
       ]
     subSize = div size 4
@@ -965,7 +971,7 @@ curveGen :: Dim -> QuickCheck.Gen Curve
 curveGen dim =
   QuickCheck.oneof
     [ SegmentCurve <$> segmentGen dim,
-      ChainedCurve <$> QuickCheck.listOf (segmentGen dim)
+      ChainedCurve <$> QuickCheck.scale (`div` 4) (QuickCheck.listOf (segmentGen dim))
     ]
 
 -- | Generate a surface, matching 'Surface'\'s own two constructors. A plain polygon surface has at
@@ -974,7 +980,7 @@ surfaceGen :: Dim -> QuickCheck.Gen Surface
 surfaceGen dim =
   QuickCheck.oneof
     [ PolygonSurface . pure <$> ringCoordsGen dim,
-      CurvedSurface <$> QuickCheck.listOf (curveGen dim)
+      CurvedSurface <$> QuickCheck.scale (`div` 4) (QuickCheck.listOf (curveGen dim))
     ]
 
 -- | Shrink a shape by dropping members of its collections.
