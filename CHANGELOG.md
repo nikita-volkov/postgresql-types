@@ -1,3 +1,9 @@
+# Upcoming
+
+## Non-breaking
+
+- Added `refineFromLocalTime` to `PostgresqlTypes.Timestamp` and `refineFromUtcTime` to `PostgresqlTypes.Timestamptz`, mirroring the `refineFromX` pattern already present for `Text`, `Date`, `Time`, and `Numeric`. Each validates that the input is both within the representable range and round-trippable without loss of sub-microsecond precision, returning `Nothing` otherwise.
+
 # v0.1.5.1
 
 ## Fixes

@@ -8,6 +8,7 @@ module PostgresqlTypes.Timestamp
     -- * Constructors
     normalizeFromMicroseconds,
     normalizeFromLocalTime,
+    refineFromLocalTime,
   )
 where
 
@@ -154,6 +155,20 @@ normalizeFromLocalTime localTime =
   let diffTime = Time.diffLocalTime localTime postgresTimestampEpoch
       micros = round (diffTime * 1_000_000)
    in normalizeFromMicroseconds micros
+
+-- | Construct a PostgreSQL 'Timestamp' from 'Time.LocalTime', validating that
+-- it is representable exactly (both within range and without loss of
+-- sub-microsecond precision). Returns 'Nothing' if the value is outside the
+-- valid range or cannot be round-tripped without loss.
+refineFromLocalTime :: Time.LocalTime -> Maybe Timestamp
+refineFromLocalTime localTime =
+  let diffTime = Time.diffLocalTime localTime postgresTimestampEpoch
+      micros = round (diffTime * 1_000_000)
+   in if micros >= minMicroseconds
+        && micros <= maxMicroseconds
+        && toLocalTime (Timestamp micros) == localTime
+        then Just (Timestamp micros)
+        else Nothing
 
 -- | Format a LocalTime for PostgreSQL timestamp text format.
 -- PostgreSQL requires specific formatting for extreme dates:

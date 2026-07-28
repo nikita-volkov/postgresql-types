@@ -8,6 +8,7 @@ module PostgresqlTypes.Timestamptz
     -- * Constructors
     normalizeFromMicroseconds,
     normalizeFromUtcTime,
+    refineFromUtcTime,
   )
 where
 
@@ -165,6 +166,20 @@ normalizeFromUtcTime utcTime =
   let diffTime = Time.diffUTCTime utcTime postgresUtcEpoch
       micros = round (diffTime * 1_000_000)
    in normalizeFromMicroseconds micros
+
+-- | Construct a PostgreSQL 'Timestamptz' from 'Time.UTCTime', validating that
+-- it is representable exactly (both within range and without loss of
+-- sub-microsecond precision). Returns 'Nothing' if the value is outside the
+-- valid range or cannot be round-tripped without loss.
+refineFromUtcTime :: Time.UTCTime -> Maybe Timestamptz
+refineFromUtcTime utcTime =
+  let diffTime = Time.diffUTCTime utcTime postgresUtcEpoch
+      micros = round (diffTime * 1_000_000)
+   in if micros >= minMicroseconds
+        && micros <= maxMicroseconds
+        && toUtcTime (Timestamptz micros) == utcTime
+        then Just (Timestamptz micros)
+        else Nothing
 
 -- | Format a UTCTime for PostgreSQL timestamptz text format.
 -- PostgreSQL requires specific formatting for extreme dates:

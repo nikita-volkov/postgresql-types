@@ -6,6 +6,7 @@ import qualified PostgresqlTypes.Timestamptz as Timestamptz
 import Test.Hspec
 import Test.QuickCheck
 import qualified UnitTests.Scripts as Scripts
+import Prelude
 
 spec :: Spec
 spec = do
@@ -30,6 +31,19 @@ spec = do
             utcTime = Time.UTCTime day diffTime
             pgTimestamptz = Timestamptz.normalizeFromUtcTime utcTime
         Timestamptz.toUtcTime pgTimestamptz `shouldBe` utcTime
+
+    describe "refineFromUtcTime" do
+      it "accepts a UTCTime within range and precision" do
+        let day = Time.fromGregorian 2023 6 15
+            diffTime = Time.secondsToDiffTime 45045 -- 12:30:45
+            utcTime = Time.UTCTime day diffTime
+        fmap Timestamptz.toUtcTime (Timestamptz.refineFromUtcTime utcTime) `shouldBe` Just utcTime
+
+      it "rejects a UTCTime with sub-microsecond precision" do
+        let day = Time.fromGregorian 2023 6 15
+            diffTime = Time.picosecondsToDiffTime (45045 * 1_000_000_000_000 + 123_456_500)
+            utcTime = Time.UTCTime day diffTime
+        Timestamptz.refineFromUtcTime utcTime `shouldBe` Nothing
 
   describe "Accessors" do
     describe "toUtcTime" do

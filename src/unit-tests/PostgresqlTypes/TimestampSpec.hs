@@ -6,6 +6,7 @@ import qualified PostgresqlTypes.Timestamp as Timestamp
 import Test.Hspec
 import Test.QuickCheck
 import qualified UnitTests.Scripts as Scripts
+import Prelude
 
 spec :: Spec
 spec = do
@@ -30,6 +31,19 @@ spec = do
             localTime = Time.LocalTime day tod
             pgTimestamp = Timestamp.normalizeFromLocalTime localTime
         Timestamp.toLocalTime pgTimestamp `shouldBe` localTime
+
+    describe "refineFromLocalTime" do
+      it "accepts a LocalTime within range and precision" do
+        let day = Time.fromGregorian 2023 6 15
+            tod = Time.TimeOfDay 12 30 45
+            localTime = Time.LocalTime day tod
+        fmap Timestamp.toLocalTime (Timestamp.refineFromLocalTime localTime) `shouldBe` Just localTime
+
+      it "rejects a LocalTime with sub-microsecond precision" do
+        let day = Time.fromGregorian 2023 6 15
+            tod = Time.TimeOfDay 12 30 45.1234565
+            localTime = Time.LocalTime day tod
+        Timestamp.refineFromLocalTime localTime `shouldBe` Nothing
 
   describe "Accessors" do
     describe "toLocalTime" do
