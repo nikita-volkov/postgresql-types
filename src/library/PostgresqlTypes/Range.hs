@@ -47,7 +47,7 @@ import qualified TextBuilder
 data Range a
   = EmptyRange
   | BoundedRange (Maybe a) (Maybe a)
-  deriving stock (Eq, Functor)
+  deriving stock (Eq, Functor, Foldable, Traversable)
   deriving (Show, Read, IsString) via (ViaIsPrimitive (Range a))
 
 instance (IsRangeElement a) => IsPrimitive (Range a) where

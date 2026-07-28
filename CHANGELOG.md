@@ -1,3 +1,9 @@
+# Upcoming
+
+## Non-breaking
+
+- Added `Foldable` and `Traversable` instances for `PostgresqlTypes.Range` and `PostgresqlTypes.Multirange`.
+
 # v0.1.6.0
 
 ## Non-breaking

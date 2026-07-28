@@ -45,7 +45,7 @@ import qualified TextBuilder
 --
 -- [PostgreSQL docs](https://www.postgresql.org/docs/18/rangetypes.html#RANGETYPES-MULTIRANGE).
 newtype Multirange a = Multirange (Vector (Range a))
-  deriving stock (Eq, Functor)
+  deriving stock (Eq, Functor, Foldable, Traversable)
   deriving (Show, Read, IsString) via (ViaIsPrimitive (Multirange a))
 
 instance (IsMultirangeElement a) => IsPrimitive (Multirange a) where
