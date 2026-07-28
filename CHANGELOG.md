@@ -1,4 +1,4 @@
-# Upcoming
+# v0.1.7.0
 
 ## Non-breaking
 
