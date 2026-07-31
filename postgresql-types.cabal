@@ -26,9 +26,9 @@ copyright: (c) 2025, Nikita Volkov
 license: MIT
 license-file: LICENSE
 extra-doc-files:
+  CHANGELOG.md
   LICENSE
   README.md
-  CHANGELOG.md
 
 source-repository head
   type: git
