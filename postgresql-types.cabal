@@ -28,6 +28,7 @@ license-file: LICENSE
 extra-doc-files:
   LICENSE
   README.md
+  CHANGELOG.md
 
 source-repository head
   type: git
